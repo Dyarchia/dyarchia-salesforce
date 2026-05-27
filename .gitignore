@@ -1,0 +1,32 @@
+# Build artifacts — Claude skill bundles
+*.skill
+
+# Claude Code local config
+.claude/
+.claude-cache/
+
+# OS metadata — Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# OS metadata — macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# OS metadata — Linux
+*~
+.directory
+.Trash-*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs / temp
+*.log
+*.tmp
