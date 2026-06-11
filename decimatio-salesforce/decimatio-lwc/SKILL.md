@@ -1,6 +1,6 @@
 ---
 name: decimatio-lwc
-description: Salesforce LWC and (UI-facing) Apex Summer '26 (API v67.0) modern development best practices — template syntax, LDS, GraphQL, state management, Apex-when-truly-needed, dev tooling. Load only when the user explicitly invokes this skill by name (`decimatio-lwc`); do NOT auto-trigger on generic LWC, Lightning, or component-related questions.
+description: Salesforce LWC and (UI-facing) Apex Spring '26 (API v66.0) modern development best practices — template syntax, LDS, GraphQL queries and mutations, shared state via LMS, Apex-when-truly-needed, dev tooling. Load only when the user explicitly invokes this skill by name (`decimatio-lwc`); do NOT auto-trigger on generic LWC, Lightning, or component-related questions.
 ---
 
 # Salesforce LWC & Apex (UI Layer) — Modern Development
@@ -10,25 +10,25 @@ You are an expert Salesforce developer specialised in Lightning Web Components. 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/` and are loaded on demand:
 
 - `references/graphql-patterns.md` — full GraphQL query, paginated query, mutation and multi-object patterns.
-- `references/state-management.md` — full `@lwc/state` manager definition, consumer component, architectural rules.
+- `references/state-management.md` — Lightning Message Service (LMS) reference for shared state across sibling/same-page components, plus a forward note on `@lwc/state`.
 
 Load a reference when you are about to write or refactor code that needs that exact implementation. For server-side Apex best practices (security, SOQL/DML, triggers, async, testing, observability), see the companion skill `decimatio-apex`.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Spring '26 / API v66.0
 
-**Current LWC / Apex API version: 67.0 (Summer '26).** All new components, classes, and metadata files MUST be saved at `<apiVersion>67.0</apiVersion>`. Summer '26 ships several user-facing developer additions and one set of versioned Apex defaults that affect any `@AuraEnabled` method called from an LWC:
+**Current LWC / Apex API version: 66.0 (Spring '26).** All new components, classes, and metadata files MUST be saved at `<apiVersion>66.0</apiVersion>`. Spring '26 ships several user-facing developer additions. Note carefully which features are GA versus Beta in this release:
 
-- **LWC State Management is GA** (`@lwc/state`) — replaces prop-drilling and ad-hoc pub/sub for shared client-side state. See §5.
-- **LWC Live Preview is GA** in VS Code — single-component preview without page reload. See §12.
+- **GraphQL mutations are GA** — full CRUD support via `executeMutation` from `lightning/graphql` (v2), introduced alongside the v2 adapter in Spring '26. Apex controllers for single-object DML are no longer justified. See §4.
 - **`lwc:on` directive** (Spring '26) — attach event listeners dynamically from a JS object instead of hard-coded `onclick`/`onfocus` attributes. See §2.
-- **Complex template expressions (Beta)** — JS expressions directly inside `{}` in templates. Beta only; do NOT use in production code until GA.
 - **`standard__flow` PageReference** (Spring '26) — launch any active flow from an LWC with one `navigate` call. Before this, you had to use `<lightning-flow>` directly or wrap with Aura's `lightning:flow`. See §6.
-- **GraphQL mutations** — full CRUD support via `executeMutation`. Apex controllers for single-object DML are no longer justified.
-- **Custom SLDS styling hooks** for Flow Screen Component LWCs — expose color/radius/weight hooks so admins can theme components from App Builder without touching the code.
-- **API 67 Apex default for `@AuraEnabled` invoked from LWC**: omitted sharing declaration now defaults to `with sharing` (was `without sharing` in 66 and earlier). Same default applies to Aura controllers. Always declare sharing explicitly anyway.
-- **`WITH SECURITY_ENFORCED` is REMOVED** in API 67+ — does not compile. Use `WITH USER_MODE` (see §7).
+- **Complex template expressions (Beta)** — JS expressions directly inside `{}` in templates, introduced in Spring '26. Beta only; do NOT use in production code until GA.
+- **LWC State Management (`@lwc/state`) is NOT GA in v66.0** — it is only Beta this release and reaches GA in Summer '26 (v67.0). Do NOT use it in production. For shared state across sibling/same-page components, use Lightning Message Service. See §5.
+- **LWC Live Preview is Beta** in VS Code (still "Local Dev"); it reaches GA in Summer '26. Usable for local iteration, but not a supported production workflow yet. See §12.
+- **Apex defaults in v66.0**: an omitted sharing declaration on an `@AuraEnabled` class defaults to `without sharing`, and plain SOQL/DML defaults to system mode. (Both flip in v67.0: default sharing becomes `with sharing` and DB operations run in user mode by default.) Always declare sharing AND access mode explicitly so behaviour does not change on upgrade.
+- **`WITH SECURITY_ENFORCED` still compiles in v66.0** but is deprecated and is removed in API 67+. Prefer `WITH USER_MODE` now for forward-compatibility (see §7).
+- **SLDS styling hooks for Flow Screen Component LWCs are not available in v66.0** — that capability ships in Summer '26 (v67.0). In v66.0, theming options for Flow Screen Components are limited to what the platform already exposes.
 
 ---
 
@@ -117,7 +117,7 @@ addItem(item) {
 
 ### Complex template expressions (Beta — do not use in production)
 
-Spring '26 introduced inline JS expressions inside `{}` in templates (e.g., `{count + 1}`, `{firstName + ' ' + lastName}`, `{user?.role === 'admin' ? 'Manager' : 'Member'}`). Still **Beta** in Summer '26. Keep using getters until GA; revisit on the next release.
+Spring '26 introduced inline JS expressions inside `{}` in templates (e.g., `{count + 1}`, `{firstName + ' ' + lastName}`, `{user?.role === 'admin' ? 'Manager' : 'Member'}`). This is **Beta** in v66.0. Keep using getters until it reaches GA; revisit on a later release.
 
 ---
 
@@ -224,25 +224,62 @@ export default class CreateAccount extends LightningElement {
 
 ---
 
-## 5. State Management (GA in Summer '26)
+## 5. Shared State Across Components — Lightning Message Service (GA)
 
-For state that **two or more components on the same page need to share**, use the native `@lwc/state` manager. It replaces prop drilling and ad-hoc pub/sub.
+For state that **two or more components on the same page need to share** when they are not in a simple parent → child relationship, use **Lightning Message Service (LMS)** — the GA, production-supported mechanism in v66.0. LMS works across the DOM, across components that aren't related, and even across technologies (LWC, Aura, Visualforce).
+
+> **Do NOT use `@lwc/state` in production on v66.0.** It is only Beta this release and does not reach GA until Summer '26 (API v67.0). When you upgrade to v67, you can migrate same-page shared state from LMS to `@lwc/state`; until then, LMS is the correct choice.
 
 ```javascript
-import { LightningElement } from 'lwc';
-import { fromContext } from '@lwc/state';
-import cartStateManager from 'c/cartStateManager';
+// publisher.js
+import { LightningElement, wire } from 'lwc';
+import { publish, MessageContext } from 'lightning/messageService';
+import CART_CHANNEL from '@salesforce/messageChannel/Cart__c';
 
-export default class CartList extends LightningElement {
-    cart = fromContext(this, cartStateManager);
+export default class ProductTile extends LightningElement {
+    @wire(MessageContext) messageContext;
 
     handleAdd(event) {
-        this.cart.value.addItem(event.detail);
+        publish(this.messageContext, CART_CHANNEL, {
+            id: event.detail.id,
+            name: event.detail.name,
+            price: event.detail.price
+        });
     }
-
-    get total() { return this.cart.value.total; }
 }
 ```
+
+```javascript
+// subscriber.js
+import { LightningElement, wire } from 'lwc';
+import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+import CART_CHANNEL from '@salesforce/messageChannel/Cart__c';
+
+export default class CartSummary extends LightningElement {
+    @wire(MessageContext) messageContext;
+    items = [];
+    subscription;
+
+    connectedCallback() {
+        this.subscription = subscribe(
+            this.messageContext,
+            CART_CHANNEL,
+            (message) => { this.items = [...this.items, message]; }
+        );
+    }
+
+    disconnectedCallback() {
+        unsubscribe(this.subscription);
+        this.subscription = null;
+    }
+
+    get total() {
+        return this.items.reduce((sum, i) => sum + (i.price ?? 0), 0);
+    }
+}
+```
+
+A Lightning Message Channel is metadata (`*.messageChannel-meta.xml`) deployed with your project; import it via `@salesforce/messageChannel/<name>__c`.
 
 ### When to use what
 
@@ -250,13 +287,14 @@ export default class CartList extends LightningElement {
 |---|---|
 | Local component state (counter, toggle, form field) | Plain JS property (reactive by default) |
 | Parent → child data flow | `@api` property |
-| Two or more components on the same page sharing data | `@lwc/state` state manager |
-| Cross-page or cross-app broadcast | Lightning Message Service (LMS) |
+| Child → parent notification | Custom event (`CustomEvent` + `dispatchEvent`) |
+| Two or more unrelated components on the same page sharing data | Lightning Message Service |
+| Cross-page or cross-app broadcast | Lightning Message Service |
 | Salesforce record data | LDS or GraphQL wire adapter (let the wire own it) |
 
-State managers are not available in Experience Cloud as of Summer '26.
+For deeply nested but directly-related components, prefer passing `@api` properties or events over LMS; reach for LMS when the components are siblings or otherwise decoupled.
 
-> Full state manager definition (`defineState`, atoms, computed, actions) and the consumer component pattern: see `references/state-management.md`.
+> Full LMS reference (message channel definition, scope options, Aura/Visualforce interop) and a forward-looking note on migrating to `@lwc/state` at v67: see `references/state-management.md`.
 
 ---
 
@@ -286,12 +324,12 @@ Keys in `state` map directly to the flow's input variables.
 
 For full server-side Apex best practices (security, SOQL/DML, triggers, async, observability, testing), use the `decimatio-apex` skill. This section covers only what is essential for an `@AuraEnabled` controller called from an LWC.
 
-### SOQL — `WITH USER_MODE`, NEVER `WITH SECURITY_ENFORCED`
+### SOQL — prefer `WITH USER_MODE` over `WITH SECURITY_ENFORCED`
 
-`WITH SECURITY_ENFORCED` is **removed** in API 67+ — does not compile. Always use `WITH USER_MODE`.
+In v66.0, `WITH SECURITY_ENFORCED` still compiles — but it is deprecated and is **removed in API 67+**. Use `WITH USER_MODE` now: it enforces object permissions, FLS and sharing, supports the full query (not just `SELECT` fields), handles polymorphic fields, returns the complete set of access errors, and is forward-compatible with v67. (`WITH USER_MODE` has been available since API v60.0.)
 
 ```java
-// ✅
+// ✅ — forward-compatible, enforces FLS + sharing for the running user
 List<Account> accounts = [
     SELECT Id, Name FROM Account
     WHERE Industry = :industry
@@ -320,7 +358,7 @@ public with sharing class AccountController {
 }
 ```
 
-In API 67+, `@AuraEnabled` methods invoked from LWC default to `with sharing` when no sharing keyword is declared. Declare it explicitly anyway. Use `?.` and `??` for null handling. Throw `AuraHandledException` for failures so the LWC receives a clean message (never raw stack traces).
+In v66.0, an `@AuraEnabled` class with no sharing keyword defaults to `without sharing`, and plain SOQL/DML runs in system mode (both flip in v67.0). Never rely on the default: declare `with sharing` explicitly and query `WITH USER_MODE` so access enforcement is intentional and stable across the v67 upgrade. Use `?.` and `??` for null handling. Throw `AuraHandledException` for failures so the LWC receives a clean message (never raw stack traces).
 
 ### Calling Apex from LWC
 
@@ -382,7 +420,7 @@ const found = items.find((item) => item.id === targetId);
 | Batch create/update/delete records | GraphQL mutation with aliases + `allOrNone` | NO |
 | Get picklist values | `getPicklistValues` from `lightning/uiObjectInfoApi` | NO |
 | Get object metadata | `getObjectInfo` from `lightning/uiObjectInfoApi` | NO |
-| Shared state across sibling components | `@lwc/state` state manager (§5) | NO |
+| Shared state across unrelated/sibling components | Lightning Message Service (§5) | NO |
 | Cross-page broadcast | Lightning Message Service | NO |
 | Launch a flow from a component | `standard__flow` PageReference | NO |
 | Dynamic / runtime-variable event handlers | `lwc:on` directive | NO |
@@ -397,7 +435,7 @@ const found = items.find((item) => item.id === targetId);
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>67.0</apiVersion>
+    <apiVersion>66.0</apiVersion>
     <isExposed>true</isExposed>
     <targets>
         <target>lightning__RecordPage</target>
@@ -411,7 +449,7 @@ const found = items.find((item) => item.id === targetId);
 </LightningComponentBundle>
 ```
 
-For Flow Screen Components, expose SLDS styling hooks in `<targetConfig>` so admins can customise colour, radius, font weight, etc., from App Builder without touching the component code.
+SLDS styling hooks exposed through `<targetConfig>` for Flow Screen Components are **not available in v66.0** — that capability arrives in Summer '26 (v67.0). On v66.0, keep Flow Screen Component styling to what the platform already supports and revisit theming hooks after upgrading.
 
 ---
 
@@ -435,9 +473,9 @@ showError(error) {
 
 ---
 
-## 12. Dev Tooling — Live Preview (GA Summer '26)
+## 12. Dev Tooling — Live Preview (Beta in v66.0)
 
-LWC Live Preview (formerly Local Dev) reached GA in Summer '26. Single-component preview in VS Code or browser without a full page reload.
+LWC Live Preview (formerly Local Dev) is **Beta in v66.0** and reaches GA in Summer '26. Use it for local iteration — single-component preview in VS Code or browser without a full page reload — but treat it as a developer convenience rather than a supported production workflow until GA.
 
 ```bash
 # Preview a single component in the browser
@@ -460,9 +498,9 @@ TypeScript support is also maturing — install `@salesforce/lightning-types` fo
 | `if:true` / `if:false` | `lwc:if` / `lwc:elseif` / `lwc:else` |
 | Many hardcoded `onclick` / `onmouseenter` attributes | `lwc:on={handlers}` with a JS object |
 | `@track` on primitives | Bare field declaration |
-| Mutating `state.value.foo = bar` from a component | `@lwc/state` `update(...)` action |
-| Prop drilling through 3+ layers | `@lwc/state` state manager |
-| LMS for sibling components on the same page | `@lwc/state` state manager |
+| Tightly coupling siblings through a shared parent just to pass data | Lightning Message Service |
+| Prop drilling through 3+ unrelated layers | Lightning Message Service (or restructure the hierarchy) |
+| `@lwc/state` in production on v66.0 | Lightning Message Service (it is Beta until v67) |
 | `var` keyword | `const` / `let` |
 | `.then().catch()` chains in imperative calls | `async` / `await` with `try/catch` |
 | Apex for single-record CRUD | `createRecord` / `updateRecord` / `deleteRecord` OR GraphQL mutation |
@@ -470,12 +508,11 @@ TypeScript support is also maturing — install `@salesforce/lightning-types` fo
 | Apex for related list queries | `getRelatedListRecords` wire adapter |
 | Apex controller to launch a flow | `standard__flow` PageReference |
 | Explicit null checks in Apex | `?.` and `??` |
-| `WITH SECURITY_ENFORCED` in `@AuraEnabled` Apex | `WITH USER_MODE` (former does NOT compile in API 67+) |
+| `WITH SECURITY_ENFORCED` in `@AuraEnabled` Apex | `WITH USER_MODE` (SECURITY_ENFORCED still compiles in v66.0 but is deprecated and removed in v67+) |
 | `lightning/uiGraphQLApi` (v1) | `lightning/graphql` (v2) |
 | `getRecordNotifyChange` (deprecated) | `notifyRecordUpdateAvailable` |
 | String field references `'Account.Name'` in Apex | Schema imports `@salesforce/schema/Account.Name` |
-| API version < 67.0 on new components | `<apiVersion>67.0</apiVersion>` in the `*-meta.xml` |
-| Custom CSS variables on Flow Screen Components | SLDS styling hooks in `<targetConfig>` |
+| API version < 66.0 on new components | `<apiVersion>66.0</apiVersion>` in the `*-meta.xml` |
 
 ---
 
@@ -484,5 +521,5 @@ TypeScript support is also maturing — install `@salesforce/lightning-types` fo
 1. **Avoid Apex** — LDS adapters, GraphQL queries and mutations, and the standard component library handle most needs without server-side code.
 2. **Modern template syntax only** — `lwc:if` / `lwc:elseif` / `lwc:else`, `lwc:on` for dynamic handlers, `lwc:spread` for props. Legacy `if:true`/`if:false` and hardcoded `on*` attributes are anti-patterns.
 3. **GraphQL v2 is the default for queries and mutations** — `lightning/graphql`, never the deprecated `lightning/uiGraphQLApi`.
-4. **State Management for shared client-side state** — `@lwc/state` (GA Summer '26) replaces prop drilling and ad-hoc pub/sub for sibling components on the same page.
-5. **Treat `@AuraEnabled` Apex as code, not glue** — `WITH USER_MODE` (no `WITH SECURITY_ENFORCED`), explicit `with sharing`, `AuraHandledException` on failures, never raw stack traces to the client.
+4. **Lightning Message Service for shared state across components** — LMS (GA) coordinates data between sibling/unrelated components on a page. `@lwc/state` is only Beta in v66.0 (GA in v67), so keep it out of production for now.
+5. **Treat `@AuraEnabled` Apex as code, not glue** — prefer `WITH USER_MODE` (SECURITY_ENFORCED still compiles in v66.0 but is deprecated and removed in v67), explicit `with sharing` (the v66.0 default is `without sharing`), `AuraHandledException` on failures, never raw stack traces to the client.

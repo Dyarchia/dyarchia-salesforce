@@ -1,111 +1,150 @@
-# LWC State Management — Reference Implementation
+# Shared State Across Components — Reference Implementation (v66.0)
 
-Full implementation of the `@lwc/state` pattern referenced from SKILL.md §5. State Management graduated to GA in Summer '26 (API v67.0). Load this file when designing data flow across multiple LWC components on the same page or app.
+Full implementation of the shared-state pattern referenced from SKILL.md §5. On API v66.0 (Spring '26) the GA, production-supported mechanism for sharing state across sibling or otherwise-unrelated components is **Lightning Message Service (LMS)**. The native `@lwc/state` manager is only Beta in v66.0 and does not reach GA until Summer '26 (API v67.0); a migration note is at the end of this file.
 
-## When to Use a State Manager
+Load this file when designing data flow across multiple LWC components on the same page or app.
 
-Use a state manager when **two or more components on the same page need to share or react to the same data**, and the relationship is not a simple parent → child prop passing. Concrete examples: a multi-step form spread across sibling components, a shopping cart whose total is rendered in a header while items are managed elsewhere, an opportunity page where a line-item list and a summary card must stay synchronised.
+## When to Use LMS
 
-Do NOT use a state manager for:
+Use LMS when **two or more components need to share or react to the same data** and they are not in a simple parent → child relationship. Concrete examples: a product list and a cart summary on the same page, a filter panel that drives a results grid rendered by a different component, an Aura component that needs to react to an event published by an LWC.
+
+Do NOT reach for LMS for:
 - Local component state (just use a JS property — primitives are reactive by default).
-- Single parent → child data flow (`@api` / properties).
-- Cross-app or cross-page broadcast (use Lightning Message Service).
+- Single parent → child data flow (`@api` properties).
+- Child → parent notification (a `CustomEvent` bubbling up is simpler and more contained).
 - Salesforce record data when LDS or GraphQL is already updating it (let the wire adapter own it).
 
-State managers are not available in Experience Cloud as of Summer '26.
+LMS publishes across the whole application context, so prefer scoped events (`CustomEvent`) when the relationship is local — overusing LMS makes data flow hard to trace.
 
-## Define a State Manager
+## Define a Message Channel
 
-A state manager is a JavaScript module that exports a factory describing the state and the actions that mutate it.
+A message channel is metadata deployed with your project at `force-app/main/default/messageChannels/Cart.messageChannel-meta.xml`.
 
-```javascript
-// cartStateManager.js
-import { defineState } from '@lwc/state';
-
-export default defineState((atom, computed, update) => () => {
-    const items = atom([]);
-    const discount = atom(0);
-
-    const total = computed({ items, discount }, ({ items, discount }) =>
-        items.reduce((sum, i) => sum + i.price, 0) * (1 - discount)
-    );
-
-    const addItem = update({ items }, ({ items }, newItem) => ({
-        items: [...items, newItem]
-    }));
-
-    const removeItem = update({ items }, ({ items }, itemId) => ({
-        items: items.filter((i) => i.id !== itemId)
-    }));
-
-    const applyDiscount = update({ discount }, (_, value) => ({
-        discount: value
-    }));
-
-    return { items, discount, total, addItem, removeItem, applyDiscount };
-});
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <masterLabel>Cart</masterLabel>
+    <isExposed>true</isExposed>
+    <description>Broadcasts cart item changes across the page.</description>
+    <lightningMessageFields>
+        <fieldName>id</fieldName>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>name</fieldName>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>price</fieldName>
+    </lightningMessageFields>
+</LightningMessageChannel>
 ```
 
-## Consume the State Manager in a Component
+Import it into a component via `@salesforce/messageChannel/Cart__c`.
+
+## Publish
 
 ```javascript
-// cartList.js
-import { LightningElement } from 'lwc';
-import { fromContext } from '@lwc/state';
-import cartStateManager from 'c/cartStateManager';
+// productTile.js
+import { LightningElement, wire } from 'lwc';
+import { publish, MessageContext } from 'lightning/messageService';
+import CART_CHANNEL from '@salesforce/messageChannel/Cart__c';
 
-export default class CartList extends LightningElement {
-    cart = fromContext(this, cartStateManager);
+export default class ProductTile extends LightningElement {
+    @wire(MessageContext) messageContext;
 
     handleAdd(event) {
-        // calling the action updates shared state — every component
-        // consuming the same manager re-renders automatically.
-        this.cart.value.addItem({
+        publish(this.messageContext, CART_CHANNEL, {
             id: event.detail.id,
             name: event.detail.name,
             price: event.detail.price
         });
     }
+}
+```
 
-    get items() {
-        return this.cart.value.items;
+## Subscribe
+
+```javascript
+// cartSummary.js
+import { LightningElement, wire } from 'lwc';
+import {
+    subscribe,
+    unsubscribe,
+    MessageContext,
+    APPLICATION_SCOPE
+} from 'lightning/messageService';
+import CART_CHANNEL from '@salesforce/messageChannel/Cart__c';
+
+export default class CartSummary extends LightningElement {
+    @wire(MessageContext) messageContext;
+    items = [];
+    subscription;
+
+    connectedCallback() {
+        if (this.subscription) {
+            return;
+        }
+        this.subscription = subscribe(
+            this.messageContext,
+            CART_CHANNEL,
+            (message) => this.handleMessage(message),
+            { scope: APPLICATION_SCOPE }
+        );
     }
 
-    get formattedTotal() {
-        return `$${this.cart.value.total.toFixed(2)}`;
+    disconnectedCallback() {
+        unsubscribe(this.subscription);
+        this.subscription = null;
+    }
+
+    handleMessage(message) {
+        // immutable update → reactive re-render
+        this.items = [...this.items, message];
+    }
+
+    get total() {
+        return this.items.reduce((sum, i) => sum + (i.price ?? 0), 0);
     }
 }
 ```
 
 ```html
-<!-- cartList.html -->
+<!-- cartSummary.html -->
 <template>
     <ul>
         <template for:each={items} for:item="item">
             <li key={item.id}>{item.name} — ${item.price}</li>
         </template>
     </ul>
-    <p>Total: {formattedTotal}</p>
+    <p>Total: ${total}</p>
 </template>
 ```
 
-A sibling component (e.g., `cartSummary`) consuming `fromContext(this, cartStateManager)` will receive the same instance and re-render whenever any atom it reads from changes.
+## Scope Options
+
+- Default scope: the active subscriber receives messages only while it is on the active page/tab.
+- `APPLICATION_SCOPE`: the subscriber receives messages regardless of where it sits in the app (e.g., in a utility bar). Import `APPLICATION_SCOPE` from `lightning/messageService` and pass it in the subscribe options.
 
 ## Architectural Rules
 
-- One state manager per logical concern. Resist the temptation to build a single mega-store — Salesforce LWC is not Redux.
-- Mutations only via `update(...)` actions. Never mutate `cart.value.items` directly from a component; reactivity will not fire.
-- `computed(...)` for derived values — never compute in a getter that reads multiple atoms (will not auto-track).
-- State managers can be nested: a parent manager can expose child managers, allowing scoped state inside a larger feature.
-- For Salesforce record data, prefer LDS or GraphQL wire adapters; use state managers for **client-side application state** (UI mode, selections, multi-step form values, derived totals).
+- Always `unsubscribe` in `disconnectedCallback` — orphaned subscriptions leak and cause duplicate handling.
+- Guard against double-subscription in `connectedCallback` (the early-return pattern above).
+- Keep message payloads small and serialisable — primitives and plain objects, never component instances or DOM nodes.
+- Treat received data immutably: build a new array/object (`[...items, message]`) so reactivity fires.
+- One channel per logical concern; don't multiplex unrelated events through a single channel.
+- LMS bridges LWC, Aura and Visualforce — the same channel can be published/subscribed from any of them.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| One global store for the whole app | One state manager per logical concern |
-| Mutating `state.value.foo = bar` directly | Define an `update(...)` action and call it |
-| Computing derived data in a component getter | Define a `computed(...)` atom in the manager |
-| Using a state manager for parent→child props | Just pass `@api` properties |
-| Using a state manager for cross-page broadcast | Use Lightning Message Service |
-| Using a state manager to mirror Salesforce records | Let LDS / GraphQL own that data |
+| Using LMS for parent → child props | Pass `@api` properties |
+| Using LMS for a child → parent notification | Dispatch a `CustomEvent` that bubbles |
+| Forgetting to `unsubscribe` | Always unsubscribe in `disconnectedCallback` |
+| Mutating received payload in place | Build a new array/object so reactivity fires |
+| Putting non-serialisable data in a message | Send ids/primitives; re-fetch records via LDS/GraphQL |
+| Using LMS to mirror Salesforce records | Let LDS / GraphQL own that data |
+| `@lwc/state` in production on v66.0 | LMS — `@lwc/state` is Beta until v67 |
+
+## Forward Note — Migrating to `@lwc/state` at v67
+
+When the org moves to API v67.0 (Summer '26), `@lwc/state` becomes GA and is the preferred mechanism for **same-page** shared client-side state (multi-step form values, UI selections, derived totals), replacing same-page LMS usage and prop drilling. LMS remains the right tool for cross-page / cross-app and cross-technology (Aura/Visualforce) broadcast even after the upgrade. Plan migrations channel-by-channel: same-page coordination → `@lwc/state`; decoupled or cross-context broadcast → keep LMS.
