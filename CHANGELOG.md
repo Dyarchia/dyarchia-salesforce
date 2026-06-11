@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Renamed the repository to **`decimatio-legio`**.
-- Grouped the Salesforce skills under a `decimatio-salesforce/` domain folder; the
+- Grouped the Salesforce skills under a `decimatio-sf/` domain folder; the
   repo root is now reserved for future non-Salesforce domains.
 - Made repository documentation provider-agnostic: removed vendor-specific branding
   in favour of neutral "agent skills" terminology, since the skill format is a

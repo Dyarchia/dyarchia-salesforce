@@ -12,7 +12,7 @@ Agent skills are reusable instruction packs that customise how an AI coding agen
 
 ## Available skills
 
-The catalogue is organised by domain. Today every skill targets Salesforce, so it lives under `decimatio-salesforce/`; future domains get sibling folders at the repo root.
+The catalogue is organised by domain. Today every skill targets Salesforce, so it lives under `decimatio-sf/`; future domains get sibling folders at the repo root.
 
 | Skill | Domain | Target |
 |---|---|---|
@@ -33,7 +33,7 @@ graph TD
     Root --> Changelog[CHANGELOG.md]
     Root --> License[LICENSE]
     Root --> Gitignore[.gitignore]
-    Root --> SF[decimatio-salesforce/]
+    Root --> SF[decimatio-sf/]
 
     SF --> Apex[decimatio-apex/]
     SF --> LWC[decimatio-lwc/]
@@ -93,7 +93,7 @@ flowchart LR
 ### Terminal — macOS, Linux, WSL
 
 ```bash
-zip -r decimatio-apex.skill decimatio-salesforce/decimatio-apex/
+zip -r decimatio-apex.skill decimatio-sf/decimatio-apex/
 ```
 
 The `zip` command is preinstalled on macOS and almost every Linux distro.
