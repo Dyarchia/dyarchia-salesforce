@@ -5,6 +5,8 @@
 .claude/
 .claude-cache/
 
+decimatio-sf-sources/
+
 # OS metadata — Windows
 Thumbs.db
 ehthumbs.db
