@@ -12,6 +12,7 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/trigger-framework.md` — full Tony Scott `ITrigger` interface, `TriggerFactory`, handler skeleton, recursion guard.
 - `references/async-patterns.md` — full Queueable, Transaction Finalizer, Apex Cursor chain, Mixed-DML pattern.
 - `references/observability-patterns.md` — full `Log__e` Platform Event + `Logger` class + subscriber trigger.
+- `references/solid-principles.md` — SOLID applied to Apex: SRP layering, OCP via interfaces, LSP contracts, ISP selectors, DIP with Stub-API injection.
 
 Load a reference when you are about to write or refactor code that needs that exact implementation.
 
@@ -315,9 +316,11 @@ You cannot callout after uncommitted DML in the same transaction. Either (a) cal
 
 ---
 
-## 6. Triggers — Tony Scott's 2013 Framework
+## 6. Triggers — Framework and Global Kill-Switch
 
-Always use the Tony Scott "Trigger Pattern for Tidy, Streamlined, Bulkified Triggers" framework. It enforces: one trigger per object; zero logic inside the trigger file; canonical execution order via the `ITrigger` interface; bulk caching in `bulkBefore`/`bulkAfter`, per-record work in iterative methods, post-processing in `andFinally`.
+For **new (greenfield) Salesforce implementations, the Tony Scott "Trigger Pattern for Tidy, Streamlined, Bulkified Triggers" framework is the default.** It enforces: one trigger per object; zero logic inside the trigger file; canonical execution order via the `ITrigger` interface; bulk caching in `bulkBefore`/`bulkAfter`, per-record work in iterative methods, post-processing in `andFinally`.
+
+In any other scenario — a brownfield org, an existing codebase, or one already standardised on another framework (Kevin O'Hara's trigger framework, fflib, Trigger Actions Framework, a hand-rolled handler) — **do not impose Tony Scott. Ask first** which framework the org already uses and conform to it. Org-wide consistency beats the "best" framework bolted on top of a different one.
 
 ```java
 // The trigger file — one line, no logic, no sharing declaration.
@@ -331,6 +334,55 @@ trigger AccountTrigger on Account (
 
 **API 67+: triggers always run in `SYSTEM_MODE`** on all API versions. `with sharing` / `without sharing` / `inherited sharing` on a trigger is a compile error. The sharing declaration goes on the handler class. If trigger-driven DML must enforce user-level security, pass `AccessLevel.USER_MODE` explicitly to the relevant `Database.*` call inside the handler.
 
+### Per-object kill-switch — hierarchical Custom Setting
+
+Every trigger must be silenceable without a deployment, **per SObject** — you may want an integration or LLM-agent user to skip the Account trigger while still running the Case trigger. Model it as one hierarchical Custom Setting with **one Checkbox field per controlled object**, evaluated the instant the trigger fires; a `false` short-circuits that object's trigger with a bare `return`. Hierarchical scope means each object's switch is set independently at **Org, Profile, or User** level — the agent user gets `Account_Trigger_Enabled__c = false` at the User level, every other object keeps running.
+
+Define `Trigger_Settings__c` as a **Hierarchy** Custom Setting. For each object you want to control, add a Checkbox field `<Object>_Trigger_Enabled__c` (strip the `__c` of custom objects, e.g. `Invoice__c` → `Invoice_Trigger_Enabled__c`) with **Default Value = Checked**. An object with no matching field always runs — you opt an object into the switch only by adding its field.
+
+Resolve the field dynamically from the `SObjectType`, defaulting to enabled when the field is absent:
+
+```java
+public with sharing class TriggerBypass {
+    private static final Map<String, Schema.SObjectField> FIELDS =
+        Trigger_Settings__c.SObjectType.getDescribe().fields.getMap();
+
+    public static Boolean isEnabled(SObjectType sObjType) {
+        String field = sObjType.getDescribe().getName().replace('__c', '') + '_Trigger_Enabled__c';
+        if (!FIELDS.containsKey(field.toLowerCase())) {
+            return true;
+        }
+        Object value = Trigger_Settings__c.getInstance().get(field);
+        return value == null ? true : (Boolean) value;
+    }
+}
+```
+
+Bake the check once into the framework entry point — it resolves the object from the trigger context, so every framework trigger inherits its own per-object switch and the trigger file stays a single line:
+
+```java
+public static void createAndExecuteHandler(Type handlerType) {
+    List<SObject> records = Trigger.new != null ? Trigger.new : Trigger.old;
+    if (!TriggerBypass.isEnabled(records[0].getSObjectType())) {
+        return;
+    }
+    ...
+}
+```
+
+For a trigger that does **not** use the framework (brownfield, legacy), name its object explicitly as the first statement:
+
+```java
+trigger LegacyContactTrigger on Contact (before insert, after update) {
+    if (!TriggerBypass.isEnabled(Contact.SObjectType)) {
+        return;
+    }
+    LegacyContactHandler.run();
+}
+```
+
+The kill-switch is a circuit-breaker, not a recursion guard — keep the framework's recursion handling regardless. Disabling an object's trigger org-wide is a footgun: prefer Profile or User scope, and re-enable the moment the bulk operation completes.
+
 ### Trigger rules — absolute
 
 - One trigger per object. Order between multiple triggers is undefined.
@@ -339,6 +391,7 @@ trigger AccountTrigger on Account (
 - Field-value validation goes in `after` methods (values can still be modified by other before-triggers or workflows).
 - Delegate SOQL to a Gateway/Selector class.
 - For callouts triggered by DML, enqueue ONE Queueable in `andFinally` with the full batch — never `@future` per iteration.
+- Every trigger honours its per-object hierarchical kill-switch (`Trigger_Settings__c`, field `<Object>_Trigger_Enabled__c`) at entry — resolved in the framework entry point, or named explicitly in a non-framework trigger.
 
 > Full `ITrigger` interface, `TriggerFactory`, handler skeleton, recursion guard, and notes on alternative frameworks (Kevin O'Hara, fflib): see `references/trigger-framework.md`.
 
@@ -567,6 +620,8 @@ List<Contact> contacts = (List<Contact>) result.getValueAsList();
 
 This layering is what makes the codebase mockable via the Stub API.
 
+> SOLID applied to this layering — SRP, OCP, LSP, ISP, and DIP with concrete Apex examples and the Stub-API wiring: see `references/solid-principles.md`. Apply SOLID before reaching for a named design pattern.
+
 ### `@AuraEnabled` signature rules
 
 - `cacheable=true` for reads (enables LDS cache, forbids DML).
@@ -619,7 +674,8 @@ This layering is what makes the codebase mockable via the Stub API.
 | DML inside a `for` loop | Collect into a `List`, single DML after the loop |
 | `@future` for new async work | `Queueable` (+ Finalizer if needed) |
 | Logic in the trigger file | One-line delegation to `TriggerFactory` |
-| Multiple triggers per object | One trigger, one handler, Tony Scott framework |
+| Multiple triggers per object | One trigger, one handler (Tony Scott by default on greenfield) |
+| Trigger with no per-object bypass | Per-object hierarchical kill-switch (`Trigger_Settings__c`, `<Object>_Trigger_Enabled__c`) at entry |
 | SOQL/DML in `beforeX`/`afterX` iterative methods | Cache in `bulkBefore`/`bulkAfter`, DML in `andFinally` |
 | `System.assertEquals(...)` | `Assert.areEqual(...)` |
 | `@IsTest(SeeAllData=true)` | `@TestSetup` + `TestDataFactory` |
@@ -645,6 +701,6 @@ This layering is what makes the codebase mockable via the Stub API.
 
 1. **`with sharing` + `USER_MODE` are the defaults**, always explicit, never bypassed without comment.
 2. **Bulkify everything** — assume 200 records, test with 200+.
-3. **Triggers follow Tony Scott (2013)** — one trigger, one handler, ITrigger, TriggerFactory.
+3. **Triggers: one per object, zero logic in the file, behind a per-object hierarchical kill-switch.** Tony Scott (2013) is the default framework for greenfield orgs; in an existing org, conform to whatever framework is already there — ask first.
 4. **Async means Queueable + Finalizer** (or Cursors + Queueable for big data); `@future` and most Batch Apex are legacy.
 5. **Observability is native** — Platform Events for guaranteed logs, custom log object for persistence, Finalizers for async failure paths.
