@@ -27,6 +27,13 @@ The catalogue is organised by domain. Today every skill targets Salesforce, so i
 | **`decimatio-agentforce`** | Agentforce — agent anatomy (Topics/Instructions/Actions), Agent Script, Apex/Flow/Prompt actions, Data 360 grounding, Agent API, evals, Trust Layer | Summer '26 / API v67.0 |
 | **`decimatio-data360`** | Data 360 (Data Cloud) — ingest→DLO→DMO→identity→insights→activation, ingestion/zero-copy, SOQL on DMOs, Query/Connect API, segments, credit governance | Summer '26 / API v67.0 |
 | **`decimatio-headless360`** | Headless 360 — API/MCP/CLI surfaces, MCP server taxonomy, custom MCP tools, Experience Layer (HXL/AXL), headless DevOps, Trust Layer | Summer '26 / API v67.0 |
+| **`decimatio-integration-overview`** | Integration decision hub — the six patterns, sync vs async, idempotency/retry, master decision matrix, authoring-surface map, API-version retirements | Summer '26 / API v67.0 |
+| **`decimatio-integration-inbound-apis`** | Inbound standard APIs — REST/composite, SOAP, Bulk API 2.0, GraphQL, Connect/UI/Metadata/Tooling; choosing, batching, limits | Summer '26 / API v67.0 |
+| **`decimatio-integration-inbound-apex`** | Custom inbound endpoints — Apex REST (`@RestResource`), Apex SOAP (legacy), Sites/Experience Cloud as integration surfaces, guest-user security | Summer '26 / API v67.0 |
+| **`decimatio-integration-outbound`** | Outbound — Apex HTTP callouts and limits, async patterns, callout-after-DML, Flow HTTP Callout, External Services, Salesforce Connect, LWC proxy vs `fetch` | Summer '26 / API v67.0 |
+| **`decimatio-integration-events`** | Event-driven — Platform Events, Change Data Capture, Pub/Sub API (gRPC), publish/subscribe from Apex/Flow, replay/retention, webhooks | Summer '26 / API v67.0 |
+| **`decimatio-integration-auth`** | Integration auth and identity — inbound OAuth 2.0 flows, External Client Apps vs Connected Apps, JWT/mTLS, outbound Named/External Credentials | Summer '26 / API v67.0 |
+| **`decimatio-integration-connectors-mcp`** | Connectors and agentic integration — MuleSoft (Anypoint / for Flow), Heroku/AppLink, ISV connectors, Data 360 as integration, Hosted MCP / Agent API | Summer '26 / API v67.0 |
 
 Each skill loads **only on explicit invocation by name** (slash-command pattern) — none auto-trigger on generic Salesforce questions.
 
@@ -52,6 +59,14 @@ graph TD
     SF --> D360[decimatio-data360/]
     SF --> H360[decimatio-headless360/]
 
+    SF --> IOV[decimatio-integration-overview/]
+    SF --> IIA[decimatio-integration-inbound-apis/]
+    SF --> IIX[decimatio-integration-inbound-apex/]
+    SF --> IOUT[decimatio-integration-outbound/]
+    SF --> IEV[decimatio-integration-events/]
+    SF --> IAU[decimatio-integration-auth/]
+    SF --> ICM[decimatio-integration-connectors-mcp/]
+
     classDef root fill:#5B5BD6,stroke:#3B3B8F,color:#fff,stroke-width:2px
     classDef domainFolder fill:#6E56CF,stroke:#3B3B8F,color:#fff,stroke-width:2px
     classDef skillFolder fill:#00A1E0,stroke:#005F8A,color:#fff,stroke-width:2px
@@ -59,7 +74,7 @@ graph TD
 
     class Root root
     class SF domainFolder
-    class Apex,LWC,Flow,Aura,VF,LWR,LWRS,LO,AF,D360,H360 skillFolder
+    class Apex,LWC,Flow,Aura,VF,LWR,LWRS,LO,AF,D360,H360,IOV,IIA,IIX,IOUT,IEV,IAU,ICM skillFolder
     class Meta meta
 ```
 

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Eight skills under `decimatio-sf/`, all targeting Summer '26 / API v67.0:
+- Fifteen skills under `decimatio-sf/`, all targeting Summer '26 / API v67.0:
   - **`decimatio-aura`** — Aura components: when (not) to use, events, server/LDS, LWC interop.
   - **`decimatio-visualforce`** — Visualforce controller patterns and JavaScript Remoting.
   - **`decimatio-lwr`** — Lightning Web Runtime component development: runtime differences vs Lightning Experience, navigation, Lightning Web Security/CSP, guest context.
@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **`decimatio-agentforce`** — Agentforce: agent anatomy (Topics/Instructions/Actions), Agent Script, Apex/Flow/Prompt-Template actions, Data 360 grounding, Agent API, testing and evals, the Trust Layer.
   - **`decimatio-data360`** — Data 360 (formerly Data Cloud): the ingest→DLO→DMO→identity→insights→activation pipeline, ingestion and zero-copy, SOQL on DMOs, Query/Connect API, segments, credit governance.
   - **`decimatio-headless360`** — Headless 360: the API/MCP/CLI surfaces, the MCP server taxonomy, building custom MCP tools, the Headless/Agentforce Experience Layer (HXL/AXL), headless DevOps, the Trust Layer.
+  - **`decimatio-integration-overview`** — integration decision hub: the six integration patterns, sync vs async, idempotency/retry/governor concerns, the master decision matrix, the authoring-surface map, and API-version-retirement facts.
+  - **`decimatio-integration-inbound-apis`** — standard inbound APIs: REST and the composite family, SOAP, Bulk API 2.0, GraphQL, and the Connect/UI/Metadata/Tooling APIs.
+  - **`decimatio-integration-inbound-apex`** — custom inbound endpoints: Apex REST services (`@RestResource`), Apex SOAP web services (legacy), and Sites/Experience Cloud as integration surfaces with guest-user security.
+  - **`decimatio-integration-outbound`** — outbound integration: Apex HTTP callouts and limits, async callout patterns, the callout-after-DML rule, Flow HTTP Callout, External Services, Outbound Messages (legacy), Salesforce Connect, and calling external APIs from LWC.
+  - **`decimatio-integration-events`** — event-driven integration: Platform Events, Change Data Capture, the Pub/Sub API (gRPC), publish/subscribe from Apex and Flow, replay/retention, and webhook patterns.
+  - **`decimatio-integration-auth`** — integration authentication and identity: inbound OAuth 2.0 flows, External Client Apps vs Connected Apps, JWT/mTLS, and outbound Named/External Credentials.
+  - **`decimatio-integration-connectors-mcp`** — connectors and agentic integration: MuleSoft (Anypoint, for Flow), Heroku/AppLink, AppExchange/ISV connectors, Data 360 as an integration path, and Hosted MCP servers / Agent API.
 - `references/solid-principles.md` in `decimatio-apex` (SRP/OCP/LSP/ISP/DIP applied to Apex).
 
 ### Changed
