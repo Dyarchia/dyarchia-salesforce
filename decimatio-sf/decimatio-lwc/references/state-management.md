@@ -1,8 +1,60 @@
-# Shared State Across Components — Reference Implementation (v66.0)
+# Shared State Across Components — Reference Implementation (v67.0)
 
-Full implementation of the shared-state pattern referenced from SKILL.md §5. On API v66.0 (Spring '26) the GA, production-supported mechanism for sharing state across sibling or otherwise-unrelated components is **Lightning Message Service (LMS)**. The native `@lwc/state` manager is only Beta in v66.0 and does not reach GA until Summer '26 (API v67.0); a migration note is at the end of this file.
+Full implementation of the shared-state patterns referenced from SKILL.md §5. On API v67.0 (Summer '26) there are two GA mechanisms with different jobs: **`@lwc/state`** for same-page shared **reactive** state, and **Lightning Message Service (LMS)** for broadcast that crosses the DOM, pages, apps, or technologies (LWC / Aura / Visualforce).
 
 Load this file when designing data flow across multiple LWC components on the same page or app.
+
+## `@lwc/state` — Same-Page Shared Reactive State (GA)
+
+Prefer `@lwc/state` for siblings or decoupled components on the **same page** that share reactive state (UI selections, multi-step form values, derived totals). It moves the state and its logic out of components into a reusable, testable module, so you neither prop-drill nor lift state into a common parent.
+
+Define the manager with `defineState` and the `atom` / `computed` / `setAtom` primitives. `atom` holds a reactive value, `computed` derives from atoms and recomputes automatically, and `setAtom` is the only way to mutate an atom. The callback returns the public surface; consumers reach it through the instance's `.value`.
+
+```javascript
+// selectionState.js
+import { defineState } from '@lwc/state';
+
+export const selectionState = defineState(({ atom, computed, setAtom }) => {
+    const selectedIds = atom([]);
+    const count = computed([selectedIds], (ids) => ids.length);
+
+    const toggle = (id, current) =>
+        setAtom(selectedIds, current.includes(id) ? current.filter((x) => x !== id) : [...current, id]);
+
+    const clear = () => setAtom(selectedIds, []);
+
+    return { selectedIds, count, toggle, clear };
+});
+```
+
+```javascript
+// any sibling component
+import { LightningElement } from 'lwc';
+import { selectionState } from 'c/selectionState';
+
+export default class ResultsGrid extends LightningElement {
+    state = selectionState();
+
+    get count() {
+        return this.state.value.count;
+    }
+
+    handleRowSelect(event) {
+        this.state.value.toggle(event.detail.id, this.state.value.selectedIds);
+    }
+}
+```
+
+### Built-in Lightning State Managers
+
+For record-backed shared state, Salesforce ships built-in managers that wrap Lightning Data Service — records, object info, layouts, and related lists — so you do not hand-write a manager just to share LDS data across components. Reach for a built-in manager (or a GraphQL wire) before writing your own for record data.
+
+### Rules
+
+- One manager module per logical concern; import the same module from every component that shares it.
+- Mutate only through actions that call `setAtom` — never reassign atoms directly from a consumer.
+- Derive with `computed`; do not duplicate derived values as separate atoms.
+- `@lwc/state` is same-page client state — it does not cross the DOM, pages, or technologies. For that, use LMS below.
 
 ## When to Use LMS
 
@@ -143,8 +195,13 @@ export default class CartSummary extends LightningElement {
 | Mutating received payload in place | Build a new array/object so reactivity fires |
 | Putting non-serialisable data in a message | Send ids/primitives; re-fetch records via LDS/GraphQL |
 | Using LMS to mirror Salesforce records | Let LDS / GraphQL own that data |
-| `@lwc/state` in production on v66.0 | LMS — `@lwc/state` is Beta until v67 |
+| LMS (or prop drilling) for same-page reactive state | `@lwc/state` (GA) |
 
-## Forward Note — Migrating to `@lwc/state` at v67
+## `@lwc/state` vs LMS — Decision
 
-When the org moves to API v67.0 (Summer '26), `@lwc/state` becomes GA and is the preferred mechanism for **same-page** shared client-side state (multi-step form values, UI selections, derived totals), replacing same-page LMS usage and prop drilling. LMS remains the right tool for cross-page / cross-app and cross-technology (Aura/Visualforce) broadcast even after the upgrade. Plan migrations channel-by-channel: same-page coordination → `@lwc/state`; decoupled or cross-context broadcast → keep LMS.
+- Same-page shared **reactive** state (UI selections, form values, derived totals) → `@lwc/state`.
+- Record-backed shared state → a built-in Lightning State Manager or a GraphQL wire.
+- Broadcast across the DOM, pages, apps, or technologies (LWC / Aura / Visualforce) → LMS.
+- Direct parent ↔ child → `@api` props and `CustomEvent`, not either of the above.
+
+If you are migrating an older codebase, move same-page LMS channels and prop drilling to `@lwc/state` concern by concern, and keep LMS only where the communication genuinely crosses a boundary `@lwc/state` cannot.
