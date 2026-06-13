@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Five skills under `decimatio-sf/`, all targeting Summer '26 / API v67.0:
+- Eight skills under `decimatio-sf/`, all targeting Summer '26 / API v67.0:
   - **`decimatio-aura`** — Aura components: when (not) to use, events, server/LDS, LWC interop.
   - **`decimatio-visualforce`** — Visualforce controller patterns and JavaScript Remoting.
   - **`decimatio-lwr`** — Lightning Web Runtime component development: runtime differences vs Lightning Experience, navigation, Lightning Web Security/CSP, guest context.
   - **`decimatio-lwr-sites`** — Experience Cloud LWR sites: enhanced sites, the Grid/CMS, guest-user hardening, SEO, partial deployment.
   - **`decimatio-lightning-out`** — Lightning Out 2.0: embedding LWCs in non-Salesforce apps.
+  - **`decimatio-agentforce`** — Agentforce: agent anatomy (Topics/Instructions/Actions), Agent Script, Apex/Flow/Prompt-Template actions, Data 360 grounding, Agent API, testing and evals, the Trust Layer.
+  - **`decimatio-data360`** — Data 360 (formerly Data Cloud): the ingest→DLO→DMO→identity→insights→activation pipeline, ingestion and zero-copy, SOQL on DMOs, Query/Connect API, segments, credit governance.
+  - **`decimatio-headless360`** — Headless 360: the API/MCP/CLI surfaces, the MCP server taxonomy, building custom MCP tools, the Headless/Agentforce Experience Layer (HXL/AXL), headless DevOps, the Trust Layer.
 - `references/solid-principles.md` in `decimatio-apex` (SRP/OCP/LSP/ISP/DIP applied to Apex).
 
 ### Changed

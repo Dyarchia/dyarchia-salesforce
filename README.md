@@ -24,6 +24,9 @@ The catalogue is organised by domain. Today every skill targets Salesforce, so i
 | **`decimatio-lwr`** | Lightning Web Runtime — component portability, navigation, LWS/CSP, guest context | Summer '26 / API v67.0 |
 | **`decimatio-lwr-sites`** | Experience Cloud LWR sites — enhanced sites, Grid/CMS, guest hardening, SEO | Summer '26 / API v67.0 |
 | **`decimatio-lightning-out`** | Lightning Out 2.0 — embedding LWCs in non-Salesforce apps | Summer '26 / API v67.0 |
+| **`decimatio-agentforce`** | Agentforce — agent anatomy (Topics/Instructions/Actions), Agent Script, Apex/Flow/Prompt actions, Data 360 grounding, Agent API, evals, Trust Layer | Summer '26 / API v67.0 |
+| **`decimatio-data360`** | Data 360 (Data Cloud) — ingest→DLO→DMO→identity→insights→activation, ingestion/zero-copy, SOQL on DMOs, Query/Connect API, segments, credit governance | Summer '26 / API v67.0 |
+| **`decimatio-headless360`** | Headless 360 — API/MCP/CLI surfaces, MCP server taxonomy, custom MCP tools, Experience Layer (HXL/AXL), headless DevOps, Trust Layer | Summer '26 / API v67.0 |
 
 Each skill loads **only on explicit invocation by name** (slash-command pattern) — none auto-trigger on generic Salesforce questions.
 
@@ -45,6 +48,9 @@ graph TD
     SF --> LWR[decimatio-lwr/]
     SF --> LWRS[decimatio-lwr-sites/]
     SF --> LO[decimatio-lightning-out/]
+    SF --> AF[decimatio-agentforce/]
+    SF --> D360[decimatio-data360/]
+    SF --> H360[decimatio-headless360/]
 
     classDef root fill:#5B5BD6,stroke:#3B3B8F,color:#fff,stroke-width:2px
     classDef domainFolder fill:#6E56CF,stroke:#3B3B8F,color:#fff,stroke-width:2px
@@ -53,7 +59,7 @@ graph TD
 
     class Root root
     class SF domainFolder
-    class Apex,LWC,Flow,Aura,VF,LWR,LWRS,LO skillFolder
+    class Apex,LWC,Flow,Aura,VF,LWR,LWRS,LO,AF,D360,H360 skillFolder
     class Meta meta
 ```
 
