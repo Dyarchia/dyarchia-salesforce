@@ -7,8 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Five skills under `decimatio-sf/`, all targeting Summer '26 / API v67.0:
+  - **`decimatio-aura`** — Aura components: when (not) to use, events, server/LDS, LWC interop.
+  - **`decimatio-visualforce`** — Visualforce controller patterns and JavaScript Remoting.
+  - **`decimatio-lwr`** — Lightning Web Runtime component development: runtime differences vs Lightning Experience, navigation, Lightning Web Security/CSP, guest context.
+  - **`decimatio-lwr-sites`** — Experience Cloud LWR sites: enhanced sites, the Grid/CMS, guest-user hardening, SEO, partial deployment.
+  - **`decimatio-lightning-out`** — Lightning Out 2.0: embedding LWCs in non-Salesforce apps.
+- `references/solid-principles.md` in `decimatio-apex` (SRP/OCP/LSP/ISP/DIP applied to Apex).
+
 ### Changed
 
+- **`decimatio-apex`**: the Tony Scott trigger framework is now the default for greenfield orgs only (ask in existing orgs); added a per-object hierarchical trigger kill-switch (`Trigger_Settings__c`).
+- **`decimatio-lwc`**: refreshed for Summer '26 / API v67.0 — `@lwc/state` State Manager (GA), grouped `<details>` accordions, `lightning/accApi`, `blob:` downloads (Lightning Web Security blocks `data:` URIs), Component Preview and SLDS Flow-screen hooks GA.
+- **`decimatio-flow`**: documented the v67 `InvocableActionExtension` Apex Action configuration (per-input editors, picklist values, custom header) and the no-argument-constructor requirement for invocable action input types.
+- **`README.md`**: list the full eight-skill catalogue and simplify the repository-layout diagram.
 - Renamed the repository to **`decimatio-legio`**.
 - Grouped the Salesforce skills under a `decimatio-sf/` domain folder; the
   repo root is now reserved for future non-Salesforce domains.
