@@ -16,11 +16,16 @@ The catalogue is organised by domain. Today every skill targets Salesforce, so i
 
 | Skill | Domain | Target |
 |---|---|---|
-| **`decimatio-apex`** | Salesforce Apex — syntax, security, SOQL/DML, triggers, async, testing, observability | Summer '26 / API v67.0 |
-| **`decimatio-lwc`** | Salesforce LWC — template syntax, LDS, GraphQL, state management, dev tooling | Summer '26 / API v67.0 |
-| **`decimatio-flow`** | Salesforce Flow — flow types, bulkification, screen reactivity, security, Apex integration, HTTP callouts, testing | Summer '26 / API v67.0 |
+| **`decimatio-apex`** | Apex — syntax, security, SOQL/DML, triggers, async, testing, observability, SOLID | Summer '26 / API v67.0 |
+| **`decimatio-lwc`** | LWC — template syntax, LDS, GraphQL, `@lwc/state`, dev tooling | Summer '26 / API v67.0 |
+| **`decimatio-flow`** | Flow — flow types, bulkification, screen reactivity, security, Apex integration, callouts, testing | Summer '26 / API v67.0 |
+| **`decimatio-aura`** | Aura components — when (not) to use, events, server/LDS, LWC interop | Summer '26 / API v67.0 |
+| **`decimatio-visualforce`** | Visualforce — controller patterns, JavaScript Remoting | Summer '26 / API v67.0 |
+| **`decimatio-lwr`** | Lightning Web Runtime — component portability, navigation, LWS/CSP, guest context | Summer '26 / API v67.0 |
+| **`decimatio-lwr-sites`** | Experience Cloud LWR sites — enhanced sites, Grid/CMS, guest hardening, SEO | Summer '26 / API v67.0 |
+| **`decimatio-lightning-out`** | Lightning Out 2.0 — embedding LWCs in non-Salesforce apps | Summer '26 / API v67.0 |
 
-Each skill loads **only on explicit invocation by name** (slash-command pattern) — they do not auto-trigger on generic Apex, LWC, or Flow questions.
+Each skill loads **only on explicit invocation by name** (slash-command pattern) — none auto-trigger on generic Salesforce questions.
 
 ---
 
@@ -29,47 +34,27 @@ Each skill loads **only on explicit invocation by name** (slash-command pattern)
 ```mermaid
 graph TD
     Root([decimatio-legio/])
-    Root --> README[README.md]
-    Root --> Changelog[CHANGELOG.md]
-    Root --> License[LICENSE]
-    Root --> Gitignore[.gitignore]
+    Root --> Meta["README · CHANGELOG · LICENSE · .gitignore"]
     Root --> SF[decimatio-sf/]
 
     SF --> Apex[decimatio-apex/]
     SF --> LWC[decimatio-lwc/]
     SF --> Flow[decimatio-flow/]
-
-    Apex --> ApexSkill[SKILL.md]
-    Apex --> ApexRefs[references/]
-    ApexRefs --> R1[trigger-framework.md]
-    ApexRefs --> R2[async-patterns.md]
-    ApexRefs --> R3[observability-patterns.md]
-
-    LWC --> LWCSkill[SKILL.md]
-    LWC --> LWCRefs[references/]
-    LWCRefs --> R4[graphql-patterns.md]
-    LWCRefs --> R5[state-management.md]
-
-    Flow --> FlowSkill[SKILL.md]
-    Flow --> FlowRefs[references/]
-    FlowRefs --> R6[invocable-apex-patterns.md]
-    FlowRefs --> R7[http-callout-patterns.md]
+    SF --> Aura[decimatio-aura/]
+    SF --> VF[decimatio-visualforce/]
+    SF --> LWR[decimatio-lwr/]
+    SF --> LWRS[decimatio-lwr-sites/]
+    SF --> LO[decimatio-lightning-out/]
 
     classDef root fill:#5B5BD6,stroke:#3B3B8F,color:#fff,stroke-width:2px
     classDef domainFolder fill:#6E56CF,stroke:#3B3B8F,color:#fff,stroke-width:2px
     classDef skillFolder fill:#00A1E0,stroke:#005F8A,color:#fff,stroke-width:2px
-    classDef skillFile fill:#1a4f6b,stroke:#005F8A,color:#fff,stroke-width:2px
-    classDef refsFolder fill:#7FB3D5,stroke:#2E86AB,color:#fff
-    classDef refFile fill:#E8F4F8,stroke:#2E86AB,color:#1a1a1a
     classDef meta fill:#F4F4F4,stroke:#999,color:#555
 
     class Root root
     class SF domainFolder
-    class Apex,LWC,Flow skillFolder
-    class ApexSkill,LWCSkill,FlowSkill skillFile
-    class ApexRefs,LWCRefs,FlowRefs refsFolder
-    class R1,R2,R3,R4,R5,R6,R7 refFile
-    class README,Changelog,License,Gitignore meta
+    class Apex,LWC,Flow,Aura,VF,LWR,LWRS,LO skillFolder
+    class Meta meta
 ```
 
 Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand. Repo-level files (`README.md`, `CHANGELOG.md`, `LICENSE`, `.gitignore`) live at the root and never get bundled into the installable skill.
