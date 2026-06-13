@@ -32,3 +32,8 @@ $RECYCLE.BIN/
 # Logs / temp
 *.log
 *.tmp
+
+# Docs
+claude_structure.png
+decimatio-legio.md
+TODO.md
