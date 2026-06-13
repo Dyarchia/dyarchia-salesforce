@@ -210,6 +210,36 @@ public static void logChange(List<SObject> records) {
 
 Flow allows the author to pass any record collection. Use this sparingly — typed DTOs are clearer and catch errors earlier.
 
+## Custom Input Types Need a No-Argument Constructor (v67)
+
+Any custom Apex type used as an invocable action input must expose a **public no-argument constructor** so the platform can instantiate it when the flow runs. A class with only a parameterised constructor fails at runtime. If you add any non-default constructor, add the no-arg one back explicitly.
+
+```java
+public class OrderInput {
+    @InvocableVariable(required=true)
+    public Id orderId;
+
+    @InvocableVariable
+    public String specialInstructions;
+
+    public OrderInput() {}
+
+    public OrderInput(Id orderId) {
+        this.orderId = orderId;
+    }
+}
+```
+
+## Configuring the Action in Flow Builder — `InvocableActionExtension` (v67)
+
+The `@InvocableMethod` / `@InvocableVariable` annotations define the action's contract; the `InvocableActionExtension` metadata type (GA in Summer '26, EE / PE / UE / Developer) defines the **design-time experience** an admin sees when configuring it:
+
+- **Per-input custom property editor** — bind a custom LWC editor to a single input rather than the whole action, so one complex parameter gets a guided UI while the others use the standard editor.
+- **Picklist values for an input** — turn a `String` input into a fixed dropdown, eliminating typos and invalid values at design time.
+- **Custom header** — show a custom component above the inputs in the action's property panel (instructions, a link, a summary of what the action will do).
+
+Use these for reusable or packaged actions where many admins configure the same action and a guided, constrained UI prevents misconfiguration. Define them as `InvocableActionExtension` metadata and deploy alongside the Apex class; consult the Metadata API reference for the exact element shape.
+
 ## Testing Invocable Methods
 
 ```java

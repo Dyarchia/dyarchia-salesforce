@@ -32,6 +32,7 @@ For server-side Apex called from Flow, see the companion skill `decimatio-apex`.
 - **AI-assisted Screen Flow editing** — describe changes in natural language via the Agentforce panel.
 - **"Ask Agentforce" for Flow errors (Beta)** — diagnose design-time and runtime errors; offers an automatic "Fix Issue" option. Treat suggestions as starting points, verify before applying.
 - **AI Agent actions auto-migrate to Create Agent element** when opening existing flows; original configuration is preserved.
+- **Configurable Apex Action property editors** — via the new `InvocableActionExtension` metadata, an invocable action can attach a custom property editor to an individual input, define **picklist values** for an input, and show a **custom header** atop its config panel in Flow Builder. Better, less error-prone admin UX for reusable and packaged actions. See §6.
 
 Summer '26 pushes two directions: **harder bulkification controls** (custom batch sizes) and **AI-assisted authoring**. Use the former liberally; treat the latter as a helper, never a substitute for understanding what your flow does.
 
@@ -173,7 +174,18 @@ public with sharing class AccountScorer {
 - Return `void` or a `List<U>`; output length and order MUST match the input.
 - `@InvocableVariable(required=true)` for inputs that must be present.
 - `callout=true` when the method makes HTTP callouts (gates the action's availability on synchronous paths of record-triggered flows).
+- Any **custom Apex type used as an action input must expose a public no-argument constructor** (enforced in v67) — otherwise the platform cannot instantiate it when the flow runs.
 - Throw a clear exception on full-batch failure — the message surfaces as `{!$Flow.FaultMessage}`. For per-row failures, propagate via the output (a `success` boolean + `errorMessage` field).
+
+### Make actions configurable — `InvocableActionExtension` (v67)
+
+Beyond the bare action, Summer '26 lets you shape how admins configure it in Flow Builder through the `InvocableActionExtension` metadata type — GA, in Enterprise / Performance / Unlimited / Developer editions, in both Lightning Experience and Classic. Three capabilities:
+
+- **Per-input custom property editor** — attach a custom LWC editor to a single input (not just the whole action), so one tricky parameter gets a guided UI while the rest use the standard editor.
+- **Picklist values for an input** — present a fixed dropdown for a `String` input instead of a free-text box, removing typo and invalid-value errors at design time.
+- **Custom header** — render a custom component at the top of the action's property panel, before the inputs (instructions, links, a summary).
+
+Reach for these when you ship a **reusable or packaged** invocable action that admins configure repeatedly: the better the design-time UX, the fewer misconfigured flows. For the exact metadata shape, consult the `InvocableActionExtension` Metadata API reference.
 
 > Full patterns — bulk processing, partial success, custom DTOs, error propagation, testing: see `references/invocable-apex-patterns.md`.
 
@@ -337,6 +349,8 @@ Flows deploy as metadata (`.flow-meta.xml`). Never edit flows directly in produc
 | Activating flows directly in production | CI/CD pipeline with metadata deployment + Flow Tests |
 | No Flow Test for autolaunched / record-triggered logic | Add Flow Tests; they count toward coverage |
 | API version < 67.0 on new flows | `<apiVersion>67.0</apiVersion>` in the `.flow-meta.xml` |
+| Custom Apex input type with no no-argument constructor | Add a public no-arg constructor (required for invocable action inputs in v67) |
+| Free-text action input where values are a fixed set | Define picklist values on the input via `InvocableActionExtension` |
 | Multiple record-triggered flows on the same object firing for the same DML | Consolidate, or use entry conditions; order between flows is not guaranteed |
 | Trust AI "Fix Issue" suggestions without review | Verify in Debug mode before activation |
 
