@@ -11,6 +11,7 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 
 - `references/graphql-patterns.md` — full GraphQL query, paginated query, mutation and multi-object patterns.
 - `references/state-management.md` — `@lwc/state` (GA) for same-page shared reactive state, plus Lightning Message Service (LMS) for cross-DOM / cross-page / cross-technology broadcast.
+- `references/jest-testing.md` — `@salesforce/sfdx-lwc-jest` setup, the `createElement` + `flushPromises` test pattern, wire-service `.emit()`/`.error()` mocking (LDS, Apex, GraphQL), and imperative Apex mocking.
 
 Load a reference when you are about to write or refactor code that needs that exact implementation. For server-side Apex best practices (security, SOQL/DML, triggers, async, testing, observability), see the companion skill `decimatio-apex`.
 
@@ -576,6 +577,23 @@ In VS Code: install the Salesforce Extension Pack, then Command Palette → `SFD
 TypeScript support is also maturing — install `@salesforce/lightning-types` for official base-component type definitions. TypeScript source compiles locally; only the resulting `.js` is deployed.
 
 **Dynamic Lists virtualization** (`lightning-dynamic-list-container` / `lightning-dynamic-list-item`) is **Developer Preview** in v67.0 — it renders only the rows in the viewport for large datasets. Useful to know, but not for production until it advances.
+
+---
+
+## 13. Testing — Jest for LWC
+
+`@salesforce/sfdx-lwc-jest` (current v7.x, built on Jest 29) is the only supported LWC unit-test runner. Install it once per DX project with `sf force lightning lwc test setup`, keep one `jest.config.js` at the root that spreads `jestConfig` from `@salesforce/sfdx-lwc-jest/config`, and put each test in a `__tests__` folder inside the component bundle as `<component>.test.js`. Run with the `test:unit` npm script (`sfdx-lwc-jest`) or `sf force lightning lwc test run`.
+
+Load-bearing rules:
+
+- **`createElement` → `appendChild` → assert.** Build the component with `createElement('c-x', { is: X })`, set `@api` props, append to `document.body`, then query through `element.shadowRoot` — never `document`.
+- **Rendering is asynchronous.** After any property change, wire emit, or resolved promise, `await flushPromises()` (i.e. `await Promise.resolve()`) before asserting.
+- **Reset state between tests.** In `afterEach`, remove every child of `document.body` and call `jest.clearAllMocks()` — jsdom and mocks are shared within a file.
+- **Mock the wire with `.emit()` / `.error()`.** Import the LDS, Apex-wired, or `lightning/graphql` adapter directly and push mock JSON through it. The old `registerTestWireAdapter` family is legacy — do not use it.
+- **Imperative Apex uses `jest.mock`.** Mock the `@salesforce/apex/...` module to a `jest.fn()` and drive it with `mockResolvedValue` / `mockRejectedValue`.
+- **Test behaviour, not internals.** Assert rendered output and dispatched events; never reach into private methods or snapshot whole trees.
+
+> Full reference — install and scripts, `jest.config.js` with `moduleNameMapper`, the canonical test with `flushPromises`, wire-service mocking for LDS/Apex/GraphQL, imperative Apex mocking, `@salesforce/*` and toast mocks, plus testing anti-patterns: see `references/jest-testing.md`.
 
 ---
 
