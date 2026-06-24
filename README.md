@@ -84,7 +84,7 @@ Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a
 
 ## Install as a `.skill` bundle
 
-A `.skill` file is just a ZIP archive of the skill folder with the extension renamed. Build it once, upload it once into whichever assistant supports the format.
+A `.skill` file is just a ZIP archive of the skill folder with the extension renamed. The **skill folder itself must be the archive's top-level entry** — unzipping has to yield `decimatio-lwc/SKILL.md`, never a double-nested path like `decimatio-sf/decimatio-lwc/SKILL.md`. Build it once, upload it once into whichever assistant supports the format.
 
 ```mermaid
 flowchart LR
@@ -98,8 +98,11 @@ flowchart LR
 
 ### Terminal — macOS, Linux, WSL
 
+`cd` into the domain folder first so the skill folder — not its parent — becomes the archive root:
+
 ```bash
-zip -r decimatio-apex.skill decimatio-sf/decimatio-apex/
+cd decimatio-sf
+zip -r ../decimatio-apex.skill decimatio-apex/
 ```
 
 The `zip` command is preinstalled on macOS and almost every Linux distro.
