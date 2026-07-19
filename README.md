@@ -113,9 +113,29 @@ zip -r ../decimatio-apex.skill decimatio-apex/
 
 **Terminal — PowerShell (Windows):**
 
+The plain `Compress-Archive` cmdlet writes Windows-style backslash separators into the ZIP entry names, which fails strict parsers (e.g. Claude Desktop's skill import). Use `System.IO.Compression.ZipArchive` directly to force forward-slash entry names:
+
 ```powershell
-Compress-Archive -Path "decimatio-sf\decimatio-apex" -DestinationPath "decimatio-apex.skill.zip" -Force
-Rename-Item -LiteralPath "decimatio-apex.skill.zip" -NewName "decimatio-apex.skill"
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+$skill = "decimatio-apex"
+$src   = "decimatio-sf\$skill"
+$dest  = "$skill.skill"
+
+if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest }
+
+$zip = [System.IO.Compression.ZipFile]::Open($dest, [System.IO.Compression.ZipArchiveMode]::Create)
+Get-ChildItem -Path $src -Recurse -File | ForEach-Object {
+    $inner = $_.FullName.Substring($src.Length + 1) -replace '\\', '/'
+    $entry = $zip.CreateEntry("$skill/$inner", [System.IO.Compression.CompressionLevel]::Optimal)
+    $fs = $entry.Open()
+    $src2 = [System.IO.File]::OpenRead($_.FullName)
+    $src2.CopyTo($fs)
+    $src2.Close()
+    $fs.Close()
+}
+$zip.Dispose()
 ```
 
 **macOS Finder** — Right-click the skill folder → **Compress [folder name]** → rename the resulting `.zip` to `.skill`.

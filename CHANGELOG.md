@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **`.skill` bundles are now committed to the repository.** A `decimatio-<name>.skill` is generated for every skill under `decimatio-sf/` and placed at the repo root. The `.skill` entry has been removed from `.gitignore`. The README now leads with the pre-built bundles and moves the per-OS zip instructions under a *Rebuilding a bundle* subsection. Trade-off: any change to a `SKILL.md` must regenerate its bundle in the same commit to keep them in sync.
+- **`.skill` ZIP entry names now use forward slashes.** The first commit of the pre-built bundles used PowerShell's `Compress-Archive`, which writes Windows backslashes (`decimatio-apex\SKILL.md`) into the entry names. The ZIP spec mandates forward slashes, and strict parsers (Claude Desktop's skill import) reject the backslash variant with *"Zip file contains path with invalid characters"*. Bundles have been rebuilt with `System.IO.Compression.ZipArchive` using explicit `decimatio-<name>/<inner>` entry names. The README's PowerShell snippet was replaced with the working script.
 
 ### Changed
 
