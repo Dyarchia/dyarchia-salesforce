@@ -1,6 +1,3 @@
-# Build artifacts — skill bundles
-*.skill
-
 # Local agent config
 .claude/
 .claude-cache/

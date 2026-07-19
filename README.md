@@ -84,42 +84,47 @@ Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a
 
 ## Install as a `.skill` bundle
 
-A `.skill` file is just a ZIP archive of the skill folder with the extension renamed. The **skill folder itself must be the archive's top-level entry** — unzipping has to yield `decimatio-lwc/SKILL.md`, never a double-nested path like `decimatio-sf/decimatio-lwc/SKILL.md`. Build it once, upload it once into whichever assistant supports the format.
+A `.skill` file is just a ZIP archive of the skill folder with the extension renamed. The **skill folder itself must be the archive's top-level entry** — unzipping has to yield `decimatio-lwc/SKILL.md`, never a double-nested path like `decimatio-sf/decimatio-lwc/SKILL.md`.
+
+**Pre-built bundles for every skill live at the repository root** (one `decimatio-<name>.skill` per skill folder under `decimatio-sf/`). Download the `.skill` you need and upload it to whichever assistant supports the format — no zipping required on your side.
 
 ```mermaid
 flowchart LR
-    A[Clone or<br/>download repo] --> B[Zip the<br/>skill folder]
-    B --> C[Rename<br/>.zip → .skill]
-    C --> D[Upload in<br/>your assistant]
+  A[Download<br/>.skill] --> B[Upload in<br/>your assistant]
 
-    classDef step fill:#5B5BD6,stroke:#3B3B8F,color:#fff,stroke-width:2px
-    class A,B,C,D step
+  classDef step fill:#5B5BD6,stroke:#3B3B8F,color:#fff,stroke-width:2px
+  class A,B step
 ```
 
-### Terminal — macOS, Linux, WSL
+> The bundles are regenerated alongside every change to the source skill folder and committed to the repo. If you edit a `SKILL.md` and want a fresh bundle, see [Rebuilding a bundle](#rebuilding-a-bundle) below.
 
-`cd` into the domain folder first so the skill folder — not its parent — becomes the archive root:
+### Rebuilding a bundle
+
+From the repository root, the skill folder — not its parent — must become the archive root.
+
+**Terminal — macOS, Linux, WSL (Bash / Git Bash):**
 
 ```bash
 cd decimatio-sf
 zip -r ../decimatio-apex.skill decimatio-apex/
 ```
 
-The `zip` command is preinstalled on macOS and almost every Linux distro.
+`zip` is preinstalled on macOS and almost every Linux distro.
 
-### macOS Finder
+**Terminal — PowerShell (Windows):**
 
-Right-click the skill folder → **Compress [folder name]** → rename the resulting `.zip` to `.skill`.
+```powershell
+Compress-Archive -Path "decimatio-sf\decimatio-apex" -DestinationPath "decimatio-apex.skill.zip" -Force
+Rename-Item -LiteralPath "decimatio-apex.skill.zip" -NewName "decimatio-apex.skill"
+```
+
+**macOS Finder** — Right-click the skill folder → **Compress [folder name]** → rename the resulting `.zip` to `.skill`.
 
 > If Finder hides extensions, enable them first: **Finder → Settings → Advanced → Show all filename extensions**.
 
-### Linux file manager (GNOME Files, KDE Dolphin, others)
+**Linux file manager (GNOME Files, KDE Dolphin, others)** — Right-click the skill folder → **Compress…** / **Create archive…** → choose ZIP format → rename the resulting `.zip` to `.skill`.
 
-Right-click the skill folder → **Compress…** / **Create archive…** → choose ZIP format → rename the resulting `.zip` to `.skill`.
-
-### Windows Explorer
-
-Right-click the skill folder → **Compress to ZIP file** → rename the resulting `.zip` to `.skill`.
+**Windows Explorer** — Right-click the skill folder → **Compress to ZIP file** → rename the resulting `.zip` to `.skill`.
 
 ---
 
