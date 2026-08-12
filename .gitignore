@@ -1,8 +1,23 @@
-# Local agent config
-.claude/
+# Local agent config — the rest of .claude/ is versioned on purpose
+.claude/settings.local.json
 .claude-cache/
 
-decimatio-sf-sources/
+# Reference clones — read-only raw material, never installed or published
+sources/
+
+# Secrets
+.env
+.env.*
+*.local.json
+*.pem
+*.key
+*.p12
+*.jks
+credentials
+credentials.*
+*credentials.json
+.sf/
+.sfdx/
 
 # OS metadata — Windows
 Thumbs.db
@@ -30,7 +45,6 @@ $RECYCLE.BIN/
 *.log
 *.tmp
 
-# Docs
+# Working scratch — local notes, superseded design drafts
 claude_structure.png
-decimatio-legio.md
-TODO.md
+docs/decimatio-legio.md

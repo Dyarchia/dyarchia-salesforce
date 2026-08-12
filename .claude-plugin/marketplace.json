@@ -1,0 +1,17 @@
+{
+  "name": "decimatio",
+  "owner": {
+    "name": "Decimatio"
+  },
+  "metadata": {
+    "description": "Decimatio agent capabilities, one plugin per domain"
+  },
+  "plugins": [
+    {
+      "name": "decimatio-salesforce",
+      "source": "./",
+      "version": "0.2.0",
+      "description": "Salesforce agent skills — Apex, LWC, Flow, Agentforce, Data 360, Commerce, Field Service, OmniStudio, Revenue Cloud, the integration family, permissions and the sf CLI."
+    }
+  ]
+}

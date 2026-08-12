@@ -1,0 +1,21 @@
+{
+  "name": "decimatio-salesforce",
+  "version": "0.2.0",
+  "description": "Salesforce agent skills — 25 domain playbooks targeting Summer '26 / API v67.0. Every skill loads only on explicit invocation by name.",
+  "author": {
+    "name": "Decimatio"
+  },
+  "repository": "https://github.com/decimatio/decimatio-salesforce",
+  "license": "MIT",
+  "keywords": [
+    "salesforce",
+    "apex",
+    "lwc",
+    "flow",
+    "agentforce",
+    "data-360",
+    "commerce",
+    "integration",
+    "agent-skills"
+  ]
+}
