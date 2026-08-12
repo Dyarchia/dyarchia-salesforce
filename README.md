@@ -99,7 +99,7 @@ graph LR
     Root --> SK["skills/<br/>25 skill folders"]
     Root --> Dist["dist/<br/>25 .skill bundles"]
     Root --> Scripts["scripts/<br/>build · validate"]
-    Root --> Docs["docs/<br/>design of record"]
+    Root --> Docs["docs/<br/>notes and backlog"]
 
     SK --> Skill["decimatio-&lt;name&gt;/"]
     Skill --> SM["SKILL.md"]
@@ -127,7 +127,7 @@ Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a
 The repository is its own marketplace, so all 25 skills install in one step:
 
 ```bash
-/plugin marketplace add decimatio/decimatio-salesforce
+/plugin marketplace add decimatio-dev/decimatio-salesforce
 ```
 
 ```bash

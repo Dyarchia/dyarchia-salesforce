@@ -78,5 +78,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `[0.1.0]` release shipped under the repository's former name; the comparison links below now resolve to the renamed repository.
 - The canonical form in the repository is the unpacked skill folder. `.skill` files are build artifacts produced on demand and are not tracked in version control.
 
-[Unreleased]: https://github.com/decimatio/decimatio-salesforce/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/decimatio/decimatio-salesforce/releases/tag/v0.1.0
+[Unreleased]: https://github.com/decimatio-dev/decimatio-salesforce/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/decimatio-dev/decimatio-salesforce/releases/tag/v0.1.0

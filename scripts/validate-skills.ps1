@@ -24,7 +24,7 @@ function Add-Failure { param([string] $Message) $script:errors.Add($Message) }
 function Add-Warning { param([string] $Message) $script:warnings.Add($Message) }
 
 $invocationClause = 'Load only when the user explicitly invokes this skill by name'
-$nonSkillTokens = @('decimatio-salesforce', 'decimatio-skill-authoring')
+$nonSkillTokens = @('decimatio-salesforce', 'decimatio-skill-authoring', 'decimatio-dev')
 
 function Get-Frontmatter {
     param([Parameter(Mandatory)] [string] $Path)

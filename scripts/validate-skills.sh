@@ -10,7 +10,7 @@ OUTPUT_DIR="$REPO_ROOT/$OUTPUT_ROOT"
 README="$REPO_ROOT/README.md"
 
 INVOCATION_CLAUSE='Load only when the user explicitly invokes this skill by name'
-NON_SKILL_TOKENS=" decimatio-salesforce decimatio-skill-authoring "
+NON_SKILL_TOKENS=" decimatio-salesforce decimatio-skill-authoring decimatio-dev "
 
 errors=0
 warnings=0
