@@ -1,6 +1,6 @@
-# decimatio-salesforce
+# dyarchia-salesforce
 
-The Salesforce domain plugin of the Decimatio umbrella: a library of agent skills targeting
+The Salesforce domain plugin of the Dyarchia umbrella: a library of agent skills targeting
 Summer '26 / API v67.0, packaged as a Claude Code plugin and as portable `.skill` bundles.
 
 This repo ships **content**, not software. There is no application and no runtime — only the
@@ -11,7 +11,7 @@ One repo per domain, one plugin per repo. Sibling domains get their own repos un
 ## Layout
 
 ```text
-decimatio-salesforce/
+dyarchia-salesforce/
 ├── .claude-plugin/
 │   ├── plugin.json                # plugin identity; components auto-discovered
 │   └── marketplace.json           # the repo is its own marketplace
@@ -19,7 +19,7 @@ decimatio-salesforce/
 ├── README.md                      # public catalogue and install instructions
 ├── CHANGELOG.md                   # Keep a Changelog format
 ├── skills/
-│   └── decimatio-<name>/
+│   └── dya-<name>/
 │       ├── SKILL.md               # load-bearing instructions
 │       └── references/            # loaded on demand, never at invocation time
 ├── dist/                          # 25 pre-built .skill bundles, committed
@@ -41,9 +41,9 @@ Every `SKILL.md` opens with YAML frontmatter carrying exactly two keys:
 
 ```yaml
 ---
-name: decimatio-<name>
+name: dya-<name>
 description: <domain and version> — <what it covers, comma-separated>. Load only when the user
-  explicitly invokes this skill by name (`decimatio-<name>`); do NOT auto-trigger on generic
+  explicitly invokes this skill by name (`dya-<name>`); do NOT auto-trigger on generic
   <domain> questions.
 ---
 ```
@@ -56,7 +56,7 @@ Three invariants, all load-bearing:
 - The description enumerates the actual surface covered, so the router can pick between siblings
   without loading them.
 
-The `decimatio-` prefix stays on skill names even though the repo no longer repeats it. Skill names
+The `dya-` prefix stays on skill names even though the repo no longer repeats it. Skill names
 live in a global namespace inside the assistant, alongside `sf-apex`, `salesforce-skills` and other
 third-party Salesforce skills; that is where the prefix earns its keep.
 
@@ -64,8 +64,8 @@ third-party Salesforce skills; that is where the prefix earns its keep.
 
 - Second-person expert framing: "You are an expert X. You **always** ... Follow every rule below."
 - Cross-reference siblings by bare skill name in backticks. The integration family in particular
-  is a routing graph: `decimatio-integration-overview` routes, the others build.
-- Scope exclusions are stated in the opening paragraph, not buried. Example: `decimatio-b2c-commerce`
+  is a routing graph: `dya-integration-overview` routes, the others build.
+- Scope exclusions are stated in the opening paragraph, not buried. Example: `dya-b2c-commerce`
   declares up front that there is no Apex, LWC or SOQL on that platform.
 - `SKILL.md` holds what must be true on every invocation. Anything consulted occasionally —
   full code listings, command catalogues, per-vendor detail — belongs in `references/`.
@@ -73,11 +73,11 @@ third-party Salesforce skills; that is where the prefix earns its keep.
 
 ## Adding or editing a skill
 
-The prescriptive procedure lives in `.claude/skills/decimatio-skill-authoring/SKILL.md`. Invoke it
+The prescriptive procedure lives in `.claude/skills/dya-skill-authoring/SKILL.md`. Invoke it
 rather than improvising. The short version:
 
-1. Author or edit `skills/decimatio-<name>/SKILL.md`.
-2. Rebuild the bundle: `scripts/build-skill.ps1 decimatio-<name>` (or the `.sh` twin).
+1. Author or edit `skills/dya-<name>/SKILL.md`.
+2. Rebuild the bundle: `scripts/build-skill.ps1 dya-<name>` (or the `.sh` twin).
 3. Validate: `scripts/validate-skills.ps1` (or the `.sh` twin). It must exit 0.
 4. Update the README catalogue and the CHANGELOG in the same commit.
 
@@ -87,7 +87,7 @@ exists to catch it; run it before every commit that touches `skills/`.
 ## Bundle packaging
 
 A `.skill` file is a ZIP whose top-level entry is the skill folder — unzipping yields
-`decimatio-apex/SKILL.md`, never a nested `skills/decimatio-apex/SKILL.md`.
+`dya-apex/SKILL.md`, never a nested `skills/dya-apex/SKILL.md`.
 
 ZIP entry names must use forward slashes. PowerShell's `Compress-Archive` writes backslashes and
 strict parsers reject the result; `scripts/build-skill.ps1` uses `System.IO.Compression.ZipArchive`
@@ -110,8 +110,8 @@ implementations. Each is deterministic with respect to itself. Pick one and rege
 Conventional Commits, scoped by area:
 
 ```text
-feat(skills): add decimatio-<name> skill
-fix(skills): correct the callout-after-DML rule in decimatio-integration-outbound
+feat(skills): add dya-<name> skill
+fix(skills): correct the callout-after-DML rule in dya-integration-outbound
 fix(repo): use forward slashes in .skill ZIP entry paths
 docs(repo): correct .skill bundle structure in packaging instructions
 ```
@@ -125,7 +125,7 @@ change that caused it.
   commands. This repo supplies reusable capability; mixing the two kills portability.
 - **Third-party MCP servers.** Not vendored, not declared in `plugin.json`. Consumers wire their
   own. Only MCP servers written here would ship.
-- **The `decimatio` CLI.** Developed and distributed separately. Scripts here may call it if it
+- **The `dyarchia` CLI.** Developed and distributed separately. Scripts here may call it if it
   is on PATH, treating it as an external dependency like `sf` or `jq`.
 
 ## Architecture status

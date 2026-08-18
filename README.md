@@ -1,6 +1,6 @@
-# decimatio-salesforce
+# dyarchia-salesforce
 
-> Salesforce agent skills by Decimatio, published openly under MIT.
+> Salesforce agent skills by Dyarchia, published openly under MIT.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Salesforce API](https://img.shields.io/badge/Salesforce%20API-v67.0-00A1E0.svg)
@@ -14,77 +14,77 @@ Every skill loads **only on explicit invocation by name** — none auto-trigger 
 
 ## Available skills
 
-25 skills, all targeting **Summer '26 / API v67.0**, under `skills/`. Other Decimatio domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
+25 skills, all targeting **Summer '26 / API v67.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
 
 ### Core development
 
-- **`decimatio-apex`**
+- **`dya-apex`**
   Syntax, security, SOQL/DML, triggers, async, testing, observability, SOLID.
-- **`decimatio-lwc`**
+- **`dya-lwc`**
   Template syntax, LDS, GraphQL, `@lwc/state`, dev tooling, Jest.
-- **`decimatio-flow`**
+- **`dya-flow`**
   Flow types, bulkification, screen reactivity, security, Apex integration, callouts, testing.
 
 ### Maintenance-mode UI
 
-- **`decimatio-aura`**
+- **`dya-aura`**
   When (not) to use Aura, events, server/LDS, LWC interop.
-- **`decimatio-visualforce`**
+- **`dya-visualforce`**
   Controller patterns, view state, JavaScript Remoting, PDF/email rendering.
 
 ### Runtime and sites
 
-- **`decimatio-lwr`**
+- **`dya-lwr`**
   Lightning Web Runtime — component portability, navigation, LWS/CSP, guest context.
-- **`decimatio-lwr-sites`**
+- **`dya-lwr-sites`**
   Experience Cloud LWR sites — enhanced sites, Grid/CMS, guest hardening, SEO.
-- **`decimatio-lightning-out`**
+- **`dya-lightning-out`**
   Lightning Out 2.0 — embedding LWCs in non-Salesforce apps.
 
 ### AI and data
 
-- **`decimatio-agentforce`**
+- **`dya-agentforce`**
   Agent anatomy (Topics/Instructions/Actions), Agent Script, Apex/Flow/Prompt actions, Data 360 grounding, Agent API, evals, Trust Layer.
-- **`decimatio-data360`**
+- **`dya-data360`**
   Data 360 (Data Cloud) — ingest→DLO→DMO→identity→insights→activation, zero-copy, SOQL on DMOs, Query/Connect API, segments, credit governance.
-- **`decimatio-headless360`**
+- **`dya-headless360`**
   API/MCP/CLI surfaces, MCP server taxonomy, custom MCP tools, Experience Layer (HXL/AXL), headless DevOps.
 
 ### Product and industry clouds
 
-- **`decimatio-b2b-commerce`**
+- **`dya-b2b-commerce`**
   B2B/D2C Commerce on core — CartExtension framework, endpoint extensions, `ConnectApi.CommerceCart`, buyer groups.
-- **`decimatio-b2c-commerce`**
+- **`dya-b2c-commerce`**
   B2C Commerce (Demandware lineage) — `dw.*` Script API, SFRA cartridges, Composable Storefront, SCAPI/SLAS.
-- **`decimatio-field-service`**
+- **`dya-field-service`**
   FSL Apex namespace, scheduling and booking patterns, Scheduler REST, ServiceAppointment lifecycle, mobile extensibility.
-- **`decimatio-omnistudio`**
+- **`dya-omnistudio`**
   OmniScripts, FlexCards, Integration Procedures, DataRaptors, Apex Remote Actions.
-- **`decimatio-revenue-cloud`**
+- **`dya-revenue-cloud`**
   Revenue Cloud Advanced / RLM — Product Catalog, Salesforce Pricing, Transaction Management, Asset Lifecycle, Billing.
 
 ### Platform model and tooling
 
-- **`decimatio-permissions`**
+- **`dya-permissions`**
   Profiles, permission sets and groups, OWD and sharing, restriction/scoping rules, FLS, Apex user mode.
-- **`decimatio-sf-cli`**
+- **`dya-sf-cli`**
   `sf` command catalog — auth, deploy/retrieve, scratch orgs, Apex/data, Agentforce DX, packaging.
 
 ### Integration family
 
-- **`decimatio-integration-overview`**
+- **`dya-integration-overview`**
   Decision hub — the six patterns, sync vs async, idempotency/retry, master decision matrix, authoring-surface map.
-- **`decimatio-integration-inbound-apis`**
+- **`dya-integration-inbound-apis`**
   REST/composite, SOAP, Bulk API 2.0, GraphQL, Connect/UI/Metadata/Tooling; choosing, batching, limits.
-- **`decimatio-integration-inbound-apex`**
+- **`dya-integration-inbound-apex`**
   Apex REST (`@RestResource`), Apex SOAP (legacy), Sites/Experience Cloud as integration surfaces, guest-user security.
-- **`decimatio-integration-outbound`**
+- **`dya-integration-outbound`**
   Apex HTTP callouts and limits, async patterns, callout-after-DML, Flow HTTP Callout, External Services, Salesforce Connect.
-- **`decimatio-integration-events`**
+- **`dya-integration-events`**
   Platform Events, Change Data Capture, Pub/Sub API (gRPC), publish/subscribe from Apex and Flow, replay/retention, webhooks.
-- **`decimatio-integration-auth`**
+- **`dya-integration-auth`**
   Inbound OAuth 2.0 flows, External Client Apps vs Connected Apps, JWT/mTLS, outbound Named/External Credentials.
-- **`decimatio-integration-connectors-mcp`**
+- **`dya-integration-connectors-mcp`**
   MuleSoft (Anypoint / for Flow), Heroku/AppLink, ISV connectors, Data 360 as integration, Hosted MCP / Agent API.
 
 ---
@@ -93,7 +93,7 @@ Every skill loads **only on explicit invocation by name** — none auto-trigger 
 
 ```mermaid
 graph LR
-    Root([decimatio-salesforce/])
+    Root([dyarchia-salesforce/])
     Root --> Plugin[".claude-plugin/<br/>plugin · marketplace"]
     Root --> Meta["README · CHANGELOG<br/>CLAUDE.md · LICENSE"]
     Root --> SK["skills/<br/>25 skill folders"]
@@ -101,7 +101,7 @@ graph LR
     Root --> Scripts["scripts/<br/>build · validate"]
     Root --> Docs["docs/<br/>notes and backlog"]
 
-    SK --> Skill["decimatio-&lt;name&gt;/"]
+    SK --> Skill["dya-&lt;name&gt;/"]
     Skill --> SM["SKILL.md"]
     Skill --> Refs["references/"]
 
@@ -127,11 +127,11 @@ Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a
 The repository is its own marketplace, so all 25 skills install in one step:
 
 ```bash
-/plugin marketplace add decimatio-dev/decimatio-salesforce
+/plugin marketplace add Dyarchia/dyarchia-salesforce
 ```
 
 ```bash
-/plugin install decimatio-salesforce@decimatio
+/plugin install dyarchia-salesforce@dyarchia
 ```
 
 Skills are discovered from `skills/` automatically. No MCP servers are declared — wire your own if you use them.
@@ -142,7 +142,7 @@ Skills are discovered from `skills/` automatically. No MCP servers are declared 
 
 For assistants that take skill archives rather than Claude Code plugins.
 
-A `.skill` file is a ZIP archive of the skill folder with the extension renamed. The **skill folder itself must be the archive's top-level entry** — unzipping has to yield `decimatio-lwc/SKILL.md`, never a double-nested path like `skills/decimatio-lwc/SKILL.md`.
+A `.skill` file is a ZIP archive of the skill folder with the extension renamed. The **skill folder itself must be the archive's top-level entry** — unzipping has to yield `dya-lwc/SKILL.md`, never a double-nested path like `skills/dya-lwc/SKILL.md`.
 
 **Pre-built bundles for every skill live in [`dist/`](dist).** Download the `.skill` you need and upload it to whichever assistant supports the format — no zipping required on your side.
 
@@ -163,13 +163,13 @@ Use the packaging scripts. They root the archive at the skill folder and force f
 **macOS, Linux, WSL, Git Bash:**
 
 ```bash
-scripts/build-skill.sh decimatio-apex
+scripts/build-skill.sh dya-apex
 ```
 
 **PowerShell 7+ (Windows):**
 
 ```powershell
-pwsh -NoProfile -File scripts/build-skill.ps1 decimatio-apex
+pwsh -NoProfile -File scripts/build-skill.ps1 dya-apex
 ```
 
 Omit the skill name to rebuild every bundle. Then verify that sources, bundles and this catalogue all agree:
@@ -213,7 +213,7 @@ After copying, restart the agent and verify the skill appears under its loaded-s
 
 ## Contributing to this repo
 
-`CLAUDE.md` holds the conventions: the frontmatter contract, skill body voice, bundle packaging rules and commit format. The step-by-step authoring procedure lives in `.claude/skills/decimatio-skill-authoring/SKILL.md`.
+`CLAUDE.md` holds the conventions: the frontmatter contract, skill body voice, bundle packaging rules and commit format. The step-by-step authoring procedure lives in `.claude/skills/dya-skill-authoring/SKILL.md`.
 
 ---
 

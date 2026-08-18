@@ -10,7 +10,7 @@ OUTPUT_DIR="$REPO_ROOT/$OUTPUT_ROOT"
 README="$REPO_ROOT/README.md"
 
 INVOCATION_CLAUSE='Load only when the user explicitly invokes this skill by name'
-NON_SKILL_TOKENS=" decimatio-salesforce decimatio-skill-authoring decimatio-dev "
+NON_SKILL_TOKENS=" dya-skill-authoring "
 
 errors=0
 warnings=0
@@ -114,7 +114,7 @@ if [ -s "$README" ]; then
         case " ${skills[*]} " in *" $token "*) continue ;; esac
         case "$NON_SKILL_TOKENS" in *" $token "*) continue ;; esac
         warn "README.md references '$token', which is not a skill folder"
-    done < <(grep -oE 'decimatio-[a-z0-9-]+' "$README" | sort -u)
+    done < <(grep -oE 'dya-[a-z0-9-]+' "$README" | sort -u)
 fi
 
 summary="${#skills[@]} skill(s) checked - $errors error(s), $warnings warning(s)"

@@ -24,7 +24,7 @@ function Add-Failure { param([string] $Message) $script:errors.Add($Message) }
 function Add-Warning { param([string] $Message) $script:warnings.Add($Message) }
 
 $invocationClause = 'Load only when the user explicitly invokes this skill by name'
-$nonSkillTokens = @('decimatio-salesforce', 'decimatio-skill-authoring', 'decimatio-dev')
+$nonSkillTokens = @('dya-skill-authoring')
 
 function Get-Frontmatter {
     param([Parameter(Mandatory)] [string] $Path)
@@ -160,7 +160,7 @@ foreach ($name in $skills) {
 }
 
 if ($readmeText) {
-    $mentioned = [regex]::Matches($readmeText, 'decimatio-[a-z0-9-]+') |
+    $mentioned = [regex]::Matches($readmeText, 'dya-[a-z0-9-]+') |
         ForEach-Object { $_.Value } | Sort-Object -Unique
     foreach ($token in $mentioned) {
         if ($token -in $skills) { continue }
