@@ -95,11 +95,10 @@ Every skill loads **only on explicit invocation by name** — none auto-trigger 
 graph LR
     Root([dyarchia-salesforce/])
     Root --> Plugin[".claude-plugin/<br/>plugin · marketplace"]
-    Root --> Meta["README · CHANGELOG<br/>CLAUDE.md · LICENSE"]
+    Root --> Meta["README · CHANGELOG · LICENSE"]
     Root --> SK["skills/<br/>25 skill folders"]
     Root --> Dist["dist/<br/>25 .skill bundles"]
     Root --> Scripts["scripts/<br/>build · validate"]
-    Root --> Docs["docs/<br/>notes and backlog"]
 
     SK --> Skill["dya-&lt;name&gt;/"]
     Skill --> SM["SKILL.md"]
@@ -113,7 +112,7 @@ graph LR
     class Root root
     class SK,Skill domainFolder
     class SM,Refs skillFolder
-    class Plugin,Meta,Dist,Scripts,Docs meta
+    class Plugin,Meta,Dist,Scripts meta
 ```
 
 Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand. Repo-level files never get bundled into the installable skill.
@@ -213,7 +212,9 @@ After copying, restart the agent and verify the skill appears under its loaded-s
 
 ## Contributing to this repo
 
-`CLAUDE.md` holds the conventions: the frontmatter contract, skill body voice, bundle packaging rules and commit format. The step-by-step authoring procedure lives in `.claude/skills/dya-skill-authoring/SKILL.md`.
+Every skill is a folder under `skills/` holding a `SKILL.md` and, optionally, a `references/` subfolder for material consulted on demand rather than obeyed on every invocation. The frontmatter carries two keys: `name`, identical to the folder name, and `description`, which ends with the explicit-invocation clause that keeps the skill from auto-triggering.
+
+A source edit is only half the change. Rebuild that skill's bundle with `scripts/build-skill`, then run `scripts/validate-skills`: it compares every bundle against its source file by file and must exit 0 before any commit that touches `skills/`.
 
 ---
 
