@@ -8,6 +8,15 @@ This repo ships **content**, not software. There is no application and no runtim
 
 One repo per domain, one plugin per repo. Sibling domains get their own repos under the same org.
 
+## Branches
+
+`develop` is the working branch and carries everything described in this file. `master` is still
+parked at the initial commit `5b0981d` — the superseded three-skill `decimatio-*` layout, with no
+manifests and no scripts. `origin/HEAD` points at `master`, so branching from the repository
+default silently yields the obsolete tree.
+
+**Branch from `develop`.**
+
 ## Layout
 
 ```text
@@ -34,6 +43,72 @@ servers written here. Third-party MCP servers are not vendored and not declared.
 `sources/` may exist locally: read-only clones of third-party repos kept as raw material. It is
 gitignored, never installed, never published. Do not glob or grep across it by accident — it is
 large.
+
+## Commands
+
+There is no test runner, no linter and no CI. Two scripts, each with a PowerShell and a bash twin,
+are the entire tooling surface. Both `.ps1` files declare `#Requires -Version 7.0`.
+
+```bash
+scripts/build-skill.sh                 # rebuild every bundle
+scripts/build-skill.sh dya-apex        # rebuild one; accepts several names
+scripts/validate-skills.sh             # the gate; must exit 0
+```
+
+```powershell
+pwsh -NoProfile -File scripts/build-skill.ps1 dya-apex
+pwsh -NoProfile -File scripts/validate-skills.ps1
+```
+
+- Called with no arguments, either builder rebuilds every folder under `skills/`.
+- Roots are overridable: `-SourceRoot` / `-OutputRoot` parameters in PowerShell,
+  `SOURCE_ROOT` / `OUTPUT_ROOT` environment variables in bash. Defaults are `skills` and `dist`.
+  Both are joined onto the repo root, so they must be **relative**; an absolute path produces a
+  nonsense concatenated path and the run dies.
+- The bash builder shells out to `zip` and exits 1 when it is not on PATH; the PowerShell one uses
+  `System.IO.Compression` and needs nothing external. On a stock Windows box `zip` is usually
+  absent while `unzip` is present — meaning the bash builder will not run but the bash validator
+  will. Use the PowerShell builder there.
+
+### What the validator enforces
+
+`validate-skills` is the closest thing this repo has to a test suite. It walks every folder under
+`skills/`, compares each against its committed bundle, and cross-checks the README.
+
+Hard failures — exit 1:
+
+```text
+condition                                              check
+-----------------------------------------------------  ------------------------------------------
+SKILL.md absent                                        per skill folder
+no YAML frontmatter block                              the leading ---...--- must parse
+no name key, or name differs from the folder name      exact string match
+no description key                                     presence
+description lacks the invocation clause                literal substring match
+skill name appears nowhere in README.md                full-text scan - a failure, not a warning
+no bundle at dist/<name>.skill                         presence
+bundle entry contains a backslash                      per ZIP entry
+bundle entry not rooted at <name>/                     per ZIP entry
+bundle stale: file missing, content differs, orphaned  SHA-256, compared in both directions
+```
+
+Warnings — still exit 0:
+
+```text
+condition                                            threshold
+---------------------------------------------------  --------------------
+SKILL.md over the size ceiling                       20480 bytes
+README names a dya-* token that is not a folder      allowlist-filtered
+```
+
+The invocation clause is matched as the literal substring `Load only when the user explicitly
+invokes this skill by name`. Reword it and the skill fails validation.
+
+The allowlist behind that second warning is hardcoded in both scripts — `$nonSkillTokens` in the
+PowerShell version, `NON_SKILL_TOKENS` in the bash one — and holds a single entry today,
+`dya-skill-authoring`. That skill is `dya-`-prefixed but lives under `.claude/skills/` rather than
+`skills/`, and the README references it, so without the allowlist the scan would flag it. Any
+further repo-local meta-skill must be added to **both** scripts.
 
 ## The frontmatter contract
 
@@ -69,7 +144,36 @@ third-party Salesforce skills; that is where the prefix earns its keep.
   declares up front that there is no Apex, LWC or SOQL on that platform.
 - `SKILL.md` holds what must be true on every invocation. Anything consulted occasionally —
   full code listings, command catalogues, per-vendor detail — belongs in `references/`.
-- Target ceiling for `SKILL.md`: roughly 20 KB. Past that, split into `references/`.
+- Size ceiling for `SKILL.md`: 20480 bytes. It is not a style note — `validate-skills` warns above
+  it. Past that, split into `references/`. Three skills already breach it and are carried as known
+  debt: `dya-apex`, `dya-flow`, `dya-lwc`. A clean tree therefore validates with a non-zero WARN
+  count; only errors gate a commit.
+
+### The section skeleton
+
+All 25 skills share the same shape. Match it — the consistency is what lets a reader jump between
+skills without relearning the layout.
+
+- Open with `## Platform Context — Summer '26 / API v67.0`, stating the release's relevant changes
+  and versioned defaults before any rule.
+- Carry the rules in numbered `## N. Title` sections.
+- Express decision matrices as **markdown pipe tables**. This is the house convention for skill
+  bodies and it overrides any general preference for ASCII tables in documentation.
+- Annotate code blocks inline with `✅` and `❌` on the lines they judge.
+- Close with a fixed pair: `## N. Anti-Patterns — NEVER Do These`, a two-column
+  anti-pattern-to-replacement table, then `## Summary — The Five Commandments`, a numbered list of
+  exactly five.
+
+## Platform version
+
+`Summer '26 / API v67.0` is a repo-wide invariant, not a per-skill detail. It is asserted in all 25
+Platform Context sections, in the README badge, and in the descriptions inside `plugin.json` and
+`marketplace.json`. A version bump is therefore a coordinated sweep across every source file plus a
+full rebuild of `dist/` — never a single-skill edit.
+
+The plugin `version` field is duplicated across `.claude-plugin/plugin.json` and
+`.claude-plugin/marketplace.json` (`0.2.0` in both). Nothing checks that they agree; bump them
+together.
 
 ## Adding or editing a skill
 
