@@ -60,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`dya-providers-tui`** — the cross-provider terminal-agent reference (Claude Code, Antigravity CLI, Grok Build, Mistral Vibe, opencode) and its five `references/` files. It is not a Salesforce domain skill and sits outside the scope of this library; its `.skill` bundle is no longer published. The skill was never part of a tagged release.
 
+### Fixed
+
+- **`dya-permissions` bundle rebuilt** — the published `dist/dya-permissions.skill` carried a copy of `SKILL.md` with CRLF line endings while the committed source is LF, so the two artifacts disagreed byte for byte. The bundle had been built from a working tree in which that one file had been rewritten with CRLF; a `.skill` is a binary archive, so those line endings were committed verbatim instead of being normalised the way `core.autocrlf=input` normalises the source blob. The mismatch was invisible in the working tree that produced it and failed `validate-skills` on every fresh clone. The bundle now matches the committed source and is byte-identical to one built from a clean checkout.
+
 ## [0.1.0] - 2026-05-28
 
 ### Added
