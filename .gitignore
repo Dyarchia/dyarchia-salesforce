@@ -1,6 +1,7 @@
-# Local agent config — the rest of .claude/ is versioned on purpose
-.claude/settings.local.json
+# Agent working files — local only, never versioned on any branch
+.claude/
 .claude-cache/
+CLAUDE.md
 
 # Reference clones — read-only raw material, never installed or published
 sources/
@@ -48,3 +49,4 @@ $RECYCLE.BIN/
 # Working scratch — local notes, superseded design drafts
 claude_structure.png
 docs/dyarchia-legio.md
+docs/TODO.md
