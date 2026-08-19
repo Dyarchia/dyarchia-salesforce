@@ -1,4 +1,4 @@
-# Agent working files — kept on develop, never published on master
+# Agent working files — local only, never versioned on any branch
 .claude/
 .claude-cache/
 CLAUDE.md
