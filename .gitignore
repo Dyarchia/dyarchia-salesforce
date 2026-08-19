@@ -1,9 +1,24 @@
-# Build artifacts — Claude skill bundles
-*.skill
-
-# Claude Code local config
+# Agent working files — kept on develop, never published on master
 .claude/
 .claude-cache/
+CLAUDE.md
+
+# Reference clones — read-only raw material, never installed or published
+sources/
+
+# Secrets
+.env
+.env.*
+*.local.json
+*.pem
+*.key
+*.p12
+*.jks
+credentials
+credentials.*
+*credentials.json
+.sf/
+.sfdx/
 
 # OS metadata — Windows
 Thumbs.db
@@ -30,3 +45,8 @@ $RECYCLE.BIN/
 # Logs / temp
 *.log
 *.tmp
+
+# Working scratch — local notes, superseded design drafts
+claude_structure.png
+docs/dyarchia-legio.md
+docs/TODO.md
