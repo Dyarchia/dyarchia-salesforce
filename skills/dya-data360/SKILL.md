@@ -11,6 +11,8 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults Apex query code inherits.
 - `references/shared/governor-limits.md` — the transaction budget an Apex query against Data 360 still spends.
+- `references/query-api.md` — **the four query surfaces and how to choose**: the `sfsqlquery` Apex namespace, `ConnectApi.CdpQuery`, the Connect REST endpoints, and the `/api/v3/query` Direct API with chunks, metadata and Apache Arrow.
+- `references/ingestion-api.md` — streaming and bulk ingestion end to end: connector and schema prerequisites, the job lifecycle, the payload test action.
 - `references/query-access.md` — SOQL on DMOs/DLOs in Apex (`__dlm`, `DATASPACE`, governor and credit notes), Connect API in Apex (`ConnectApi`), the Query API (SQL), pagination, and query best practices.
 - `references/ingestion-and-modeling.md` — Ingestion API and connectors, streaming vs batch, DLO→DMO mapping, identity resolution, calculated insights, segments, data actions/platform events, and zero-copy federation.
 
@@ -64,8 +66,9 @@ Sources ──ingest──▶ DLO ──map──▶ DMO ──identity resoluti
 
 | Term | What it is |
 |---|---|
-| **DLO** (Data Lake Object, `__dll`/`__dlm` in queries) | Raw ingested data, source schema preserved |
-| **DMO** (Data Model Object, `__dlm`) | Mapped, standardised object in the Customer 360 model — the queryable "single source of truth" |
+| **DLO** (Data Lake Object, suffix `__dll`) | Raw ingested data, source schema preserved |
+| **DMO** (Data Model Object, suffix `__dlm`) | Mapped, standardised object in the Customer 360 model — the queryable "single source of truth" |
+| The two suffixes | `__dll` is raw, `__dlm` is modelled. Getting them the wrong way round is the most common beginner error, and the query simply returns nothing useful |
 | **UDLO** | Unstructured DLO — documents/images for AI/RAG |
 | **EDLO** | External DLO — metadata pointer to an external warehouse (Snowflake, Databricks, Redshift) for **zero-copy** federation |
 | **Unified Profile / Unified DMO** | Records merged by identity resolution |
@@ -91,7 +94,7 @@ Rules:
 - **Default to batch ingestion.** Streaming costs roughly 2.5× batch (≈5,000 vs ≈2,000 credits per million rows). Use streaming only when sub-15-minute latency genuinely changes the business outcome.
 - **Prefer zero-copy** when the source is a supported warehouse and you don't need a physical copy — you skip ingestion cost entirely and query in place.
 
-Full ingestion patterns: `references/ingestion-and-modeling.md`.
+> The API itself — connector and schema prerequisites, streaming versus the bulk job lifecycle, the payload test action: `references/ingestion-api.md`. Modelling, identity resolution and activation: `references/ingestion-and-modeling.md`.
 
 ---
 
@@ -113,8 +116,9 @@ There are three programmatic ways to read Data 360 data. Pick by where the logic
 
 | Need | Method | Notes |
 |---|---|---|
-| Query DMOs from **Apex on-platform** (agent action, trigger-adjacent logic) | **SOQL on DMOs** (`__dlm`) | Static SOQL supported; query locators/FOR loops API 61+; consumes credits |
-| **Analytical** SQL crossing modeled data, aggregates, joins | **Query API (Data 360 SQL)** | `createSqlQuery` + paginated `getSqlQueryRows`; results cached 24h |
+| Read a few DMO records from **Apex** (agent action, trigger-adjacent logic) | **SOQL on DMOs** (`__dlm`) | Cheapest thing that works; consumes credits |
+| Run **Data 360 SQL from Apex** | **`sfsqlquery` namespace** | The documented **recommended** Apex approach: `SqlStatement`, `SqlRowIterator`, `SqlQueueable` — iterate and go async instead of materialising a result set in one transaction |
+| **Analytical** SQL crossing modeled data, aggregates, joins, from outside | **Connect REST**, or the **`/api/v3/query` Direct API** | Direct API adds chunked retrieval, schema-only metadata and Apache Arrow. Results are cached — re-read with `result_scan` rather than re-running |
 | Object-oriented access from an **app/integration** | **Connect REST API** or **Connect API in Apex** (`ConnectApi`) | Profiles, CIs, segments, metadata |
 | Fast full-entity profile fetch | **Data Graph API** | Precomputed graph, low latency |
 
@@ -137,7 +141,7 @@ Hard rules for any Data 360 query (SOQL or SQL):
 - Preview on **sample data** before running exploratory queries at full scale.
 - For the Query API, **paginate** with `getSqlQueryRows` (offset/rowLimit) — re-reading cached results within 24h is free of extra consumption.
 
-Full query patterns, Connect API in Apex, and pagination: `references/query-access.md`.
+> Choosing between the four surfaces, with endpoints, auth and the `dne_cdpInstanceUrl` trap: `references/query-api.md`. Existing SOQL and Connect-in-Apex patterns: `references/query-access.md`.
 
 ---
 

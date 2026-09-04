@@ -10,15 +10,92 @@ In Apex, call the corresponding **Invocable Action** for the agent (the agent's 
 
 ## Agent API — Headless Conversations (REST)
 
-The Agent API lets external systems run an agent **without a logged-in user**: start a session, send messages with context, receive structured responses. Conceptual flow:
+The Agent API runs an agent from an external system **without a logged-in user**. Everything below is
+against `https://api.salesforce.com/einstein/ai-agent/v1` — note that this is a Salesforce-wide host,
+**not** your My Domain URL, which appears separately inside the session payload.
 
-1. **Authenticate** with OAuth (client-credentials / JWT for server-to-server) and obtain an access token scoped to the agent's connected app.
-2. **Start a session** against the agent's API name → returns a `sessionId`.
-3. **Send a message** with the user utterance and any context variables → returns the agent's structured response (messages, actions taken, citations).
-4. **Continue** the conversation by reusing the `sessionId`.
-5. **End the session** when done.
+### 0. Get the agent id
 
-Treat the API like any server integration: store no secrets in the client, scope the token tightly (least privilege), and let the Trust Layer enforce masking/grounding. Use it for customer-facing channels and back-end automation where there's no UI.
+An 18-character id, and where you find it depends on which builder made the agent:
+
+- **Legacy Agentforce Builder** — open the agent from Setup and take the id from the end of the URL:
+  `…/lightning/setup/EinsteinCopilot/0XxSB000000IPCr0AO/edit` → `0XxSB000000IPCr0AO`.
+- **New Agentforce Builder** — reached through Agentforce Studio in the App Launcher; it has the
+  Canvas/Script view picker.
+
+### 1. Authenticate — client credentials
+
+```bash
+curl https://{MY_DOMAIN_URL}/services/oauth2/token \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'client_id={CONSUMER_KEY}' \
+  --data-urlencode 'client_secret={CONSUMER_SECRET}'
+```
+
+Returns `access_token`. `MY_DOMAIN_URL` comes from Setup › My Domain › *Current My Domain URL*.
+
+### 2. Start a session
+
+```bash
+curl -X POST https://api.salesforce.com/einstein/ai-agent/v1/agents/{AGENT_ID}/sessions \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {ACCESS_TOKEN}' \
+  --data '{
+    "externalSessionKey": "{RANDOM_UUID}",
+    "instanceConfig": { "endpoint": "https://{MY_DOMAIN_URL}" },
+    "streamingCapabilities": { "chunkTypes": ["Text"] },
+    "bypassUser": true
+  }'
+```
+
+Two fields decide more than their size suggests:
+
+- **`bypassUser`** — `true` runs as the **agent-assigned user**; `false` runs as the user the token
+  belongs to. This is the identity that governs what the agent can see, so choose it deliberately
+  rather than copying an example. See `dya-permissions`.
+- **`externalSessionKey`** — a UUID you generate. It is how you trace this conversation in the
+  agent's event logs, so log it on your side too or you lose the correlation.
+
+The response carries the `sessionId`, a `_links` block with the message/stream/end URLs, and the
+agent's opening `messages`.
+
+### 3. Send a message
+
+```bash
+curl 'https://api.salesforce.com/einstein/ai-agent/v1/sessions/{SESSION_ID}/messages' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer {ACCESS_TOKEN}' \
+  --data '{
+    "message": {
+      "sequenceId": {SEQUENCE_ID},
+      "type": "Text",
+      "text": "Show me the cases associated with Lauren Bailey."
+    }
+  }'
+```
+
+**`sequenceId` increases with every message in the session** — you own the counter. Reusing or
+resetting it is a source of confusing behaviour that looks like the agent losing context.
+
+### 4. The rest of the surface
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/agents/{AGENT_ID}/sessions` | POST | Start a session |
+| `/sessions/{SESSION_ID}/messages` | POST | Synchronous message — one response when complete |
+| `/sessions/{SESSION_ID}/messages/stream` | POST | Server-sent events — partial chunks as they generate |
+| `/sessions/{SESSION_ID}/feedback` | POST | Submit feedback against a message |
+| `/sessions/{SESSION_ID}` | DELETE | End the session |
+
+Use the streaming endpoint for anything a human is waiting on; use the synchronous one for
+back-end automation where partial output has no value.
+
+A response `message` carries `type` (for example `Inform`), the `message` text, `isContentSafe`,
+`result`, and `citedReferences` — the citations are what let you show *why* the agent said something.
+
+Treat it like any server integration: no secrets in the client, least-privilege token, and let the
+Trust Layer do masking and grounding. Salesforce publishes a Postman collection for the API.
 
 ## Agentforce DX / CLI — Build and Preview
 
