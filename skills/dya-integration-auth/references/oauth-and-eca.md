@@ -1,4 +1,4 @@
-# OAuth Flows & External Client Apps — Reference (API v67.0)
+# OAuth Flows & External Client Apps — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-auth` for inbound authentication detail. External Client Apps (ECAs) are the new default container for OAuth client configuration.
 
@@ -27,7 +27,14 @@ Pairs with the web-server flow to obtain long-lived access without re-prompting.
 For input-constrained devices (kiosks, IoT): the device shows a code the user enters on another screen.
 
 ### Username-Password — DO NOT USE
-Eliminated and **not supported by ECAs**. Any integration still using it must migrate.
+Not supported by ECAs, blocked by default in new orgs, and retired for connected apps by a Winter '27
+Release Update **enforced on 20 February 2027**. On that date an integration posting
+`grant_type=password` stops receiving a token.
+
+Migrating: **client credentials** is the smallest change — the app runs as one designated integration
+user and no password is stored. **JWT bearer** replaces the shared secret with a signed certificate
+and is the better answer for anything high value. **Web server plus PKCE** where a human is actually
+authorising. Never migrate to another scheme that carries a password.
 
 ## External Client Apps vs Connected Apps
 
@@ -39,7 +46,7 @@ Eliminated and **not supported by ECAs**. Any integration still using it must mi
 | Secret rotation | **Staged Credentials API** (stage new secret, cut over, retire old — zero downtime) | Manual, disruptive |
 | Canvas | Supported (added Spring '26) | Supported |
 
-Migration guidance: build all new identities as ECAs; when revisiting a Connected App, recreate it as an ECA; inventory and migrate SOAP `login()`/username-password integrations before the **Summer '27** retirement (the **"Any API Auth"** permission already gates SOAP `login()` in new orgs).
+Migration guidance: build all new identities as ECAs; when revisiting a Connected App, recreate it as an ECA; inventory and migrate username-password integrations before **20 February 2027** and SOAP `login()` before its **Summer '27** retirement (the **"Any API Auth"** permission already gates SOAP `login()` in new orgs).
 
 ## MCP / Agent Auth
 

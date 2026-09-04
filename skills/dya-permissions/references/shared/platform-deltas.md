@@ -62,9 +62,13 @@ that does not deploy.
 
 These break running integrations rather than merely deprecating a pattern.
 
-- **The OAuth 2.0 username-password flow is retired.** A connected app still using it simply stops
-  receiving tokens after the upgrade, with no warning. Migrate to JWT bearer or another supported
-  flow. See `dya-integration-auth`.
+- **The OAuth 2.0 username-password flow for connected apps is retired**, announced as a Winter '27
+  Release Update with enforcement on **20 February 2027** — not at the release upgrade. On that date
+  any integration posting `grant_type=password` stops receiving a token. New orgs already block the
+  flow, and an org that does not see the Release Update is already unaffected. Migrate to the client
+  credentials flow (smallest change: one designated integration user, no password stored) or JWT
+  bearer (a signed certificate, and the better answer for anything high value). See
+  `dya-integration-auth`.
 - **Profile filtering is enforced.** A user without one of the bypass permissions (View All Profiles,
   Customize Application, Manage Users and five others) can no longer see other users' profile names;
   queries return empty rather than erroring. See `dya-permissions`.
