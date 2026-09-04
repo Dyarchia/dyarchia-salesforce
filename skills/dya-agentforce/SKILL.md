@@ -1,14 +1,17 @@
 ---
 name: dya-agentforce
-description: Salesforce Agentforce Summer '26 (API v67.0) — from zero to expert. What an AI agent is and how Atlas reasons; agent anatomy (Topics, Instructions, Actions); Agent Script; designing and building Apex/Flow/Prompt-Template actions; grounding with Data 360; invoking agents headlessly (Agent API); testing, evals, and observability; multi-agent orchestration; security and the Trust Layer. Load only when the user explicitly invokes this skill by name (`dya-agentforce`); do NOT auto-trigger on generic Agentforce, AI, or Salesforce questions.
+description: Salesforce Agentforce Winter '27 (API v68.0) — from zero to expert. What an AI agent is and how Atlas reasons; agent anatomy (Topics, Instructions, Actions); Agent Script; designing and building Apex/Flow/Prompt-Template actions; grounding with Data 360; invoking agents headlessly (Agent API); testing, evals, and observability; multi-agent orchestration; security and the Trust Layer. Load only when the user explicitly invokes this skill by name (`dya-agentforce`); do NOT auto-trigger on generic Agentforce, AI, or Salesforce questions.
 ---
 
 # Salesforce Agentforce — From Zero to Expert
 
-You are an expert Agentforce architect and developer. The reader may be **new to Agentforce**, so this skill builds the mental model first, then the implementation rules, then what changed in Summer '26. You **always** keep actions deterministic and bulkified, **always** ground answers in trusted data, and **always** enforce security through the Trust Layer. Follow every rule below.
+You are an expert Agentforce architect and developer. The reader may be **new to Agentforce**, so this skill builds the mental model first, then the implementation rules, then what this release changes. You **always** keep actions deterministic and bulkified, **always** ground answers in trusted data, and **always** enforce security through the Trust Layer. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
 
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an Apex action inherits.
+- `references/shared/sharing-and-access.md` — the permission model an agent's run-as identity is bound by. **Read this before designing a customer-facing agent.**
+- `references/shared/governor-limits.md` — the budget an action spends, and why "one transaction per action" is not a licence to skip bulkification.
 - `references/apex-actions.md` — full `@InvocableMethod` / `@InvocableVariable` action, action-type comparison, security, bulkification, error handling, and how descriptions feed Atlas.
 - `references/lifecycle-and-api.md` — Agent API (headless conversations), invoking agents from Apex/Flow, Agentforce DX/CLI `agent preview`, Testing API/Center, evaluations, and a primer on Agent Script.
 
@@ -18,14 +21,25 @@ Load a reference when building that exact thing. Agentforce actions are Apex/Flo
 
 ## Platform Context — Winter '27 / API v68.0
 
-**Current API version: 67.0 (Summer '26).** Agentforce metadata and the Apex/Flow behind actions are saved at `67.0`. This release is a major step for Agentforce:
+Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
 
-- **Atlas Reasoning Engine 3.0** powers reasoning and the new multi-agent routing.
-- **Multi-Agent Orchestration is GA** (Summer '26) — an orchestrator agent routes work to specialist subagents based on their descriptions and actions. See §11.
-- **Agent Script is GA and open source** — a hybrid language combining natural-language instructions with deterministic programmatic expressions (if/else, transitions, variables, subagent/action selection). The new Agent Builder uses a graph-based engine. Legacy agents can auto-migrate to Agent Script. See §5.
-- **Agentforce DX matures** — `agent preview` is GA (scriptable test sessions), agent project scaffolding, one-command agent users, trace files, and richer YAML/JSON-defined evaluations (Beta). See §8.
-- **Agentforce Experience Layer (AXL)** — the agent-facing half of Headless 360's experience layer: define an interaction once, render natively across Slack, Teams, Voice, mobile, ChatGPT, Claude, Gemini. See `dya-headless360`.
-- **Apex actions inherit API 67 security defaults** — `with sharing` and `USER_MODE` by default; `WITH SECURITY_ENFORCED` no longer compiles. See §4 and `dya-apex`.
+| Change | Status | What it gives you |
+|---|---|---|
+| **`AiAgentDefinition` and `AiAgentDefinitionVersion` metadata types** | GA at 68.0 | Agents deploy as source-controlled metadata. **Both orgs must be on 68.0** — a deploy from a 68.0 sandbox into a 67.0 org will not carry them |
+| **MCP interoperability** | GA | An agent discovers and calls tools on external MCP servers through a governed connection, instead of every capability being rebuilt as a local action. See `dya-integration-connectors-mcp` |
+| **Agent observability and analytics** | GA | Session-level tracing, built-in usage analytics, and **custom scorers** that measure agent quality against your own rules rather than a generic metric |
+| **Voice: sharper transcription, less robotic speech** | GA | Better recognition accuracy and more natural output for Agentforce Voice |
+| **24 additional conversation languages** | Beta | Not production — check the list before promising a language |
+| **Execute Data 360 SQL from Apex** | GA | An action can query Data 360 alongside org data in one class. See `dya-data360` |
+
+Standing platform facts:
+
+- **Atlas Reasoning Engine 3.0** powers reasoning and multi-agent routing.
+- **Multi-Agent Orchestration is GA** — an orchestrator routes work to specialist subagents based on their descriptions and actions. See §11.
+- **Agent Script is GA and open source** — natural-language instructions blended with deterministic programmatic expressions (conditionals, transitions, variables, subagent and action selection). The Agent Builder runs on a graph-based engine, and legacy agents can auto-migrate. See §5.
+- **Agentforce DX**: `agent preview` is GA for scriptable test sessions, with project scaffolding, one-command agent users, trace files, and YAML/JSON-defined evaluations (Beta). See §8.
+- **Agentforce Experience Layer (AXL)** — define an interaction once and render it natively across Slack, Teams, Voice, mobile and third-party assistants. See `dya-headless360`.
+- **An Apex action is Apex**, so it inherits the API 67.0 security defaults: `with sharing` and `USER_MODE`, and `WITH SECURITY_ENFORCED` no longer compiles. See §4 and `dya-apex`.
 
 ---
 
@@ -128,18 +142,18 @@ public with sharing class GetOrderStatusAction {
 
 Absolute rules:
 
-- **Bulkify.** Actions do **not** bulkify automatically and each runs in its own transaction; if the same Apex is reused in Flow it can hit governor limits. Write every action as if it processes 200 records. Take `List<Request>`, return `List<Result>`.
+- **Bulkify anyway.** An agent invokes an action **once per turn, in its own transaction**, so the agent itself will not hand you 200 records. Write for the batch regardless, because the same `@InvocableMethod` is routinely reused from a Flow — and **Flow always passes a `List`**, often the whole 200-record trigger batch. Take `List<Request>`, return `List<Result>`; the cost is nothing, and the alternative is a governor limit the first time an admin wires it into a record-triggered flow. See `dya-flow`.
 - **One input/output wrapper class** with `@InvocableVariable`s; primitives or DTOs, never raw `SObject` you don't control.
-- **`with sharing` + `WITH USER_MODE`** (API 67 defaults, but be explicit). `WITH SECURITY_ENFORCED` no longer compiles.
+- **`with sharing` + `WITH USER_MODE`** (the defaults from API 67.0, but state them). `WITH SECURITY_ENFORCED` no longer compiles.
 - **Descriptions are prompts.** Write a clear `label` and `description` on the method and every variable; keep them in sync with the action config in Agent Builder.
-- **Handle errors gracefully** — return a structured result the agent can explain, don't throw raw exceptions; log via Platform Events (`dya-apex` §11).
+- **Handle errors gracefully — for the agent.** Return a structured result with a success flag and a human-readable message the agent can relay; a thrown exception gives it something it cannot explain to a user. This is the **opposite** of what a Flow-facing action wants, where throwing is how the fault message reaches a Fault Path. If one method serves both callers, return the structured result and let the Flow branch on it rather than throwing. Log failures durably through Platform Events (`dya-apex`).
 - Keep actions **deterministic** — they exist precisely so the LLM does *not* improvise critical logic.
 
 Full action skeletons, error patterns, and the action-type deep dive: `references/apex-actions.md`.
 
 ---
 
-## 5. Agent Script — Deterministic Control (GA Summer '26)
+## 5. Agent Script — Deterministic Control (GA)
 
 Agent Script is the language behind the new Agent Builder. It blends natural-language instructions for conversational nuance with **programmatic expressions** for the parts that must be reliable.
 
@@ -191,20 +205,20 @@ Test topic classification (does the right topic fire?), action selection, and gr
 
 ## 9. Observability
 
-Once live, instrument it. **Agent Platform Tracing** writes a **span** for every action execution into **Data 360 DMOs** (e.g. `ssot__TelemetryTraceSpan__dlm`), queryable via SOQL — each span records its parent, giving you a trace tree of the agent's reasoning and actions. Require the Data Cloud Data Access permission set to read it. Use **Session Tracing** and the Observability dashboards to find routing errors, slow actions, and ungrounded answers.
+Once live, instrument it. **Agent Platform Tracing** writes a **span** for every action execution into **Data 360 DMOs** (e.g. `ssot__TelemetryTraceSpan__dlm`), queryable via SOQL — each span records its parent, giving you a trace tree of the agent's reasoning and actions. Reading it requires the Data Cloud Data Access permission set. A **DMO** is a Data Model Object — Data 360's normalised, mapped representation of data — and the `__dlm` suffix marks one; see `dya-data360` if that is unfamiliar. Use **Session Tracing** and the Observability dashboards to find routing errors, slow actions, and ungrounded answers.
 
 ---
 
 ## 10. Security & the Trust Layer
 
 - The **Einstein Trust Layer** enforces data masking, dynamic grounding, FLS, and zero-data-retention with LLM providers on every session — regardless of how the agent is invoked (UI, API, MCP).
-- Agents run with a **user/permission context**: employee-facing agents act with the user's permissions; customer-facing agents use a dedicated guest/service profile. Scope that profile to the minimum.
+- Agents run with a **user and permission context**: an employee-facing agent acts with the running user's permissions; a customer-facing agent runs under a dedicated guest or service profile. Whatever that identity can see, the agent can surface — so scope it to the minimum and design it deliberately. See `dya-permissions`.
 - Apex actions enforce `with sharing` + `USER_MODE`. Never widen permissions just to make a user-mode error disappear — that leaks data into reports/APIs too.
 - Treat agent instructions as untrusted-input boundaries: guard against prompt injection by scoping topics tightly and validating action inputs in Apex.
 
 ---
 
-## 11. Multi-Agent Orchestration (GA Summer '26)
+## 11. Multi-Agent Orchestration (GA)
 
 For complex domains, deploy **specialist subagents** coordinated by an **orchestrator** agent. The orchestrator inspects each registered subagent's description and actions and routes the request to the best fit — it *reasons* from descriptions, it does not follow a hard-coded map.
 

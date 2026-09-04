@@ -1,4 +1,4 @@
-# Headless 360 Experience Layer & Lightning Types — Reference (Summer '26)
+# Headless 360 Experience Layer & Lightning Types — Reference (Winter '27 / API v68.0)
 
 Full detail referenced from SKILL.md §5. Load this when an interaction must render across more than one channel, or when deciding between the Experience Layer and plain LWC/Aura.
 
@@ -42,7 +42,7 @@ The decision pivot: **how many surfaces?** One Lightning surface → plain LWC. 
 
 ## Maturity Note
 
-As of Summer '26 the **build-time** surface (authoring capabilities, MCP tooling, coding skills) is mature. The **runtime** Experience Layer already handles straightforward cases well — e.g. a support agent returning a case summary inside a Slack thread — and the cross-surface vision (the same capability delivered across voice, partner mobile apps, and any MCP-compatible client) is expanding through the release. Build with the "define once" model now; expect the set of natively-rendered surfaces to keep growing.
+The **build-time** surface (authoring capabilities, MCP tooling, coding skills) is mature. The **runtime** Experience Layer already handles straightforward cases well — e.g. a support agent returning a case summary inside a Slack thread — and the cross-surface vision (the same capability delivered across voice, partner mobile apps, and any MCP-compatible client) is expanding through the release. Build with the "define once" model now; expect the set of natively-rendered surfaces to keep growing.
 
 ## Anti-Patterns
 
