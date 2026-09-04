@@ -1,6 +1,6 @@
 ---
 name: dya-lwr-sites
-description: Salesforce Experience Cloud LWR sites Summer '26 (API v67.0) — building production sites on the Lightning Web Runtime: enhanced vs non-enhanced LWR sites, standard components and the Grid, CMS collections, guest-user hardening, SEO, CSP/LWS, partial deployment via DigitalExperienceBundle, and the v67 Experience Cloud additions. Load only when the user explicitly invokes this skill by name (`dya-lwr-sites`); do NOT auto-trigger on generic Experience Cloud, site, or portal questions.
+description: Salesforce Experience Cloud LWR sites Winter '27 (API v68.0) — building production sites on the Lightning Web Runtime: enhanced vs non-enhanced LWR sites, standard components and the Grid, CMS collections, guest-user hardening, SEO, CSP/LWS, partial deployment via DigitalExperienceBundle, embedded reports and dashboards, and the Experience Delivery discontinuation. Load only when the user explicitly invokes this skill by name (`dya-lwr-sites`); do NOT auto-trigger on generic Experience Cloud, site, or portal questions.
 ---
 
 # Salesforce Experience Cloud — LWR Sites
@@ -12,8 +12,13 @@ authenticated sites on the Lightning Web Runtime (LWR)** — the modern, LWC-nat
 
 This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
 
-- `references/guest-and-seo.md` — full guest-user hardening procedure and the SEO setup
+- `references/shared/sharing-and-access.md` — the guest user and the access model a public site
+  runs under. **Read this before hardening anything.**
+- `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
+- `references/guest-and-seo.md` — the full guest-user hardening procedure and the SEO setup
   (slugs, sitemaps, robots.txt) for a production LWR site.
+
+Designing the guest profile and its sharing rules is `dya-permissions`.
 
 ---
 
@@ -31,12 +36,24 @@ This SKILL.md carries the load-bearing rules. Larger material lives in `referenc
   enhanced LWR sites; non-enhanced LWR sites can show only object list views in the Grid.
 - **LWR sites run Lightning Web Security**, with their **own LWS instance** independent of the
   org setting, and strict CSP.
-- **New in v67 for Experience Cloud:** malware scans for Salesforce Files are GA; you can
-  upload files **up to 10 GB** to Aura or LWR sites; **AI-assisted Self-Service components** are
-  available for Aura/LWR sites; users on public email services can send email from the site;
-  Chatter can be turned on in new orgs for Aura/LWR sites.
-- **React UI Bundles is open Beta in v67 — DO NOT use in production.** A React-hosted site is a
-  thin `appContainer` over a UI Bundle and cannot deploy to production yet. Build with LWC.
+**Winter '27 changes two things that matter here.**
+
+- **Embedded reports and dashboards come to LWR sites (Beta)** — charts and tables with
+  conditional formatting and inline record editing, previously available only on Aura template
+  sites. This removes one of the last genuine reasons to stay on Aura, so it is worth raising
+  whenever someone justifies an Aura site by reporting. Beta: not production, and not a
+  commitment you can plan a delivery around yet.
+- **Experience Delivery (Beta) is discontinued**, with **auto-migration on republish through
+  October 2026**. If a site is on it, republishing is the migration — but confirm what the site
+  looks like afterwards rather than assuming the migration is transparent.
+
+Standing facts:
+
+- Malware scanning for Salesforce Files is GA; files up to **10 GB** upload to Aura or LWR
+  sites; AI-assisted Self-Service components are available; users on public email services can
+  send email from a site; Chatter can be enabled in new orgs for Aura and LWR sites.
+- **React UI Bundles remains open Beta — do not use in production.** A React-hosted site is a
+  thin `appContainer` over a UI Bundle and cannot deploy to production. Build with LWC.
 
 Sites deploy as metadata (`DigitalExperienceBundle`, `Network`, `CustomSite`,
 `DigitalExperienceConfig`); never hand-edit in production.
@@ -52,7 +69,7 @@ New, performance/SEO-sensitive public site    Enhanced LWR site (LWC)
 Content-driven site using enhanced CMS        Enhanced LWR site (required for CMS collections)
 Simple list-view-only data display            Non-enhanced LWR site (Grid, list views only)
 Existing Aura template site                   Stays Aura — migration is a rebuild, not a flip
-React SPA hosted on Salesforce                UI Bundle (open Beta v67 — NOT production yet)
+React SPA hosted on Salesforce                UI Bundle (open Beta — NOT production yet)
 ```
 
 Pick **enhanced LWR** for new builds unless there is a reason not to. Aura-to-LWR is a
@@ -161,6 +178,8 @@ editing a production site by hand is an incident waiting to happen.
 
 | Anti-Pattern | Modern Replacement |
 |---|---|
+| Staying on an Aura template site because reporting needed it | Embedded reports and dashboards on LWR (Beta) close that gap |
+| Leaving a site on Experience Delivery (Beta) | It is discontinued; republish to auto-migrate before October 2026 |
 | Broadening org-wide sharing to expose public data | Guest user sharing rules, minimum read access |
 | Granting the guest profile broad object/field access | Least-privilege: only what the site renders |
 | Record Ids in public URLs | SEO-friendly URL slugs (GA) |
@@ -171,7 +190,7 @@ editing a production site by hand is an incident waiting to happen.
 | Testing a guest site only while logged in | Test as the guest user, in the site's own LWS |
 | `lightning-file-upload` for site uploads | Supported mechanism; mind the guest (`dya-lwr`) |
 | Flipping an Aura site to LWR as a setting | Plan a rebuild |
-| Building a production site as a React UI Bundle | LWC LWR site (UI Bundles are open Beta in v67) |
+| Building a production site as a React UI Bundle | LWC LWR site (UI Bundles are open Beta) |
 | Editing/activating a production site by hand | Metadata + CI/CD; partial deployment |
 
 ---
@@ -185,5 +204,5 @@ editing a production site by hand is an incident waiting to happen.
 3. **Harden the guest first** — least-privilege profile, guest sharing rules, read-only, no
    ownership, clean empty state.
 4. **SEO is mandatory** — slugs (GA), platform sitemaps, `robots.txt`, lean pages.
-5. **Production means LWC + pipeline** — React UI Bundles are open Beta in v67; deploy sites as
+5. **Production means LWC + pipeline** — React UI Bundles are open Beta; deploy sites as
    metadata, never by hand.

@@ -1,6 +1,6 @@
-# Aura Server-Side Apex & Lightning Data Service — Reference Implementation (API v67.0)
+# Aura Server-Side Apex & Lightning Data Service — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §4–§5. Load this when accessing data from an Aura component on Summer '26 (API v67.0). Evaluate LDS first; reach for `@AuraEnabled` Apex only for genuine server-side logic. Aura controllers are Apex — deep server rules live in `dya-apex`.
+Full implementations referenced from SKILL.md §4–§5. Load this when accessing data from an Aura component on Winter '27 (API v68.0). Evaluate LDS first; reach for `@AuraEnabled` Apex only for genuine server-side logic. Aura controllers are Apex — deep server rules live in `dya-apex`.
 
 ## Lightning Data Service — `force:recordData`
 
