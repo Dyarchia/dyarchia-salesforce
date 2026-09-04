@@ -38,17 +38,22 @@ fault. It affects the `vXX.X` in standard endpoint URLs only.
 | Versions | Status |
 |---|---|
 | 7.0 – 20.0 | Retired |
-| 21.0 – 30.0 | Retired |
-| 31.0 – 40.0 | Deprecated and scheduled for retirement — build nothing new on them |
+| 21.0 – 30.0 | Retired (Summer '23) |
+| 31.0 – 40.0 | Deprecated in Summer '27; **retired 1 June 2028** (Summer '28) |
 | 41.0 and above | Supported |
+
+After 1 June 2028 a REST, SOAP or Bulk request targeting 31.0–40.0 returns an error. That is far
+enough away to plan for and close enough that anything built new on those versions today is being
+built to be rewritten.
 
 Retirement of an endpoint version does **not** retire your custom Apex REST or SOAP web services,
 Apex classes, triggers, Flows or Visualforce pages. Those keep running under their own stamped
 version. What breaks is an external caller addressing a retired `/services/data/vXX.X/` path.
 
-SOAP `login()` is a separate, narrower retirement: it is already unavailable in 65.0 and above, and
-is on its way out for 31.0–64.0. It now also requires the **Any API Auth** user permission, enforced
-by default in new orgs. See `dya-integration-auth`.
+SOAP `login()` is a separate, narrower retirement on an earlier clock: for API 31.0–64.0 it is
+retired on **1 June 2027** (Summer '27), and it is already unavailable at 65.0 and above. It also
+requires the **Any API Auth** user permission, enforced by default in new orgs. Do not conflate the
+two dates — `login()` goes a year before the versions themselves. See `dya-integration-auth`.
 
 ## Targets
 

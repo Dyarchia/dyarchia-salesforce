@@ -1,4 +1,4 @@
-# Integration Patterns & Version Retirement — Reference (Summer '26)
+# Integration Patterns & Version Retirement — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-overview` when you need the pattern detail behind a choice, or the precise API-version-retirement facts.
 
@@ -36,17 +36,26 @@ Otherwise choose **asynchronous / event-driven** and design:
 
 ## API Version Retirement — Precise Facts
 
-| Item | Status (as of Summer '26) |
-|---|---|
-| Platform API 21.0–30.0 (REST `/services/data/`, SOAP, Bulk) | **Retired** |
-| Platform API 31.0–40.0 | **Deprecate Summer '27, retire Summer '28** — move to 41.0+ |
-| SOAP `login()` for API 31.0–64.0 | **Retires Summer '27**; already gone in 65.0+ |
-| "Any API Auth" user permission | Gates SOAP `login()`; default-enforced in new orgs |
-| Custom Apex REST (`@RestResource`) / Apex SOAP web services | **NOT retired** — explicitly excluded from version retirement |
-| Apex classes, triggers, Visualforce pages | **NOT retired** — keep their saved version |
-| Salesforce-to-Salesforce native feature | Support ends Summer '26; stops functioning Spring '27 |
+The version numbers and dates live in **`references/shared/metadata-and-api-versions.md`**, which is
+the single source of truth for them across the whole library. Do not restate them here or in any
+skill body — a date written in two places is a date that will disagree with itself. In short: 41.0 is
+the floor, 31.0–40.0 retire 1 June 2028, and SOAP `login()` for 31.0–64.0 goes a year earlier on
+1 June 2027.
 
-**The critical distinction:** version retirement targets the numeric version of the *standard platform endpoints* and the SOAP *login* method. It does not deprecate the *ability to build* custom Apex services. A `@RestResource` class keeps working; only a class explicitly bumped to API 67.0 changes *behaviour* (user-mode/with-sharing), which is a security change, not a retirement.
+Integration-specific items that sit alongside those dates:
+
+| Item | Status |
+|---|---|
+| "Any API Auth" user permission | Gates SOAP `login()`; enforced by default in new orgs |
+| OAuth 2.0 username-password flow for connected apps | Retired, enforced **20 February 2027** |
+| Custom Apex REST (`@RestResource`) and Apex SOAP web services | **Not retired** — explicitly excluded from version retirement |
+| Apex classes, triggers, Visualforce pages | **Not retired** — they keep their saved version |
+| Salesforce-to-Salesforce native feature | Support ended Summer '26; stops functioning Spring '27 |
+
+**The critical distinction:** version retirement targets the numeric version in the *standard platform
+endpoint* URLs, plus the SOAP *login* method. It does not deprecate the ability to build custom Apex
+services. A `@RestResource` class keeps working. What changes when you raise a class to 67.0 or above
+is its *behaviour* — user mode and default sharing — which is a security change, not a retirement.
 
 ## Governor Limits That Shape Integration Design
 
