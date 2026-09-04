@@ -66,7 +66,9 @@ The order is always **sync, then build, then validate**. Building first bundles 
 7. Add the skill to the README catalogue and to the layout diagram.
 8. Add a CHANGELOG entry under `## [Unreleased]` → `### Added`.
 9. Run the validator. It must exit 0.
-10. Commit as `feat(skills): add dya-<name> skill`, source and bundle together.
+10. Commit as `feat(skills): add dya-<name> skill`, source and bundle together, on a branch cut
+    from `develop`. The pull request goes to `develop`, never to `master` — GitHub offers
+    `master` because it is the default branch, so change the base by hand.
 
 ## Editing an existing skill
 
@@ -77,7 +79,8 @@ The order is always **sync, then build, then validate**. Building first bundles 
 3. Add a CHANGELOG entry under `### Changed` describing what a consumer would notice, not what
    lines moved.
 4. Run the validator. It must exit 0.
-5. Commit as `feat(skills): ...` or `fix(skills): ...`, scoped to the one skill.
+5. Commit as `feat(skills): ...` or `fix(skills): ...`, scoped to the one skill, on a branch cut
+   from `develop` with the pull request based on `develop`.
 
 ## Splitting an oversized SKILL.md
 
