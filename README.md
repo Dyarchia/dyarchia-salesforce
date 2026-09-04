@@ -96,6 +96,7 @@ graph LR
     Root([dyarchia-salesforce/])
     Root --> Plugin[".claude-plugin/<br/>plugin · marketplace"]
     Root --> Meta["README · CHANGELOG · LICENSE"]
+    Root --> Contract["CLAUDE.md · .claude/skills/<br/>contributor contract"]
     Root --> SK["skills/<br/>25 skill folders"]
     Root --> Shared["references-shared/<br/>platform primer canon"]
     Root --> Dist["dist/<br/>25 .skill bundles"]
@@ -115,7 +116,7 @@ graph LR
     class Root root
     class SK,Skill,Shared domainFolder
     class SM,Refs,SharedRefs skillFolder
-    class Plugin,Meta,Dist,Scripts meta
+    class Plugin,Meta,Contract,Dist,Scripts meta
 ```
 
 Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand. Repo-level files never get bundled into the installable skill.
@@ -220,6 +221,8 @@ After copying, restart the agent and verify the skill appears under its loaded-s
 Every skill is a folder under `skills/` holding a `SKILL.md` and, optionally, a `references/` subfolder for material consulted on demand rather than obeyed on every invocation. The frontmatter carries two keys: `name`, identical to the folder name, and `description`, which ends with the explicit-invocation clause that keeps the skill from auto-triggering.
 
 Shared fundamentals are never copy-pasted between skills. Edit the canon under `references-shared/`, list the fragment in the skill's `shared-refs.txt`, and run `scripts/sync-shared-refs`; editing a synced copy directly is a validation error.
+
+The full contract lives in [`CLAUDE.md`](CLAUDE.md), and the step-by-step procedure for adding, editing, splitting or removing a skill is the repo-local `dya-skill-authoring` skill under `.claude/skills/`. Both are versioned: read them before your first change rather than inferring the conventions from the diff.
 
 A source edit is only half the change. Rebuild that skill's bundle with `scripts/build-skill`, then run `scripts/validate-skills`. Beyond comparing every bundle against its source file by file, it checks that every skill's Platform Context declares the platform version this README states, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, and that every synced fragment still matches its canon. It must exit 0 before any commit that touches `skills/`.
 
