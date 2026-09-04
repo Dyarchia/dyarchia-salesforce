@@ -28,9 +28,8 @@ endpoint with `grant_type=password` stops working on that date. Inventory your c
 
 Standing facts, and the one that catches people:
 
-- **`@RestResource` is GA and recommended, and it is not deprecated.** Version retirement
-  (31.0–40.0, retiring 1 June 2028) targets the version number in *standard endpoint URLs* and the
-  SOAP `login()` method. It **explicitly excludes** custom Apex REST and SOAP web services, Apex
+- **`@RestResource` is GA and recommended, and it is not deprecated.** Version retirement targets
+  the version number in *standard endpoint URLs* and the SOAP `login()` method. It **explicitly excludes** custom Apex REST and SOAP web services, Apex
   classes, triggers and Visualforce. Full status in
   `references/shared/metadata-and-api-versions.md`.
 - **Apex SOAP web services (`webservice`) are supported but legacy** — prefer Apex REST for anything

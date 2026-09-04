@@ -38,9 +38,9 @@ Otherwise choose **asynchronous / event-driven** and design:
 
 The version numbers and dates live in **`references/shared/metadata-and-api-versions.md`**, which is
 the single source of truth for them across the whole library. Do not restate them here or in any
-skill body — a date written in two places is a date that will disagree with itself. In short: 41.0 is
-the floor, 31.0–40.0 retire 1 June 2028, and SOAP `login()` for 31.0–64.0 goes a year earlier on
-1 June 2027.
+skill body — a date written in two places is a date that will eventually disagree with itself. Read
+the fragment; it carries the floor, the deprecated range, and the two separate retirement dates
+(the versions themselves, and SOAP `login()` a year earlier).
 
 Integration-specific items that sit alongside those dates:
 

@@ -68,8 +68,7 @@ fi
 
 read_shared_manifest() {
     [ -f "$1" ] || return 0
-    sed -e 's/
-$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$1" |
+    sed -e 's/\r$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$1" |
         grep -v '^#' | grep -v '^$' |
         sed -e 's/\.md$//' -e 's/$/.md/' |
         LC_ALL=C sort -u
