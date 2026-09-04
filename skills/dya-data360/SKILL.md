@@ -1,14 +1,16 @@
 ---
 name: dya-data360
-description: Salesforce Data 360 (formerly Data Cloud) Summer '26 — from zero to expert. What Data 360 is and the ingest→DLO→DMO→identity→insights→activation pipeline; key objects (DLO, DMO, UDLO, EDLO, CI, segments, data graphs, dataspaces); getting data in (Ingestion API, connectors, zero-copy); modeling and identity resolution; querying (SOQL on DMOs in Apex, Query API SQL, Connect API); calculated insights and segments; data actions and automation; credit/cost governance; grounding for Agentforce and RAG. Load only when the user explicitly invokes this skill by name (`dya-data360`); do NOT auto-trigger on generic Data Cloud, data, or Salesforce questions.
+description: Salesforce Data 360 (formerly Data Cloud) Winter '27 (API v68.0) — from zero to expert. What Data 360 is and the ingest→DLO→DMO→identity→insights→activation pipeline; key objects (DLO, DMO, UDLO, EDLO, CI, segments, data graphs, dataspaces); getting data in (Ingestion API, connectors, zero-copy); modeling and identity resolution; querying (SOQL on DMOs in Apex, Query API SQL, Connect API); calculated insights and segments; data actions and automation; credit/cost governance; grounding for Agentforce and RAG. Load only when the user explicitly invokes this skill by name (`dya-data360`); do NOT auto-trigger on generic Data Cloud, data, or Salesforce questions.
 ---
 
 # Salesforce Data 360 — From Zero to Expert
 
-You are an expert Data 360 architect and developer. The reader may be **new to Data 360**, so this skill builds the mental model first, then the implementation rules, then what changed in Summer '26. You **always** filter and project queries tightly, **always** default to batch over streaming, and **always** treat every operation as costing **credits**. Follow every rule below.
+You are an expert Data 360 architect and developer. The reader may be **new to Data 360**, so this skill builds the mental model first, then the implementation rules, then what this release changes. You **always** filter and project queries tightly, **always** default to batch over streaming, and **always** treat every operation as costing **credits**. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
 
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults Apex query code inherits.
+- `references/shared/governor-limits.md` — the transaction budget an Apex query against Data 360 still spends.
 - `references/query-access.md` — SOQL on DMOs/DLOs in Apex (`__dlm`, `DATASPACE`, governor and credit notes), Connect API in Apex (`ConnectApi`), the Query API (SQL), pagination, and query best practices.
 - `references/ingestion-and-modeling.md` — Ingestion API and connectors, streaming vs batch, DLO→DMO mapping, identity resolution, calculated insights, segments, data actions/platform events, and zero-copy federation.
 
@@ -16,13 +18,21 @@ Load a reference when building that exact thing. Data 360 is the **data layer th
 
 ---
 
-## Platform Context — Summer '26
+## Platform Context — Winter '27 / API v68.0
 
 - **"Data Cloud" was rebranded to "Data 360" on October 14, 2025.** Same product; you'll still see "Data Cloud" in older docs, API names, and the `Data Cloud Data Access` permission set. Use "Data 360" in new work.
-- **Data 360 MCP Server (Developer Preview)** — an open-source MCP server fronting ~200 REST operations behind three facade tools (`search`, `payload_examples`, …) so coding agents can drive Data 360. Part of Headless 360. See `dya-headless360`.
-- **Headless DevOps for Data 360** — CI/CD pipelines can now promote Data 360 logic (data transforms, code extensions) the same way they promote Apex and LWC metadata, via DevOps data kits.
-- **Data Custom Code (Python SDK)** — author Python data-processing code locally with the Data Custom Code Python SDK + Salesforce CLI, validate against a sandbox, deploy and monitor (logs surface in a code-extensions DLO).
-- **Apex/SOQL access to DMOs** continues to evolve; queries run under API 67 controls when issued from Apex. Querying DMOs consumes **Data Services credits** — see §8.
+**Data 360 ships on its own monthly cadence**, not the three-times-a-year platform release. Winter '27 changes are dated around October 2026, and a feature can appear between platform releases — check the Data 360 release notes rather than assuming the platform release note set is complete.
+
+| Change | Status | What it gives you |
+|---|---|---|
+| **Execute Data 360 SQL from Apex** | GA | Run a Data 360 SQL query directly from Apex, so custom logic and Data 360 data live in one class instead of an integration between them. See `dya-apex` |
+
+Standing facts:
+
+- **Data 360 MCP Server (Developer Preview)** — an open-source MCP server fronting roughly 200 REST operations behind a few facade tools, so a coding agent can drive Data 360. Developer Preview: not production. See `dya-headless360`.
+- **Headless DevOps for Data 360** — a pipeline can promote Data 360 logic (data transforms, code extensions) the way it promotes Apex and LWC, through DevOps data kits.
+- **Data Custom Code (Python SDK)** — author Python data-processing code locally, validate against a sandbox, deploy and monitor; logs surface in a code-extensions DLO.
+- **Apex and SOQL access to DMOs** runs under the API 67.0 security controls when issued from Apex. Querying a DMO consumes **Data Services credits** — see §8. Credits are the constraint that makes an unfiltered query expensive rather than merely slow.
 
 ---
 
@@ -74,7 +84,7 @@ Sources ──ingest──▶ DLO ──map──▶ DMO ──identity resoluti
 | **Connectors** (Salesforce CRM, S3, marketing, 3rd-party) | Standard sources | Batch by default |
 | **Ingestion API** | Push from external systems (streaming or bulk) | Streaming ~2.5× batch |
 | **Zero-copy federation** (EDLO) | Query a warehouse in place, no ingestion | Avoids ingestion cost; query cost applies |
-| **Data Custom Code (Python SDK)** | Custom transforms run inside Data 360 | New in Summer '26 |
+| **Data Custom Code (Python SDK)** | Custom transforms run inside Data 360 | Author locally, deploy to a sandbox, monitor through a code-extensions DLO |
 
 Rules:
 - **Define an explicit schema** for every ingestion pipeline — Data 360 requires it for structural integrity.

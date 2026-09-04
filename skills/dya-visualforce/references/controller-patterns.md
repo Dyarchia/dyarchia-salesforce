@@ -1,6 +1,6 @@
-# Visualforce Controller Patterns — Reference Implementation (API v67.0)
+# Visualforce Controller Patterns — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §2–§4. Load this when writing or refactoring a Visualforce controller, extension, or list controller on Summer '26 (API v67.0). Visualforce controllers are Apex, so the deep Apex rules in `dya-apex` (Service/Selector/Domain layering, async, testing, observability) apply on top of everything here.
+Full implementations referenced from SKILL.md §2–§4. Load this when writing or refactoring a Visualforce controller, extension, or list controller on Winter '27 (API v68.0). Visualforce controllers are Apex, so the deep Apex rules in `dya-apex` (Service/Selector/Domain layering, async, testing, observability) apply on top of everything here.
 
 ## Standard Controller + Extension Skeleton
 

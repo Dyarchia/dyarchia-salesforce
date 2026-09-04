@@ -1,4 +1,4 @@
-# Field Service — Scheduler REST, Bundling REST & Mobile (Summer '26, API v67.0)
+# Field Service — Scheduler REST, Bundling REST & Mobile (Winter '27 / API v68.0)
 
 Load from `dya-field-service` for external/headless booking, appointment bundling, and mobile extensibility.
 

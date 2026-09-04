@@ -1,6 +1,6 @@
-# Aura Events & Communication — Reference Implementation (API v67.0)
+# Aura Events & Communication — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §6. Load this when wiring communication between Aura components, or between Aura and LWC/Visualforce, on Summer '26 (API v67.0).
+Full implementations referenced from SKILL.md §6. Load this when wiring communication between Aura components, or between Aura and LWC/Visualforce, on Winter '27 (API v68.0).
 
 Preference order: `aura:method` (parent → child) → component event (child → ancestor) → Lightning Message Service (cross-tree / LWC / Visualforce) → application event (last resort, app-wide broadcast).
 

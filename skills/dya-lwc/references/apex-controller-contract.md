@@ -1,4 +1,4 @@
-# `@AuraEnabled` Controller Contract (v67.0)
+# `@AuraEnabled` Controller Contract (Winter '27 / API v68.0)
 
 Companion to §7 of `SKILL.md`. This file covers only the Apex an LWC needs. For server-side depth
 — Service / Selector / Domain layering, the trigger framework, async patterns, observability and

@@ -1,4 +1,4 @@
-# Agentforce Apex Actions — Reference Implementation (API v67.0)
+# Agentforce Apex Actions — Reference Implementation (Winter '27 / API v68.0)
 
 Full implementations referenced from SKILL.md §3–§4. Load this when building or reviewing an agent action. Actions are how an agent *does* things; Apex actions are the deterministic backbone for logic the LLM must not improvise. They are Apex — the deep rules in `dya-apex` apply on top.
 

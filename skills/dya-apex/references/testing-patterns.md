@@ -81,3 +81,21 @@ in front of production.
 75% is the deployment threshold, not the quality bar. Target 100% of meaningful branches. Coverage
 without assertions is worthless — a test that executes lines and asserts nothing raises the number
 and catches no regression.
+
+## Integration tests with real callouts (Developer Preview, Winter '27)
+
+`@IntegrationTest` marks a test that is allowed to make **real HTTP callouts** instead of returning a
+mock. It exists for contract verification against a sandbox endpoint — proving your request shape and
+parsing survive the actual service — not for ordinary unit testing.
+
+Constraints that change how you write the test:
+
+- **Developer Preview.** Not available in production orgs, and not a substitute for the mocked tests
+  that gate a deployment. Keep full `HttpCalloutMock` coverage alongside it.
+- **Asynchronous only**, and only one such test runs at a time.
+- **No automatic rollback.** A normal `@IsTest` method rolls its data back when it finishes; this one
+  does not. You create, you clean up, and a failure midway leaves records behind.
+- The endpoint must be reachable and stable. A test that fails when someone else's sandbox is down is
+  a test the team will start ignoring.
+
+Treat it as a scheduled contract check, not as part of the deployment gate.

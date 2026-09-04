@@ -1,4 +1,4 @@
-# Apex Callouts & Async Patterns — Reference (API v67.0)
+# Apex Callouts & Async Patterns — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-outbound` for the callout mechanics, the callout-after-DML rule, and async callout patterns. The canonical async framework (Queueable, Finalizers) lives in `dya-apex`; this file is the integration-specific slice. All examples use Named Credentials (`callout:`) — see `dya-integration-auth`.
 

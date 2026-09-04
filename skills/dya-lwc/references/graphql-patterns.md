@@ -1,4 +1,4 @@
-# GraphQL Wire Adapter — Reference Implementations
+# GraphQL Wire Adapter — Reference (Winter '27 / API v68.0)
 
 Full implementations of the GraphQL patterns referenced from SKILL.md §4. Load this file when writing a new GraphQL-backed component or refactoring an Apex-backed one.
 

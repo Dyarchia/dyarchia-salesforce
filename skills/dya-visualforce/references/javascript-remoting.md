@@ -1,4 +1,4 @@
-# Visualforce JavaScript Remoting — Reference Implementation (API v67.0)
+# Visualforce JavaScript Remoting — Reference Implementation (Winter '27 / API v68.0)
 
 Full implementations referenced from SKILL.md §5. Load this when building asynchronous, partial-page server interaction on a Visualforce page. JavaScript Remoting is the modern default: it is stateless (carries **no view state**), fast, and gives you direct control over the request and response in JavaScript.
 

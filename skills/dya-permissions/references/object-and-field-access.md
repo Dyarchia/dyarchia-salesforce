@@ -1,4 +1,4 @@
-# Object & Field Access — Reference (Summer '26)
+# Object & Field Access — Reference (Winter '27 / API v68.0)
 
 Load from `dya-permissions` for the "what can the user do" axis: profiles, permission sets, groups, muting, CRUD, FLS, system permissions, record types.
 
@@ -19,7 +19,7 @@ Per object: **Create, Read, Edit, Delete**, plus **View All** and **Modify All**
 
 ## Field-Level Security (FLS)
 
-Per field: **Read** and **Edit**. FLS is enforced **everywhere** — UI, API, reports, and (at v67) user-mode Apex. A field a user can't read is invisible in query results. FLS is set on profiles/permission sets, not on the field definition itself (the field defines defaults).
+Per field: **Read** and **Edit**. FLS is enforced **everywhere** — UI, API, reports, and user-mode Apex from API 67.0. A field a user can't read is invisible in query results. FLS is set on profiles/permission sets, not on the field definition itself (the field defines defaults).
 
 ## System & User Permissions
 

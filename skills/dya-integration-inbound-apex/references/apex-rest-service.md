@@ -1,4 +1,4 @@
-# Apex REST Service — Reference Implementation (API v67.0)
+# Apex REST Service — Reference Implementation (Winter '27 / API v68.0)
 
 Load from `dya-integration-inbound-apex` when building a custom inbound REST endpoint. Apex REST is GA and recommended; this is the canonical multi-verb, transactional, securely-bounded service. Deep Apex rules (bulkification, async, logging) live in `dya-apex`.
 
@@ -104,7 +104,7 @@ global with sharing class OrderApi {
 ## Rules Embodied Above
 
 - **`global with sharing`** class; **`global static`** methods, one annotation per verb.
-- **User-mode security**: `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML — correct and required at v67 (`WITH SECURITY_ENFORCED` would not compile).
+- **User-mode security**: `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML — correct and required from API 67.0 (`WITH SECURITY_ENFORCED` no longer compiles).
 - **Idempotency**: upsert by external id so a retried POST updates rather than duplicates.
 - **Bulk**: children built in a list, one DML. No DML/SOQL in loops.
 - **Stable contract**: explicit DTOs and a versioned URL (`/v1/orders/`).
@@ -132,7 +132,7 @@ global static void webhook() {
 | SOQL/DML in a loop in the handler | Bulk before/after the loop |
 | Blind insert on a retried POST | Upsert by external id |
 | `WITH SECURITY_ENFORCED` | `WITH USER_MODE` |
-| No sharing keyword at v67 | Explicit `with sharing` |
+ No sharing keyword | Explicit `with sharing` |
 | Returning the exception/stack trace | Sanitised error DTO + status code |
 | Unversioned URL/contract | `/v1/...` and versioned DTOs |
 | Trusting a webhook body without verifying | Verify signature from the raw body + header |

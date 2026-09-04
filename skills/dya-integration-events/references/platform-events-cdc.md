@@ -1,4 +1,4 @@
-# Platform Events & Change Data Capture — Reference (API v67.0)
+# Platform Events & Change Data Capture — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-events` when defining/publishing Platform Events or wiring Change Data Capture. In-org Apex publish/subscribe depth is in `dya-apex`.
 

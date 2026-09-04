@@ -1,4 +1,4 @@
-# Data 360 Query & Access — Reference Implementation (Summer '26)
+# Data 360 Query & Access — Reference Implementation (Winter '27 / API v68.0)
 
 Full implementations referenced from SKILL.md §5. Load this when reading Data 360 data programmatically. Three methods exist; choose by where the logic runs. Every method consumes Data Services credits, so query hygiene (§ "Rules") is mandatory.
 

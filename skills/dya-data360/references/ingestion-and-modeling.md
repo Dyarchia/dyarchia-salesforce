@@ -1,4 +1,4 @@
-# Data 360 Ingestion, Modeling & Activation — Reference (Summer '26)
+# Data 360 Ingestion, Modeling & Activation — Reference (Winter '27 / API v68.0)
 
 Full implementations referenced from SKILL.md §3, §4, §6, §7. Load this when bringing data into Data 360, modeling it, or wiring activation/automation. Every stage consumes credits; the cost guidance here is as load-bearing as the mechanics.
 
@@ -9,7 +9,7 @@ Full implementations referenced from SKILL.md §3, §4, §6, §7. Load this when
 | **Connectors** (CRM, S3, marketing, 3rd-party) | Standard, supported sources | Batch by default |
 | **Ingestion API** | Push from a custom external system | Streaming (~5,000 cr/M rows) vs bulk/batch (~2,000 cr/M rows) |
 | **Zero-copy federation (EDLO)** | Source is a supported warehouse (Snowflake, Databricks, Redshift) and a physical copy isn't needed | No ingestion cost; query-in-place cost applies |
-| **Data Custom Code (Python SDK)** | Custom transform inside Data 360 | New Summer '26; author locally, deploy to sandbox, monitor via code-extensions DLO |
+| **Data Custom Code (Python SDK)** | Custom transform inside Data 360 | Author locally, deploy to sandbox, monitor via code-extensions DLO |
 
 Rules:
 - **Define an explicit schema** per ingestion pipeline — required for structural/semantic integrity.
@@ -66,7 +66,7 @@ Data 360 reacts to change in near-real-time:
 
 Pattern: real-time signals → Data Action → platform event → automation. Keep heavy analytical recomputation in scheduled batch; reserve Data Actions for events whose value is immediate.
 
-## DevOps for Data 360 (Summer '26)
+## DevOps for Data 360
 
 Promote Data 360 logic (data transforms, code extensions) through CI/CD with **DevOps data kits**, the same way you promote Apex/LWC metadata — enabling headless, repeatable deployments across environments.
 

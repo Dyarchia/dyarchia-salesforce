@@ -1,4 +1,4 @@
-# Connectors, Middleware & MCP — Reference (Summer '26)
+# Connectors, Middleware & MCP — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-connectors-mcp` for the detail behind the "don't hand-code it" choices and the agentic surface. Data 360 internals → `dya-data360`; MCP/HXL internals → `dya-headless360`.
 
@@ -48,7 +48,7 @@ A custom server can expose tools built from existing artefacts — reuse, don't 
 - **Apex action** — an `@InvocableMethod` (the same one an agent uses).
 - **Flow** — an autolaunched flow.
 - **Apex REST** — a custom REST endpoint.
-- **Named Query API** — custom SOQL exposed as a scalable action (GA Summer '26).
+- **Named Query API** — custom SOQL exposed as a scalable action (GA).
 
 ### Rules
 - **Curate the smallest approved toolset.** A broad, vague tool list is a security and reliability liability (models mis-call).

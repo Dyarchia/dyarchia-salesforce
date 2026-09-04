@@ -1,6 +1,6 @@
 ---
 name: dya-aura
-description: Salesforce Aura Components Summer '26 (API v67.0) modern development best practices — when (not) to use Aura, lightning-namespace base components, LDS data access without Apex, server-side controllers, component vs application events, aura:method, attributes and expressions, lifecycle, LWC interop, Lightning Message Service, security and downloads. Load only when the user explicitly invokes this skill by name (`dya-aura`); do NOT auto-trigger on generic Aura, Lightning, or Salesforce component questions.
+description: Salesforce Aura Components Winter '27 (API v68.0) modern development best practices — when (not) to use Aura, lightning-namespace base components, LDS data access without Apex, server-side controllers, component vs application events, aura:method, attributes and expressions, lifecycle, LWC interop, Lightning Message Service, security and downloads. Load only when the user explicitly invokes this skill by name (`dya-aura`); do NOT auto-trigger on generic Aura, Lightning, or Salesforce component questions.
 ---
 
 # Salesforce Aura Components — Modern Development
@@ -9,6 +9,8 @@ You are an expert Salesforce Aura developer working on a platform where Aura is 
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/` and are loaded on demand:
 
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an `@AuraEnabled` controller inherits.
+- `references/shared/sharing-and-access.md` — the permission model behind those defaults.
 - `references/events-and-communication.md` — full component-event and application-event register/fire/handle patterns, `aura:method`, and Lightning Message Service from Aura.
 - `references/server-and-lds.md` — full `@AuraEnabled` controller, `$A.enqueueAction` + storable actions + Promise wrapper, `force:recordData`, and `lightning:recordForm` patterns.
 
@@ -16,12 +18,16 @@ Load a reference when you are about to write or refactor code that needs that ex
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
-**Current API version: 67.0 (Summer '26).** All new Aura component bundles and their Apex controllers MUST be saved at `<apiVersion>67.0</apiVersion>`. The release brings no new Aura framework features, but several platform changes land directly on Aura:
+Save new Aura bundles and their Apex controllers at `<apiVersion>68.0</apiVersion>`. Winter '27 brings **no new Aura framework capability**, which is itself the signal — Aura receives platform changes, not features.
 
-- **`@AuraEnabled` controllers are Apex at API 67** — the versioned security defaults flip. An omitted sharing declaration on an **Aura controller / `@AuraEnabled` method** defaults to `with sharing` (was `without sharing` ≤66); SOQL/SOSL/DML default to `USER_MODE`. See §5 and `dya-apex`.
-- **`WITH SECURITY_ENFORCED` is REMOVED in API 67+** — a controller that uses it does not compile. Use `WITH USER_MODE`.
+**No retirement date for Aura has been announced.** Maintenance mode is a reason to build new work in LWC, not a deadline you are working against; say so plainly rather than implying an end date that does not exist.
+
+Platform changes that land on Aura:
+
+- **An `@AuraEnabled` controller is Apex**, so the API 67.0 security defaults apply to it: an omitted sharing declaration defaults to `with sharing`, and SOQL, SOSL and DML default to `USER_MODE`. See §5, `dya-apex`, and `dya-permissions` for the model being enforced.
+- **`WITH SECURITY_ENFORCED` no longer compiles** from API 67.0. Use `WITH USER_MODE`.
 - **Lightning Web Security blocks `data:` URIs** — client-side downloads must use a `blob:` URL on the anchor `href`. See §10.
 - **Voice Toolkit API for Salesforce Voice** — new APIs/methods/events to build voice-enabled Aura (or LWC) components, now also supported on Agentforce Contact Center. Niche; relevant only for telephony components.
 - **Aura is in maintenance mode.** Salesforce ships no new Aura framework capability and steers all new development to LWC. The `ui` namespace has been deprecated since support ended **May 1, 2021** — never use it. Treat Aura as appropriate only for the specific cases in §1.
@@ -135,7 +141,7 @@ Before writing an `@AuraEnabled` method, evaluate this order. Stop at the first 
 
 ## 5. Server-Side Apex — The `@AuraEnabled` Contract
 
-When LDS can't do it, call Apex via `$A.enqueueAction`. The controller is Apex at API 67 — declare `with sharing`, query `WITH USER_MODE`, and throw `AuraHandledException` on failure.
+When LDS can't do it, call Apex via `$A.enqueueAction`. The controller is Apex — declare `with sharing`, query `WITH USER_MODE`, and throw `AuraHandledException` on failure.
 
 ```java
 public with sharing class AccountController {
@@ -270,7 +276,7 @@ catch (Exception e) {
 
 ## 10. Client-Side File Downloads — `blob:`, not `data:`
 
-In Summer '26, Lightning Web Security blocks `data:` URIs on anchor `href`. Generate a `blob:` URL instead.
+Lightning Web Security blocks `data:` URIs on anchor `href`. Generate a `blob:` URL instead.
 
 ```javascript
 // ✅
@@ -281,7 +287,7 @@ link.download = "export.csv";
 link.click();
 URL.revokeObjectURL(link.href);
 
-// ❌ — blocked by LWS in Summer '26
+// ❌ — blocked by LWS
 link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
 ```
 
@@ -330,7 +336,7 @@ link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
 | Design tokens for theming | SLDS styling hooks |
 | `data:` URI anchor download | `blob:` URL via `URL.createObjectURL` |
 | Trying to embed Aura inside LWC | Embed LWC inside Aura (the supported direction) |
-| API version < 67.0 on new bundles | `<apiVersion>67.0</apiVersion>` in the `*-meta.xml` |
+| API version below 68.0 on new bundles | `<apiVersion>68.0</apiVersion>` in the `*-meta.xml` |
 
 ---
 

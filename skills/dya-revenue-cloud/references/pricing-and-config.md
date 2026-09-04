@@ -1,6 +1,6 @@
-# Revenue Cloud Advanced — Pricing, Catalog & Configuration (API v67.0)
+# Revenue Cloud Advanced — Pricing, Catalog & Configuration (Winter '27 / API v68.0)
 
-Load from `dya-revenue-cloud`. Salesforce Pricing on the Business Rules Engine, Product Catalog Management, and Product Configurator — with real endpoints/actions. Source: Revenue Lifecycle Management Developer Guide v67.0. Confirm exact request bodies against the guide for your version.
+Load from `dya-revenue-cloud`. Salesforce Pricing on the Business Rules Engine, Product Catalog Management, and Product Configurator — with real endpoints/actions. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request bodies against the guide for your version.
 
 ## Salesforce Pricing — the model
 
@@ -11,7 +11,7 @@ Load from `dya-revenue-cloud`. Salesforce Pricing on the Business Rules Engine, 
 
 ## Apex Hooks for Pricing Procedures (Summer '25 — the supported custom-pricing extension)
 
-Inject Apex into a Pricing Procedure when declarative elements can't express the logic, or to pass attribute values into/out of the procedure. This is the **modern replacement** for legacy CPQ custom price logic — implement the pricing Apex hook interface and register it in the procedure. (Confirm the exact hook interface/class name in the v67 guide; it's surfaced as a pricing-procedure element.)
+Inject Apex into a Pricing Procedure when declarative elements can't express the logic, or to pass attribute values into/out of the procedure. This is the **modern replacement** for legacy CPQ custom price logic — implement the pricing Apex hook interface and register it in the procedure. (Confirm the exact hook interface/class name in the current developer guide; it's surfaced as a pricing-procedure element.)
 
 ## Invoking Pricing programmatically
 
@@ -19,8 +19,8 @@ Inject Apex into a Pricing Procedure when declarative elements can't express the
 
 ```
 # Connect REST — Run Salesforce Pricing / Price Context
-POST /services/data/v67.0/connect/pricing/...        # body: context, pricingProcedure, priceWaterfall details
-POST /services/data/v67.0/connect/pricing/price-context   # Price Context resource
+POST /services/data/v68.0/connect/pricing/...        # body: context, pricingProcedure, priceWaterfall details
+POST /services/data/v68.0/connect/pricing/price-context   # Price Context resource
 ```
 
 - **Standard Pricing Actions** ship for Quote, Order, Contract, Case, Opportunity; **Custom Pricing Actions** work on any object via the Lightning component.
@@ -32,9 +32,9 @@ Pricing Procedures read from internal lookup/decision tables and the PCM search 
 
 ```
 # Rebuild the PCM index programmatically (Snapshot v62.0+, Deploy v63.0+)
-POST /services/data/v67.0/connect/pcm/index/deploy        # { "snapshotId": "<ID>", "buildType": "INCREMENTAL" | "FULL" }
-GET  /services/data/v67.0/connect/pcm/snapshots/<ID>/index # poll status
-GET  /services/data/v67.0/connect/pcm/snapshots/<ID>/index/errors
+POST /services/data/v68.0/connect/pcm/index/deploy        # { "snapshotId": "<ID>", "buildType": "INCREMENTAL" | "FULL" }
+GET  /services/data/v68.0/connect/pcm/snapshots/<ID>/index # poll status
+GET  /services/data/v68.0/connect/pcm/snapshots/<ID>/index/errors
 ```
 
 - **Decision Table Refresh Action** — built-in **invocable** (Record-Triggered Flow, Scheduled Flow, or Apex; no HTTP callout); refresh one or many active tables asynchronously when the rule object/custom metadata changes.
@@ -48,7 +48,7 @@ public class PcmIndexRebuild implements Queueable, Database.AllowsCallouts {
     public PcmIndexRebuild(String snapshotId) { this.snapshotId = snapshotId; }
     public void execute(QueueableContext ctx) {
         HttpRequest req = new HttpRequest();
-        req.setEndpoint('callout:Self_Org/services/data/v67.0/connect/pcm/index/deploy');
+        req.setEndpoint('callout:Self_Org/services/data/v68.0/connect/pcm/index/deploy');
         req.setMethod('POST');
         req.setHeader('Content-Type', 'application/json');
         req.setBody(JSON.serialize(new Map<String,Object>{ 'snapshotId' => snapshotId, 'buildType' => 'INCREMENTAL' }));

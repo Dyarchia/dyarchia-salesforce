@@ -1,6 +1,6 @@
 ---
 name: dya-integration-events
-description: Salesforce event-driven integration (Summer '26 / API v67.0) — Platform Events, Change Data Capture (CDC), and the Pub/Sub API (gRPC) as the strategic streaming interface; publish/subscribe from Apex and Flow; replay/retention and delivery semantics; legacy PushTopic/Generic/Streaming API status; and webhook patterns. Load only when the user explicitly invokes this skill by name (`dya-integration-events`); do NOT auto-trigger on generic event or integration questions.
+description: Salesforce event-driven integration (Winter '27 / API v68.0) — Platform Events, Change Data Capture (CDC), and the Pub/Sub API (gRPC) as the strategic streaming interface; publish/subscribe from Apex and Flow; replay/retention and delivery semantics; legacy PushTopic/Generic/Streaming API status; and webhook patterns. Load only when the user explicitly invokes this skill by name (`dya-integration-events`); do NOT auto-trigger on generic event or integration questions.
 ---
 
 # Salesforce Event-Driven Integration
@@ -8,17 +8,32 @@ description: Salesforce event-driven integration (Summer '26 / API v67.0) — Pl
 You are an expert at event-driven integration on Salesforce — the decoupled, asynchronous, pub/sub backbone. Use this for fire-and-forget notification, change propagation, and high-volume streaming in either direction. Data 360 ingestion is out of scope here (see `dya-data360`); Apex publish/subscribe depth is in `dya-apex`. Follow every rule below.
 
 References:
-- `references/pubsub-api.md` — the Pub/Sub API (gRPC) subscribe/publish flow, Avro schemas, replay/flow control, and external-subscriber patterns.
-- `references/platform-events-cdc.md` — defining and publishing Platform Events, CDC channels, Apex/Flow publish & subscribe, and delivery/replay semantics.
+
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults publish and subscribe code inherits.
+- `references/shared/governor-limits.md` — the transaction budget a publisher shares, and why one event beats one callout per record.
+- `references/pubsub-api.md` — the Pub/Sub API (gRPC) subscribe and publish flow, Avro schemas, replay and flow control, external-subscriber patterns.
+- `references/platform-events-cdc.md` — defining and publishing Platform Events, CDC channels, Apex and Flow publish and subscribe, delivery and replay semantics.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
-- **The Pub/Sub API (gRPC/HTTP-2) is the strategic, single interface** to publish and subscribe to Platform Events, Change Data Capture, and Real-Time Event Monitoring events — for external systems. Use it over the legacy CometD Streaming API.
-- **PushTopic and Generic Streaming are legacy** — no longer enhanced, limited support. Migrate PushTopic → CDC, Generic → Platform Events.
-- **Events are retained 72 hours** on the event bus; subscribers can replay from a stored replay id within that window.
-- **Apex v67** publish/subscribe code defaults to `with sharing`/`USER_MODE`; CDC/PE Apex triggers run in system mode like all triggers.
+Winter '27 changes little in this area directly. What it changes is the surrounding surface: **agents
+now discover external tools through governed MCP connections**, which makes an event-driven backbone
+the natural way to feed them without polling. See `dya-integration-connectors-mcp`.
+
+Standing facts that decide designs here:
+
+- **The Pub/Sub API (gRPC over HTTP/2) is the single strategic interface** for external systems to
+  publish and subscribe to Platform Events, Change Data Capture and Real-Time Event Monitoring. Use
+  it over the legacy CometD Streaming API in every new build.
+- **PushTopic and Generic Streaming are legacy** — no longer enhanced, limited support. Migrate
+  PushTopic to CDC and Generic Streaming to Platform Events.
+- **Events are retained 72 hours** on the event bus. A subscriber can replay from a stored replay id
+  within that window and no further — beyond it, only a reconciliation batch recovers the gap.
+- **From API 67.0** publish and subscribe code defaults to `with sharing` and `USER_MODE`. CDC and
+  Platform Event Apex triggers run in **system mode**, like every trigger, so they see records the
+  subscribing user could not.
 
 ---
 

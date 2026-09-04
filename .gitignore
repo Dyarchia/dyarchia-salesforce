@@ -1,7 +1,6 @@
-# Agent working files — local only, never versioned on any branch
-.claude/
+# Local agent config — the rest of .claude/ is versioned on purpose
+.claude/settings.local.json
 .claude-cache/
-CLAUDE.md
 
 # Reference clones — read-only raw material, never installed or published
 sources/

@@ -1,6 +1,6 @@
 ---
 name: dya-lightning-out
-description: Salesforce Lightning Out 2.0 Summer '26 (API v67.0) — embedding Lightning Web Components in external (non-Salesforce) web apps on the LWR runtime: the lightning-out-application element, app-id from the App Manager, the singleaccess frontdoor-url OAuth flow, lifecycle events, closed-shadow-DOM iframe isolation, CORS, and host/component messaging. Load only when the user explicitly invokes this skill by name (`dya-lightning-out`); do NOT auto-trigger on generic LWC, embedding, or integration questions.
+description: Salesforce Lightning Out 2.0 Winter '27 (API v68.0) — embedding Lightning Web Components in external (non-Salesforce) web apps on the LWR runtime: the lightning-out-application element, app-id from the App Manager, the singleaccess frontdoor-url OAuth flow, lifecycle events, closed-shadow-DOM iframe isolation, CORS, and host/component messaging. Load only when the user explicitly invokes this skill by name (`dya-lightning-out`); do NOT auto-trigger on generic LWC, embedding, or integration questions.
 ---
 
 # Salesforce Lightning Out 2.0 — Embedding LWCs Off-Platform
@@ -12,12 +12,15 @@ themselves, use `dya-lwc`.
 
 This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
 
-- `references/embed-example.md` — a full host-page embed: app registration, the singleaccess
-  token exchange, `lightning-out-application`, lifecycle events, and receiving component events.
+- `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
+- `references/shared/sharing-and-access.md` — what the brokered session identity is actually allowed
+  to see once the component renders.
+- `references/embed-example.md` — a full host-page embed: app registration, the singleaccess token
+  exchange, `lightning-out-application`, lifecycle events, and receiving component events.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Lightning Out 2.0 is GA (since Winter '26)** and is the supported way to surface LWCs outside
 Salesforce. It replaces the decade-old Lightning Out 1.0 (Aura). Hold these in mind:
@@ -33,7 +36,9 @@ Salesforce. It replaces the decade-old Lightning Out 1.0 (Aura). Hold these in m
 - **You register a Lightning Out 2.0 app** in the **Lightning Out 2.0 App Manager** (Setup) to
   get the 18-digit `app-id` and the host script.
 
-Lightning Out 2.0 is production-usable in v67.
+Winter '27 changes nothing in Lightning Out itself. It remains production-usable, and the OAuth
+username-password flow retirement (enforced 20 February 2027) does not affect the `singleaccess`
+exchange this uses — see `dya-integration-auth` if a host application authenticates any other way.
 
 ---
 

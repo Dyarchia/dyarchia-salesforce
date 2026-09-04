@@ -1,0 +1,5 @@
+platform-deltas
+governor-limits
+soql-selectivity
+sharing-and-access
+metadata-and-api-versions
