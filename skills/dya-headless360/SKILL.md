@@ -13,7 +13,7 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/shared/metadata-and-api-versions.md` — API version semantics for anything addressing the platform by version.
 - `references/shared/org-model.md` — orgs, DX projects and deployment, which the CLI and DevOps surfaces assume.
 - `references/agentic-dev-tooling.md` — **Agentforce Vibes v4.0+**: Plan Mode and its approval gate, Rules and their context cost, permission modes and safety guardrails, MCP inside the IDE, model tiers.
-- `references/react-and-data-sdk.md` — React apps as `UIBundle` metadata, the templates and samples, and the typed GraphQL Data SDK workflow.
+- `references/react-and-data-sdk.md` — **Salesforce Multi-Framework**: the React-versus-LWC decision, the constraints that decide feasibility (Hyperforce only, no packaging, no namespaced orgs), `UIBundle` project structure, and the Data SDK with its LWC translation table.
 - `references/building-mcp-tools.md` — **standard versus custom servers, the five backing types for a custom tool, and connecting a client** with its callback URL. Start here to expose org capability to an AI client.
 - `references/lightning-types.md` — the `LightningTypeBundle` structure, channel folders, and the Apex requirements that fail at invocation rather than at deploy.
 - `references/mcp-servers.md` — the MCP server taxonomy (hosted vs DX vs custom vs Data 360), building custom MCP tools from Apex Actions / Flows / Apex REST, connecting external clients (Claude), and token-scoped security.
@@ -158,7 +158,7 @@ Use HXL/Lightning Types when the **same capability must appear across multiple c
 - **Agentforce Vibes (v4.0+)** — an agentic development environment, as a VS Code extension and as a cloud IDE. A lead agent delegates to specialised sub-agents running in parallel, **each in its own Git worktree** so concurrent work does not collide. **Plan Mode changes no files until you approve the plan.** **Rules** are always-on standards in `.vibes/rules/` (commit them); **Skills** activate on demand. Permission modes run from *Ask every time* through *Run safe defaults* to *Bypass* — and the safety guardrails apply **only** in the middle one.
 - **Salesforce DX MCP Server** (Beta) — preconfigured in the Vibes extension; toolsets include `lwc-experts`, `aura-experts` (Aura→LWC migration), SLDS guidance, ApexGuru code review, Lightning Types (`create_lightning_type`), and Metadata API context. Some toolsets require enabling global rules (e.g. `a4d-general-rules`, `a4d-lwc-rules`).
 - **Coding skills** (30+) — preconfigured capability bundles that give coding agents live, best-practice-aware access to your platform.
-- **React apps** — a React app is a DX project carrying the **`UIBundle`** metadata type, built from Internal or External User templates or a sample app, with data access through the typed GraphQL **Data SDK** (Beta). This is what "native React" in §5 means concretely.
+- **React apps on Salesforce Multi-Framework** — the framework-agnostic runtime. A React app is a DX project carrying the **`UIBundle`** metadata type, scaffolded with `sf template generate`, with data access through the GraphQL **Data SDK**. This is what "native React" in §5 means concretely. Check feasibility before designing: **Hyperforce only, packaging unsupported, namespaced orgs unsupported**, and platform security is **not** inherited the way LWC inherits it.
 
 These accelerate *building on* Salesforce; they are distinct from the hosted servers that let business agents *operate* your org.
 
@@ -184,7 +184,8 @@ Headless 360 changes the surface, **not** the security model:
 | Connect Claude/ChatGPT/Cursor to your org | **Hosted MCP Server** |
 | Expose *your* logic to an external agent | **Custom hosted MCP** (Apex Action / Flow / Apex REST tool) |
 | In-IDE coding assistance over your metadata | **DX MCP Server** + Agentforce Vibes |
-| A React UI running on the platform | A `UIBundle` DX project + the Data SDK |
+| A full-page React UI running on the platform | Salesforce Multi-Framework: a `UIBundle` DX project + the Data SDK |
+| A reusable component inside Lightning Experience | LWC — React there needs Micro-Frontend (Developer Preview) |
 | Drive Data 360 from a coding agent | **Data 360 MCP Server** |
 | Automate deploys/tests/agent setup | **CLI** (`sf …`, `sf agent …`) |
 | Promote Data 360 logic through CI/CD | **CLI** + DevOps data kits |
