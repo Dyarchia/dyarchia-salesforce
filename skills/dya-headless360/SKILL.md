@@ -1,6 +1,6 @@
 ---
 name: dya-headless360
-description: Salesforce Headless 360 (Winter '27 / API v68.0) — from zero to expert. The platform theme that turns every Salesforce capability into an API, MCP tool, or CLI command for apps, humans, and AI agents. Covers the three surfaces (API/MCP/CLI), the MCP server taxonomy (hosted, DX, custom, Data 360), building custom MCP tools, the Headless/Agentforce Experience Layer (HXL/AXL) and Lightning Types, Agentforce Vibes 2.0, headless DevOps, and the Trust Layer. Load only when the user explicitly invokes this skill by name (`dya-headless360`); do NOT auto-trigger on generic headless, MCP, API, or Salesforce questions.
+description: Salesforce Headless 360 (Winter '27 / API v68.0) — from zero to expert. The platform theme that turns every Salesforce capability into an API, MCP tool, or CLI command for apps, humans, and AI agents. Covers the three surfaces (API/MCP/CLI), the MCP server taxonomy (hosted, DX, custom, Data 360), building custom MCP tools, the Headless/Agentforce Experience Layer (HXL/AXL) and Lightning Types, Agentforce Vibes and React apps, headless DevOps, and the Trust Layer. Load only when the user explicitly invokes this skill by name (`dya-headless360`); do NOT auto-trigger on generic headless, MCP, API, or Salesforce questions.
 ---
 
 # Salesforce Headless 360 — From Zero to Expert
@@ -12,6 +12,8 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the surfaces below.
 - `references/shared/metadata-and-api-versions.md` — API version semantics for anything addressing the platform by version.
 - `references/shared/org-model.md` — orgs, DX projects and deployment, which the CLI and DevOps surfaces assume.
+- `references/agentic-dev-tooling.md` — **Agentforce Vibes v4.0+**: Plan Mode and its approval gate, Rules and their context cost, permission modes and safety guardrails, MCP inside the IDE, model tiers.
+- `references/react-and-data-sdk.md` — React apps as `UIBundle` metadata, the templates and samples, and the typed GraphQL Data SDK workflow.
 - `references/building-mcp-tools.md` — **standard versus custom servers, the five backing types for a custom tool, and connecting a client** with its callback URL. Start here to expose org capability to an AI client.
 - `references/lightning-types.md` — the `LightningTypeBundle` structure, channel folders, and the Apex requirements that fail at invocation rather than at deploy.
 - `references/mcp-servers.md` — the MCP server taxonomy (hosted vs DX vs custom vs Data 360), building custom MCP tools from Apex Actions / Flows / Apex REST, connecting external clients (Claude), and token-scoped security.
@@ -37,7 +39,7 @@ What Winter '27 adds:
 Standing facts:
 
 - **Hosted MCP servers are GA** — connect any MCP client to the org and the Headless 360 portfolio: Salesforce Platform, Data 360, Tableau, MuleSoft, Slack.
-- **Agentforce Vibes 2.0 is GA** — an agentic development environment with plan mode, MCP integration, built-in skills and rules, live LWC previews, and a model picker.
+- **Agentforce Vibes is at v4.0+**, a ground-up rebuild on Salesforce's Coding Agent Platform, orchestrated by Claude and Mastra and exposing an Agent SDK. It installs from the VS Code Marketplace and Open VSX, and also runs as a cloud-hosted IDE. **The documentation gives the product no maturity label**; individual features inside it are Beta. Material describing a "2.0" is a previous generation.
 - **60+ MCP tools, 30+ preconfigured coding skills, 4,000+ APIs and 220+ CLI commands** are addressable by an authorised caller.
 - **Salesforce DX MCP Server (Beta)** — developer and IDE tools: SLDS guidance, ApexGuru, LWC and Aura toolsets, Lightning Types, Metadata API context. **Data 360 MCP Server** is Developer Preview and **Metadata API Context MCP Server** is Beta.
 - **Headless and Agentforce Experience Layer (HXL/AXL)** — define an interaction once and render it natively across Slack, Teams, Voice, mobile and third-party assistants, built on Lightning Types with native React support.
@@ -65,7 +67,7 @@ There are **three surfaces**, all enforcing the same trust layer:
 ```
 
 Two lanes that converge:
-- **Build-time** — coding agents and developers build *against* your org (DX MCP tools, coding skills, CLI, Vibes 2.0).
+- **Build-time** — coding agents and developers build *against* your org (DX MCP tools, coding skills, CLI, Agentforce Vibes).
 - **Runtime** — business agents and apps *serve from* your org, with output rendered natively per channel via the Experience Layer.
 
 **What's actually new:** you've built headless for years (REST APIs, Mobile SDK, React on Experience Cloud). What changed is that **AI models can now discover, call, and compose capabilities at runtime** — without per-integration glue written in advance — because every capability is described as an agent-accessible tool.
@@ -120,6 +122,7 @@ This is the bridge: the same `@InvocableMethod` you wrote as an **Agentforce act
 **Expose the smallest set of approved tools, never unrestricted access.** Past a few dozen tools an AI client starts choosing badly — curation is the design, not housekeeping. Think of every tool on the platform as a buffet and a server as the plate curated for one persona. A tool's description is how the model decides to call it — write descriptions like the routing logic they are (same discipline as Agentforce action descriptions).
 
 > Standard versus custom servers, the backing-type requirements, and the External Client App callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and security: `references/mcp-servers.md`.
+> Vibes itself — Plan Mode, Rules, permission modes: `references/agentic-dev-tooling.md`.
 
 ---
 
@@ -150,11 +153,12 @@ Use HXL/Lightning Types when the **same capability must appear across multiple c
 
 ---
 
-## 6. Dev Tooling — Vibes 2.0, DX MCP, Skills & Rules
+## 6. Dev Tooling — Agentforce Vibes, DX MCP, Skills & Rules
 
-- **Agentforce Vibes 2.0** (GA) — an agentic dev environment in VS Code: reasons through tasks, builds implementation plans (**Plan Mode**), asks clarifying questions, and keeps you in control via approvals, permissions, and native diff reviews. Ships deeper MCP integration, built-in **Skills and Rules**, live LWC previews, and a unified Claude/GPT model picker.
+- **Agentforce Vibes (v4.0+)** — an agentic development environment, as a VS Code extension and as a cloud IDE. A lead agent delegates to specialised sub-agents running in parallel, **each in its own Git worktree** so concurrent work does not collide. **Plan Mode changes no files until you approve the plan.** **Rules** are always-on standards in `.vibes/rules/` (commit them); **Skills** activate on demand. Permission modes run from *Ask every time* through *Run safe defaults* to *Bypass* — and the safety guardrails apply **only** in the middle one.
 - **Salesforce DX MCP Server** (Beta) — preconfigured in the Vibes extension; toolsets include `lwc-experts`, `aura-experts` (Aura→LWC migration), SLDS guidance, ApexGuru code review, Lightning Types (`create_lightning_type`), and Metadata API context. Some toolsets require enabling global rules (e.g. `a4d-general-rules`, `a4d-lwc-rules`).
 - **Coding skills** (30+) — preconfigured capability bundles that give coding agents live, best-practice-aware access to your platform.
+- **React apps** — a React app is a DX project carrying the **`UIBundle`** metadata type, built from Internal or External User templates or a sample app, with data access through the typed GraphQL **Data SDK** (Beta). This is what "native React" in §5 means concretely.
 
 These accelerate *building on* Salesforce; they are distinct from the hosted servers that let business agents *operate* your org.
 
@@ -179,7 +183,8 @@ Headless 360 changes the surface, **not** the security model:
 | Let an AI client discover & call capabilities dynamically | **MCP** (hosted or custom) |
 | Connect Claude/ChatGPT/Cursor to your org | **Hosted MCP Server** |
 | Expose *your* logic to an external agent | **Custom hosted MCP** (Apex Action / Flow / Apex REST tool) |
-| In-IDE coding assistance over your metadata | **DX MCP Server** + Vibes 2.0 |
+| In-IDE coding assistance over your metadata | **DX MCP Server** + Agentforce Vibes |
+| A React UI running on the platform | A `UIBundle` DX project + the Data SDK |
 | Drive Data 360 from a coding agent | **Data 360 MCP Server** |
 | Automate deploys/tests/agent setup | **CLI** (`sf …`, `sf agent …`) |
 | Promote Data 360 logic through CI/CD | **CLI** + DevOps data kits |
