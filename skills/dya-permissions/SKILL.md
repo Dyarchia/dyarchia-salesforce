@@ -1,25 +1,47 @@
 ---
 name: dya-permissions
-description: Salesforce permissions & sharing model (Summer '26 / API v67.0) — the conceptual reference so an agent knows the access model end to end. Profiles, permission sets, permission set groups and muting, the "who sees what" sharing model (OWD, role hierarchy, sharing rules, manual/Apex sharing, teams), restriction and scoping rules, field-level security, record types, and how it all interacts with Apex user mode. Load only when the user explicitly invokes this skill by name (`dya-permissions`); do NOT auto-trigger on generic permission or security questions.
+description: Salesforce permissions & sharing model (Winter '27 / API v68.0) — the conceptual reference so an agent knows the access model end to end. Profiles, permission sets, permission set groups and muting, the "who sees what" sharing model (OWD, role hierarchy, sharing rules, manual/Apex sharing, teams), restriction and scoping rules, field-level security, record types, guest access, and how it all interacts with Apex user mode. Load only when the user explicitly invokes this skill by name (`dya-permissions`); do NOT auto-trigger on generic permission or security questions.
 ---
 
 # Salesforce Permissions & Sharing Model
 
-You are an expert on the Salesforce access model. This skill is **conceptual** — it gives the complete mental model of "who can do what" and "who can see what" so the right design choice is obvious. It pairs with `dya-apex` (user-mode enforcement) and `dya-integration-auth` (authentication, a separate concern). Follow every rule below.
+You are an expert on the Salesforce access model. This skill is **conceptual**: it gives the complete
+mental model of "who can do what" and "who can see what" so the right design choice becomes obvious.
+It is the skill other skills route to — `dya-apex`, `dya-flow`, `dya-lwc`,
+`dya-integration-inbound-apex` and `dya-agentforce` all enforce this model without owning it.
+Authentication is a different concern and belongs to `dya-integration-auth`.
 
 References:
-- `references/object-and-field-access.md` — profiles vs permission sets vs permission set groups vs muting; object (CRUD) and field (FLS) permissions; system/user permissions; record types.
-- `references/record-sharing.md` — the sharing model: OWD, role hierarchy, sharing rules, manual/Apex sharing, teams, implicit sharing, restriction & scoping rules.
+
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the API 67.0 security defaults this model is now enforced by.
+- `references/object-and-field-access.md` — profiles vs permission sets vs groups vs muting; object (CRUD) and field (FLS) permissions; system and user permissions; record types.
+- `references/record-sharing.md` — the sharing model in full: OWD, role hierarchy, sharing rules, manual and Apex sharing, teams, implicit sharing, restriction and scoping rules.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
-- **"Minimum access" is the modern default.** Salesforce steers orgs toward a minimal base profile + additive permission sets. Treat profiles as a thin baseline; grant capability through permission sets and permission set groups.
-- **Apex v67 user mode** makes this model *enforced in code*: SOQL/DML default to `USER_MODE`, so the running user's object, field, and sharing access now governs what integration/controller code can read and write. The permission model is no longer "just UI" — it shapes code behaviour. See `dya-apex`.
-- **Triggers always run in system mode** (all API versions) — they bypass CRUD/FLS/sharing regardless of v67.
-- **"Any API Auth" permission** (new v67) gates legacy SOAP `login()` authentication — enforced by default in new orgs. Treat SOAP `login()` as end-of-life; migrate to OAuth + External Client Apps. See `dya-integration-auth`.
-- Profiles are not being removed, but feature investment is in **permission sets / permission set groups**; design new access additively.
+**Minimum access is the modern default.** A thin base profile plus additive permission sets is the
+shape Salesforce steers orgs toward, and it is where new capability lands. Grant through permission
+sets and permission set groups; keep the profile as a baseline.
+
+**The model is enforced in code.** From API 67.0, Apex SOQL, SOSL and DML default to `USER_MODE`, so
+the running user's object, field and sharing access governs what controller and integration code can
+read and write. This model is no longer "just the UI". Triggers remain the exception: they run in
+system mode on every API version. See `references/shared/platform-deltas.md` and `dya-apex`.
+
+What Winter '27 changes:
+
+| Change | Status | Effect |
+|---|---|---|
+| **Enable Profile Filtering** | Enforced | A user without a bypass permission can no longer see other users' profile names. A query for them returns **empty rather than an error**, so code that reads profile names silently degrades |
+| **"Any API Auth" required for SOAP `login()`** | Enforced in new orgs | Legacy username/password SOAP authentication needs the permission explicitly. Treat SOAP `login()` as end-of-life. See `dya-integration-auth` |
+| **View Setup Audit Trail becomes a standalone permission** | GA | Auditors can be granted the trail without the broader permission that used to carry it — a real least-privilege improvement |
+| **Keep Manual Shares When Transferring Records** | GA, off by default | An org-wide setting. Previously every manual share on a record was destroyed the moment ownership changed; this preserves them |
+
+Profile filtering has a bypass list — View All Profiles, Customize Application, Manage Users and
+five others. **Granting View All Profiles to undo it defeats the point.** If something breaks,
+find out what actually needed the profile name; broad visibility is the fallback, not the plan.
 
 ---
 
@@ -27,112 +49,158 @@ References:
 
 The model splits into two orthogonal axes. Always reason about them separately.
 
-```
-WHAT can the user DO?         →  Object (CRUD) + Field (FLS) + System/User permissions
+```text
+WHAT can the user DO?         →  Object (CRUD) + Field (FLS) + system/user permissions
                                  Source: Profile (baseline) + Permission Sets (+ Groups)
 
 WHICH RECORDS can they SEE?   →  Sharing model
                                  Source: OWD → Role Hierarchy → Sharing Rules →
-                                         Manual/Apex sharing → Teams → (Restriction/Scoping rules)
+                                         Manual/Apex sharing → Teams → (Restriction/Scoping)
 ```
 
-Object/field access answers "can this user edit *Accounts* and the *Revenue* field at all?" Sharing answers "which *specific Account records* can they see/edit?" A user needs **both** to act on a record.
+Object and field access answers "can this user edit *Accounts* and the *Revenue* field at all?"
+Sharing answers "which *specific Account records*?" A user needs **both** to act on a record, and
+almost every access bug is one axis being satisfied while the other is not:
 
----
+- *"It's shared with them but they can't edit it"* → missing object or field permission.
+- *"They have Edit on the object but the list is empty"* → missing sharing.
 
-## 2. WHAT Can They Do — Permissions
+## 2. What Can They Do — Permissions
 
 ### Sources, in additive order
-1. **Profile** — exactly one per user; the baseline. Keep it minimal ("Minimum Access - Salesforce").
-2. **Permission Sets** — additive grants layered on top; assign many per user.
-3. **Permission Set Groups (PSG)** — bundles of permission sets for a role/persona; assign the group.
-4. **Muting Permission Sets** — *subtract* specific permissions within a PSG (the only way to remove, since permissions are otherwise purely additive).
 
-Permissions are **additive**: if any assigned source grants a permission, the user has it (except where a muting permission set removes it within a group).
+1. **Profile** — exactly one per user, the baseline. Keep it minimal ("Minimum Access – Salesforce").
+2. **Permission Sets** — additive grants layered on top; a user can have many.
+3. **Permission Set Groups** — bundles of permission sets for a persona; assign the group, not the parts.
+4. **Muting Permission Sets** — *subtract* specific permissions inside a group.
+
+Permissions are **purely additive**. If any assigned source grants something, the user has it. There
+is no "deny" and you cannot take a permission away by adding another set — muting inside a group is
+the single exception, and it works only within that group.
 
 ### What they grant
-- **Object permissions (CRUD)** — Create / Read / Edit / Delete + View All / Modify All per object.
-- **Field-Level Security (FLS)** — Read / Edit per field. A field hidden by FLS is invisible everywhere (UI, API, reports).
-- **System & user permissions** — app-wide capabilities (e.g. "Manage Users", "API Enabled", "Author Apex", "Run Flows").
-- **Other access** delivered via permission sets: app/tab visibility, Apex class & VF page access, custom permissions, connected/external-app access, record-type access.
 
-### Record Types
-Control which **picklist values** and **page layouts** a user sees and which business process applies. Record-type *access* is granted via profile/permission set; it shapes data entry, not record visibility.
+- **Object permissions (CRUD)** — Create, Read, Edit, Delete, plus View All and Modify All per object.
+- **Field-Level Security** — Read and Edit per field. A field hidden by FLS is invisible *everywhere*: UI, API, reports, and user-mode SOQL.
+- **System and user permissions** — org-wide capabilities: Manage Users, API Enabled, Author Apex, Run Flows, View Setup Audit Trail.
+- **Everything else that travels in a permission set** — app and tab visibility, Apex class and Visualforce page access, custom permissions, connected and external app access, record type access.
 
-Full detail and decision rules: `references/object-and-field-access.md`.
+### Record types
 
----
+A **record type** selects which picklist values and which page layout apply to a record, and which
+business process it follows. Access to a record type is granted through the profile or permission
+set, separately from field permissions. It shapes *data entry*, not *record visibility* — confusing
+the two is a common and expensive mistake.
 
-## 3. WHICH Records — the Sharing Model
+> Full detail and decision rules: `references/object-and-field-access.md`.
 
-Evaluated as a widening pipeline; each layer can only **open up** access beyond the baseline (except restriction rules, which narrow).
+## 3. Which Records — the Sharing Model
 
-1. **Org-Wide Defaults (OWD)** — the baseline per object: Private, Public Read Only, Public Read/Write, (Controlled by Parent). Start restrictive; open selectively.
-2. **Role Hierarchy** — users above in the hierarchy inherit access to records owned by those below (if "Grant Access Using Hierarchies" is on).
-3. **Sharing Rules** — owner-based or criteria-based rules that open records to roles/groups. (Guest user sharing rules are separate and tightly governed.)
-4. **Manual Sharing / Apex Managed Sharing** — share a specific record with a user/group; Apex sharing (`__Share` rows) for programmatic, reason-coded sharing.
-5. **Teams** (Account/Opportunity/Case teams) — grant access to named collaborators.
-6. **Implicit sharing** — built-in parent↔child access (e.g. access to a child can grant limited parent visibility) you can't configure away.
+Access widens from a restrictive baseline. Each layer can only **open up**; only restriction rules
+narrow.
 
-### Narrowing layers (newer)
-- **Restriction Rules** — *filter down* what a user can see within objects they already have access to (e.g. only their own records of a type).
-- **Scoping Rules** — set the *default* set of records a user sees, without changing what they *can* access.
+1. **Org-Wide Defaults** — the floor, per object: Private, Public Read Only, Public Read/Write, or
+   Controlled by Parent. Separate internal and external defaults let community and portal users get a
+   stricter baseline. Start restrictive and open deliberately.
+2. **Role Hierarchy** — a user inherits access to records owned by anyone below them. This is a
+   *quiet* grant: nobody configures it per record, and it is easy to forget that a manager sees
+   everything their reports own. "Grant Access Using Hierarchies" can be switched off for **custom**
+   objects; on standard objects it is always on and cannot be disabled.
+3. **Sharing Rules** — owner-based (records owned by this group go to that group) or criteria-based
+   (records matching a field filter go to a group). Guest user sharing rules are a separate,
+   deliberately restricted kind.
+4. **Manual and Apex Managed Sharing** — a single record shared with a user or group. Apex sharing
+   writes `__Share` rows with a **sharing reason**, which is what makes the share recalculable and
+   survivable across owner changes. Winter '27 adds an org setting to keep manual shares through an
+   ownership transfer, which previously wiped them.
+5. **Teams** — Account, Opportunity and Case teams grant named collaborators a defined access level.
+6. **Implicit sharing** — grants the platform makes on its own and you cannot configure away. The
+   ones that surprise people: read access to a child record grants read on its parent Account;
+   Account access grants access to the associated Contacts, Cases and Opportunities under some OWD
+   combinations; and portal and community users get implicit access to their own account's records.
+   You will not find these in any sharing rule, and they explain most "why can they see this?"
+   investigations.
 
-Full evaluation order, Apex sharing, and edge cases: `references/record-sharing.md`.
+### The two narrowing layers, and the difference people get wrong
 
----
+- **Restriction Rules** genuinely *remove* visibility. Within objects the user already has access to,
+  they filter down to a subset — "this user sees only Cases of type Internal". What the rule excludes
+  is gone: not in list views, not in reports, not in a user-mode query.
+- **Scoping Rules** change only the **default view**. They set which records a user sees *first*,
+  without changing what they *can* reach. Search, a direct link, or removing the filter still gets
+  there.
 
-## 4. How Access Is Enforced in Code (the v67 link)
+If the requirement is "must not see", it is a restriction rule. If it is "should not have to wade
+through", it is a scoping rule. Using a scoping rule for a confidentiality requirement is a data
+leak that looks correct in a demo.
 
-- **`WITH USER_MODE` / `AccessLevel.USER_MODE`** enforce CRUD + FLS + sharing for the running user — now the Apex default at v67.
-- **`with sharing`** enforces record sharing on a class; **`without sharing`** ignores it; **`inherited sharing`** takes the caller's mode. At v67, omitted sharing defaults to `with sharing`.
-- **Triggers run in system mode** always — they see all records and fields regardless of the user's permissions.
-- Practical consequence: a too-narrow permission set or OWD can make user-mode code return fewer rows or throw; widening permissions to "fix" it also exposes data in reports and APIs. Fix the *model*, not the symptom. See `dya-apex`.
+> Full evaluation order, Apex sharing shapes, and edge cases: `references/record-sharing.md`.
 
----
+## 4. Guest and Integration Users
 
-## 5. Decision Matrix — Quick Reference
+**Guest users** — public sites and unauthenticated Experience Cloud pages — run under a dedicated
+profile with no role, a separate and deliberately weak class of sharing rules, and no access to most
+objects. Anything a guest user can reach, the internet can reach. Never assume the guest profile is
+restrictive by accident; read what it actually grants. See `dya-lwr-sites`.
+
+**Integration users** should be their own user with their own permission set, not a licence borrowed
+from a departed admin. Give them exactly the objects and fields the integration touches, and expect
+API 67.0 user mode to enforce it — an integration that "worked before" and now returns fewer rows is
+usually an integration that was quietly relying on an over-broad profile.
+
+## 5. How Access Is Enforced in Code
+
+- **`WITH USER_MODE` / `AccessLevel.USER_MODE`** enforce CRUD, FLS and sharing for the running user, and are the Apex default from API 67.0.
+- **`with sharing`** enforces record sharing on a class, **`without sharing`** ignores it, **`inherited sharing`** follows the caller. From 67.0 an omitted keyword defaults to `with sharing`.
+- **Triggers run in system mode always** — they see every record and field regardless of the user.
+- **Flow** has its own three run contexts, and the record-triggered default bypasses object and field permissions. See `dya-flow`.
+
+The practical consequence: a too-narrow permission set or OWD makes user-mode code return fewer rows
+or throw. Widening permissions to make the error go away also exposes that data in reports, list
+views and the API. **Fix the model, not the symptom.**
+
+## 6. Decision Matrix
 
 | Need | Use |
 |---|---|
-| Baseline access for everyone | Minimal **Profile** (Minimum Access) |
+| Baseline access for everyone | A minimal **Profile** |
 | Grant a capability to some users | **Permission Set** |
-| Bundle access for a persona/role | **Permission Set Group** |
+| Bundle access for a persona | **Permission Set Group** |
 | Remove a permission inside a group | **Muting Permission Set** |
 | Hide a field everywhere | **Field-Level Security** |
-| Control picklists/layouts/process | **Record Type** + page layout |
+| Control picklists, layout and process | **Record Type** plus page layout |
 | Set baseline record visibility | **Org-Wide Defaults** |
-| Let managers see reports' records | **Role Hierarchy** |
-| Open records to a group by criteria | **Sharing Rule** (criteria-based) |
+| Let managers see their reports' records | **Role Hierarchy** |
+| Open records to a group by criteria | Criteria-based **Sharing Rule** |
 | Share one record ad hoc | **Manual Sharing** |
-| Share records programmatically | **Apex Managed Sharing** (`__Share`) |
-| Grant collaborators on a deal | **Account/Opportunity/Case Team** |
-| Narrow what a user sees within access | **Restriction Rule** |
-| Set a user's default record scope | **Scoping Rule** |
-| Enforce all of it in Apex | `with sharing` + `WITH USER_MODE` |
+| Share records programmatically and recalculably | **Apex Managed Sharing** with a custom reason |
+| Grant collaborators on a deal | Account / Opportunity / Case **Team** |
+| Make a user genuinely unable to see a subset | **Restriction Rule** |
+| Change only what a user sees by default | **Scoping Rule** |
+| Enforce all of it in Apex | `with sharing` plus `WITH USER_MODE` |
 
----
+## 7. Anti-Patterns — NEVER Do These
 
-## 6. Anti-Patterns — NEVER Do These
-
-| Anti-Pattern | Correct Approach |
+| Anti-Pattern | Correct approach |
 |---|---|
-| Piling permissions onto fat profiles | Minimal profile + additive permission sets/PSGs |
-| Trying to "remove" a permission by editing the profile inside a PSG | Muting permission set |
-| Public Read/Write OWD "to make it work" | Restrictive OWD + targeted sharing |
-| Granting "Modify All Data" to solve a sharing gap | Sharing rules / Apex sharing scoped to need |
-| Widening FLS/CRUD to silence a v67 user-mode error | Fix the permission set; keep least privilege |
-| Confusing record-type access with record visibility | Record types = picklists/layouts; sharing = visibility |
-| Assuming a trigger respects the user's sharing | Triggers run in system mode — guard explicitly |
-| Using the role hierarchy as the only sharing tool | Combine OWD + rules + (restriction/scoping) by intent |
-| Over-broad guest user sharing | Minimal guest profile + guest sharing rules |
-
----
+| Piling permissions onto fat profiles | Minimal profile, capability through permission sets and groups |
+| Trying to remove a permission by editing the profile | Muting permission set inside the group |
+| Public Read/Write OWD to make something work | Restrictive OWD plus targeted sharing |
+| Granting Modify All Data to close a sharing gap | Scoped sharing, or View All / Modify All on the one object |
+| Widening FLS or CRUD to silence a user-mode error | Fix the permission set; keep least privilege |
+| Granting View All Profiles to undo profile filtering | Find what actually needed the profile name |
+| A scoping rule for a confidentiality requirement | Restriction rule — scoping only changes the default view |
+| Confusing record-type access with record visibility | Record types are picklists and layouts; sharing is visibility |
+| Assuming a trigger respects the user's sharing | Triggers are system mode; filter explicitly |
+| Treating the role hierarchy as the only sharing tool | Combine OWD, rules and restriction/scoping by intent |
+| An over-broad guest profile | Minimal guest profile plus guest sharing rules |
+| An integration user on a borrowed admin licence | Its own user with a purpose-built permission set |
+| Testing access only as an administrator | `System.runAs` a user carrying the real permission set |
 
 ## Summary — The Five Commandments
 
-1. **Two questions, always separate** — *what can they do* (CRUD/FLS/permissions) vs *which records* (sharing).
-2. **Additive by design** — minimal profile, capability via permission sets and groups, removal only via muting.
-3. **Sharing widens from a restrictive OWD** — role hierarchy, sharing rules, manual/Apex sharing, teams; restriction/scoping rules narrow.
-4. **The model is enforced in code now** — `with sharing` + `WITH USER_MODE`; triggers are the system-mode exception.
-5. **Least privilege, fix the model** — never widen access to silence an error; correct the permission/sharing design.
+1. **Two questions, always separate** — what they can *do* (CRUD, FLS, permissions) versus which records they can *see* (sharing).
+2. **Additive by design** — minimal profile, capability through permission sets and groups, removal only through muting.
+3. **Sharing widens from a restrictive OWD** — hierarchy, rules, manual and Apex sharing, teams, implicit grants; only restriction rules genuinely narrow.
+4. **The model is enforced in code** — `with sharing` plus `WITH USER_MODE`; triggers are the system-mode exception.
+5. **Least privilege: fix the model, never the symptom.** Widening access to make an error disappear exposes the same data in reports and the API.

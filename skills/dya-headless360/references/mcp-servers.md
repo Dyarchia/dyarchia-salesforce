@@ -1,4 +1,4 @@
-# Headless 360 MCP Servers — Reference (Summer '26)
+# Headless 360 MCP Servers — Reference (Winter '27 / API v68.0)
 
 Full detail referenced from SKILL.md §3, §6, §7. Load this when choosing, building, or securing an MCP integration with Salesforce.
 

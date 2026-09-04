@@ -1,6 +1,6 @@
 ---
 name: dya-visualforce
-description: Salesforce Visualforce Summer '26 (API v67.0) modern development best practices — when (not) to use VF, MVC and controller design, view state, security and output encoding, JavaScript Remoting, SLDS theming, Lightning Message Service interop, PDF/email rendering. Load only when the user explicitly invokes this skill by name (`dya-visualforce`); do NOT auto-trigger on generic Visualforce, Apex, or Salesforce UI questions.
+description: Salesforce Visualforce Winter '27 (API v68.0) modern development best practices — when (not) to use VF, MVC and controller design, view state, security and output encoding, JavaScript Remoting, SLDS theming, Lightning Message Service interop, PDF/email rendering. Load only when the user explicitly invokes this skill by name (`dya-visualforce`); do NOT auto-trigger on generic Visualforce, Apex, or Salesforce UI questions.
 ---
 
 # Salesforce Visualforce — Modern Development
@@ -9,20 +9,27 @@ You are an expert Salesforce Visualforce developer working on a platform where V
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/` and are loaded on demand:
 
-- `references/controller-patterns.md` — full controller extension skeleton, view state / `transient` discipline, bulkified getters/actions, injection-safe dynamic SOQL, CRUD/FLS enforcement in custom controllers.
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults a Visualforce controller inherits.
+- `references/shared/sharing-and-access.md` — the permission model those defaults enforce.
+- `references/controller-patterns.md` — full controller extension skeleton, view state and `transient` discipline, bulkified getters and actions, injection-safe dynamic SOQL, CRUD and FLS enforcement in custom controllers.
 - `references/javascript-remoting.md` — full `@RemoteAction` patterns, Remoting vs `<apex:actionFunction>` vs Remote Objects, bulkified remoting, error handling.
 
 Load a reference when you are about to write or refactor code that needs that exact implementation. Visualforce controllers are Apex — for deep Apex best practices (Service/Selector/Domain layering, async, observability, testing) load the companion skill `dya-apex`. For new Lightning UI, load `dya-lwc` or `dya-aura`.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
-**Current API version: 67.0 (Summer '26).** All new Visualforce pages, components, and their Apex controllers MUST be saved at `<apiVersion>67.0</apiVersion>`. The release brings no new Visualforce markup, but several platform changes land directly on Visualforce:
+Save new pages, components and their Apex controllers at `<apiVersion>68.0</apiVersion>`. Winter '27 brings **no new Visualforce markup**, which is itself the signal — Visualforce receives platform changes, not features.
 
-- **VF controllers are Apex at API 67** — the versioned security defaults flip. SOQL/SOSL/DML/`Database.*` default to `USER_MODE`, and an omitted sharing declaration on a custom controller or extension defaults to `with sharing` (was `without sharing` ≤66). See §3 and `dya-apex`.
-- **`WITH SECURITY_ENFORCED` is REMOVED in API 67+** — a controller that uses it does not compile. Use `WITH USER_MODE`. See §3.
-- **HTTPS is enforced everywhere** — all Visualforce pages and custom domains serve over HTTPS without exception in Summer '26. Never hard-code `http://` resource or callback URLs; use `URLFOR($Resource…)` / relative URLs / Named Credentials.
+**No retirement date for Visualforce has been announced.** Maintenance mode is a reason to build new work in LWC, not a deadline; do not imply an end date that does not exist.
+
+Platform changes that land on Visualforce:
+
+- **SLDS 2.0** — an org that adopts it gets Visualforce adapting to the new styling, which is the cheapest way to stop a legacy page looking obviously legacy next to modern UI. Worth raising whenever someone asks why an old page looks wrong.
+- **A Visualforce controller is Apex**, so the API 67.0 security defaults apply: SOQL, SOSL, DML and `Database.*` default to `USER_MODE`, and an omitted sharing declaration on a custom controller or extension defaults to `with sharing`. See §3, `dya-apex`, and `dya-permissions`.
+- **`WITH SECURITY_ENFORCED` no longer compiles** from API 67.0. Use `WITH USER_MODE`. See §3.
+- **HTTPS is enforced everywhere** — every Visualforce page and custom domain serves over HTTPS without exception. Never hard-code an `http://` resource or callback URL; use `URLFOR($Resource…)`, a relative URL, or a Named Credential.
 - **Lightning Web Security blocks `data:` URIs** — when a VF page is embedded in Lightning Experience and generates a client-side download, `HTMLAnchorElement.href` no longer accepts `data:` URIs. Generate a `blob:` URL instead. See §8.
 - **Visualforce remains in maintenance mode.** Salesforce ships no new framework features for it and steers all new UI to LWC, then Aura. Treat VF as appropriate only for the specific cases in §1 — not as the default for new work.
 
@@ -96,7 +103,7 @@ public List<Contact> getContacts() {
 
 ### CRUD / FLS in controllers
 
-Standard controllers enforce CRUD/FLS/sharing automatically. **Custom controllers do not** — you must enforce it. At API 67 the defaults help you, but always be explicit.
+Standard controllers enforce CRUD/FLS/sharing automatically. **Custom controllers do not** — you must enforce it. The API 67.0 defaults help you, but state them explicitly anyway.
 
 ```java
 // ✅ — explicit sharing + USER_MODE; CRUD/FLS enforced by the query
@@ -270,7 +277,7 @@ The message channel is a metadata type (`*.messageChannel-meta.xml`) shared by L
 
 ## 8. Client-Side File Downloads — `blob:`, not `data:`
 
-In Summer '26, Lightning Web Security blocks `data:` URIs on anchor `href`. A VF page running inside LEX that builds a file for download in JavaScript must use a `blob:` URL.
+Lightning Web Security blocks `data:` URIs on anchor `href`. A VF page running inside LEX that builds a file for download in JavaScript must use a `blob:` URL.
 
 ```javascript
 // ✅
@@ -281,7 +288,7 @@ link.download = 'export.csv';
 link.click();
 URL.revokeObjectURL(link.href);
 
-// ❌ — blocked by LWS in Summer '26
+// ❌ — blocked by LWS
 link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
 ```
 
@@ -329,7 +336,7 @@ For server-generated files, prefer `renderAs="pdf"` or a controller that returns
 | `http://` hard-coded URLs | `URLFOR($Resource…)` / relative URL / Named Credential |
 | SLDS pulled into a `renderAs="pdf"` page | Plain HTML/CSS in PDF pages |
 | Business logic in the page markup | Controller/extension + Service class |
-| API version < 67.0 on new pages/controllers | `<apiVersion>67.0</apiVersion>` in the `*-meta.xml` |
+| API version below 68.0 on new pages and controllers | `<apiVersion>68.0</apiVersion>` in the `*-meta.xml` |
 
 ---
 

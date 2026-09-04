@@ -1,6 +1,6 @@
 ---
 name: dya-b2b-commerce
-description: Salesforce B2B (and D2C) Commerce on Core developer surface (Summer '26 / API v67.0) — the programmatic side, built on the Salesforce platform with LWC + Apex. The CartExtension framework (CartCalculate orchestrator + Pricing/Promotions/Inventory/Shipping/Tax calculators), ConnectApi.BaseEndpointExtension endpoint extensions, the ConnectApi.CommerceCart Apex API, buyer groups/entitlements, and Storefront/LWR. Not CloudCraze, not B2C Commerce. Load only when the user explicitly invokes this skill by name (`dya-b2b-commerce`); do NOT auto-trigger on generic commerce or Salesforce questions.
+description: Salesforce B2B (and D2C) Commerce on Core developer surface (Winter '27 / API v68.0) — the programmatic side, built on the Salesforce platform with LWC + Apex. The CartExtension framework (CartCalculate orchestrator + Pricing/Promotions/Inventory/Shipping/Tax calculators), ConnectApi.BaseEndpointExtension endpoint extensions, the ConnectApi.CommerceCart Apex API, buyer groups/entitlements, and Storefront/LWR. Not CloudCraze, not B2C Commerce. Load only when the user explicitly invokes this skill by name (`dya-b2b-commerce`); do NOT auto-trigger on generic commerce or Salesforce questions.
 ---
 
 # Salesforce B2B Commerce (on Core) — Developer Surface
@@ -8,18 +8,23 @@ description: Salesforce B2B (and D2C) Commerce on Core developer surface (Summer
 You are an expert B2B Commerce (and D2C Commerce — same stack) developer. **Critical distinctions:** this is the **on-core** product on the Salesforce platform — **LWC, Apex, SOQL**, the **`CartExtension`** framework, and the **`ConnectApi` Commerce** classes, so it *does* build on `dya-apex`/`lwc`. It is **not** legacy CloudCraze, and **not** B2C Commerce (`dya-b2c-commerce`, a separate platform). This skill covers the programmatic surface only. Follow every rule below.
 
 References:
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults your extension code inherits.
+- `references/shared/sharing-and-access.md` — the buyer and guest identity your calculator now runs as.
+- `references/shared/governor-limits.md` — the transaction budget a cart calculation shares.
 - `references/cart-extensions.md` — the Cart Calculate API: `CartExtension.CartCalculate` orchestrator + the five calculators, real `calculate(...)` signatures, registration via `RegisteredExternalService`, and `ConnectApi.BaseEndpointExtension` endpoint extensions.
 - `references/connectapi-commerce.md` — the `ConnectApi.CommerceCart` (and related) Apex APIs, the input/output types, buyer groups/entitlements, and Storefront LWC APIs.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
+
+Winter '27 brings commerce enhancements across the storefront and order-management surface, but **nothing that changes the programmatic contracts below** — the CartExtension base classes, the endpoint-extension hooks and the `ConnectApi.CommerceCart` API are unchanged. Check the Commerce release notes for merchandising and admin features; this skill is the developer surface.
 
 - B2B/D2C Commerce runs **on core**: storefronts are **LWR Experience Cloud** sites, UI is **LWC**, logic is **Apex**, data is standard **Commerce objects** (WebStore, WebCart, CartItem, ProductCatalog, etc.).
 - **Two distinct extension surfaces** (don't conflate them):
   - **Cart Calculate API** — extend cart/checkout *calculations* (price, promotions, inventory, shipping, tax) with **`CartExtension`** base classes.
   - **Commerce endpoint extensions** — before/after hooks on the Connect *endpoints* (products, cart item, search…) via **`ConnectApi.BaseEndpointExtension`**.
-- **Apex v67 defaults** apply to your extension/calculator code (`with sharing`, `USER_MODE`); `WITH SECURITY_ENFORCED` no longer compiles → `WITH USER_MODE`. The storefront runs as the **guest or authenticated buyer** — scope those profiles tightly (`dya-permissions`).
+- **From API 67.0 your extension and calculator code defaults to `with sharing` and `USER_MODE`**, and `WITH SECURITY_ENFORCED` no longer compiles — use `WITH USER_MODE`. This matters more here than almost anywhere: the storefront runs as the **guest or authenticated buyer**, so their profile now governs what your calculator can read. Scope those profiles deliberately — see `dya-permissions` and `references/shared/sharing-and-access.md`.
 - **Entitlements are king:** what a buyer can see/buy is governed by the **buyer group → entitlement policy** relationship, not just CRUD/FLS. A product the user "has access to" can still be unviewable in commerce if no entitlement applies.
 - Legacy **CloudCraze** B2B Commerce is a different managed-package product — out of scope; new work is Commerce on Core.
 
@@ -138,7 +143,7 @@ B2B/D2C LWR stores support **Storefront APIs** for building custom LWC (headers,
 | One callout per line item in a calculator | One aggregated callout for the whole cart, Named Credential |
 | Debugging `"can't view ProductId"` as an FLS issue | Check buyer group → entitlement policy |
 | Overriding orchestrator "callable" methods (e.g. `priceCart`) | They can't be overridden; override the *calculator*'s `calculate()` |
-| `WITH SECURITY_ENFORCED` in commerce Apex | `WITH USER_MODE` (removed at v67) |
+| `WITH SECURITY_ENFORCED` in commerce Apex | `WITH USER_MODE` (removed from API 67.0) |
 | Secrets in storefront LWC JS | Server-side Apex/Named Credentials |
 | Over-broad guest/buyer profiles | Least-privilege (`dya-permissions`) |
 

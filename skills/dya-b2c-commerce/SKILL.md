@@ -16,10 +16,10 @@ References:
 ## Platform Context — 2026
 
 - **Two storefront architectures coexist:** **SFRA** (Storefront Reference Architecture; controller/cartridge MVC, successor to SiteGenesis) and the **Composable Storefront** (headless **PWA Kit** on **Managed Runtime**, React, talks to SCAPI).
-- **OCAPI is DEPRECATED as of April 2026** — per Salesforce's versioning/deprecation policy it remains available for **two more years with security updates but no new features**. **All new implementations must use SCAPI exclusively;** existing OCAPI integrations must plan migration.
+- **OCAPI has been deprecated since April 2026** — under the versioning and deprecation policy it stays available with security updates and no new features for two years from then, so roughly April 2028. **All new implementations must use SCAPI exclusively;** existing OCAPI integrations must plan migration.
 - **SCAPI is the modern API and SLAS is its mandatory gatekeeper.** Shopper APIs require a **SLAS** token; SLAS uses OAuth 2.1 grant types (guest = client credentials; login/federated = auth code + PKCE).
 - **SLAS refresh-token reuse is prohibited** for public clients (OAuth 2.1): each `/token` call issues a new refresh token; reusing an old one returns `400 invalid refresh token` (enforced since Sept 2025).
-- **Upcoming (Apr 28, 2026):** SLAS JWTs gain an `ssc` claim (short code), a CRM claim on the access token, an improved `id_token` (email/name, tenant-key signed, `typ: JWT`), and a `/jwks` endpoint for signature verification.
+- **SLAS JWTs (since April 2026)** carry an `ssc` claim (short code) and a CRM claim on the access token, an improved `id_token` (email and name, tenant-key signed, `typ: JWT`), and a `/jwks` endpoint for signature verification. Verify signatures against `/jwks` rather than trusting a token because it parsed.
 - **Server-side language is JavaScript** on the B2C Commerce (Rhino-based) Script API — not Node.js, not Apex.
 
 ---

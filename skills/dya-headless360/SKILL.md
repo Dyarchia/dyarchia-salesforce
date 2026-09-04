@@ -1,14 +1,17 @@
 ---
 name: dya-headless360
-description: Salesforce Headless 360 (Summer '26) — from zero to expert. The Summer '26 theme that turns every Salesforce capability into an API, MCP tool, or CLI command for apps, humans, and AI agents. Covers the three surfaces (API/MCP/CLI), the MCP server taxonomy (hosted, DX, custom, Data 360), building custom MCP tools, the Headless/Agentforce Experience Layer (HXL/AXL) and Lightning Types, Agentforce Vibes 2.0, headless DevOps, and the Trust Layer. Load only when the user explicitly invokes this skill by name (`dya-headless360`); do NOT auto-trigger on generic headless, MCP, API, or Salesforce questions.
+description: Salesforce Headless 360 (Winter '27 / API v68.0) — from zero to expert. The platform theme that turns every Salesforce capability into an API, MCP tool, or CLI command for apps, humans, and AI agents. Covers the three surfaces (API/MCP/CLI), the MCP server taxonomy (hosted, DX, custom, Data 360), building custom MCP tools, the Headless/Agentforce Experience Layer (HXL/AXL) and Lightning Types, Agentforce Vibes 2.0, headless DevOps, and the Trust Layer. Load only when the user explicitly invokes this skill by name (`dya-headless360`); do NOT auto-trigger on generic headless, MCP, API, or Salesforce questions.
 ---
 
 # Salesforce Headless 360 — From Zero to Expert
 
-You are an expert on Salesforce Headless 360. The reader may be **new to it**, so this skill builds the mental model first, then the implementation, then what changed in Summer '26. You **always** expose the smallest approved set of tools, **always** rely on the Trust Layer rather than bypassing it, and **always** define an experience once and render it everywhere. Follow every rule below.
+You are an expert on Salesforce Headless 360. The reader may be **new to it**, so this skill builds the mental model first, then the implementation, then what this release changes. You **always** expose the smallest approved set of tools, **always** rely on the Trust Layer rather than bypassing it, and **always** define an experience once and render it everywhere. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
 
+- `references/shared/platform-deltas.md` — the release-coupled facts behind the surfaces below.
+- `references/shared/metadata-and-api-versions.md` — API version semantics for anything addressing the platform by version.
+- `references/shared/org-model.md` — orgs, DX projects and deployment, which the CLI and DevOps surfaces assume.
 - `references/mcp-servers.md` — the MCP server taxonomy (hosted vs DX vs custom vs Data 360), building custom MCP tools from Apex Actions / Flows / Apex REST, connecting external clients (Claude), and token-scoped security.
 - `references/experience-layer.md` — the Headless/Agentforce Experience Layer (HXL/AXL), Lightning Types, "define once, render everywhere", native React, and when to use which surface.
 
@@ -16,19 +19,27 @@ Load a reference when building that exact thing. Headless 360 is the **access an
 
 ---
 
-## Platform Context — Summer '26
+## Platform Context — Winter '27 / API v68.0
 
-Headless 360 is **the** headline theme of Summer '26 — "everything on Salesforce becomes an API, MCP tool, or CLI command," usable by an app, a human, or an autonomous AI agent. It is an **infrastructure/access layer, not a replacement for Agentforce**; the two work together.
+Headless 360 is the platform theme that turns every Salesforce capability into an API, MCP tool or CLI command, usable by an app, a human, or an autonomous agent. It is an **access and distribution layer, not a replacement for Agentforce** — the two work together.
 
-What shipped / is shipping:
-- **Hosted MCP Servers (GA)** — connect any MCP client (Claude, ChatGPT, Cursor, custom agents) to your org and the Headless 360 portfolio (Salesforce Platform, Data 360, Tableau, MuleSoft, Slack).
-- **60+ new MCP tools, 30+ preconfigured coding skills, 4,000+ existing APIs, 220+ CLI commands** — all addressable by authorised callers.
-- **Salesforce DX MCP Server (Beta)** — developer/IDE-facing tools (SLDS guidance, ApexGuru, LWC/Aura toolsets, Lightning Types, Metadata API context).
-- **Data 360 MCP Server (Developer Preview)** and **Metadata API Context MCP Server (Beta)**.
-- **Headless / Agentforce Experience Layer (HXL/AXL)** — define an interaction once, render natively across Slack, Teams, Voice, mobile, ChatGPT, Claude, Gemini; built on **Lightning Types**, with **native React** support.
-- **Agentforce Vibes 2.0 (Developer Preview)** — agentic dev environment with Plan Mode, MCP integration, built-in Skills and Rules, live LWC previews, and a Claude/GPT model picker.
+What Winter '27 adds:
 
-Core tooling (`@salesforce/mcp`, `sf agent` commands) shipped April 2026; enterprise production pricing is not yet public. The **Einstein Trust Layer** and your existing security model carry through every surface unchanged.
+| Change | Status | What it gives you |
+|---|---|---|
+| **Salesforce plugin for Claude Code** | GA | Detects a DX project and supplies org context through hosted MCP servers; installed from the Claude Plugin Marketplace. The clearest example of the whole theme: a coding agent with live org grounding. See `dya-sf-cli` |
+| **DevOps Center MCP** | GA | The same programmatic access inside a CI/CD pipeline — describe a deployment and let an agent execute it |
+| **MCP interoperability for agents** | GA | The direction reversed: an Agentforce agent calling *out* to external MCP servers. See `dya-integration-connectors-mcp` |
+| **Apex Symbol API** | Beta | Compiler-grade Apex type metadata over the Tooling API, so an IDE or AI tool can reason about Apex accurately instead of guessing from text |
+
+Standing facts:
+
+- **Hosted MCP servers are GA** — connect any MCP client to the org and the Headless 360 portfolio: Salesforce Platform, Data 360, Tableau, MuleSoft, Slack.
+- **Agentforce Vibes 2.0 is GA** — an agentic development environment with plan mode, MCP integration, built-in skills and rules, live LWC previews, and a model picker.
+- **60+ MCP tools, 30+ preconfigured coding skills, 4,000+ APIs and 220+ CLI commands** are addressable by an authorised caller.
+- **Salesforce DX MCP Server (Beta)** — developer and IDE tools: SLDS guidance, ApexGuru, LWC and Aura toolsets, Lightning Types, Metadata API context. **Data 360 MCP Server** is Developer Preview and **Metadata API Context MCP Server** is Beta.
+- **Headless and Agentforce Experience Layer (HXL/AXL)** — define an interaction once and render it natively across Slack, Teams, Voice, mobile and third-party assistants, built on Lightning Types with native React support.
+- **The Einstein Trust Layer and the org's existing security model carry through every surface unchanged.** A capability exposed as an MCP tool is not a capability with weaker security — it runs as the authenticated user.
 
 ---
 
@@ -107,7 +118,7 @@ Full server taxonomy, custom-tool build steps, connecting Claude, and security: 
 
 ## 4. Surface 3 — CLI
 
-The Salesforce CLI's **220+ commands** are a first-class Headless 360 surface for automation and DevOps. Summer '26 emphasis is on Agentforce DX and credential security:
+The Salesforce CLI's **220+ commands** are a first-class Headless 360 surface for automation and DevOps. The current emphasis is Agentforce DX and credential security:
 
 ```bash
 sf agent generate template      # scaffold a runnable sample agent
@@ -115,7 +126,7 @@ sf agent generate agent-user    # provision a service agent user in one command
 sf agent preview start|send|sessions|end   # scriptable interactive test sessions (GA)
 ```
 
-Use the CLI for headless DevOps: deploy/retrieve metadata, run tests, and — new in Summer '26 — promote **Data 360** logic the same way you promote Apex/LWC (DevOps data kits). Anything you can click, you can increasingly script.
+Use the CLI for headless DevOps: deploy/retrieve metadata, run tests, and promote **Data 360** logic the same way you promote Apex/LWC (DevOps data kits). Anything you can click, you can increasingly script.
 
 ---
 

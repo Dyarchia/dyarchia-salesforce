@@ -1,4 +1,4 @@
-# Named Credentials & External Credentials — Reference (API v67.0)
+# Named Credentials & External Credentials — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-auth` for outbound authentication. This is the modern, mandatory model for any Salesforce-initiated callout — it replaces hard-coded endpoints/secrets and Remote Site Settings.
 

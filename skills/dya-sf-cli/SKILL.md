@@ -1,6 +1,6 @@
 ---
 name: dya-sf-cli
-description: Salesforce CLI command catalog (sf, 2026) — the reference an agent uses to know exactly what to execute. The `sf` command model and topics, authentication, metadata deploy/retrieve, scratch orgs/sandboxes, Apex/data/sobject, Agentforce DX, packaging, and flag conventions. Load only when the user explicitly invokes this skill by name (`dya-sf-cli`); do NOT auto-trigger on generic CLI or terminal questions.
+description: Salesforce CLI command catalog (sf, Winter '27 / API v68.0 era) — the reference an agent uses to know exactly what to execute. The `sf` command model and topics, authentication, metadata deploy/retrieve, scratch orgs/sandboxes, Apex/data/sobject, Agentforce DX, packaging, and flag conventions. Load only when the user explicitly invokes this skill by name (`dya-sf-cli`); do NOT auto-trigger on generic CLI or terminal questions.
 ---
 
 # Salesforce CLI — Command Catalog
@@ -8,6 +8,9 @@ description: Salesforce CLI command catalog (sf, 2026) — the reference an agen
 You are an expert with the Salesforce CLI. This skill is a **command catalog**: its job is to let an agent pick and run the correct `sf` command with the right flags. The load-bearing command lists by topic live in `references/`; this SKILL.md holds the model, conventions, and the most-used commands. Follow every rule below.
 
 References (exhaustive command lists by group):
+- `references/shared/org-model.md` — **what an org, a sandbox, a scratch org and a DX project actually are.** Start here if the vocabulary below is unfamiliar; every command assumes it.
+- `references/shared/metadata-and-api-versions.md` — what the CLI is deploying, and why an API version is not a CLI version.
+- `references/shared/platform-deltas.md` — the release-coupled facts behind the deploy and agent commands.
 - `references/org-and-auth.md` — install/update, `sf org login/logout`, orgs, scratch orgs, sandboxes, users, `org open/display/list`.
 - `references/metadata-and-data.md` — `sf project` (deploy/retrieve/generate), `sf data`, `sf sobject`/`generate metadata`.
 - `references/dev-and-agent.md` — `sf apex`, `sf lightning`, `sf logic`, `sf agent`, `sf package`, `sf code-analyzer`, `sf community`.
@@ -19,7 +22,15 @@ References (exhaustive command lists by group):
 - The modern executable is **`sf`** (CLI v2). The legacy **`sfdx`** style still works under the `sf force` (legacy) topic, but **always emit `sf` v2 commands** (`sf org login web`, not `sfdx force:auth:web:login`).
 - **Agentforce DX** is first-class: `sf agent` (preview, generate) and `sf org create agent-user`.
 - Commands are organized into **topics** (`sf <topic> <command>`). The CLI is plugin-based; topics map to plugins.
-- Many commands are **scriptable/JSON-able** (`--json`) and most accept `--target-org`/`-o` and `--flags-dir`.
+- Many commands are **scriptable** with `--json`, and most accept `--target-org` (`-o`) and `--flags-dir`.
+- **The CLI versions on its own weekly cadence, not the platform release.** A `sf` version is not an API version, and the two move independently — which is why this skill carries no platform version in its heading.
+
+What the Winter '27 platform release changes for CLI work:
+
+- **Only invalid Apex classes and triggers recompile on deploy** (GA) — deploys against large orgs get materially faster with no change on your side.
+- **`AiAgentDefinition` and `AiAgentDefinitionVersion` are metadata types at API 68.0** (GA), so agents deploy and retrieve like any other source. **Both orgs must be on 68.0** for that to work.
+- **A Salesforce plugin for Claude Code** (GA) detects a DX project and supplies org context through hosted MCP servers, installed from the Claude Plugin Marketplace. See `dya-headless360`.
+- **DevOps Center MCP** (GA) brings the same programmatic access into a CI/CD pipeline.
 
 ---
 

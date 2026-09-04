@@ -1,6 +1,6 @@
 ---
 name: dya-lwr
-description: Salesforce Lightning Web Runtime (LWR) Summer '26 (API v67.0) — building and porting Lightning Web Components for the LWR runtime: where LWR runs, module and base-component availability vs Lightning Experience, client-side navigation (NavigationMixin / navigate / generateUrl), Lightning Web Security and CSP, guest context, performance. Load only when the user explicitly invokes this skill by name (`dya-lwr`); do NOT auto-trigger on generic LWC, Lightning, or component questions.
+description: Salesforce Lightning Web Runtime (LWR) Winter '27 (API v68.0) — building and porting Lightning Web Components for the LWR runtime: where LWR runs, module and base-component availability vs Lightning Experience, client-side navigation (NavigationMixin / navigate / generateUrl), Lightning Web Security and CSP, guest context, performance. Load only when the user explicitly invokes this skill by name (`dya-lwr`); do NOT auto-trigger on generic LWC, Lightning, or component questions.
 ---
 
 # Salesforce Lightning Web Runtime (LWR) — Component Development
@@ -14,15 +14,22 @@ non-Salesforce apps, use `dya-lightning-out`.
 
 This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
 
-- `references/runtime-differences.md` — full Lightning Experience (Aura runtime) vs LWR
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security
+  defaults an LWR-hosted controller inherits.
+- `references/shared/metadata-and-api-versions.md` — what the `apiVersion` on a bundle decides.
+- `references/runtime-differences.md` — the full Lightning Experience (Aura runtime) versus LWR
   comparison, the navigation APIs and PageReference shape, and a port-an-LWC-to-LWR checklist.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
-**Current API version: 67.0 (Summer '26).** Save bundles at `<apiVersion>67.0</apiVersion>`.
-Footprint and v67 facts you must hold:
+Save bundles at `<apiVersion>68.0</apiVersion>`. Winter '27 adds `lwc:external`, which lets a
+third-party custom element be used directly instead of through an iframe — a bigger deal on LWR than
+in Lightning Experience, because LWR sites are where third-party widgets most often need embedding.
+See `dya-lwc`.
+
+The footprint and the runtime facts you must hold:
 
 - **LWR is GA and runs in several places** — Experience Cloud LWR sites (authenticated and
   public), Lightning Out 2.0 (LWCs in non-Salesforce apps), and standalone LWR on Node/Heroku.
@@ -32,12 +39,13 @@ Footprint and v67 facts you must hold:
   runs on LWR; it does not.
 - **LWR uses Lightning Web Security (LWS)**, never Lightning Locker, and an LWR site has its
   **own LWS instance** independent of the org-wide LWS setting.
-- **v67 cross-cutting:** LWS now **blocks `data:` URIs** — build client-side downloads with
-  `blob:` URLs (see `dya-lwc`). `WITH SECURITY_ENFORCED` no longer compiles in Apex
-  controllers — use `WITH USER_MODE`.
-- **React / Salesforce Multi-Framework (UI Bundles) is open Beta in v67 — DO NOT use in
-  production.** Scratch orgs and sandboxes only; beta apps cannot deploy to production. Build
-  LWR UIs with LWC; revisit at GA.
+- **Cross-cutting security:** LWS **blocks `data:` URIs** — build client-side downloads with
+  `blob:` URLs (see `dya-lwc`). From API 67.0, `WITH SECURITY_ENFORCED` no longer compiles in an
+  Apex controller; use `WITH USER_MODE`, and remember an LWR site's guest user is often the one
+  running it (see `dya-permissions`).
+- **React and Salesforce Multi-Framework (UI Bundles) remain open Beta — do not use in production.**
+  Scratch orgs and sandboxes only; a beta app cannot deploy to production. Build LWR UIs with LWC and
+  revisit when it reaches GA.
 
 Mental model: **`dya-lwc` teaches the component; this skill teaches the runtime it lands
 on.** Write runtime-aware components and you avoid the "works in LEX, breaks on the site" bug.
@@ -110,7 +118,7 @@ LWR enforces **Lightning Web Security (LWS)**, not Lightning Locker:
 - Third-party JS, inline styles, and external endpoints face strict **Content Security Policy**:
   register external endpoints as **CSP Trusted Sites**, and load third-party scripts as
   **static resources**, never from arbitrary URLs.
-- `data:` URIs are blocked in v67 — generate files as `blob:` object URLs.
+- `data:` URIs are blocked — generate files as `blob:` object URLs.
 
 ---
 
@@ -119,7 +127,7 @@ LWR enforces **Lightning Web Security (LWS)**, not Lightning Locker:
 LWR ships **fewer** base components and templates than the Aura framework; some simply do not
 exist on LWR.
 
-- **`lightning-file-upload` is not supported on LWR sites.** (Note the nuance: Summer '26 lets
+- **`lightning-file-upload` is not supported on LWR sites.** (Note the nuance: the platform now lets
   you *upload files up to 10 GB* to an Aura or LWR site — but that is platform file capacity,
   not this base component. Handle uploads with a supported mechanism, and remember the guest
   user cannot use authenticated-only workarounds.)
@@ -158,7 +166,7 @@ LWR is lean by design:
 ## 8. React / UI Bundles — Open Beta, Do NOT Use in Production
 
 Salesforce Multi-Framework runs external frameworks (starting with React) as **UI Bundles** on
-LWR. In v67 this is **open Beta**: scratch orgs and sandboxes only, **no production deploy**.
+LWR. This is **open Beta**: scratch orgs and sandboxes only, **no production deploy**.
 Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
 
 ---
@@ -175,7 +183,7 @@ Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
 | Call an external endpoint | CSP Trusted Site + (third-party JS as) static resource |
 | Client-side file download | `blob:` URL via `URL.createObjectURL` (`data:` is blocked) |
 | Component for both LEX and LWR | Intersection of supported APIs; `NavigationMixin` for nav |
-| Production LWR UI | LWC (React UI Bundles are open Beta in v67) |
+| Production LWR UI | LWC (React UI Bundles are open Beta) |
 
 ---
 
@@ -186,13 +194,13 @@ Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
 | Assuming an LWC in Lightning Experience runs on LWR | LEX is the Aura runtime; LWR is a separate target |
 | Using a `PageReference` type without checking LWR support | Verify against the LWR CSR reference |
 | Hardcoding the site base path | Derive from `<base href>` at runtime |
-| `data:` URI for a download | `blob:` URL (LWS blocks `data:` in v67) |
+| `data:` URI for a download | `blob:` URL (LWS blocks `data:`) |
 | Reaching for `lightning-file-upload` on an LWR site | Supported upload mechanism; mind the guest user |
 | Assuming data is present for a guest user | Handle empty / access-denied as a first-class state |
 | Loading third-party JS from arbitrary URLs | Static resource + CSP Trusted Site |
-| Building production LWR UI with React UI Bundles | LWC (React UI Bundles are open Beta in v67) |
+| Building production LWR UI with React UI Bundles | LWC (React UI Bundles are open Beta) |
 | Pulling heavy libraries into a guest-facing page | Keep bundles lean; lazy-load |
-| API version < 67.0 on new components | `<apiVersion>67.0</apiVersion>` in the `*-meta.xml` |
+| API version below 68.0 on new components | `<apiVersion>68.0</apiVersion>` in the `*-meta.xml` |
 
 ---
 
@@ -205,4 +213,4 @@ Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
 3. **Navigation and security differ** — `lightning/navigation` is a narrower client-side router
    on LWR; LWS (not Locker) with strict CSP, and `data:` URIs are blocked.
 4. **Design for the guest** — read-only, no ownership, empty/denied is a normal state.
-5. **LWC, not React, for production** — Multi-Framework / UI Bundles is open Beta in v67.
+5. **LWC, not React, for production** — Multi-Framework / UI Bundles is open Beta.

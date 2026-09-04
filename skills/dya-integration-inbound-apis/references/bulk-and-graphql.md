@@ -1,4 +1,4 @@
-# Bulk API 2.0 & GraphQL — Reference (API v67.0)
+# Bulk API 2.0 & GraphQL — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-inbound-apis` for large-volume loads/extracts (Bulk) or field-precise/graph access (GraphQL).
 
@@ -8,26 +8,26 @@ Asynchronous, CSV-based, for **>10,000 records**. Salesforce chunks the data int
 
 ```
 # 1) Create an ingest job
-POST /services/data/v67.0/jobs/ingest
+POST /services/data/v68.0/jobs/ingest
 { "object": "Account", "operation": "upsert", "externalIdFieldName": "External_Id__c", "contentType": "CSV" }
 # → returns job id and contentUrl
 
 # 2) Upload CSV data (PUT the raw CSV to contentUrl)
-PUT /services/data/v67.0/jobs/ingest/{jobId}/batches    (Content-Type: text/csv)
+PUT /services/data/v68.0/jobs/ingest/{jobId}/batches    (Content-Type: text/csv)
 External_Id__c,Name
 A-1001,Acme
 A-1002,Globex
 
 # 3) Mark the job ready to process
-PATCH /services/data/v67.0/jobs/ingest/{jobId}   { "state": "UploadComplete" }
+PATCH /services/data/v68.0/jobs/ingest/{jobId}   { "state": "UploadComplete" }
 
 # 4) Poll until JobComplete / Failed
-GET /services/data/v67.0/jobs/ingest/{jobId}
+GET /services/data/v68.0/jobs/ingest/{jobId}
 
 # 5) Retrieve outcomes
-GET /services/data/v67.0/jobs/ingest/{jobId}/successfulResults
-GET /services/data/v67.0/jobs/ingest/{jobId}/failedResults
-GET /services/data/v67.0/jobs/ingest/{jobId}/unprocessedrecords
+GET /services/data/v68.0/jobs/ingest/{jobId}/successfulResults
+GET /services/data/v68.0/jobs/ingest/{jobId}/failedResults
+GET /services/data/v68.0/jobs/ingest/{jobId}/unprocessedrecords
 ```
 
 Rules:
@@ -72,7 +72,7 @@ mutation {
 }
 ```
 
-**Summer '26 enhancement:** a later mutation can reference any field returned by an earlier operation in the same request (e.g. the new Account's Id) to create and link records in one round trip — not just the record id as before.
+A later mutation can reference any field returned by an earlier operation in the same request (e.g. the new Account's Id) to create and link records in one round trip — not just the record id as before.
 
 Constraints:
 - UI-API-supported objects only.

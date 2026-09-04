@@ -1,6 +1,6 @@
 ---
 name: dya-integration-inbound-apis
-description: Salesforce standard inbound APIs (Summer '26 / API v67.0) — how external systems read/write Salesforce data. REST API and the composite family, SOAP (enterprise vs partner), Bulk API 2.0, GraphQL, and the Connect/UI/Metadata/Tooling APIs; choosing among them, batching, and limits. Load only when the user explicitly invokes this skill by name (`dya-integration-inbound-apis`); do NOT auto-trigger on generic API or integration questions.
+description: Salesforce standard inbound APIs (Winter '27 / API v68.0) — how external systems read/write Salesforce data. REST API and the composite family, SOAP (enterprise vs partner), Bulk API 2.0, GraphQL, and the Connect/UI/Metadata/Tooling APIs; choosing among them, batching, and limits. Load only when the user explicitly invokes this skill by name (`dya-integration-inbound-apis`); do NOT auto-trigger on generic API or integration questions.
 ---
 
 # Salesforce Inbound Standard APIs
@@ -8,18 +8,39 @@ description: Salesforce standard inbound APIs (Summer '26 / API v67.0) — how e
 You are an expert on Salesforce's standard, platform-provided APIs that external systems call to read and write data. This skill covers the **out-of-the-box** APIs — for custom endpoints you author, see `dya-integration-inbound-apex`; for authentication, `dya-integration-auth`. Follow every rule below.
 
 References:
-- `references/rest-and-composite.md` — REST sObject ops and the full composite family (Composite, Composite Graph, Batch, sObject Collections, sObject Tree) with batching limits.
-- `references/bulk-and-graphql.md` — Bulk API 2.0 ingest/query job lifecycle and the GraphQL API (queries + mutations).
+
+- `references/shared/metadata-and-api-versions.md` — the single source of truth for API version numbers and retirement dates.
+- `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
+- `references/shared/governor-limits.md` — the transaction budget a composite call spends cumulatively.
+- `references/rest-and-composite.md` — REST sObject operations and the full composite family (Composite, Composite Graph, Batch, sObject Collections, sObject Tree) with batching limits.
+- `references/bulk-and-graphql.md` — the Bulk API 2.0 ingest and query job lifecycle, and the GraphQL API.
+
+Who the calling integration user may be, and what their permissions let the call see, belongs to
+`dya-permissions`.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
-- **Target API 41.0+ (ideally current 67.0).** Versions 21.0–30.0 are retired; 31.0–40.0 retire Summer '28. The version is the `vXX.X` in `/services/data/vXX.X/`.
-- **SOAP `login()` retires Summer '27** (31.0–64.0). Authenticate with OAuth instead; SOAP API now also accepts a JWT OAuth access token in the session header. See `dya-integration-auth`.
-- **GraphQL mutations are GA** and can now reference any field returned by an earlier operation in the same request (not just the record id) — enabling linked-record creation in one round trip.
-- **Connect REST API** calls now draw from the per-org/24 h Platform API limit pool (except Chatter-touching requests).
-- **HTTPS mandatory.** **My Domain login-URL enforcement** for API traffic is postponed to Winter '27, but build against My Domain URLs now.
+| Change | Status | What it means |
+|---|---|---|
+| **`/latest` version alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Convenient for exploration; **never pin production to it** — the contract then changes three times a year with no deploy on your side |
+| **Bulk API 2.0 coverage extended** | GA | More standard objects, including additional marketing objects |
+| **OAuth username-password flow retired** | Enforced **20 February 2027** | Any caller posting `grant_type=password` stops receiving a token. See `dya-integration-auth` |
+| **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Callers must address the org's My Domain URL, not an instance URL. Test it now: Setup › My Domain › Redirections › *Block API traffic that uses an incorrect instanced URL* |
+
+Standing facts:
+
+- **Target 68.0 for new integrations; 41.0 is the hard floor.** The version is the `vXX.X` in
+  `/services/data/vXX.X/`. Dates and status live in `references/shared/metadata-and-api-versions.md`
+  and nowhere else — do not restate them.
+- **SOAP `login()` retires 1 June 2027** for API 31.0–64.0, a year before the versions themselves.
+  SOAP API accepts a JWT OAuth access token in the session header, so there is no reason to keep it.
+- **GraphQL mutations are GA** and can reference any field returned by an earlier operation in the
+  same request, not just the record id — so a parent and child can be created and linked in one round
+  trip.
+- **Connect REST API** draws on the per-org 24-hour Platform API limit pool, except Chatter-touching
+  requests. HTTPS is mandatory.
 
 ---
 
@@ -46,10 +67,10 @@ Default to **REST** for general-purpose access, **Bulk 2.0** past 10k records, *
 The primary HTTP/JSON data API at `/services/data/vXX.X/`. Covers single-record CRUD, SOQL/SOSL query, search, describe, and limits.
 
 ```
-GET    /services/data/v67.0/sobjects/Account/{id}
-POST   /services/data/v67.0/sobjects/Account
-PATCH  /services/data/v67.0/sobjects/Account/{id}
-GET    /services/data/v67.0/query/?q=SELECT+Id,Name+FROM+Account+WHERE+...
+GET    /services/data/v68.0/sobjects/Account/{id}
+POST   /services/data/v68.0/sobjects/Account
+PATCH  /services/data/v68.0/sobjects/Account/{id}
+GET    /services/data/v68.0/query/?q=SELECT+Id,Name+FROM+Account+WHERE+...
 ```
 
 - **Upsert by external id** for idempotency: `PATCH /sobjects/Account/External_Id__c/{value}`.
@@ -98,7 +119,7 @@ Full lifecycle in `references/bulk-and-graphql.md`.
 Graph-shaped queries and mutations; runs over UI API, so respects FLS/layout rules and supports UI-API objects.
 
 - **Queries GA**; **mutations GA** (create/update/delete) for UI-API-supported objects.
-- **Summer '26:** mutations can reference any field from an earlier operation in the same request (`@{ref...}`), so you can create a parent and child and link them in one round trip.
+- Mutations can reference any field from an earlier operation in the same request (`@{ref...}`), so you can create a parent and child and link them in one round trip.
 - Use when the client wants exactly the fields it needs (mobile, bandwidth-sensitive) or multi-object reads in one call. Child-relationship creation in a single mutation is not supported.
 
 ---
@@ -142,7 +163,9 @@ Graph-shaped queries and mutations; runs over UI API, so respects FLS/layout rul
 | Blind insert on re-sent data | Upsert by external id |
 | New build on Bulk API 1.0 | Bulk API 2.0 |
 | Separate REST calls that must be atomic | Composite with `allOrNone` / Composite Graph |
-| Building on API version <41.0 | Current API version (67.0) |
+| Building on API version below 41.0 | The current version, 68.0 |
+| Pinning a production integration to `/latest` | An explicit version you upgrade deliberately |
+| Assuming an integration user sees everything | Its own object and field access governs the call — see `dya-permissions` |
 | Over-fetching whole sObjects when a few fields suffice | GraphQL field selection |
 
 ---
@@ -153,4 +176,4 @@ Graph-shaped queries and mutations; runs over UI API, so respects FLS/layout rul
 2. **Pick the composite resource by shape** — dependent (Composite/Graph), independent (Batch), same-shape (Collections), nested insert (Tree); governor limits are cumulative.
 3. **SOAP only for WSDL/legacy consumers**, and never on `login()` — OAuth + ECA.
 4. **Idempotency via upsert on external id** on every write path.
-5. **Target a current API version (41.0+, ideally 67.0)** and authenticate with OAuth — see `dya-integration-auth`.
+5. **Target a current API version** — 68.0 for new work, 41.0 as the absolute floor — pinned explicitly, never `/latest`, and authenticated with OAuth. See `dya-integration-auth`.

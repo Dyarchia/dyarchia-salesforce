@@ -1,4 +1,4 @@
-# Flow HTTP Callout, External Services & Salesforce Connect — Reference (API v67.0)
+# Flow HTTP Callout, External Services & Salesforce Connect — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-outbound` for the no-code/declarative outbound paths and data virtualization. All paths use Named Credentials (`dya-integration-auth`).
 

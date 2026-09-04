@@ -94,7 +94,7 @@ global with sharing class AccountRemoteActions implements vlocity_cmt.VlocityOpe
 - **`global` class** (required for invocation), `with sharing` unless justified.
 - **Dispatch on `methodName`** — one class can host many methods.
 - **Read `input`, write `output`/`outMap`, read `options`**; return `Boolean` success.
-- **Bulk-safe**, **`WITH USER_MODE`** SOQL / `AccessLevel.USER_MODE` or `as user` DML (no `WITH SECURITY_ENFORCED` at v67).
+- **Bulk-safe**, **`WITH USER_MODE`** SOQL / `AccessLevel.USER_MODE` or `as user` DML (no `WITH SECURITY_ENFORCED` from API 67.0).
 - **Structured errors** in the output map; don't throw raw exceptions to the runtime.
 - **Test** the class as normal Apex plus through the component.
 

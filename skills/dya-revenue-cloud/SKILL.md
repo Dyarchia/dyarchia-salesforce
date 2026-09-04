@@ -1,26 +1,31 @@
 ---
 name: dya-revenue-cloud
-description: Salesforce Revenue Cloud Advanced / Revenue Lifecycle Management (RCA/RLM, "Salesforce/Agentforce Revenue Management") developer surface (Summer '26 / API v67.0) — the programmatic side of the modern, API-first successor to legacy CPQ, with real Connect endpoints, Apex classes, and invocable actions. Product Catalog Management, Salesforce Pricing (Pricing Procedures + Context Service + Decision Tables, with Apex Hooks), Transaction Management (Place Quote / Place Sales Transaction), Product Configurator Business APIs, Asset Lifecycle, and Billing. Load only when the user explicitly invokes this skill by name (`dya-revenue-cloud`); do NOT auto-trigger on generic CPQ, pricing, or Salesforce questions.
+description: Salesforce Revenue Cloud Advanced / Revenue Lifecycle Management (RCA/RLM, now branded **Agentforce Revenue Management**) developer surface (Winter '27 / API v68.0) — the programmatic side of the modern, API-first successor to legacy CPQ, with real Connect endpoints, Apex classes, and invocable actions. Product Catalog Management, Salesforce Pricing (Pricing Procedures + Context Service + Decision Tables, with Apex Hooks), Transaction Management (Place Quote / Place Sales Transaction), Product Configurator Business APIs, Asset Lifecycle, and Billing. Load only when the user explicitly invokes this skill by name (`dya-revenue-cloud`); do NOT auto-trigger on generic CPQ, pricing, or Salesforce questions.
 ---
 
 # Salesforce Revenue Cloud Advanced (RCA / RLM) — Developer Surface
 
-You are an expert Revenue Cloud Advanced developer. **Scope:** the **modern, API-first successor to legacy Salesforce CPQ** — Revenue Lifecycle Management (RLM), branded Revenue Cloud Advanced and, since Dreamforce 2025, "Agentforce Revenue Management." **Legacy Salesforce CPQ (End-of-Sale; the managed-package Quote Calculator Plugin world) is out of scope** — this skill is RCA only. It builds on `dya-apex`/`lwc`. Source of truth: the **Revenue Cloud / Revenue Lifecycle Management Developer Guide, Version 67.0 (Summer '26)**. Follow every rule below.
+You are an expert Revenue Cloud Advanced developer. **Scope:** the **modern, API-first successor to legacy Salesforce CPQ** — Revenue Lifecycle Management (RLM), branded Revenue Cloud Advanced and, since Dreamforce 2025, "Agentforce Revenue Management." **Legacy Salesforce CPQ (End-of-Sale; the managed-package Quote Calculator Plugin world) is out of scope** — this skill is RCA only. It builds on `dya-apex`/`lwc`. Source of truth: the **Revenue Lifecycle Management Developer Guide, Version 68.0 (Winter '27)**. Follow every rule below.
 
 References:
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults custom pricing Apex inherits.
+- `references/shared/sharing-and-access.md` — the permission model, and why a missing permission set licence looks like a missing API.
+- `references/shared/governor-limits.md` — the transaction budget a pricing procedure and its Apex hooks share.
 - `references/pricing-and-config.md` — Salesforce Pricing (Pricing Procedures, Context Service, Decision Tables/Lookup Tables, **Apex Hooks**), Product Catalog Management, Product Configurator Business APIs + invocable actions, and the PCM index/snapshot endpoints.
 - `references/transaction-billing-apis.md` — Transaction Management (Place Quote / Place Sales Transaction, `PlaceQuoteRLMApexProcessor`), Asset Lifecycle, and Billing (ConnectApi namespace) — real endpoints, Apex, and invocable actions.
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
+
+**The product is now called Agentforce Revenue Management.** Winter '27 completes a rename that has been running for three releases, and features are split across the Growth, Advanced and Billing tiers — check which tier an org holds before promising a capability. The **programmatic surface is unchanged**: the Connect business APIs, invocable actions, Apex hooks and metadata types below all still apply.
 
 - RCA is **API-first and on-core**: every domain exposes **Connect REST business APIs + standard invocable actions + built-in Apex classes/namespaces + Metadata API types + platform events**. You extend with **Apex, Flow, and LWC** — **not** the legacy CPQ Quote Calculator Plugin.
 - It's built on shared **Salesforce Industries** infrastructure: the **Business Rules Engine** (Pricing Procedures, **Decision Tables**, **Lookup Tables**, Expression Sets) and the **Context Service** (Context Definitions/Mappings) power pricing and configuration.
 - **Apex Hooks for Pricing Procedures** (since Summer '25) let you inject Apex into a pricing procedure — the supported way to add custom pricing logic the declarative tools can't express.
-- **Naming churn (for recognition):** RLM (Spring '24) → Revenue Cloud (DF '24) → Agentforce Revenue Management (DF '25). The dev guide is still titled *Revenue Lifecycle Management Developer Guide*.
+- **Naming churn, which you will meet in every document and org:** RLM (Spring '24) → Revenue Cloud (Dreamforce '24) → **Agentforce Revenue Management** (Dreamforce '25, and the current name). The developer guide is still titled *Revenue Lifecycle Management Developer Guide*, and objects and namespaces still carry the older names. Recognise all of them as the same product; use the current name in new work.
 - **Migration:** RCA is a **re-implementation, not an upgrade** from legacy CPQ — a new data model. Don't port Quote Calculator Plugin logic.
-- **Apex v67 defaults** apply to your custom RCA Apex (`with sharing`, `USER_MODE`; `WITH SECURITY_ENFORCED` no longer compiles → `WITH USER_MODE`). Assign the **Revenue Cloud permission set licenses**.
+- **From API 67.0 your custom Apex defaults to `with sharing` and `USER_MODE`**, and `WITH SECURITY_ENFORCED` no longer compiles — use `WITH USER_MODE`. Assign the **Revenue Cloud permission set licences**; without them the APIs are simply absent rather than failing informatively. See `dya-permissions`.
 
 ---
 
@@ -67,7 +72,7 @@ Invoke pricing programmatically:
 
 ```
 # Connect REST — run a pricing action with context + procedure + waterfall
-POST /services/data/v67.0/connect/pricing/...        (Run Salesforce Pricing / Price Context)
+POST /services/data/v68.0/connect/pricing/...        (Run Salesforce Pricing / Price Context)
 ```
 
 You can also invoke pricing from **Flow or Apex** via the **Run Salesforce Pricing Action** (supply context instance Ids, pricing procedure name, discovery procedure). After changing rule data, refresh with the **Decision Table Refresh Action** (invocable; no callout) and rebuild the PCM index. Full detail: `references/pricing-and-config.md`.
@@ -80,10 +85,10 @@ Build and price quotes/orders through the **Transaction Management Business APIs
 
 ```
 # Create/update a quote (with integrated pricing + configuration)
-POST /services/data/v67.0/connect/quotes/place                 # Place Quote
+POST /services/data/v68.0/connect/quotes/place                 # Place Quote
 
 # Create/update a quote OR order, with pricing + config + estimated tax
-POST /services/data/v67.0/connect/commerce/sales-transactions/actions/place   # Place Sales Transaction
+POST /services/data/v68.0/connect/commerce/sales-transactions/actions/place   # Place Sales Transaction
 ```
 
 In Apex, the **`PlaceQuoteRLMApexProcessor`** class (and the PlaceQuote Apex surface) processes quote placement; standard **invocable actions** exist for Flow/Agentforce (e.g. an action that creates an order from an existing quote). Full Apex/endpoints/actions: `references/transaction-billing-apis.md`.

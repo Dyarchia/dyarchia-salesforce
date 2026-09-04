@@ -1,4 +1,4 @@
-# Agentforce Lifecycle & APIs — Reference Implementation (API v67.0)
+# Agentforce Lifecycle & APIs — Reference Implementation (Winter '27 / API v68.0)
 
 Full implementations referenced from SKILL.md §5, §7, §8. Load this when invoking an agent programmatically, testing it, or working with Agent Script.
 

@@ -1,4 +1,4 @@
-# Record Sharing — Reference (Summer '26)
+# Record Sharing — Reference (Winter '27 / API v68.0)
 
 Load from `dya-permissions` for the "which records can the user see" axis. Access widens through a pipeline from a restrictive baseline; restriction/scoping rules narrow.
 
