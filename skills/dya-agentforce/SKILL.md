@@ -12,8 +12,11 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an Apex action inherits.
 - `references/shared/sharing-and-access.md` — the permission model an agent's run-as identity is bound by. **Read this before designing a customer-facing agent.**
 - `references/shared/governor-limits.md` — the budget an action spends, and why "one transaction per action" is not a licence to skip bulkification.
-- `references/apex-actions.md` — full `@InvocableMethod` / `@InvocableVariable` action, action-type comparison, security, bulkification, error handling, and how descriptions feed Atlas.
-- `references/lifecycle-and-api.md` — Agent API (headless conversations), invoking agents from Apex/Flow, Agentforce DX/CLI `agent preview`, Testing API/Center, evaluations, and a primer on Agent Script.
+- `references/building-an-agent.md` — **the end-to-end path**: prerequisites and org setup, the two authoring workflows, the CLI commands, testing and activation. Start here if you have never built one.
+- `references/agent-script.md` — the actual syntax: blocks, `->` logic versus `|` prompt instructions, variables, routing, `available when` guards.
+- `references/apex-actions.md` — `@InvocableMethod` / `@InvocableVariable` actions, action-type comparison, security, bulkification, error handling.
+- `references/prompt-templates.md` — calling a template from code, batch generation with `AiJobRun`, moving templates between orgs.
+- `references/lifecycle-and-api.md` — the Agent API with real endpoints and payloads, invoking agents from Apex/Flow, `agent preview`, testing and evaluations.
 
 Load a reference when building that exact thing. Agentforce actions are Apex/Flow — for deep Apex rules load `dya-apex`; for the data layer that grounds agents load `dya-data360`; for exposing/serving agents across surfaces load `dya-headless360`.
 
@@ -32,6 +35,10 @@ Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
 | **24 additional conversation languages** | Beta | Not production — check the list before promising a language |
 | **Execute Data 360 SQL from Apex** | GA | An action can query Data 360 alongside org data in one class. See `dya-data360` |
 
+**Terminology:** since April 2026, what used to be called a **Topic** is a **subagent**. Nothing about
+the functionality changed, and you will still meet "topic" in older documentation, in parts of the
+UI, and in help-article URLs. This skill uses **subagent**; treat the two as the same thing.
+
 Standing platform facts:
 
 - **Atlas Reasoning Engine 3.0** powers reasoning and multi-agent routing.
@@ -49,13 +56,13 @@ Agentforce is Salesforce's platform for building **autonomous AI agents**: softw
 
 The brain is the **Atlas Reasoning Engine**. It does not run a fixed decision tree; on every request it *reasons* from the descriptions you wrote. The loop:
 
-1. **Intent / topic classification** — Atlas reads the user's message and picks the most relevant **Topic**.
-2. **Plan** — it reads that Topic's scope, instructions, and the descriptions of the **Actions** available, and decides what to do (ask a question, run an action, use a prompt template).
+1. **Intent classification** — Atlas reads the user's message and picks the most relevant **subagent**.
+2. **Plan** — it reads that subagent's scope, instructions, and the descriptions of the **Actions** available, and decides what to do (ask a question, run an action, use a prompt template).
 3. **Ground (RAG)** — it pulls live, trusted context from Salesforce, **Data 360**, or external systems via MCP.
 4. **Act** — it executes the chosen actions (Apex, Flow, Prompt Template, …) and checks results, looping if needed.
 5. **Respond** — the final answer passes through the **Einstein Trust Layer** (masking, grounding checks, zero-retention) before it reaches the user.
 
-**The single most important consequence:** Atlas chooses topics and actions by reading their **natural-language descriptions**. Vague descriptions = wrong routing. Your descriptions *are* the program. Treat them as carefully as code.
+**The single most important consequence:** Atlas chooses subagents and actions by reading their **natural-language descriptions**. Vague descriptions = wrong routing. Your descriptions *are* the program. Treat them as carefully as code.
 
 ---
 
@@ -64,16 +71,16 @@ The brain is the **Atlas Reasoning Engine**. It does not run a fixed decision tr
 | Building block | What it is | Who owns it |
 |---|---|---|
 | **Agent** | The deployed assistant, with a role, channels, and a user/permission context | Builder |
-| **Topic** | A bounded job-to-be-done (e.g. "Order Management"). Holds the classification description, scope, and instructions | Builder |
-| **Classification description** | Tells Atlas *when* this topic applies | Builder |
-| **Scope** | What the agent may and may not do within the topic — a guardrail | Builder |
+| **Subagent** (formerly Topic) | A bounded job-to-be-done, e.g. "Order Management". Holds the classification description, scope and instructions | Builder |
+| **Classification description** | Tells Atlas *when* this subagent applies | Builder |
+| **Scope** | What the agent may and may not do within the subagent — a guardrail | Builder |
 | **Instructions** | Natural-language rules (prompt-like) that shape behaviour and reference actions | Builder |
 | **Action** | A concrete capability the agent can invoke: Apex, Flow, Prompt Template, Apex REST, Named Query | Developer |
 
 ### Writing Instructions (the high-leverage skill)
 
-- One Topic = one coherent set of tasks. Don't make a mega-topic.
-- Instructions live *inside* the Topic (not a separate metadata item) and may reference Actions by name.
+- One subagent = one coherent set of tasks. Do not build a mega-subagent.
+- Instructions live *inside* the subagent (not a separate metadata item) and may reference Actions by name.
 - Be explicit and imperative; state preconditions and the order of operations.
 - Use them as guardrails: say what *not* to do, not just what to do.
 - Prefer **Agent Script** (§5) to encode hard business rules deterministically instead of hoping the LLM follows prose.
@@ -118,24 +125,8 @@ public with sharing class GetOrderStatusAction {
         description='Returns the current fulfilment status for a given order number. Use when a customer asks where their order is.'
     )
     public static List<Result> run(List<Request> requests) {   // bulk in, bulk out
-        Set<String> numbers = new Set<String>();
-        for (Request r : requests) { numbers.add(r.orderNumber); }
-
-        Map<String, Order> byNumber = new Map<String, Order>();
-        for (Order o : [SELECT OrderNumber, Status FROM Order
-                        WHERE OrderNumber IN :numbers WITH USER_MODE]) {
-            byNumber.put(o.OrderNumber, o);
-        }
-
-        List<Result> results = new List<Result>();
-        for (Request r : requests) {
-            Result res = new Result();
-            res.status = byNumber.containsKey(r.orderNumber)
-                ? byNumber.get(r.orderNumber).Status
-                : 'Not found';
-            results.add(res);
-        }
-        return results;
+        // query once on the collected order numbers WITH USER_MODE, then map back
+        // one Result per Request, in the same order
     }
 }
 ```
@@ -149,20 +140,29 @@ Absolute rules:
 - **Handle errors gracefully — for the agent.** Return a structured result with a success flag and a human-readable message the agent can relay; a thrown exception gives it something it cannot explain to a user. This is the **opposite** of what a Flow-facing action wants, where throwing is how the fault message reaches a Fault Path. If one method serves both callers, return the structured result and let the Flow branch on it rather than throwing. Log failures durably through Platform Events (`dya-apex`).
 - Keep actions **deterministic** — they exist precisely so the LLM does *not* improvise critical logic.
 
-Full action skeletons, error patterns, and the action-type deep dive: `references/apex-actions.md`.
+> Full skeletons, error patterns and the action-type deep dive: `references/apex-actions.md`.
 
 ---
 
 ## 5. Agent Script — Deterministic Control (GA)
 
-Agent Script is the language behind the new Agent Builder. It blends natural-language instructions for conversational nuance with **programmatic expressions** for the parts that must be reliable.
+Agent Script is the compiled language behind Agentforce Builder, and its whole design is one
+distinction: **`->` logic instructions run deterministically every time; `|` prompt instructions go to
+the LLM to interpret.**
 
-Use Script expressions to: define `if/else` conditions and transitions; set, compare and mutate variables; and explicitly select which subagent or action runs. This produces **predictable, context-aware workflows that don't depend on LLM interpretation** for business-critical paths.
+```agentscript
+instructions: ->
+    if @variables.isPremiumUser:
+        | ask the user if they want to redeem their Premium points
+    else:
+        | ask the user if they want to upgrade to Premium service
+```
 
-Guidance:
-- Encode compliance, pricing, eligibility, and routing rules as Script expressions — never as hopeful prose.
-- Let natural language handle the conversational, fuzzy parts; let Script handle the "must always happen" parts.
-- After migrating a legacy agent to Script, run the built-in optimization tool to add deterministic controls.
+The decision is deterministic; the wording is the model's. Encode compliance, pricing, eligibility and
+routing after `->`; leave the conversational parts to `|`. Guard every subagent transition with
+`available when` so a persuasive customer cannot talk the agent past a check.
+
+> Blocks, variables, action targets, routing and the full syntax: `references/agent-script.md`.
 
 ---
 
@@ -170,7 +170,7 @@ Guidance:
 
 An agent is only as good as the context it reasons over. **Grounding** injects trusted data into the prompt so answers are accurate and explainable, reducing hallucination.
 
-- **Prompt Templates** — reusable, parameterised prompts that merge in record/field data and call the LLM. Use for summaries, drafts, classifications.
+- **Prompt Templates** — reusable, parameterised prompts that merge record data and call the LLM. Use for summaries, drafts and classifications; reach them from Agent Script with a `prompt://` target. Calling one from code, batch generation and cross-org deployment: `references/prompt-templates.md`.
 - **RAG grounding via Data 360** — retrieve unified profile data, calculated insights, and unstructured content (via vector search) to ground responses. Build **custom retrievers** for domain-specific context. See `dya-data360`.
 - **MCP** — ground from external systems exposed as MCP tools (see `dya-headless360`).
 
@@ -185,7 +185,7 @@ Agents aren't only chat windows. You can drive them programmatically:
 - **Agent API** (REST) — start a session, send messages with context, receive structured responses, with **no logged-in user** — for server-side and customer-facing integrations.
 - **AI Agent action** (Apex / Flow) — trigger any active agent from automation: a Quick Action, a screen flow, or even limited agent-to-agent calls. Pass a user message + optional session id; capture the response.
 
-Full Agent API flow and the Apex/Flow invocation pattern: `references/lifecycle-and-api.md`.
+Endpoints, payloads, the `bypassUser` identity switch and the `sequenceId` counter: `references/lifecycle-and-api.md`.
 
 ---
 
@@ -193,13 +193,13 @@ Full Agent API flow and the Apex/Flow invocation pattern: `references/lifecycle-
 
 A non-deterministic system must be tested at scale, not by eyeballing one chat.
 
-- **Testing Center** (UI) — simulate scenarios with initial conversation state and context variables (custom + standard) to check routing and personalisation.
-- **Testing API** (REST) — batch-test many utterances programmatically; automate the eval before activating.
-- **Evaluations** (Agentforce DX, Beta) — YAML/JSON-defined eval tests run from the CLI; **Custom Scoring Evals** grade *decision quality*, not just whether an action ran.
-- **`agent preview`** (CLI, GA) — scripted interactive sessions (`start`/`send`/`sessions`/`end`) with **trace files** showing exactly how the agent routed and acted.
-- **A/B Testing API** — run multiple agent versions against real traffic post-launch.
+- **Testing Center** (UI) — simulate scenarios with initial state and context variables.
+- **Testing API** (REST) — batch-test many utterances; automate before activating.
+- **Evaluations** (Agentforce DX, Beta) — YAML/JSON eval suites from the CLI. **Custom Scoring Evals** grade *decision quality*, not just whether an action ran.
+- **`agent preview`** (CLI, GA) — scripted sessions with **trace files** showing how the agent routed. Unimplemented actions are mocked, so you can test routing before writing them.
+- **A/B Testing API** — compare agent versions against real traffic after launch.
 
-Test topic classification (does the right topic fire?), action selection, and grounding accuracy separately.
+Test subagent classification (does the right subagent fire?), action selection, and grounding accuracy separately.
 
 ---
 
@@ -214,7 +214,7 @@ Once live, instrument it. **Agent Platform Tracing** writes a **span** for every
 - The **Einstein Trust Layer** enforces data masking, dynamic grounding, FLS, and zero-data-retention with LLM providers on every session — regardless of how the agent is invoked (UI, API, MCP).
 - Agents run with a **user and permission context**: an employee-facing agent acts with the running user's permissions; a customer-facing agent runs under a dedicated guest or service profile. Whatever that identity can see, the agent can surface — so scope it to the minimum and design it deliberately. See `dya-permissions`.
 - Apex actions enforce `with sharing` + `USER_MODE`. Never widen permissions just to make a user-mode error disappear — that leaks data into reports/APIs too.
-- Treat agent instructions as untrusted-input boundaries: guard against prompt injection by scoping topics tightly and validating action inputs in Apex.
+- Treat agent instructions as untrusted-input boundaries: guard against prompt injection by scoping subagents tightly and validating action inputs in Apex.
 
 ---
 
@@ -234,8 +234,8 @@ Implications:
 
 | Need | Solution |
 |---|---|
-| Decide when a capability applies | Topic + classification description |
-| Constrain what the agent may do | Topic scope + Agent Script guardrails |
+| Decide when a capability applies | Subagent + classification description |
+| Constrain what the agent may do | Subagent scope + Agent Script `available when` guards |
 | Multi-step declarative automation | Flow action |
 | Deterministic logic / callouts / cross-object | Apex `@InvocableMethod` action |
 | Generate or transform text from records | Prompt Template action |
@@ -257,8 +257,8 @@ Implications:
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Vague Topic/Action descriptions | Precise, intent-rich descriptions — they *are* the routing logic |
-| One mega-Topic covering everything | One Topic per bounded job-to-be-done |
+| Vague subagent or action descriptions | Precise, intent-rich descriptions — they *are* the routing logic |
+| One mega-subagent covering everything | One subagent per bounded job-to-be-done |
 | Hoping the LLM follows a critical rule in prose | Encode it as an Agent Script expression |
 | Non-bulkified Apex action | `List<Request>` in, `List<Result>` out; assume 200 |
 | `WITH SECURITY_ENFORCED` in an action | `WITH USER_MODE` (removed in API 67+) |
@@ -269,13 +269,13 @@ Implications:
 | Shipping without batch testing | Testing API/Center + evals before activation |
 | Overlapping subagent scopes | Focused, non-overlapping subagents |
 | Fine-tuning for fresh enterprise facts | Ground via Data 360 (fresh, permission-aware) |
-| Treating user input as trusted | Tight topic scope + Apex input validation (prompt-injection guard) |
+| Treating user input as trusted | Tight subagent scope + Apex input validation (prompt-injection guard) |
 
 ---
 
 ## Summary — The Five Commandments
 
-1. **Descriptions are the program** — Atlas routes by reading Topic and Action descriptions; write them like code.
+1. **Descriptions are the program** — Atlas routes by reading subagent and action descriptions; write them like code.
 2. **Determinism where it matters** — Agent Script and Apex actions for business-critical logic; let the LLM handle only the fuzzy, conversational parts.
 3. **Ground everything** — Data 360 / retrievers / MCP for trusted, permission-aware context; prefer grounding over fine-tuning.
 4. **Actions are Apex citizens** — bulkified, `with sharing`, `WITH USER_MODE`, structured errors; narrow and single-purpose.
