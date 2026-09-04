@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - B2B/D2C Commerce runs **on core**: storefronts are **LWR Experience Cloud** sites, UI is **LWC**, logic is **Apex**, data is standard **Commerce objects** (WebStore, WebCart, CartItem, ProductCatalog, etc.).
 - **Two distinct extension surfaces** (don't conflate them):

@@ -17,7 +17,7 @@ This SKILL.md carries the load-bearing rules. Larger material lives in `referenc
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **LWR sites are GA and the recommended site type for new builds.** Hold these:
 

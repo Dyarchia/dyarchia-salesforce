@@ -16,7 +16,7 @@ Load a reference when building that exact thing. Agentforce actions are Apex/Flo
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Current API version: 67.0 (Summer '26).** Agentforce metadata and the Apex/Flow behind actions are saved at `67.0`. This release is a major step for Agentforce:
 

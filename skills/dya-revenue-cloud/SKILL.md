@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - RCA is **API-first and on-core**: every domain exposes **Connect REST business APIs + standard invocable actions + built-in Apex classes/namespaces + Metadata API types + platform events**. You extend with **Apex, Flow, and LWC** — **not** the legacy CPQ Quote Calculator Plugin.
 - It's built on shared **Salesforce Industries** infrastructure: the **Business Rules Engine** (Pricing Procedures, **Decision Tables**, **Lookup Tables**, Expression Sets) and the **Context Service** (Context Definitions/Mappings) power pricing and configuration.

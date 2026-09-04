@@ -18,7 +18,7 @@ Load a reference when you are about to write or refactor code that needs that ex
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Current API version: 67.0 (Summer '26).** All new Apex classes, triggers, and metadata files MUST be saved at `<apiVersion>67.0</apiVersion>`. API 67 ships versioned defaults that the rest of this skill assumes:
 

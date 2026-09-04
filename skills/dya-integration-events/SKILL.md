@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **The Pub/Sub API (gRPC/HTTP-2) is the strategic, single interface** to publish and subscribe to Platform Events, Change Data Capture, and Real-Time Event Monitoring events — for external systems. Use it over the legacy CometD Streaming API.
 - **PushTopic and Generic Streaming are legacy** — no longer enhanced, limited support. Migrate PushTopic → CDC, Generic → Platform Events.

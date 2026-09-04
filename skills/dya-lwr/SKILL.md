@@ -19,7 +19,7 @@ This SKILL.md carries the load-bearing rules. Larger material lives in `referenc
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Current API version: 67.0 (Summer '26).** Save bundles at `<apiVersion>67.0</apiVersion>`.
 Footprint and v67 facts you must hold:

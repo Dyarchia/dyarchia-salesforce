@@ -17,7 +17,7 @@ Load a reference when you are about to write or refactor code that needs that ex
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Current LWC / Apex API version: 67.0 (Summer '26).** All new components, classes, and metadata files MUST be saved at `<apiVersion>67.0</apiVersion>`. Summer '26 is a maturity release for LWC: shared state moves out of components, the preview/edit loop tightens, and several Spring '26 betas reach GA. Note carefully what is GA versus Beta / Developer Preview:
 

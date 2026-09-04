@@ -16,7 +16,7 @@ For server-side Apex called from Flow, see the companion skill `dya-apex`. For L
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Current API version: 67.0 (Summer '26).** All new Flows MUST be saved at `<apiVersion>67.0</apiVersion>` in the `.flow-meta.xml`. Summer '26 ships a significant batch of Flow improvements:
 

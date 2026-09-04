@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **External Client Apps (ECAs) are the new default** for inbound integration identity. New **Connected App** creation is disabled by default from Spring '26; ECAs are the metadata-clean, closed-by-default, 2GP-friendly successor and **block legacy username/password OAuth flows**.
 - **SOAP `login()` retires Summer '27** (API 31.0–64.0; already gone in 65.0+). The new **"Any API Auth"** user permission gates who may authenticate via SOAP `login()` and is enforced by default in new orgs. Migrate to OAuth.

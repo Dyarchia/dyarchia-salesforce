@@ -12,7 +12,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **Hosted MCP Servers are GA** — Salesforce-hosted MCP servers expose sObject operations, Data 360, Tableau, and product APIs to any MCP client (Claude, ChatGPT, Cursor). Custom servers can expose Flows, Apex actions, and Named Query APIs as tools. Every MCP transaction runs **as the authenticated user** with full CRUD/FLS/sharing. MCP calls count against the daily API allocation.
 - **API Catalog for Salesforce** (Summer '26) — a central hub to manage APIs and MCP servers from MuleSoft, Heroku, and Apex; convert API operations into invocable actions for Flow/Apex/Agentforce.

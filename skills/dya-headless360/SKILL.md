@@ -16,7 +16,7 @@ Load a reference when building that exact thing. Headless 360 is the **access an
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 Headless 360 is **the** headline theme of Summer '26 — "everything on Salesforce becomes an API, MCP tool, or CLI command," usable by an app, a human, or an autonomous AI agent. It is an **infrastructure/access layer, not a replacement for Agentforce**; the two work together.
 

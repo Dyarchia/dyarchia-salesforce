@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **Target API 41.0+ (ideally current 67.0).** Versions 21.0–30.0 are retired; 31.0–40.0 retire Summer '28. The version is the `vXX.X` in `/services/data/vXX.X/`.
 - **SOAP `login()` retires Summer '27** (31.0–64.0). Authenticate with OAuth instead; SOAP API now also accepts a JWT OAuth access token in the session header. See `dya-integration-auth`.

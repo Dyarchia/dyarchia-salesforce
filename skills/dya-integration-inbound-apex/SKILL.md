@@ -12,7 +12,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **`@RestResource` (Apex REST) is GA and the recommended way** to build a custom REST endpoint. It is **not deprecated**. The API-version retirement (31.0–40.0) targets *standard-endpoint versions* and SOAP `login()`, and **explicitly excludes** custom Apex REST/SOAP web services, Apex classes, triggers, and Visualforce.
 - **Apex SOAP web services (`webservice` keyword) remain supported but legacy** — prefer Apex REST for new endpoints. (This is a style recommendation, not a retirement; and it is unrelated to the SOAP `login()` retirement, which is about authentication.)

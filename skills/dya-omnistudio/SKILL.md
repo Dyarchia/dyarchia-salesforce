@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **Two flavors, and they differ in code:** **OmniStudio Standard** (metadata-based, on core, **`omnistudio`** namespace, implement **`Callable`**) vs the original **Managed Package** ("OmniStudio for Vlocity", industry namespace like **`vlocity_cmt`** / `vlocity_ins` / `vlocity_ps`, extend **`VlocityOpenInterface`/`VlocityOpenInterface2`**). Always confirm which the org uses — class references, interfaces, and tooling differ.
 - Components are **LWC-based at runtime** (OmniScripts/FlexCards render as Lightning Web Components) and **JSON-defined** in metadata.

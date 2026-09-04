@@ -20,7 +20,7 @@ This family sits **on top of** the core dyarchia skills and defers to them: asyn
 
 ---
 
-## Platform Context — Summer '26 / API v67.0 (integration-relevant)
+## Platform Context — Winter '27 / API v68.0 (integration-relevant)
 
 - **Apex v67 security defaults** flip and they hit integration code hardest: SOQL/SOSL/DML default to `USER_MODE`, omitted sharing defaults to `with sharing`, and `WITH SECURITY_ENFORCED` no longer compiles. Server-to-server code that assumed system-mode access can silently return fewer rows or throw after a class is bumped to 67.0. Behaviour keys off **each class's compiled API version**, not the org — bump deliberately and test. See `dya-apex`.
 - **SOAP `login()` retires Summer '27** for API 31.0–64.0 (already gone in 65.0+); the new **"Any API Auth"** user permission gates it and is enforced by default in new orgs. Migrate username/password SOAP auth to OAuth via **External Client Apps**. See `dya-integration-auth`.

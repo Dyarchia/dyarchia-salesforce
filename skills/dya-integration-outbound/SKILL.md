@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **Named Credentials + External Credentials are the standard** for every outbound call — they replace hard-coded endpoints/secrets and **Remote Site Settings**. Use `callout:My_Named_Credential/path`. Full detail in `dya-integration-auth`.
 - **HTTPS is mandatory.** Never hard-code `http://`.

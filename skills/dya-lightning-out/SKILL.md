@@ -17,7 +17,7 @@ This SKILL.md carries the load-bearing rules. Larger material lives in `referenc
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Lightning Out 2.0 is GA (since Winter '26)** and is the supported way to surface LWCs outside
 Salesforce. It replaces the decade-old Lightning Out 1.0 (Aura). Hold these in mind:

@@ -15,7 +15,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - The `FSL` namespace lives in the **Field Service managed package**; the running user needs an **FSL permission set** (FSL Admin/Agent/Dispatcher/Resource as appropriate) and Field Service enabled.
 - **Apex v67 hits FSL wrapper code hard.** Once a class is compiled at v67: SOQL/SOSL/DML/`Database.*` default to **user mode**, an omitted sharing keyword defaults to **`with sharing`** (was `without sharing`), and **`WITH SECURITY_ENFORCED` no longer compiles** — replace with `WITH USER_MODE`. Your code querying `FSL__Scheduling_Policy__c`, `OperatingHours`, `ServiceAppointment` is affected; user-mode FLS can hide fields the algorithm needs. Triggers always run in system mode — delegate to handlers. See `dya-apex`.

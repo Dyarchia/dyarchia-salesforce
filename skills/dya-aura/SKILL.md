@@ -16,7 +16,7 @@ Load a reference when you are about to write or refactor code that needs that ex
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 **Current API version: 67.0 (Summer '26).** All new Aura component bundles and their Apex controllers MUST be saved at `<apiVersion>67.0</apiVersion>`. The release brings no new Aura framework features, but several platform changes land directly on Aura:
 

@@ -3,7 +3,7 @@
 > Salesforce agent skills by Dyarchia, published openly under MIT.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Salesforce API](https://img.shields.io/badge/Salesforce%20API-v67.0-00A1E0.svg)
+![Salesforce API](https://img.shields.io/badge/Salesforce%20API-v68.0-00A1E0.svg)
 ![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Compatible-5B5BD6.svg)
 
 Agent skills are reusable instruction packs that customise how an AI coding agent approaches specific domains. They are becoming a cross-vendor standard for AI assistants, so the contents of this repo should be portable in spirit even where the loading mechanics differ.
@@ -14,7 +14,7 @@ Every skill loads **only on explicit invocation by name** — none auto-trigger 
 
 ## Available skills
 
-25 skills, all targeting **Summer '26 / API v67.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
+25 skills, all targeting **Winter '27 / API v68.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
 
 ### Core development
 

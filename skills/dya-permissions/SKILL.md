@@ -13,7 +13,7 @@ References:
 
 ---
 
-## Platform Context — Summer '26 / API v67.0
+## Platform Context — Winter '27 / API v68.0
 
 - **"Minimum access" is the modern default.** Salesforce steers orgs toward a minimal base profile + additive permission sets. Treat profiles as a thin baseline; grant capability through permission sets and permission set groups.
 - **Apex v67 user mode** makes this model *enforced in code*: SOQL/DML default to `USER_MODE`, so the running user's object, field, and sharing access now governs what integration/controller code can read and write. The permission model is no longer "just UI" — it shapes code behaviour. See `dya-apex`.
