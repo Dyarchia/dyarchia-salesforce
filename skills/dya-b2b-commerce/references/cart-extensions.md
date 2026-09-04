@@ -1,4 +1,4 @@
-# B2B/D2C Commerce — Cart Calculate API & Endpoint Extensions (API v67.0)
+# B2B/D2C Commerce — Cart Calculate API & Endpoint Extensions (Winter '27 / API v68.0)
 
 Load from `dya-b2b-commerce`. The `CartExtension` framework (orchestrator + calculators) and `ConnectApi.BaseEndpointExtension` endpoint hooks, with real signatures. It's on-core Apex — `dya-apex` rules apply (bulk, `with sharing`, `WITH USER_MODE`, Named Credentials). Class availability is API-version-dependent; confirm GA/Pilot status for your version.
 

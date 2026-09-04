@@ -1,4 +1,4 @@
-# B2B/D2C Commerce — ConnectApi Commerce, Entitlements & Storefront LWC (API v67.0)
+# B2B/D2C Commerce — ConnectApi Commerce, Entitlements & Storefront LWC (Winter '27 / API v68.0)
 
 Load from `dya-b2b-commerce`. The `ConnectApi.CommerceCart` Apex API, the buyer-group/entitlement model that governs visibility, and Storefront LWC. Confirm exact method overloads against the Apex Reference for your API version.
 

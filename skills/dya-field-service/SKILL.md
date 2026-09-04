@@ -1,6 +1,6 @@
 ---
 name: dya-field-service
-description: Salesforce Field Service (FSL) developer surface (Summer '26 / API v67.0) — the programmatic side only, with real signatures and compilable code. The FSL Apex namespace (ScheduleService, AppointmentBookingService, GradeSlotsService, OAAS), the scope-1 + DML-before-callout scheduling pattern, the Salesforce Scheduler REST candidates/slots resources and Appointment Bundling REST APIs, the standard + FSL__ data model and ServiceAppointment lifecycle, and Field Service Mobile (LWC Offline, Briefcase). Load only when the user explicitly invokes this skill by name (`dya-field-service`); do NOT auto-trigger on generic Field Service, scheduling, or Salesforce questions.
+description: Salesforce Field Service (FSL) developer surface (Winter '27 / API v68.0) — the programmatic side only, with real signatures and compilable code. The FSL Apex namespace (ScheduleService, AppointmentBookingService, GradeSlotsService, OAAS), the scope-1 + DML-before-callout scheduling pattern, the Salesforce Scheduler REST candidates/slots resources and Appointment Bundling REST APIs, the standard + FSL__ data model and ServiceAppointment lifecycle, and Field Service Mobile (LWC Offline, Briefcase). Load only when the user explicitly invokes this skill by name (`dya-field-service`); do NOT auto-trigger on generic Field Service, scheduling, or Salesforce questions.
 ---
 
 # Salesforce Field Service — Developer Surface
@@ -10,6 +10,9 @@ You are an expert Field Service (FSL) developer. This skill covers the **program
 `FSL.*` classes and `FSL__*__c` objects are **managed-package** artifacts and are **version-dependent** — signatures can change across package upgrades; verify against the installed package version (see §8).
 
 References:
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the raised heap limits a scheduling call runs inside.
+- `references/shared/sharing-and-access.md` — the permission model behind the FSL permission sets and user-mode enforcement.
+- `references/shared/governor-limits.md` — the transaction budget the scope-1 batch pattern exists to respect.
 - `references/fsl-apex-scheduling.md` — full ScheduleService / AppointmentBookingService / GradeSlotsService / OAAS reference with signatures, result-object members, and the scope-1 batch pattern.
 - `references/rest-and-mobile.md` — Salesforce Scheduler REST (candidates/slots), Appointment Bundling REST APIs, and Field Service Mobile (LWC Offline, Briefcase, what works offline).
 
@@ -17,8 +20,10 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
+Winter '27 brings Field Service improvements on the operational and mobile side, but **no change to the FSL Apex namespace, the scheduling service signatures, or the Scheduler and Bundling REST resources** documented below. What does change is the budget your wrapper code runs in: Apex heap rises to 10 MB synchronous and 25 MB asynchronous, which matters when a scheduling call holds a large candidate set. See `references/shared/governor-limits.md`.
+
 - The `FSL` namespace lives in the **Field Service managed package**; the running user needs an **FSL permission set** (FSL Admin/Agent/Dispatcher/Resource as appropriate) and Field Service enabled.
-- **Apex v67 hits FSL wrapper code hard.** Once a class is compiled at v67: SOQL/SOSL/DML/`Database.*` default to **user mode**, an omitted sharing keyword defaults to **`with sharing`** (was `without sharing`), and **`WITH SECURITY_ENFORCED` no longer compiles** — replace with `WITH USER_MODE`. Your code querying `FSL__Scheduling_Policy__c`, `OperatingHours`, `ServiceAppointment` is affected; user-mode FLS can hide fields the algorithm needs. Triggers always run in system mode — delegate to handlers. See `dya-apex`.
+- **The API 67.0 security defaults hit FSL wrapper code hard.** Once a class is compiled at 67.0 or above, SOQL, SOSL, DML and `Database.*` default to **user mode**, an omitted sharing keyword defaults to **`with sharing`**, and **`WITH SECURITY_ENFORCED` no longer compiles** — replace it with `WITH USER_MODE`. Your code querying `FSL__Scheduling_Policy__c`, `OperatingHours`, `ServiceAppointment` is affected; user-mode FLS can hide fields the algorithm needs. Triggers always run in system mode — delegate to handlers. See `dya-apex`.
 - **HTTPS / Named Credentials** for the Bundling REST callouts (a Remote Site Setting / Named Credential is required).
 - **Mobile** extensibility centers on **LWC Offline** with the `lightning__FieldServiceMobile` target; Apex writes, callouts, triggers, and validation rules do **not** run offline.
 
@@ -192,7 +197,7 @@ Full offline matrix and Bundling REST: `references/rest-and-mobile.md`.
 
 ## 8. Verify Before You Ship (managed-package versioning)
 
-Because `FSL.*` is managed-package code, **confirm signatures in a v67 sandbox** before production: run anonymous Apex calling `schedule`, `GetSlots`, `getGradedMatrix`, and `OAAS.optimize` against seeded data and `System.debug` the result objects to lock down members for **your installed package version**. Re-verify if the package version differs from where you tested.
+Because `FSL.*` is managed-package code, **confirm signatures in a sandbox** before production: run anonymous Apex calling `schedule`, `GetSlots`, `getGradedMatrix`, and `OAAS.optimize` against seeded data and `System.debug` the result objects to lock down members for **your installed package version**. Re-verify if the package version differs from where you tested.
 
 ---
 
@@ -204,13 +209,13 @@ Because `FSL.*` is managed-package code, **confirm signatures in a v67 sandbox**
 | DML before the scheduling callout in the same transaction | Separate DML step then callout step |
 | `FSL.ScheduleService.schedule(appointmentId, policyId)` (wrong order) | `schedule(policyId, appointmentId)` — policy first |
 | Inline scheduling/optimization in a per-save trigger | Queueable/Batch with `AllowsCallouts` |
-| `WITH SECURITY_ENFORCED` in FSL wrapper code | `WITH USER_MODE` (removed at v67) |
-| FSL wrapper class with no sharing keyword at v67 | Explicit `with sharing` + `WITH USER_MODE` |
+| `WITH SECURITY_ENFORCED` in FSL wrapper code | `WITH USER_MODE` (removed from API 67.0) |
+| An FSL wrapper class with no sharing keyword | Explicit `with sharing` + `WITH USER_MODE` |
 | Hard-coded policy/territory Ids | Query by Name / Custom Metadata |
 | Creating throwaway SAs per quote for external booking | Scheduler REST candidates/slots; persist SA on selection |
 | Optimizing a 21-day window every run | Optimize 1–7 days; chain for longer |
 | Assuming Apex writes/triggers run offline on mobile | Offline-first; reconcile on sync |
-| Guessing `FSL` member names | Verify in a v67 sandbox (§8) |
+| Guessing `FSL` member names | Verify in a sandbox (§8) |
 
 ---
 
@@ -220,4 +225,4 @@ Because `FSL.*` is managed-package code, **confirm signatures in a v67 sandbox**
 2. **Signatures are real and order matters** — `schedule(policyId, appointmentId)`, `GetSlots(saId, policyId, oh, tz, sortBy, exact)`; widen `DueDate` for more slots.
 3. **Heavy work is async; optimize 1–7 days** — Queueable/Batch with `AllowsCallouts`; chain Optimization Requests past ~21 days.
 4. **External booking via Salesforce Scheduler REST** — candidates/slots, persist the SA only on slot selection.
-5. **v67 + managed package = verify** — explicit `with sharing` + `WITH USER_MODE`, confirm `FSL` members in a sandbox; mobile is offline-first.
+5. **User mode plus a managed package means verify** — explicit `with sharing` + `WITH USER_MODE`, confirm `FSL` members in a sandbox; mobile is offline-first.

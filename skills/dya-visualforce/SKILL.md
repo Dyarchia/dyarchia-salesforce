@@ -103,7 +103,7 @@ public List<Contact> getContacts() {
 
 ### CRUD / FLS in controllers
 
-Standard controllers enforce CRUD/FLS/sharing automatically. **Custom controllers do not** — you must enforce it. At API 67 the defaults help you, but always be explicit.
+Standard controllers enforce CRUD/FLS/sharing automatically. **Custom controllers do not** — you must enforce it. The API 67.0 defaults help you, but state them explicitly anyway.
 
 ```java
 // ✅ — explicit sharing + USER_MODE; CRUD/FLS enforced by the query

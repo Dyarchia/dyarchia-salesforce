@@ -81,8 +81,8 @@ sf schema generate tab --output-dir force-app/.../tabs --icon 1 --directory-name
 ## API Passthrough (`sf api`)
 
 ```bash
-sf api request rest "/services/data/v67.0/limits" --target-org <a>
-sf api request rest "/services/data/v67.0/sobjects/Account/001..." --method GET
+sf api request rest "/services/data/v68.0/limits" --target-org <a>
+sf api request rest "/services/data/v68.0/sobjects/Account/001..." --method GET
 sf api request graphql --body query.graphql --target-org <a>
 ```
 

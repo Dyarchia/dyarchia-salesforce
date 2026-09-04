@@ -1,6 +1,6 @@
-# FSL Apex — Scheduling, Booking, Grading, Optimization (Summer '26, API v67.0)
+# FSL Apex — Scheduling, Booking, Grading, Optimization (Winter '27 / API v68.0)
 
-Load from `dya-field-service`. Real signatures and members for the `FSL` namespace scheduling classes, plus the scope-1 batch pattern. All `FSL.*` is managed-package code — **verify members in a v67 sandbox** (see SKILL.md §8) as they're version-dependent. Prerequisites: Field Service enabled + an FSL permission set on the running user.
+Load from `dya-field-service`. Real signatures and members for the `FSL` namespace scheduling classes, plus the scope-1 batch pattern. All `FSL.*` is managed-package code — **verify members in a sandbox** (see SKILL.md §8) as they're version-dependent. Prerequisites: Field Service enabled + an FSL permission set on the running user.
 
 ## FSL.ScheduleService
 
@@ -113,7 +113,7 @@ See SKILL.md §2 for the full `FsBookingScheduling` + `FsBookingSchedulingBatch`
 - **One SA per call** — backend constraint; run the batch with `Database.executeBatch(batch, 1)`.
 - **DML before callout is illegal in one transaction** — set the arrival window (DML) in one method, schedule (callout) in another; the batch `execute` calls them in order.
 - **`Database.AllowsCallouts`** on the batch class.
-- **User-mode** SOQL/DML (`WITH USER_MODE` / `as user`) at v67.
+- **User-mode** SOQL and DML (`WITH USER_MODE` / `as user`) from API 67.0.
 
 ## Other FSL utilities (developer-relevant)
 
@@ -133,4 +133,4 @@ Open-source libraries expose these as invocable actions for Flow and agent actio
 | `getGradedMatrix` for a customer slot list | `AppointmentBookingService.GetSlots` |
 | Optimizing 21 days every run | 1–7 day horizon; chain for longer |
 | Inline optimization in a trigger | Queueable/Batch with `AllowsCallouts` |
-| Trusting member names without checking | Verify in a v67 sandbox |
+| Trusting member names without checking | Verify in a sandbox |

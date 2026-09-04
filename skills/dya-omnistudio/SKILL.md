@@ -1,6 +1,6 @@
 ---
 name: dya-omnistudio
-description: Salesforce OmniStudio developer surface (Summer '26 / API v67.0) — the programmatic side, with real contracts and compilable Apex. OmniScripts, FlexCards, Integration Procedures, DataRaptors/Data Mappers, and Apex Remote Actions (the Callable vs VlocityOpenInterface2 contract), OmniStudio Standard vs Managed Package, and invoking IPs from Apex/LWC via IntegrationProcedureService. Load only when the user explicitly invokes this skill by name (`dya-omnistudio`); do NOT auto-trigger on generic OmniStudio, Vlocity, or Salesforce questions.
+description: Salesforce OmniStudio developer surface (Winter '27 / API v68.0) — the programmatic side, with real contracts and compilable Apex. OmniScripts, FlexCards, Integration Procedures, DataRaptors/Data Mappers, and Apex Remote Actions (the Callable vs VlocityOpenInterface2 contract), OmniStudio Standard vs Managed Package, and invoking IPs from Apex/LWC via IntegrationProcedureService. Load only when the user explicitly invokes this skill by name (`dya-omnistudio`); do NOT auto-trigger on generic OmniStudio, Vlocity, or Salesforce questions.
 ---
 
 # Salesforce OmniStudio — Developer Surface
@@ -8,6 +8,8 @@ description: Salesforce OmniStudio developer surface (Summer '26 / API v67.0) �
 You are an expert OmniStudio (formerly Vlocity) developer. OmniStudio is the **Salesforce Industries** low-code + pro-code toolkit. This skill covers the **programmatic** surface with **real contracts and compilable Apex**. It builds on `dya-apex`/`lwc`. Follow every rule below.
 
 References:
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults a Remote Action inherits.
+- `references/shared/sharing-and-access.md` — the permission model those defaults enforce.
 - `references/apex-remote-actions.md` — the full Remote Action contract: `Callable` (Standard) vs `VlocityOpenInterface2` (Managed Package), the args/input/output/options maps, error handling, and registration.
 - `references/ips-and-datamappers.md` — Integration Procedures (actions, invoke modes), Data Mappers, and invoking IPs from Apex (`IntegrationProcedureService.runIntegrationService`) / LWC / REST.
 
@@ -15,9 +17,11 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
+Winter '27 changes **nothing in the OmniStudio programmatic contracts** — the `Callable` and `VlocityOpenInterface2` interfaces, the Integration Procedure and Data Mapper invocation shapes, and the Apex Remote Action signatures are all unchanged. Say so rather than inventing novelty; the release matters here only through the platform changes below.
+
 - **Two flavors, and they differ in code:** **OmniStudio Standard** (metadata-based, on core, **`omnistudio`** namespace, implement **`Callable`**) vs the original **Managed Package** ("OmniStudio for Vlocity", industry namespace like **`vlocity_cmt`** / `vlocity_ins` / `vlocity_ps`, extend **`VlocityOpenInterface`/`VlocityOpenInterface2`**). Always confirm which the org uses — class references, interfaces, and tooling differ.
 - Components are **LWC-based at runtime** (OmniScripts/FlexCards render as Lightning Web Components) and **JSON-defined** in metadata.
-- Custom logic plugs in via **Apex Remote Actions**; **Apex v67** defaults apply (`with sharing`, `USER_MODE`; `WITH SECURITY_ENFORCED` no longer compiles → `WITH USER_MODE`).
+- Custom logic plugs in via **Apex Remote Actions**, and from API 67.0 that Apex defaults to `with sharing` and `USER_MODE`, with `WITH SECURITY_ENFORCED` no longer compiling — use `WITH USER_MODE`. See `dya-permissions` for the model being enforced.
 - IPs and Data Mappers are invocable from **Apex**, **LWC**, **REST/Connect API**, and OmniStudio components — build once, reuse everywhere.
 
 ---
@@ -154,7 +158,7 @@ Prefer Data Mappers over Apex for standard read/transform/write inside IPs; rese
 | Remote Action class not `global` / wrong contract | `global with sharing` + `Callable` (Standard) or `VlocityOpenInterface2` (Managed) |
 | Mixing up the flavor's namespace/interface | Confirm Standard (`omnistudio`/`Callable`) vs Managed (`vlocity_*`/`VlocityOpenInterface2`) |
 | SOQL/DML in a loop in a Remote Action | Bulkify |
-| `WITH SECURITY_ENFORCED` | `WITH USER_MODE` (removed at v67) |
+| `WITH SECURITY_ENFORCED` | `WITH USER_MODE` (removed from API 67.0) |
 | Throwing raw exceptions to the runtime | Structured `error` in output + return `false` |
 | Per-element server calls | Bundle actions into one IP server call |
 | Heavy logic in OmniScript steps | Push to Integration Procedures (server-side) |

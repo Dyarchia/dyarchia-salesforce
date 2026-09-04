@@ -80,7 +80,7 @@ global with sharing class OrderApi {
 
     @HttpPost
     global static ResponseDto createOrder(RequestDto payload) {
-        // user-mode enforced at v67; validate, then do a transactional unit of work
+        // user mode enforced from API 67.0; validate, then do a transactional unit of work
         // ... build records, single bulk DML with AccessLevel.USER_MODE ...
         RestContext.response.statusCode = 201;
         return new ResponseDto(/* ... */);

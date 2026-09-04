@@ -141,7 +141,7 @@ Before writing an `@AuraEnabled` method, evaluate this order. Stop at the first 
 
 ## 5. Server-Side Apex — The `@AuraEnabled` Contract
 
-When LDS can't do it, call Apex via `$A.enqueueAction`. The controller is Apex at API 67 — declare `with sharing`, query `WITH USER_MODE`, and throw `AuraHandledException` on failure.
+When LDS can't do it, call Apex via `$A.enqueueAction`. The controller is Apex — declare `with sharing`, query `WITH USER_MODE`, and throw `AuraHandledException` on failure.
 
 ```java
 public with sharing class AccountController {

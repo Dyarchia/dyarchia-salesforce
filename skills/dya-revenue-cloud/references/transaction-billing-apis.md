@@ -1,6 +1,6 @@
-# Revenue Cloud Advanced — Transaction Management, Assets & Billing (API v67.0)
+# Revenue Cloud Advanced — Transaction Management, Assets & Billing (Winter '27 / API v68.0)
 
-Load from `dya-revenue-cloud`. The transactional and post-sale domains with real Connect endpoints, Apex, and invocable actions. Source: Revenue Lifecycle Management Developer Guide v67.0. Confirm exact request/response bodies per version.
+Load from `dya-revenue-cloud`. The transactional and post-sale domains with real Connect endpoints, Apex, and invocable actions. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request/response bodies per version.
 
 ## The consistent surface (recap)
 
@@ -12,11 +12,11 @@ The **Transaction Management Business APIs** fetch instant pricing on a quote/or
 
 ```
 # Place Quote — create/update a quote with integrated pricing & configuration
-POST /services/data/v67.0/connect/quotes/place
+POST /services/data/v68.0/connect/quotes/place
 
 # Place Sales Transaction — create/update a quote OR order with pricing + config + estimated tax;
 # also insert/delete order or quote line items to recalc estimated tax
-POST /services/data/v67.0/connect/commerce/sales-transactions/actions/place
+POST /services/data/v68.0/connect/commerce/sales-transactions/actions/place
 ```
 
 Apex:
@@ -26,7 +26,7 @@ Apex:
 Invocable actions: standard actions for Flow/Agentforce — e.g. **create an order from an existing quote**, place a quote, etc. New invocable actions ship each release; check the current list.
 
 ```apex
-// Illustrative PlaceQuote via Apex (confirm request/response types in the v67 guide)
+// Illustrative PlaceQuote via Apex (confirm request/response types in the current developer guide)
 // placequote.PlaceQuoteRequest → placequote.PlaceQuoteResult, processed by PlaceQuoteRLMApexProcessor
 ```
 
@@ -49,7 +49,7 @@ Surfaces:
 
 ```apex
 // Billing is driven through the ConnectApi namespace + invocable actions;
-// confirm exact class/method names (e.g. credit application / invoice classes) in the v67 Billing Apex reference.
+// confirm exact class/method names (e.g. credit application / invoice classes) in the current Billing Apex reference.
 ```
 
 > Don't compute invoice/credit math by hand — use the Billing ConnectApi / invocable actions.
@@ -74,4 +74,4 @@ Surfaces:
 | Hand-coded invoice/credit math | Billing ConnectApi / invocable actions |
 | Porting CPQ Quote Calculator Plugin logic | Redesign for RCA capture + pricing procedures |
 | `WITH SECURITY_ENFORCED` | `WITH USER_MODE` |
-| Guessing API/action/class names | Verify against the RLM dev guide v67.0 |
+| Guessing API/action/class names | Verify against the RLM dev guide v68.0 |
