@@ -21,6 +21,39 @@ product generation. What carried over: Rules and Skills as concepts, inline comp
 LWC, the Salesforce Trust Boundary, and the marketplace and cloud IDE presence. What moved: rule and
 skill files went from `.a4drules/` to **`.vibes/rules/`** and **`.vibes/skills/`**.
 
+## Availability — check before recommending it
+
+| | Status |
+|---|---|
+| Editions | **Not available** in Group, Professional or Essentials |
+| **EU Operating Zone** | **Not available.** Stated on three separate pages, on data-residency grounds. EU orgs that are *not* part of EU Operating Zone are supported under standard terms |
+| Government Cloud | **The documentation contradicts itself — see below** |
+
+**EU Operating Zone is the one to remember**, because it is a paid data-residency offering an
+enterprise customer may well hold without the developer knowing. "We're in the EU" does not settle
+it; whether the org is in EU OZ does.
+
+**On Government Cloud the docs disagree with themselves.** Three pages — admin settings, extension
+setup and the FAQ — list Government Cloud alongside EU Operating Zone as unavailable, for data
+residency reasons. A fourth page is a dedicated guide to *using Agentforce Vibes with Government
+Cloud orgs*, stating FedRAMP High and DoD Impact Level 5 authorization, automatic routing of AI
+requests to a dedicated Government Cloud endpoint, and step-by-step authentication instructions.
+
+Both cannot be current. Treat Government Cloud as **unconfirmed** and verify against the org and
+with Salesforce before promising it either way. Do not resolve the contradiction by picking the
+answer that suits the conversation.
+
+Note the distinction from **Salesforce Multi-Framework**, which is separately and unambiguously
+unavailable on Government Cloud and Alibaba Cloud — see `references/react-and-data-sdk.md`. Two
+different products with two different availability stories; conflating them is easy and wrong.
+
+## The name fossil
+
+The extension identifier is still **`salesforcedx-einstein-gpt`**, and the older documentation path
+`platform/einstein-for-devs/` now redirects to the Agentforce Vibes guide. The product went Einstein
+for Developers → Agentforce for Developers → Agentforce Vibes, and the URLs and identifiers did not
+follow. Expect to meet all three names in the wild; they are the same lineage.
+
 ## Autonomous sub-agents
 
 A coordinating lead agent delegates to specialised sub-agents working **in parallel** — Apex logic,
