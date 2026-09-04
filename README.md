@@ -218,6 +218,26 @@ After copying, restart the agent and verify the skill appears under its loaded-s
 
 ## Contributing to this repo
 
+### Branches
+
+Work flows in one direction: **feature → `develop` → `master`**.
+
+- **Branch from `develop`.** It is the working branch and always carries the current state.
+- **Open the pull request against `develop`.** GitHub proposes `master` because that is the
+  repository's default branch, so the base has to be changed by hand on every pull request.
+- **`master` is the published branch.** It is synced from `develop` after a merge; nothing lands on
+  it directly.
+
+If a clone or worktree predates a change of default branch, its `refs/remotes/origin/HEAD` is stale
+and `git checkout` on the bare default gives you the wrong branch. Fix the ref rather than working
+around it:
+
+```bash
+git remote set-head origin -a
+```
+
+### Skills
+
 Every skill is a folder under `skills/` holding a `SKILL.md` and, optionally, a `references/` subfolder for material consulted on demand rather than obeyed on every invocation. The frontmatter carries two keys: `name`, identical to the folder name, and `description`, which ends with the explicit-invocation clause that keeps the skill from auto-triggering.
 
 Shared fundamentals are never copy-pasted between skills. Edit the canon under `references-shared/`, list the fragment in the skill's `shared-refs.txt`, and run `scripts/sync-shared-refs`; editing a synced copy directly is a validation error.

@@ -10,12 +10,20 @@ One repo per domain, one plugin per repo. Sibling domains get their own repos un
 
 ## Branches
 
-`develop` is the working branch and carries everything described in this file. It is also the
-repository's default branch on GitHub — but a clone or worktree created before that changed still
-has `refs/remotes/origin/HEAD` pointing at `master`, and branching from a stale default silently
-yields an obsolete tree. Fix a stale ref with `git remote set-head origin -a`.
+Work flows in one direction: **feature → `develop` → `master`**.
 
-**Branch from `develop`.**
+`develop` is the working branch and carries everything described in this file. `master` is the
+published branch and GitHub's default; it is synced from `develop` after a merge and nothing lands
+on it directly.
+
+Two consequences follow, and both bite silently:
+
+- **Branch from `develop`, and set the pull-request base to `develop`.** GitHub offers `master`
+  because it is the default, so the base must be changed by hand every time. A pull request that
+  keeps the offered base skips `develop` entirely.
+- A clone or worktree created under a different default still has a stale
+  `refs/remotes/origin/HEAD`, so checking out the bare default hands you the wrong branch. Repair it
+  with `git remote set-head origin -a` instead of routing around it.
 
 This file and `.claude/skills/dya-skill-authoring/` are **versioned on every branch**. They are the
 contributor contract: a clone that lacks them cannot be contributed to correctly, and the drift
