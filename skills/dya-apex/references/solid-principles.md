@@ -3,7 +3,7 @@
 Salesforce developers routinely skip SOLID — a trigger or a "quick" service class always
 looks too small to bother. It is not. The Service / Selector / Domain layering in the main
 skill **is** SOLID applied; this reference makes the mapping explicit and shows the concrete
-failure mode for each principle, with Summer '26 / API v67.0 syntax.
+failure mode for each principle, with Winter '27 / API v68.0 syntax.
 
 Apply SOLID **first**. Most Salesforce "architecture" problems are a missing SRP split or a
 hard-wired dependency — not a missing design pattern. SOLID first, named patterns second.
