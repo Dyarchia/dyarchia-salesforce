@@ -1,6 +1,6 @@
 ---
 name: dya-integration-connectors-mcp
-description: Salesforce connectors & agentic integration (Summer '26 / API v67.0) — the "don't hand-code it" layer plus the 2026 agentic surface. MuleSoft (Anypoint, for Flow, Direct, API Catalog), Heroku/AppLink, AppExchange/ISV connectors, Data 360 ingestion/zero-copy as an integration path, and Hosted MCP servers / Headless 360 / Agent API. Load only when the user explicitly invokes this skill by name (`dya-integration-connectors-mcp`); do NOT auto-trigger on generic connector, MuleSoft, or MCP questions.
+description: Salesforce connectors & agentic integration (Winter '27 / API v68.0) — the "don't hand-code it" layer plus the 2026 agentic surface. MuleSoft (Anypoint, for Flow, Direct, API Catalog), Heroku/AppLink, AppExchange/ISV connectors, Data 360 ingestion/zero-copy as an integration path, and Hosted MCP servers / Headless 360 / Agent API. Load only when the user explicitly invokes this skill by name (`dya-integration-connectors-mcp`); do NOT auto-trigger on generic connector, MuleSoft, or MCP questions.
 ---
 
 # Salesforce Connectors & Agentic Integration
@@ -8,17 +8,38 @@ description: Salesforce connectors & agentic integration (Summer '26 / API v67.0
 You are an expert on the higher-level integration layer: prebuilt connectors and middleware that mean you **don't hand-code** an integration, plus the 2026 agentic surfaces (MCP / Headless 360 / Agent API). Use this to decide *when not to write Apex/Flow at all*. Data 360 internals → `dya-data360`; MCP/HXL internals → `dya-headless360`; agent building → `dya-agentforce`. Follow every rule below.
 
 References:
-- `references/connectors-and-mcp.md` — MuleSoft family + API Catalog, Heroku/AppLink, building/consuming MCP servers as an integration surface, and zero-copy vs ingestion decisions.
+
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an MCP-exposed action inherits.
+- `references/connectors-and-mcp.md` — the MuleSoft family and API Catalog, Heroku and AppLink, building and consuming MCP servers as an integration surface, and the zero-copy versus ingestion decision.
+
+What an MCP call is allowed to see is the calling user's permission model — `dya-permissions`.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-- **Hosted MCP Servers are GA** — Salesforce-hosted MCP servers expose sObject operations, Data 360, Tableau, and product APIs to any MCP client (Claude, ChatGPT, Cursor). Custom servers can expose Flows, Apex actions, and Named Query APIs as tools. Every MCP transaction runs **as the authenticated user** with full CRUD/FLS/sharing. MCP calls count against the daily API allocation.
-- **API Catalog for Salesforce** (Summer '26) — a central hub to manage APIs and MCP servers from MuleSoft, Heroku, and Apex; convert API operations into invocable actions for Flow/Apex/Agentforce.
-- **Named Query API is GA** — expose custom SOQL as scalable REST/agent actions.
-- **Salesforce Functions is retired** (EOL Jan 31, 2025) — migrate compute to Heroku (AppLink). Note Salesforce has ended Heroku enterprise sales to new customers; evaluate carefully.
-- **Salesforce-to-Salesforce** native feature ends support Summer '26 (stops Spring '27) — migrate to MuleSoft / Data Cloud One / the Cross-Org adapter.
+| Change | Status | What it gives you |
+|---|---|---|
+| **MCP interoperability for agents** | GA | An Agentforce agent can discover and call tools on *external* MCP servers through a governed connection — the direction opposite to everything below, and the one that turns third-party capability into agent capability |
+| **Expanded API Catalog capabilities** | GA | More of the API and MCP estate manageable from one hub |
+| **Composite API monitoring** | GA | Visibility into composite request behaviour, which was previously opaque |
+| **Salesforce plugin for Claude Code** | GA | Detects a DX project and supplies org context through hosted MCP servers, from the Claude Plugin Marketplace. See `dya-sf-cli` and `dya-headless360` |
+| **DevOps Center MCP** | GA | The same programmatic access inside a CI/CD pipeline |
+
+Standing facts:
+
+- **Hosted MCP servers are GA.** Salesforce-hosted servers expose sObject operations, Data 360,
+  Tableau and product APIs to any MCP client. Custom servers expose Flows, Apex actions and Named
+  Query APIs as tools. Every MCP transaction runs **as the authenticated user**, with object, field
+  and sharing enforcement intact, and every call counts against the daily API allocation.
+- **API Catalog for Salesforce** is the central hub for APIs and MCP servers across MuleSoft, Heroku
+  and Apex, and converts API operations into invocable actions for Flow, Apex and Agentforce.
+- **Named Query API is GA** — custom SOQL exposed as a scalable REST or agent action.
+- **Salesforce Functions is retired** (end of life 31 January 2025); migrate compute to Heroku via
+  AppLink. Salesforce has ended Heroku enterprise sales to new customers, so confirm the commercial
+  fit before committing a new strategic workload.
+- **Salesforce-to-Salesforce** ended support in Summer '26 and stops functioning in Spring '27 —
+  migrate to MuleSoft, Data Cloud One, or the Cross-Org adapter.
 
 ---
 
@@ -107,6 +128,7 @@ MCP/HXL internals live in `dya-headless360`; this skill's job is to tell you *wh
 | Resident external data in Data 360 | Data 360 Ingestion API/connectors |
 | Vetted packaged integration exists | AppExchange / ISV connector |
 | AI client acts on the org | Hosted MCP server (custom for your tools) |
+| An agent needs a capability that lives outside the org | MCP interoperability — connect the external server, do not rebuild the tool |
 | Headless agent invocation | Agent API |
 | Replace Salesforce-to-Salesforce | MuleSoft / Data Cloud One / Cross-Org adapter |
 
@@ -125,6 +147,7 @@ MCP/HXL internals live in `dya-headless360`; this skill's job is to tell you *wh
 | Vague MCP tool descriptions | Intent-rich descriptions (the model routes on them) |
 | Assuming MCP bypasses security | It runs as the user with CRUD/FLS/sharing |
 | Rewriting an action as a separate MCP tool | Reuse the `@InvocableMethod` as both |
+| Rebuilding an external capability inside the org for an agent | Connect its MCP server through a governed connection |
 
 ---
 

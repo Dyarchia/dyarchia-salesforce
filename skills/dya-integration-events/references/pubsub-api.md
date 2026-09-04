@@ -1,4 +1,4 @@
-# Pub/Sub API — Reference (API v67.0)
+# Pub/Sub API — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-events` when an external system must publish or subscribe to Salesforce events. The Pub/Sub API is the strategic gRPC interface for Platform Events, Change Data Capture, and Real-Time Event Monitoring.
 

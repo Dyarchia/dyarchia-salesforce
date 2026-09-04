@@ -1,6 +1,6 @@
 ---
 name: dya-integration-outbound
-description: Salesforce outbound integration (Summer '26 / API v67.0) — Salesforce calling external systems. Apex HTTP callouts and limits, async callout patterns (Queueable/future/Continuation), the callout-after-DML rule, Flow HTTP Callout, External Services, Outbound Messages (legacy), Salesforce Connect/External Objects, and calling external APIs from LWC (Apex proxy vs fetch/CSP). Load only when the user explicitly invokes this skill by name (`dya-integration-outbound`); do NOT auto-trigger on generic callout or integration questions.
+description: Salesforce outbound integration (Winter '27 / API v68.0) — Salesforce calling external systems. Apex HTTP callouts and limits, async callout patterns (Queueable/future/Continuation), the callout-after-DML rule, Flow HTTP Callout, External Services, Outbound Messages (legacy), Salesforce Connect/External Objects, and calling external APIs from LWC (Apex proxy vs fetch/CSP). Load only when the user explicitly invokes this skill by name (`dya-integration-outbound`); do NOT auto-trigger on generic callout or integration questions.
 ---
 
 # Salesforce Outbound Integration
@@ -8,19 +8,40 @@ description: Salesforce outbound integration (Summer '26 / API v67.0) — Salesf
 You are an expert at making Salesforce call out to external systems. The core question this skill answers is **"code or no-code, and sync or async?"** Authentication/credentials live in `dya-integration-auth`; async/governor depth in `dya-apex`; LWS/CSP in `dya-lwc`. Follow every rule below.
 
 References:
-- `references/apex-callouts-async.md` — `Http`/`HttpRequest`/`HttpResponse`, the callout-after-DML rule, Queueable/future/Batch/Continuation callout patterns, retry/backoff.
-- `references/flow-external-services-connect.md` — Flow HTTP Callout, External Services (OpenAPI → invocable actions), Outbound Messages (legacy), and Salesforce Connect / External Objects.
+
+- `references/shared/governor-limits.md` — the transaction budget a callout is spending, and why callouts never go in a loop.
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults callout classes inherit.
+- `references/apex-callouts-async.md` — `Http`/`HttpRequest`/`HttpResponse`, the callout-after-DML rule, Queueable/future/Batch/Continuation patterns, retry and backoff.
+- `references/flow-external-services-connect.md` — Flow HTTP Callout, External Services (OpenAPI to invocable actions), Outbound Messages (legacy), Salesforce Connect and External Objects.
+
+Credentials and identity live in `dya-integration-auth`; async and governor depth in `dya-apex`;
+Lightning Web Security and CSP in `dya-lwc`; what the calling user is allowed to read in
+`dya-permissions`.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-- **Named Credentials + External Credentials are the standard** for every outbound call — they replace hard-coded endpoints/secrets and **Remote Site Settings**. Use `callout:My_Named_Credential/path`. Full detail in `dya-integration-auth`.
-- **HTTPS is mandatory.** Never hard-code `http://`.
-- **Flow HTTP Callout is GA** (GET/POST/PUT/PATCH/DELETE) — genuine no-code outbound, powered by External Services. It auto-handles only 2xx responses.
-- **Apex v67 callout classes** default to `with sharing`/`USER_MODE`; mark `Database.AllowsCallouts` on async callout classes as always.
-- **Salesforce Connect** OData 4.01 removes the legacy 20,000-callouts/hour cap; incremental syncs added recently.
-- **LWS (Lightning Web Security)** blocks `data:` URIs in the browser — use blob object URLs for client-generated downloads.
+Winter '27 changes little here directly. What it changes is the budget a callout runs inside:
+**Apex heap rises to 10 MB synchronous and 25 MB asynchronous**, which affects how much response you
+can hold, not how large a single callout payload may be — that limit is separate and unchanged. See
+`references/shared/governor-limits.md`.
+
+Standing facts that govern every outbound call:
+
+- **Named Credentials plus External Credentials are the only correct mechanism.** They replace
+  hard-coded endpoints, hard-coded secrets, and Remote Site Settings. Reference them as
+  `callout:My_Named_Credential/path`. Detail in `dya-integration-auth`.
+- **HTTPS is mandatory.** There is no supported way to call an `http://` endpoint.
+- **Flow HTTP Callout is GA** for GET, POST, PUT, PATCH and DELETE — genuine no-code outbound built on
+  External Services. It handles only 2xx automatically.
+- **From API 67.0 a callout class defaults to `with sharing` and `USER_MODE`.** An async callout class
+  must still declare `Database.AllowsCallouts` — the marker interface is what permits the callout at
+  all, and omitting it fails at run time, not compile time.
+- **Salesforce Connect** with the OData 4.01 adapter removes the legacy 20,000-callouts-per-hour cap
+  and supports incremental syncs and external change data capture.
+- **Lightning Web Security blocks `data:` URIs** in the browser — build client-generated downloads
+  with `URL.createObjectURL(blob)`.
 
 ---
 
@@ -58,8 +79,10 @@ if (res.getStatusCode() == 200) { /* parse */ } else { /* handle/log/retry */ }
 Hard limits (per Apex transaction):
 - **100 callouts** maximum per transaction.
 - **Timeout 1 ms–120,000 ms (120 s)** per callout; **120 s cumulative** across all callouts in the transaction.
-- Payload **6 MB synchronous / 12 MB asynchronous**.
-- (The "10" you may have seen is a *different* limit — concurrent synchronous requests running longer than 5 s — not the per-transaction maximum, which is 100.)
+- Callout request or response payload **6 MB synchronous / 12 MB asynchronous**. This is its own
+  limit; the Winter '27 heap increase does not raise it.
+- (The "10" you may have seen elsewhere is a *different* limit — concurrent synchronous requests
+  running longer than 5 seconds — not the per-transaction maximum, which is 100.)
 
 ### The callout-after-DML rule
 You **cannot** make a callout when there is uncommitted DML in the transaction ("You have uncommitted work pending"). Options, in order of preference:
@@ -117,8 +140,8 @@ Workflow/flow-triggered **SOAP** messages to a fixed endpoint, with guaranteed d
 
 Surface external data as **External Objects** without copying it; reads make a real-time callout on access.
 
-- **Adapters:** OData 2.0/4.0 (4.01 removes the 20k-callouts/hour cap), **Cross-Org** (Salesforce-to-Salesforce over REST), and the **Apex Custom Adapter** (Apex Connector Framework) for any REST API.
-- Use when you need large external datasets to *appear* as records but must not store them; supports indirect/external lookups and (recently) incremental syncs.
+- **Adapters:** OData 2.0 and 4.0 (the 4.01 adapter removes the 20,000-callouts-per-hour cap and supports external change data capture), **Cross-Org** over REST, and the **Apex Custom Adapter** (Apex Connector Framework) for any REST API.
+- Use when large external datasets must *appear* as records but must not be stored. Supports indirect and external lookups, and incremental syncs.
 - Not for write-heavy or low-latency-critical flows — every access is a live callout.
 
 ---
@@ -165,6 +188,8 @@ Under **LWS**, `data:` URIs are blocked; build client-side downloads with `URL.c
 | Salesforce Connect for write-heavy/low-latency | Replicate or use REST/events instead |
 | `http://` endpoints | HTTPS only |
 | Ignoring the 120 s cumulative timeout | Budget callouts; move heavy work async |
+| An async callout class without `Database.AllowsCallouts` | Declare it — the failure is at run time, not compile time |
+| Assuming a bigger heap means a bigger callout payload | The payload limit is separate and unchanged at 6/12 MB |
 
 ---
 

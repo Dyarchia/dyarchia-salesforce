@@ -1,6 +1,6 @@
 ---
 name: dya-integration-inbound-apex
-description: Salesforce custom inbound endpoints (Summer '26 / API v67.0) — exposing your own APIs. Apex REST services (@RestResource, GA and recommended), Apex SOAP web services (webservice keyword, legacy), the @RestResource-vs-@InvocableMethod distinction, and Sites/Experience Cloud as integration surfaces with guest-user security. Load only when the user explicitly invokes this skill by name (`dya-integration-inbound-apex`); do NOT auto-trigger on generic Apex or API questions.
+description: Salesforce custom inbound endpoints (Winter '27 / API v68.0) — exposing your own APIs. Apex REST services (@RestResource, GA and recommended), Apex SOAP web services (webservice keyword, legacy), the @RestResource-vs-@InvocableMethod distinction, and Sites/Experience Cloud as integration surfaces with guest-user security. Load only when the user explicitly invokes this skill by name (`dya-integration-inbound-apex`); do NOT auto-trigger on generic Apex or API questions.
 ---
 
 # Salesforce Custom Inbound Endpoints (Apex)
@@ -8,16 +8,40 @@ description: Salesforce custom inbound endpoints (Summer '26 / API v67.0) — ex
 You are an expert at exposing custom inbound endpoints on Salesforce. Use this when the standard APIs (`dya-integration-inbound-apis`) can't express the contract — you need bespoke payloads, transactional units of work, or business logic at the boundary. Authentication is in `dya-integration-auth`; deep Apex rules in `dya-apex`. Follow every rule below.
 
 References:
-- `references/apex-rest-service.md` — full `@RestResource` service (all HTTP verbs), request/response handling, error contracts, and a worked transactional endpoint.
+
+- `references/shared/sharing-and-access.md` — the permission model a boundary class now runs under, and the guest user.
+- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults that hit boundary classes hardest.
+- `references/shared/metadata-and-api-versions.md` — what version retirement does and does not touch.
+- `references/apex-rest-service.md` — the full `@RestResource` service across all HTTP verbs, request and response handling, error contracts, and a worked transactional endpoint.
+
+Locking down the guest profile, and choosing the integration user's permission set, belong to
+`dya-permissions`.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-- **`@RestResource` (Apex REST) is GA and the recommended way** to build a custom REST endpoint. It is **not deprecated**. The API-version retirement (31.0–40.0) targets *standard-endpoint versions* and SOAP `login()`, and **explicitly excludes** custom Apex REST/SOAP web services, Apex classes, triggers, and Visualforce.
-- **Apex SOAP web services (`webservice` keyword) remain supported but legacy** — prefer Apex REST for new endpoints. (This is a style recommendation, not a retirement; and it is unrelated to the SOAP `login()` retirement, which is about authentication.)
-- **v67 security defaults hit boundary classes hardest.** An `@RestResource` class compiled at 67.0 with no sharing keyword defaults to `with sharing`, and its SOQL/DML default to `USER_MODE`. A boundary endpoint that historically relied on system-mode access can suddenly return fewer rows or throw. Declare sharing and access level explicitly; audit before bumping. `WITH SECURITY_ENFORCED` no longer compiles.
-- **HTTPS is mandatory** for all inbound endpoints.
+Winter '27 adds nothing to Apex REST itself. What it changes around it is authentication: the OAuth
+**username-password flow is retired, enforced 20 February 2027**, so any caller reaching your
+endpoint with `grant_type=password` stops working on that date. Inventory your callers now. See
+`dya-integration-auth`.
+
+Standing facts, and the one that catches people:
+
+- **`@RestResource` is GA and recommended, and it is not deprecated.** Version retirement
+  (31.0–40.0, retiring 1 June 2028) targets the version number in *standard endpoint URLs* and the
+  SOAP `login()` method. It **explicitly excludes** custom Apex REST and SOAP web services, Apex
+  classes, triggers and Visualforce. Full status in
+  `references/shared/metadata-and-api-versions.md`.
+- **Apex SOAP web services (`webservice`) are supported but legacy** — prefer Apex REST for anything
+  new. That is a style recommendation, not a retirement, and it is unrelated to the SOAP `login()`
+  retirement, which is about authentication.
+- **The API 67.0 security defaults hit boundary classes hardest.** An `@RestResource` class compiled
+  at 67.0 or above with no sharing keyword defaults to `with sharing`, and its SOQL and DML default
+  to `USER_MODE`. An endpoint that historically relied on system-mode access starts returning fewer
+  rows or throwing — silently, in the case of the query. Declare sharing and access level explicitly
+  and audit **before** raising the version. `WITH SECURITY_ENFORCED` no longer compiles.
+- **HTTPS is mandatory** for every inbound endpoint.
 
 ---
 
@@ -86,7 +110,7 @@ Full multi-verb service, error contract, and transactional pattern: `references/
 
 Public **Salesforce Sites** and **Experience Cloud** sites can host guest-accessible Apex REST endpoints — useful as lightweight inbound webhook receivers or public APIs without a full OAuth handshake.
 
-- The endpoint runs as the **guest user**. Under v67 user-mode defaults, the guest profile's object/field permissions and sharing now govern what the code can see and do — scope the guest profile to the absolute minimum.
+- The endpoint runs as the **guest user**: no role, a deliberately weak class of sharing rules, and whatever the guest profile grants. Under user-mode defaults from API 67.0 that profile now governs what the code can see and do, so scoping it is a functional requirement rather than hardening advice. See `dya-permissions`.
 - Validate and sanitise every input; treat all guest traffic as hostile.
 - Prefer authenticated OAuth access (`dya-integration-auth`) over guest endpoints whenever the caller can authenticate.
 
@@ -113,8 +137,9 @@ Public **Salesforce Sites** and **Experience Cloud** sites can host guest-access
 | `@RestResource` for plain CRUD | Standard REST API |
 | Confusing `@RestResource` with `@InvocableMethod` | REST endpoint vs Flow/agent action — different jobs |
 | New Apex SOAP web service | Apex REST (`@RestResource`) |
-| Endpoint class with no sharing keyword at v67 | Explicit `with sharing` + `WITH USER_MODE` |
-| `WITH SECURITY_ENFORCED` in a boundary class | `WITH USER_MODE` (removed in API 67+) |
+| An endpoint class with no sharing keyword | Explicit `with sharing` plus `WITH USER_MODE` |
+| `WITH SECURITY_ENFORCED` in a boundary class | `WITH USER_MODE` — the old form does not compile from 67.0 |
+| Not knowing which callers still use the username-password flow | Inventory them before 20 February 2027 |
 | Returning raw exceptions/stack traces to callers | Error DTO + correct HTTP status code |
 | Broad guest profile on a Site endpoint | Least-privilege guest profile; validate all input |
 | Non-bulkified boundary logic | Bulkify; assume volume and concurrency |
@@ -126,6 +151,6 @@ Public **Salesforce Sites** and **Experience Cloud** sites can host guest-access
 
 1. **Standard API first** — only author an endpoint when the contract genuinely needs it.
 2. **`@RestResource` is GA and recommended** for custom REST; `@InvocableMethod` is a *different thing* (Flow/agent actions), and Apex SOAP is legacy.
-3. **Boundary classes are security-critical at v67** — explicit `with sharing` + `USER_MODE`, audit before bumping, never `WITH SECURITY_ENFORCED`.
+3. **Boundary classes are security-critical** — explicit `with sharing` and `USER_MODE`, audited before you raise the version, never `WITH SECURITY_ENFORCED`.
 4. **Stable contracts, clean errors** — versioned DTOs, proper HTTP status codes, never raw stack traces.
 5. **Treat guest/Site endpoints as hostile** — minimal profile, validate everything, prefer authenticated OAuth.

@@ -1,4 +1,4 @@
-# REST & the Composite Family — Reference (API v67.0)
+# REST & the Composite Family — Reference (Winter '27 / API v68.0)
 
 Load from `dya-integration-inbound-apis` when building multi-operation REST integrations. Authentication is covered in `dya-integration-auth`; all examples assume a valid OAuth bearer token and a current API version.
 
@@ -6,15 +6,15 @@ Load from `dya-integration-inbound-apis` when building multi-operation REST inte
 
 ```
 # Create
-POST /services/data/v67.0/sobjects/Account
+POST /services/data/v68.0/sobjects/Account
 { "Name": "Acme", "External_Id__c": "A-1001" }
 
 # Upsert by external id (idempotent — safe to retry)
-PATCH /services/data/v67.0/sobjects/Account/External_Id__c/A-1001
+PATCH /services/data/v68.0/sobjects/Account/External_Id__c/A-1001
 { "Name": "Acme (updated)" }
 
 # Query + pagination
-GET /services/data/v67.0/query/?q=SELECT+Id,Name+FROM+Account+ORDER+BY+CreatedDate+LIMIT+200
+GET /services/data/v68.0/query/?q=SELECT+Id,Name+FROM+Account+ORDER+BY+CreatedDate+LIMIT+200
 # → response has "done": false and "nextRecordsUrl"; GET that URL for the next page
 ```
 
@@ -25,13 +25,13 @@ GET /services/data/v67.0/query/?q=SELECT+Id,Name+FROM+Account+ORDER+BY+CreatedDa
 Up to **25 subrequests**; later subrequests can reference earlier results via `@{refId.field}`; optional `allOrNone` for atomic rollback. Counts as one API call but governor limits accumulate across subrequests.
 
 ```
-POST /services/data/v67.0/composite
+POST /services/data/v68.0/composite
 {
   "allOrNone": true,
   "compositeRequest": [
-    { "method": "POST", "url": "/services/data/v67.0/sobjects/Account",
+    { "method": "POST", "url": "/services/data/v68.0/sobjects/Account",
       "referenceId": "newAcct", "body": { "Name": "Acme" } },
-    { "method": "POST", "url": "/services/data/v67.0/sobjects/Contact",
+    { "method": "POST", "url": "/services/data/v68.0/sobjects/Contact",
       "referenceId": "newCon",
       "body": { "LastName": "Smith", "AccountId": "@{newAcct.id}" } }
   ]
@@ -43,7 +43,7 @@ POST /services/data/v67.0/composite
 Up to **500 nodes**; each graph executes as its **own transaction** (one graph failing doesn't roll back another). Use for big, interdependent record sets that exceed Composite's 25-subrequest cap.
 
 ```
-POST /services/data/v67.0/composite/graph
+POST /services/data/v68.0/composite/graph
 { "graphs": [ { "graphId": "g1", "compositeRequest": [ /* up to 500 nodes */ ] } ] }
 ```
 
@@ -56,7 +56,7 @@ Up to **25 independent subrequests**, no reference passing, no shared rollback. 
 Up to **200 records** per call (create/update/delete/upsert), optional `allOrNone`. The sweet spot between single-record REST and Bulk API for moderate volumes in a synchronous context.
 
 ```
-POST /services/data/v67.0/composite/sobjects
+POST /services/data/v68.0/composite/sobjects
 { "allOrNone": false,
   "records": [
     { "attributes": {"type":"Account"}, "Name": "A" },
