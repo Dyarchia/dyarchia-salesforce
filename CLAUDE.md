@@ -10,8 +10,10 @@ One repo per domain, one plugin per repo. Sibling domains get their own repos un
 
 ## Branches
 
-`develop` is the working branch and carries everything described in this file. `origin/HEAD` points
-at `master`, so branching from the repository default can silently yield an obsolete tree.
+`develop` is the working branch and carries everything described in this file. It is also the
+repository's default branch on GitHub — but a clone or worktree created before that changed still
+has `refs/remotes/origin/HEAD` pointing at `master`, and branching from a stale default silently
+yields an obsolete tree. Fix a stale ref with `git remote set-head origin -a`.
 
 **Branch from `develop`.**
 
