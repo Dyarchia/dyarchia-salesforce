@@ -12,6 +12,8 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the surfaces below.
 - `references/shared/metadata-and-api-versions.md` — API version semantics for anything addressing the platform by version.
 - `references/shared/org-model.md` — orgs, DX projects and deployment, which the CLI and DevOps surfaces assume.
+- `references/building-mcp-tools.md` — **standard versus custom servers, the five backing types for a custom tool, and connecting a client** with its callback URL. Start here to expose org capability to an AI client.
+- `references/lightning-types.md` — the `LightningTypeBundle` structure, channel folders, and the Apex requirements that fail at invocation rather than at deploy.
 - `references/mcp-servers.md` — the MCP server taxonomy (hosted vs DX vs custom vs Data 360), building custom MCP tools from Apex Actions / Flows / Apex REST, connecting external clients (Claude), and token-scoped security.
 - `references/experience-layer.md` — the Headless/Agentforce Experience Layer (HXL/AXL), Lightning Types, "define once, render everywhere", native React, and when to use which surface.
 
@@ -102,17 +104,22 @@ The **Model Context Protocol (MCP)** is the open standard that lets AI clients *
 
 A custom hosted MCP server can expose tools built from existing platform artefacts — no new runtime needed:
 
-- **Apex Action** — an `@InvocableMethod` Apex method becomes an MCP tool.
-- **Lightning Flow** — an autolaunched flow becomes an MCP tool.
-- **Apex REST** — a custom Apex REST endpoint becomes an MCP tool.
+- **Flow** — an **autolaunched** flow with defined inputs and outputs. Not screen, not scheduled.
+- **Apex Invocable Action** — a **`global`** method annotated `@InvocableMethod`.
+- **`@AuraEnabled` Apex method** — the one people miss: methods already serving as Lightning controllers become agent tools with **no new code**.
+- **Apex REST** — a `@RestResource` class.
+- **API Catalog endpoint** — registered platform and Connect APIs; coverage is still expanding.
+
+The method's inputs and outputs **are** the tool's parameter schema, so nested types make a tool hard
+to call correctly — and changing the Apex does **not** resync the tool configuration in Setup.
 
 This is the bridge: the same `@InvocableMethod` you wrote as an **Agentforce action** can also be an **MCP tool** for an external coding/business agent. Build the capability once; expose it through whichever surface the caller uses.
 
 ### Golden rule of MCP exposure
 
-**Expose the smallest set of approved tools, never unrestricted access.** MCP works best when the AI client receives a curated, well-described toolset. A tool's description is how the model decides to call it — write descriptions like the routing logic they are (same discipline as Agentforce action descriptions).
+**Expose the smallest set of approved tools, never unrestricted access.** Past a few dozen tools an AI client starts choosing badly — curation is the design, not housekeeping. Think of every tool on the platform as a buffet and a server as the plate curated for one persona. A tool's description is how the model decides to call it — write descriptions like the routing logic they are (same discipline as Agentforce action descriptions).
 
-Full server taxonomy, custom-tool build steps, connecting Claude, and security: `references/mcp-servers.md`.
+> Standard versus custom servers, the backing-type requirements, and the External Client App callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and security: `references/mcp-servers.md`.
 
 ---
 
@@ -135,7 +142,7 @@ Use the CLI for headless DevOps: deploy/retrieve metadata, run tests, and promot
 The **Headless Experience Layer** (its agent-facing form is the **Agentforce Experience Layer, AXL**) is a runtime that **decouples a capability's definition from its rendering surface**. You define a UI fragment / interaction **once**; HXL renders it natively as a Slack block, a Teams card, a mobile card, a voice interaction, or a response inside ChatGPT/Claude/Gemini — no per-channel rebuild.
 
 - Business logic, data, and permissions stay **separate** from the screen — "define intent once, render natively everywhere."
-- It's built on **Lightning Types** (Custom Lightning Types / CLT) — the metadata that describes a rich, structured interaction (approval cards, decision tiles, guided flows).
+- It's built on **Lightning Types** — JSON-based types that structure, validate and display data. Standard types ship with an editor and renderer; custom ones are `LightningTypeBundle` metadata (API 64.0+) with optional per-channel UI overrides. See `references/lightning-types.md`.
 - **Native React** support lets developers who want full control build custom interfaces in any design language over the same capabilities.
 - Today the build-time surface is mature; the runtime surface already handles straightforward cases (e.g. a support agent returning a case summary in a Slack thread) and is expanding.
 
@@ -145,7 +152,7 @@ Use HXL/Lightning Types when the **same capability must appear across multiple c
 
 ## 6. Dev Tooling — Vibes 2.0, DX MCP, Skills & Rules
 
-- **Agentforce Vibes 2.0** (Dev Preview) — an agentic dev environment in VS Code: reasons through tasks, builds implementation plans (**Plan Mode**), asks clarifying questions, and keeps you in control via approvals, permissions, and native diff reviews. Ships deeper MCP integration, built-in **Skills and Rules**, live LWC previews, and a unified Claude/GPT model picker.
+- **Agentforce Vibes 2.0** (GA) — an agentic dev environment in VS Code: reasons through tasks, builds implementation plans (**Plan Mode**), asks clarifying questions, and keeps you in control via approvals, permissions, and native diff reviews. Ships deeper MCP integration, built-in **Skills and Rules**, live LWC previews, and a unified Claude/GPT model picker.
 - **Salesforce DX MCP Server** (Beta) — preconfigured in the Vibes extension; toolsets include `lwc-experts`, `aura-experts` (Aura→LWC migration), SLDS guidance, ApexGuru code review, Lightning Types (`create_lightning_type`), and Metadata API context. Some toolsets require enabling global rules (e.g. `a4d-general-rules`, `a4d-lwc-rules`).
 - **Coding skills** (30+) — preconfigured capability bundles that give coding agents live, best-practice-aware access to your platform.
 
