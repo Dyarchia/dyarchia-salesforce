@@ -1,6 +1,6 @@
-# Shared State Across Components — Reference Implementation (v67.0)
+# Shared State Across Components — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementation of the shared-state patterns referenced from SKILL.md §5. On API v67.0 (Summer '26) there are two GA mechanisms with different jobs: **`@lwc/state`** for same-page shared **reactive** state, and **Lightning Message Service (LMS)** for broadcast that crosses the DOM, pages, apps, or technologies (LWC / Aura / Visualforce).
+Full implementation of the shared-state patterns referenced from SKILL.md §5. There are two GA mechanisms with different jobs: **`@lwc/state`** for same-page shared **reactive** state, and **Lightning Message Service (LMS)** for broadcast that crosses the DOM, pages, apps, or technologies (LWC / Aura / Visualforce).
 
 Load this file when designing data flow across multiple LWC components on the same page or app.
 

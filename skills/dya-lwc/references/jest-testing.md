@@ -1,8 +1,8 @@
-# Jest Testing for LWC — Reference Implementations
+# Jest Testing for LWC — Reference (Winter '27 / API v68.0)
 
 Full implementations of the LWC Jest testing patterns referenced from SKILL.md §13. Load this file when writing or refactoring Jest tests for a Lightning web component.
 
-`@salesforce/sfdx-lwc-jest` is the **only** test runner Salesforce supports for LWC. It runs Jest over the components with `jsdom` — no browser, no org, no network. On API v67.0 (Summer '26) the current package is **v7.x** (latest v7.8.0, April 2026), built on **Jest 29**; match it with an active Node LTS. These tests are pure unit tests of a single component's rendered output and behaviour, not end-to-end tests.
+`@salesforce/sfdx-lwc-jest` is the **only** test runner Salesforce supports for LWC. It runs Jest over the components with `jsdom` — no browser, no org, no network. The package tracks its own release cadence independently of the Salesforce release — check the installed major version and match it with an active Node LTS. These tests are pure unit tests of a single component's rendered output and behaviour, not end-to-end tests.
 
 ## Install & npm Scripts
 
