@@ -210,7 +210,7 @@ public static void logChange(List<SObject> records) {
 
 Flow allows the author to pass any record collection. Use this sparingly — typed DTOs are clearer and catch errors earlier.
 
-## Custom Input Types Need a No-Argument Constructor (v67)
+## Custom Input Types Need a No-Argument Constructor (API 67.0+)
 
 Any custom Apex type used as an invocable action input must expose a **public no-argument constructor** so the platform can instantiate it when the flow runs. A class with only a parameterised constructor fails at runtime. If you add any non-default constructor, add the no-arg one back explicitly.
 
@@ -230,9 +230,9 @@ public class OrderInput {
 }
 ```
 
-## Configuring the Action in Flow Builder — `InvocableActionExtension` (v67)
+## Configuring the Action in Flow Builder — `InvocableActionExtension`
 
-The `@InvocableMethod` / `@InvocableVariable` annotations define the action's contract; the `InvocableActionExtension` metadata type (GA in Summer '26, EE / PE / UE / Developer) defines the **design-time experience** an admin sees when configuring it:
+The `@InvocableMethod` / `@InvocableVariable` annotations define the action's contract; the `InvocableActionExtension` metadata type (GA; Enterprise, Performance, Unlimited and Developer editions) defines the **design-time experience** an admin sees when configuring it:
 
 - **Per-input custom property editor** — bind a custom LWC editor to a single input rather than the whole action, so one complex parameter gets a guided UI while the others use the standard editor.
 - **Picklist values for an input** — turn a `String` input into a fixed dropdown, eliminating typos and invalid values at design time.
@@ -270,3 +270,43 @@ private class AccountScorerTest {
 ```
 
 Invocable methods test the same way as any other Apex method — the annotation is metadata for Flow's UI, the method itself is just a static method.
+
+## The Reverse Direction — Calling a Flow from Apex
+
+`@InvocableMethod` is for when Flow orchestrates and Apex is a step. When Apex orchestrates and a
+Flow is the step, use `Flow.Interview`:
+
+```apex
+Map<String, Object> inputs = new Map<String, Object>{
+    'accountId' => acc.Id,
+    'newRating' => 'Hot'
+};
+Flow.Interview interview = Flow.Interview.createInterview('My_Autolaunched_Flow', inputs);
+interview.start();
+Object output = interview.getVariableValue('outputVariableName');
+```
+
+The flow's API name is the string argument, and the map keys are the flow's input variable names —
+both are unchecked at compile time, so a rename in Flow Builder breaks this at runtime, not at
+deploy. Cover it with a test.
+
+`Flow.Interview` runs autolaunched flows only; a screen flow has no interview to run headlessly.
+
+From a Lightning Web Component, embed a flow with `lightning/flowSupport`, or navigate to a screen
+flow with a `standard__flow` PageReference. See `dya-lwc`.
+
+## Who Is Calling? Flow and Agentforce Bulk Differently
+
+The same `@InvocableMethod` can be called by a Flow and by an Agentforce agent action, and the two
+callers behave differently in ways that change how you write the method:
+
+| | Called from Flow | Called as an Agentforce action |
+|---|---|---|
+| Batching | Always a `List`, even from a single-record context — a record-triggered flow passes the whole 200-record batch | One invocation per agent turn, each in its own transaction; no batching across turns |
+| On failure | Throwing surfaces the message as `{!$Flow.FaultMessage}` for a Fault Path to handle | Throwing gives the agent a raw exception it cannot explain to a user |
+
+Write the method to handle a list of any size — that satisfies Flow and costs an agent nothing. For
+error handling, decide which caller you are serving: a Flow-facing action throws on full-batch
+failure; an agent-facing action returns a structured result with a success flag and a human-readable
+message the agent can relay. If one method serves both, return the structured result **and** let the
+Flow branch on it, rather than throwing. See `dya-agentforce` for the agent side.
