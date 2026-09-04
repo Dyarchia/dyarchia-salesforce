@@ -26,6 +26,26 @@ function Add-Warning { param([string] $Message) $script:warnings.Add($Message) }
 $invocationClause = 'Load only when the user explicitly invokes this skill by name'
 $nonSkillTokens = @('dya-skill-authoring')
 
+# Skills whose domain has no Salesforce core API version: B2C Commerce is Demandware
+# lineage, the CLI versions on its own cadence. They are exempt from the platform check.
+$versionNeutralSkills = @('dya-b2c-commerce', 'dya-sf-cli')
+
+$sharedDir = Join-Path $repoRoot 'references-shared'
+$pluginManifest = Join-Path $repoRoot '.claude-plugin/plugin.json'
+$marketplaceManifest = Join-Path $repoRoot '.claude-plugin/marketplace.json'
+
+function Get-SharedManifest {
+    param([Parameter(Mandatory)] [string] $Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) { return @() }
+
+    @(Get-Content -LiteralPath $Path |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -and -not $_.StartsWith('#') } |
+        ForEach-Object { if ($_.EndsWith('.md')) { $_ } else { "$_.md" } } |
+        Sort-Object -Unique)
+}
+
 function Get-Frontmatter {
     param([Parameter(Mandatory)] [string] $Path)
 
@@ -70,6 +90,29 @@ if (-not $skills) {
 $readmeText = if (Test-Path -LiteralPath $readme) { Get-Content -LiteralPath $readme -Raw } else { '' }
 if (-not $readmeText) { Add-Failure 'README.md is missing or empty' }
 
+# README is the single source of truth for the platform version. Everything else - every
+# Platform Context heading, the badge, the plugin description - is checked against it, so a
+# version bump cannot land half-applied.
+$platformVersion = $null
+if ($readmeText -match '(?m)^\d+ skills, all targeting \*\*(.+?)\*\*') {
+    $platformVersion = $Matches[1]
+}
+else {
+    Add-Failure "README.md has no 'N skills, all targeting **<version>**' line to read the platform version from"
+}
+
+if ($platformVersion) {
+    if ($readmeText -match 'Salesforce%20API-(v[0-9.]+)-') {
+        $badgeVersion = $Matches[1]
+        if ($platformVersion -notlike "*$badgeVersion*") {
+            Add-Failure "README.md badge says '$badgeVersion' but the catalogue line says '$platformVersion'"
+        }
+    }
+    else {
+        Add-Failure 'README.md has no Salesforce API version badge'
+    }
+}
+
 foreach ($name in $skills) {
     $src = Join-Path $sourceDir $name
     $skillMd = Join-Path $src 'SKILL.md'
@@ -105,8 +148,53 @@ foreach ($name in $skills) {
             $name, $skillMdBytes, $SkillMdWarnBytes)
     }
 
-    if ($readmeText -and $readmeText -notmatch [regex]::Escape($name)) {
-        Add-Failure "$name : not listed in README.md"
+    $skillMdText = Get-Content -LiteralPath $skillMd -Raw
+
+    if ($platformVersion -and $name -notin $versionNeutralSkills) {
+        $heading = "## Platform Context — $platformVersion"
+        if ($skillMdText -notlike "*$heading*") {
+            Add-Failure "$name : Platform Context does not declare '$platformVersion'"
+        }
+    }
+
+    $refsDir = Join-Path $src 'references'
+    if (Test-Path -LiteralPath $refsDir) {
+        foreach ($ref in Get-ChildItem -LiteralPath $refsDir -Recurse -File) {
+            if ($skillMdText -notlike "*$($ref.Name)*") {
+                Add-Failure "$name : references/$($ref.Name) is never cited from SKILL.md"
+            }
+        }
+    }
+    elseif ($skillMdBytes -gt $SkillMdWarnBytes) {
+        Add-Warning "$name : SKILL.md is over the ceiling and has no references/ to move detail into"
+    }
+
+    $declared = Get-SharedManifest -Path (Join-Path $src 'shared-refs.txt')
+    $sharedTarget = Join-Path $refsDir 'shared'
+    foreach ($fragment in $declared) {
+        $canon = Join-Path $sharedDir $fragment
+        $copy = Join-Path $sharedTarget $fragment
+        if (-not (Test-Path -LiteralPath $canon)) {
+            Add-Failure "$name : shared-refs.txt declares '$fragment', which is not in references-shared/"
+        }
+        elseif (-not (Test-Path -LiteralPath $copy)) {
+            Add-Failure "$name : shared fragment '$fragment' is declared but not synced - run scripts/sync-shared-refs"
+        }
+        elseif ((Get-FileHash -Algorithm SHA256 -LiteralPath $copy).Hash -ne
+                (Get-FileHash -Algorithm SHA256 -LiteralPath $canon).Hash) {
+            Add-Failure "$name : shared fragment '$fragment' differs from its canon - never edit a copy, edit references-shared/ and re-sync"
+        }
+    }
+    if (Test-Path -LiteralPath $sharedTarget) {
+        foreach ($stray in Get-ChildItem -LiteralPath $sharedTarget -File) {
+            if ($declared -notcontains $stray.Name) {
+                Add-Failure "$name : references/shared/$($stray.Name) is not declared in shared-refs.txt - run scripts/sync-shared-refs"
+            }
+        }
+    }
+
+    if ($readmeText -and $readmeText -notmatch ('(?m)^- \*\*`{0}`\*\*\s*$' -f [regex]::Escape($name))) {
+        Add-Failure "$name : not listed in the README.md catalogue"
     }
 
     $bundle = Join-Path $outputDir "$name.skill"
@@ -158,6 +246,29 @@ foreach ($name in $skills) {
     }
     finally { $zip.Dispose() }
 }
+
+$pluginVersion = $null
+if (Test-Path -LiteralPath $pluginManifest) {
+    $plugin = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
+    $pluginVersion = $plugin.version
+    if ($platformVersion -and $plugin.description -notlike "*$platformVersion*") {
+        Add-Failure ".claude-plugin/plugin.json description does not state '$platformVersion'"
+    }
+}
+else { Add-Failure '.claude-plugin/plugin.json not found' }
+
+if (Test-Path -LiteralPath $marketplaceManifest) {
+    $marketplace = Get-Content -LiteralPath $marketplaceManifest -Raw | ConvertFrom-Json
+    $entry = $marketplace.plugins | Where-Object { $_.name -eq 'dyarchia-salesforce' }
+    if (-not $entry) {
+        Add-Failure ".claude-plugin/marketplace.json has no 'dyarchia-salesforce' plugin entry"
+    }
+    elseif ($pluginVersion -and $entry.version -ne $pluginVersion) {
+        Add-Failure ("plugin.json version '{0}' and marketplace.json version '{1}' disagree" -f
+            $pluginVersion, $entry.version)
+    }
+}
+else { Add-Failure '.claude-plugin/marketplace.json not found' }
 
 if ($readmeText) {
     $mentioned = [regex]::Matches($readmeText, 'dya-[a-z0-9-]+') |

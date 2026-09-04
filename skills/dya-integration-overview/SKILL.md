@@ -34,7 +34,7 @@ This family sits **on top of** the core dyarchia skills and defers to them: asyn
 
 ## 1. The Six Integration Patterns (the vocabulary)
 
-Salesforce's official Integration Patterns and Practices defines the canonical patterns. Name the pattern first; the technology follows.
+Salesforce's official Integration Patterns and Practices defines the canonical patterns. Name the pattern first; the technology follows. For the depth behind each pattern and the precise API-version-retirement facts, load `references/patterns-and-versions.md`.
 
 | Pattern | Direction | Sync? | Canonical tech |
 |---|---|---|---|

@@ -16,7 +16,7 @@ Load a reference when building that exact thing. Data 360 is the **data layer th
 
 ---
 
-## Platform Context — Summer '26
+## Platform Context — Summer '26 / API v67.0
 
 - **"Data Cloud" was rebranded to "Data 360" on October 14, 2025.** Same product; you'll still see "Data Cloud" in older docs, API names, and the `Data Cloud Data Access` permission set. Use "Data 360" in new work.
 - **Data 360 MCP Server (Developer Preview)** — an open-source MCP server fronting ~200 REST operations behind three facade tools (`search`, `payload_examples`, …) so coding agents can drive Data 360. Part of Headless 360. See `dya-headless360`.
