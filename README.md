@@ -97,12 +97,15 @@ graph LR
     Root --> Plugin[".claude-plugin/<br/>plugin · marketplace"]
     Root --> Meta["README · CHANGELOG · LICENSE"]
     Root --> SK["skills/<br/>25 skill folders"]
+    Root --> Shared["references-shared/<br/>platform primer canon"]
     Root --> Dist["dist/<br/>25 .skill bundles"]
-    Root --> Scripts["scripts/<br/>build · validate"]
+    Root --> Scripts["scripts/<br/>build · sync · validate"]
 
     SK --> Skill["dya-&lt;name&gt;/"]
     Skill --> SM["SKILL.md"]
     Skill --> Refs["references/"]
+    Refs --> SharedRefs["shared/<br/>synced copies"]
+    Shared -.-> SharedRefs
 
     classDef root fill:#5B5BD6,stroke:#3B3B8F,color:#fff,stroke-width:2px
     classDef domainFolder fill:#6E56CF,stroke:#3B3B8F,color:#fff,stroke-width:2px
@@ -110,12 +113,14 @@ graph LR
     classDef meta fill:#F4F4F4,stroke:#999,color:#555
 
     class Root root
-    class SK,Skill domainFolder
-    class SM,Refs skillFolder
+    class SK,Skill,Shared domainFolder
+    class SM,Refs,SharedRefs skillFolder
     class Plugin,Meta,Dist,Scripts meta
 ```
 
 Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand. Repo-level files never get bundled into the installable skill.
+
+`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill lists the fragments it needs in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. The copies are committed so every bundle stays self-contained; the canon is what you edit.
 
 `agents/`, `commands/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
 
@@ -214,7 +219,9 @@ After copying, restart the agent and verify the skill appears under its loaded-s
 
 Every skill is a folder under `skills/` holding a `SKILL.md` and, optionally, a `references/` subfolder for material consulted on demand rather than obeyed on every invocation. The frontmatter carries two keys: `name`, identical to the folder name, and `description`, which ends with the explicit-invocation clause that keeps the skill from auto-triggering.
 
-A source edit is only half the change. Rebuild that skill's bundle with `scripts/build-skill`, then run `scripts/validate-skills`: it compares every bundle against its source file by file and must exit 0 before any commit that touches `skills/`.
+Shared fundamentals are never copy-pasted between skills. Edit the canon under `references-shared/`, list the fragment in the skill's `shared-refs.txt`, and run `scripts/sync-shared-refs`; editing a synced copy directly is a validation error.
+
+A source edit is only half the change. Rebuild that skill's bundle with `scripts/build-skill`, then run `scripts/validate-skills`. Beyond comparing every bundle against its source file by file, it checks that every skill's Platform Context declares the platform version this README states, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, and that every synced fragment still matches its canon. It must exit 0 before any commit that touches `skills/`.
 
 ---
 
