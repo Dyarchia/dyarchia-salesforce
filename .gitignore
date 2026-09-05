@@ -1,5 +1,5 @@
-# Local agent config — the rest of .claude/ is versioned on purpose
-.claude/settings.local.json
+# Local agent workspace — never versioned; the contributor contract lives in CONTRIBUTING.md
+.claude/
 .claude-cache/
 
 # Reference clones — read-only raw material, never installed or published
