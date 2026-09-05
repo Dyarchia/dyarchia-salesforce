@@ -96,7 +96,7 @@ graph LR
     Root([dyarchia-salesforce/])
     Root --> Plugin[".claude-plugin/<br/>plugin · marketplace"]
     Root --> Meta["README · CHANGELOG · LICENSE"]
-    Root --> Contract["CLAUDE.md · .claude/skills/<br/>contributor contract"]
+    Root --> Contract["CLAUDE.md · CONTRIBUTING.md<br/>contributor contract"]
     Root --> SK["skills/<br/>25 skill folders"]
     Root --> Shared["references-shared/<br/>platform primer canon"]
     Root --> Dist["dist/<br/>25 .skill bundles"]
@@ -242,7 +242,7 @@ Every skill is a folder under `skills/` holding a `SKILL.md` and, optionally, a 
 
 Shared fundamentals are never copy-pasted between skills. Edit the canon under `references-shared/`, list the fragment in the skill's `shared-refs.txt`, and run `scripts/sync-shared-refs`; editing a synced copy directly is a validation error.
 
-The full contract lives in [`CLAUDE.md`](CLAUDE.md), and the step-by-step procedure for adding, editing, splitting or removing a skill is the repo-local `dya-skill-authoring` skill under `.claude/skills/`. Both are versioned: read them before your first change rather than inferring the conventions from the diff.
+The full contract lives in [`CLAUDE.md`](CLAUDE.md), and the step-by-step procedure for adding, editing, splitting or removing a skill lives in [`CONTRIBUTING.md`](CONTRIBUTING.md). Both are versioned: read them before your first change rather than inferring the conventions from the diff.
 
 A source edit is only half the change. Rebuild that skill's bundle with `scripts/build-skill`, then run `scripts/validate-skills`. Beyond comparing every bundle against its source file by file, it checks that every skill's Platform Context declares the platform version this README states, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, and that every synced fragment still matches its canon. It must exit 0 before any commit that touches `skills/`.
 

@@ -13,7 +13,8 @@ PLUGIN_MANIFEST="$REPO_ROOT/.claude-plugin/plugin.json"
 MARKETPLACE_MANIFEST="$REPO_ROOT/.claude-plugin/marketplace.json"
 
 INVOCATION_CLAUSE='Load only when the user explicitly invokes this skill by name'
-NON_SKILL_TOKENS=" dya-skill-authoring "
+# README names that are deliberately dya-prefixed without a folder under skills/.
+NON_SKILL_TOKENS=" "
 
 # Skills whose domain has no Salesforce core API version: B2C Commerce is Demandware
 # lineage, the CLI versions on its own cadence. They are exempt from the platform check.

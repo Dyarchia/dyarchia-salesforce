@@ -25,14 +25,16 @@ Two consequences follow, and both bite silently:
   `refs/remotes/origin/HEAD`, so checking out the bare default hands you the wrong branch. Repair it
   with `git remote set-head origin -a` instead of routing around it.
 
-This file and `.claude/skills/dya-skill-authoring/` are **versioned on every branch**. They are the
-contributor contract: a clone that lacks them cannot be contributed to correctly, and the drift
-between the two artifacts they exist to prevent is this repo's defining failure mode. Like every
-other file here, they are written in English.
+This file and `CONTRIBUTING.md` are **versioned on every branch**. They are the contributor
+contract: a clone that lacks them cannot be contributed to correctly, and the drift between the two
+artifacts they exist to prevent is this repo's defining failure mode. Like every other file here,
+they are written in English.
 
-Untracked by design: `.claude/settings.local.json` (per-machine agent config), `docs/TODO.md` and
-`docs/dyarchia-legio.md` (private working notes). Those are genuinely internal — they record what
-someone is thinking about, not how the library works.
+Untracked by design: `.claude/` in full (the per-machine agent workspace — local settings,
+repo-local skills, worktrees), `docs/TODO.md` and `docs/dyarchia-legio.md` (private working notes).
+Those are genuinely internal — they record what someone is thinking about, not how the library
+works. Anything a contributor must know belongs in this file or in `CONTRIBUTING.md`, never under
+`.claude/`.
 
 ## Layout
 
@@ -42,6 +44,7 @@ dyarchia-salesforce/
 │   ├── plugin.json                # plugin identity; components auto-discovered
 │   └── marketplace.json           # the repo is its own marketplace
 ├── CLAUDE.md                      # this file
+├── CONTRIBUTING.md                # the authoring procedure, step by step
 ├── README.md                      # public catalogue and install instructions
 ├── CHANGELOG.md                   # Keep a Changelog format
 ├── skills/
@@ -53,9 +56,11 @@ dyarchia-salesforce/
 ├── references-shared/             # the canon: platform fundamentals, written once
 ├── dist/                          # 25 pre-built .skill bundles, committed
 ├── scripts/                       # packaging, shared-reference sync, validation
-├── docs/                          # local working notes, untracked
-└── .claude/skills/                # skills that operate on THIS repo
+└── docs/                          # local working notes, untracked
 ```
+
+`.claude/` may exist locally — agent settings, repo-local skills, worktrees — and is gitignored in
+full. Nothing inside it is part of the contract; `CONTRIBUTING.md` is.
 
 Not present yet, reserved by convention: `agents/`, `commands/`, `hooks/`, and `mcp/` for MCP
 servers written here. Third-party MCP servers are not vendored and not declared.
@@ -152,10 +157,9 @@ The invocation clause is matched as the literal substring `Load only when the us
 invokes this skill by name`. Reword it and the skill fails validation.
 
 The allowlist behind that second warning is hardcoded in both scripts — `$nonSkillTokens` in the
-PowerShell version, `NON_SKILL_TOKENS` in the bash one — and holds a single entry today,
-`dya-skill-authoring`. That skill is `dya-`-prefixed but lives under `.claude/skills/` rather than
-`skills/`, and the README references it, so without the allowlist the scan would flag it. Any
-further repo-local meta-skill must be added to **both** scripts.
+PowerShell version, `NON_SKILL_TOKENS` in the bash one — and is empty today. It exists for a
+`dya-`-prefixed name the README mentions on purpose without a matching folder under `skills/`; add
+any such name to **both** scripts, or the scan flags it.
 
 ## The frontmatter contract
 
@@ -234,8 +238,8 @@ every skill you missed.
 
 ## Adding or editing a skill
 
-The prescriptive procedure lives in `.claude/skills/dya-skill-authoring/SKILL.md`. Invoke it
-rather than improvising. The short version:
+The prescriptive procedure lives in `CONTRIBUTING.md`. Follow it rather than improvising. The short
+version:
 
 1. Author or edit `skills/dya-<name>/SKILL.md`.
 2. Rebuild the bundle: `scripts/build-skill.ps1 dya-<name>` (or the `.sh` twin).

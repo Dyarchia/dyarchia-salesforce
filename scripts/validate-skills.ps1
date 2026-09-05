@@ -24,7 +24,8 @@ function Add-Failure { param([string] $Message) $script:errors.Add($Message) }
 function Add-Warning { param([string] $Message) $script:warnings.Add($Message) }
 
 $invocationClause = 'Load only when the user explicitly invokes this skill by name'
-$nonSkillTokens = @('dya-skill-authoring')
+# README names that are deliberately dya-prefixed without a folder under skills/.
+$nonSkillTokens = @()
 
 # Skills whose domain has no Salesforce core API version: B2C Commerce is Demandware
 # lineage, the CLI versions on its own cadence. They are exempt from the platform check.
