@@ -27,12 +27,20 @@ These flipped in Summer '26 (67.0) and still hold in 68.0. They are the single m
 |---|---|---|
 | SOQL, SOSL and DML access mode | System mode | **`USER_MODE`** — object and field permissions plus sharing are enforced |
 | Class with no `with sharing` / `without sharing` keyword | Inherited from caller | **`with sharing`** |
+| `without sharing` on a class | Sharing suppressed, and queries ran in system mode by default | **Sharing suppressed only** — object and field permissions are still enforced, so a query still throws for a user lacking CRUD/FLS |
 | `WITH SECURITY_ENFORCED` in SOQL | Supported | **Removed — does not compile** |
 | `with sharing` / `without sharing` on a trigger | Tolerated | **Illegal — does not compile** |
 
 Triggers themselves always run in **system mode**, in every API version. Sharing and field
 permissions are not enforced for you inside a trigger; enforce them explicitly when the work is on
 behalf of a user.
+
+`without sharing` is the most common misreading of this table. It is not an escape hatch to system
+mode: from 67.0 it suppresses **record sharing** and nothing else, so a query in such a class still
+throws when the running user lacks object or field permissions. Code that needs genuine system-mode
+access has to ask for it per operation — `AccessLevel.SYSTEM_MODE`, or `WITH SYSTEM_MODE` in SOQL —
+and each such use is worth a comment saying why. This is the failure that surfaces when a class is
+raised from 66.0 to 67.0 or above and its tests were only ever run as an administrator.
 
 Migration order when raising a class to 68.0: replace `WITH SECURITY_ENFORCED` with `WITH USER_MODE`
 (or `Security.stripInaccessible` where partial results are acceptable), state the sharing keyword
