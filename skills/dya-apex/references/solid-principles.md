@@ -5,6 +5,10 @@ looks too small to bother. It is not. The Service / Selector / Domain layering i
 skill **is** SOLID applied; this reference makes the mapping explicit and shows the concrete
 failure mode for each principle, with Winter '27 / API v68.0 syntax.
 
+Two numbers worth having when applying SRP concretely: **500 lines is the practical maximum for a
+class**, and a method past roughly **40 lines** wants a helper extracted. Neither is a platform
+limit — they are the point past which the principles below stop being followable in practice.
+
 Apply SOLID **first**. Most Salesforce "architecture" problems are a missing SRP split or a
 hard-wired dependency — not a missing design pattern. SOLID first, named patterns second.
 
