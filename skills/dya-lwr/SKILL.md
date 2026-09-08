@@ -43,9 +43,10 @@ The footprint and the runtime facts you must hold:
   `blob:` URLs (see `dya-lwc`). From API 67.0, `WITH SECURITY_ENFORCED` no longer compiles in an
   Apex controller; use `WITH USER_MODE`, and remember an LWR site's guest user is often the one
   running it (see `dya-permissions`).
-- **React and Salesforce Multi-Framework (UI Bundles) remain open Beta — do not use in production.**
-  Scratch orgs and sandboxes only; a beta app cannot deploy to production. Build LWR UIs with LWC and
-  revisit when it reaches GA.
+- **Salesforce Multi-Framework (UI Bundles) now covers React *and* Angular, and packages as 2GP** —
+  managed or unlocked, namespace supported, distributable on AppExchange. Hyperforce only. Confirm
+  the availability status for the target org before planning production on it; LWC stays the
+  lower-risk choice for a UI that only ever lives in one org. See §8.
 
 Mental model: **`dya-lwc` teaches the component; this skill teaches the runtime it lands
 on.** Write runtime-aware components and you avoid the "works in LEX, breaks on the site" bug.
@@ -163,11 +164,29 @@ LWR is lean by design:
 
 ---
 
-## 8. React / UI Bundles — Open Beta, Do NOT Use in Production
+## 8. UI Bundles — a Real Distribution Path, With Real Constraints
 
-Salesforce Multi-Framework runs external frameworks (starting with React) as **UI Bundles** on
-LWR. This is **open Beta**: scratch orgs and sandboxes only, **no production deploy**.
-Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
+Salesforce Multi-Framework runs external frameworks as **UI Bundles** on LWR. It is no longer
+React-only: `sf template generate project` ships `reactinternalapp`, `reactexternalapp`,
+`angularinternalapp` and `angularexternalapp` templates, the internal ones for already-authenticated
+employees and the external ones carrying a full login, registration and profile flow.
+
+The distribution story has moved too. A bundle packages as **2GP** in three flavours — managed
+(needs a registered namespace, source hidden, the AppExchange path), unlocked namespaced, and
+unlocked org-dependent — so **packaging and namespaces are both supported**, and IP protection is
+managed-only: `getSourceZip()` returns null to a subscriber for a managed package and readable
+source for an unlocked one. Installed bundles render from `*.salesforce.app`, isolated from core UI,
+which is why two same-named bundles from different packages coexist.
+
+What still decides feasibility: **Hyperforce only**, English as the org's default language, and the
+Dev Hub toggle *Enable Unlocked Packages and Second-Generation Managed Packages* — until that is on,
+`sf package create` returns `NOT_FOUND`. Build `dist/` before packaging or deploying or the app
+installs and renders blank. Setup › Security › **Multi-Framework Domains** disables a provisioned
+domain as a kill switch: immediate 404, metadata untouched, reversible.
+
+Salesforce does not currently publish a GA label for this, so **confirm the availability status for
+the target org before committing a production plan** rather than inferring it from the packaging
+support. LWC remains the lower-risk choice for a UI that is only ever going to live in one org.
 
 ---
 
@@ -183,7 +202,7 @@ Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
 | Call an external endpoint | CSP Trusted Site + (third-party JS as) static resource |
 | Client-side file download | `blob:` URL via `URL.createObjectURL` (`data:` is blocked) |
 | Component for both LEX and LWR | Intersection of supported APIs; `NavigationMixin` for nav |
-| Production LWR UI | LWC (React UI Bundles are open Beta) |
+| Single-org production LWR UI | LWC; UI Bundles earn their keep when the app ships to other orgs |
 
 ---
 
@@ -198,7 +217,7 @@ Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
 | Reaching for `lightning-file-upload` on an LWR site | Supported upload mechanism; mind the guest user |
 | Assuming data is present for a guest user | Handle empty / access-denied as a first-class state |
 | Loading third-party JS from arbitrary URLs | Static resource + CSP Trusted Site |
-| Building production LWR UI with React UI Bundles | LWC (React UI Bundles are open Beta) |
+| Reaching for a UI Bundle without checking Hyperforce and the Dev Hub packaging toggle | Verify both first — `sf package create` returns `NOT_FOUND` until the toggle is on |
 | Pulling heavy libraries into a guest-facing page | Keep bundles lean; lazy-load |
 | API version below 68.0 on new components | `<apiVersion>68.0</apiVersion>` in the `*-meta.xml` |
 
@@ -213,4 +232,4 @@ Build production LWR UIs with LWC; reassess when Multi-Framework reaches GA.
 3. **Navigation and security differ** — `lightning/navigation` is a narrower client-side router
    on LWR; LWS (not Locker) with strict CSP, and `data:` URIs are blocked.
 4. **Design for the guest** — read-only, no ownership, empty/denied is a normal state.
-5. **LWC, not React, for production** — Multi-Framework / UI Bundles is open Beta.
+5. **LWC by default; a UI Bundle when the app ships to other orgs** — Multi-Framework packages as 2GP, but it is Hyperforce-only and adds a build step LWC does not have.
