@@ -13,6 +13,7 @@ References:
 - `references/shared/governor-limits.md` — the transaction budget a publisher shares, and why one event beats one callout per record.
 - `references/pubsub-api.md` — the Pub/Sub API (gRPC) subscribe and publish flow, Avro schemas, replay and flow control, external-subscriber patterns.
 - `references/platform-events-cdc.md` — defining and publishing Platform Events, CDC channels, Apex and Flow publish and subscribe, delivery and replay semantics.
+- `references/cdc-metadata.md` — the metadata behind CDC and durable subscriptions: `PlatformEventChannelMember` and `PlatformEventChannel` element inventories, the naming rules, enrichment and filter constraints, and `ManagedEventSubscription`.
 
 ---
 
@@ -86,6 +87,28 @@ Salesforce emits a change event whenever a record is created/updated/deleted/und
 - The payload carries a **change event header** (change type, changed fields, record ids) plus the changed field values.
 - Use for keeping an external store in sync with Salesforce without polling.
 
+**Enabling it is `PlatformEventChannelMember`, and nothing else.** There is no `ChangeDataCapture`
+metadata type, no `.changeDataCapture-meta.xml`, no `changeDataCapture/` directory — a file by that
+name fails the deploy with "Could not infer a metadata type". One member per subscribed entity; a
+`PlatformEventChannel` alongside it only when the channel is custom.
+
+Two naming rules trip up every first attempt, and they disagree with each other on purpose:
+
+- **`<selectedEntity>` is the ChangeEvent type, not the source object.** `Account` becomes
+  `AccountChangeEvent`; `Order__c` becomes **`Order__ChangeEvent`**, keeping the double underscore.
+  Passing the source object fails with "references an invalid event in the selectedEntity field".
+- **The filename uses a single underscore regardless.** `Order__c` is deployed as
+  `Order_ChangeEvent.platformEventChannelMember-meta.xml` while its XML says `Order__ChangeEvent`.
+  A double-underscore filename is parsed as `<namespace>__<name>` and rejected with "Cannot create a
+  new component with the namespace: Order".
+
+The default channel value is exactly **`ChangeEvents`** — not `data/ChangeEvents`, which returns
+"Unable to find the specified channel" — and it is system-provided, so never author a
+`PlatformEventChannel` file for it.
+
+> Element inventories, enrichment fields, filter expressions and custom channels:
+> `references/cdc-metadata.md`.
+
 ---
 
 ## 5. Legacy — Do Not Build New
@@ -118,7 +141,7 @@ Prefer **Platform Event → Pub/Sub** for durable, multi-consumer, decoupled "we
 ## 7. Delivery, Replay & Idempotency
 
 - **At-least-once delivery** — consumers may see an event more than once; make handlers **idempotent** (dedupe on a business key or the replay id).
-- **72 h retention** — store the last processed replay id and resume from it; design a reconciliation batch for gaps beyond the window.
+- **72 h retention** — store the last processed replay id and resume from it; design a reconciliation batch for gaps beyond the window. **Or do not hand-roll it at all:** a `ManagedEventSubscription` makes the platform track the replay position for you, and the Pub/Sub API consumes it through the **`ManagedSubscribe`** RPC instead of `Subscribe`. That is the right default for a long-lived in-platform consumer; keep manual replay bookkeeping for an external subscriber that already has durable state of its own.
 - **Order** — events are delivered in publish order per channel, but don't assume cross-channel ordering.
 - **Allocations** — event publishing and delivery (CDC/PE) have daily allocations; high-volume designs must account for them.
 
