@@ -106,6 +106,42 @@ Call it after something outside LDS has changed a record — an Apex callout, an
 so the cache refreshes and every component bound to that record re-renders. `getRecordNotifyChange` is
 the deprecated predecessor; do not use it.
 
+## Refreshing a wired Apex method — a different mechanism
+
+`notifyRecordUpdateAvailable` refreshes the **LDS** cache. A component reading through `@wire` on an
+Apex method is not going through LDS, so that call does nothing for it and the stale data stays on
+screen with no error anywhere. Use `refreshApex`, which needs the **raw wire result** — keep it
+instead of destructuring:
+
+```javascript
+import { refreshApex } from '@salesforce/apex';
+import getContacts from '@salesforce/apex/ContactController.getContacts';
+
+export default class ContactList extends LightningElement {
+    wiredContacts;                                   // ✅ the whole result, not { data, error }
+
+    @wire(getContacts, { accountId: '$recordId' })
+    wired(result) {
+        this.wiredContacts = result;
+        if (result.data) { this.contacts = result.data; }
+    }
+
+    async handleSaved() {
+        await refreshApex(this.wiredContacts);       // ✅ re-runs the wire
+    }
+}
+```
+
+Which one to reach for:
+
+| The component reads via | Something changed the record through | Refresh with |
+|---|---|---|
+| LDS (`getRecord`, `getRelatedListRecords`, base components) | LDS imperative (`updateRecord`) | nothing — LDS updates itself |
+| LDS | Apex or a callout | `notifyRecordUpdateAvailable([{ recordId }])` |
+| **Wired** Apex | anything, including LDS | **`refreshApex(this.wiredResult)`** |
+| **Imperative** Apex | anything | call the method again — there is no wire to refresh |
+| `lightning-record-form` / `-edit-form` / `-view-form` | its own save | nothing — it refreshes itself |
+
 ## Handling errors from three different shapes
 
 ```javascript

@@ -73,8 +73,8 @@ Evaluate in order, and stop at the first option that satisfies the requirement:
 3. **GraphQL wire adapter** (`lightning/graphql` v2) — multi-object queries, filtering, aggregation,
    pagination.
 4. **LDS imperative functions** — `createRecord`, `updateRecord`, `deleteRecord`.
-5. **GraphQL mutations** — `executeMutation` for multi-record DML, batches with `allOrNone`, or create
-   and update in one request.
+5. **GraphQL mutations** — `executeMutation` for multi-record DML, chaining a later mutation onto an
+   earlier one's Id with `@{alias}`.
 6. **Apex** — only when none of the above can express it: complex cross-object logic, callouts,
    platform events, async work, or an object the **UI API does not support**.
 
@@ -160,8 +160,14 @@ empty forever.
 Import fields from `@salesforce/schema/...` rather than writing `'Account.Name'`: a renamed field then
 breaks the build instead of failing silently in production.
 
-After anything outside LDS changes a record — an imperative Apex write, a callout — call
-`notifyRecordUpdateAvailable` so the cache refreshes. `getRecordNotifyChange` is deprecated.
+**Refreshing after a write has two answers, and picking the wrong one fails silently.** When Apex or
+a callout changed the record, call `notifyRecordUpdateAvailable([{ recordId }])` so the LDS cache
+re-fetches; `getRecordNotifyChange` is deprecated. But when the component reads through a **wired
+Apex** method, that notification does nothing — the wire is not LDS. Refresh it with
+`refreshApex(this.wiredResult)` from `@salesforce/apex`, which means keeping the raw wire result
+(`@wire(m) wired(result) { this.wiredResult = result; }`) instead of destructuring `{ data, error }`.
+Apex called *imperatively* has no wire to refresh: call it again. Record-form base components
+refresh themselves.
 
 > Every read and write pattern, object metadata, picklists, and error normalisation: `references/lds-patterns.md`.
 
@@ -276,7 +282,7 @@ downloadCsv(csv) {
 | Query with filters, sorting, pagination | GraphQL `@wire` | NO |
 | Query several objects in one call, or aggregate | GraphQL multi-query | NO |
 | Create, update or delete one record | `createRecord` / `updateRecord` / `deleteRecord` | NO |
-| Batch DML | GraphQL mutation with aliases and `allOrNone` | NO |
+| Batch DML | GraphQL mutations chained with `@{alias}` | NO |
 | Picklist values or object metadata | `lightning/uiObjectInfoApi` | NO |
 | Shared reactive state between same-page components | `@lwc/state` | NO |
 | Broadcast across DOM, page, app or technology | Lightning Message Service | NO |
