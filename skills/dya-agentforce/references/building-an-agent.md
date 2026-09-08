@@ -49,9 +49,19 @@ is boilerplate rather than shaped around your agent — the ten minutes here sav
 sf agent generate authoring-bundle --spec specs/agentSpec.yaml
 ```
 
-An **`AiAuthoringBundle`** is the metadata component that holds the agent. Inside it, a file with the
-**`.agent`** extension is the Agent Script — the agent's blueprint. Bundles land in
-`aiAuthoringbundles/` in your package directory.
+An **`AiAuthoringBundle`** is the metadata component you author against. Inside it, a file with the
+**`.agent`** extension is the Agent Script — the agent's blueprint — beside a
+`<ApiName>.bundle-meta.xml` whose name must match the directory. Bundles land in
+`aiAuthoringBundles/` in your package directory; the capital **B** matters, because a Linux CI
+runner will not find `aiAuthoringbundles/`.
+
+The authoring bundle is not what a running agent is made of. **Deploying stages the bundle into the
+authoring domain and creates no runtime entity**; `sf agent publish authoring-bundle` compiles the
+Agent Script and creates the `Bot`, `BotVersion`, `GenAiPlannerBundle` and `GenAiPlugin` records
+that serve conversations. At **API 68.0** those runtime components deploy and retrieve as
+`AiAgentDefinition` and `AiAgentDefinitionVersion`, which is what makes an agent source-controllable
+like any other metadata — and why both orgs must be on 68.0 for a deploy to carry anything. Below
+68.0 you are moving the bundle and republishing instead.
 
 There is a path that creates an agent directly without Agent Script (`sf agent create --spec …`).
 Salesforce explicitly recommends against it: script-based agents are more flexible and easier to
@@ -102,12 +112,15 @@ Then code, preview and publish exactly as above.
 ## 4. Test before activating
 
 ```bash
-sf agent generate test-spec
 sf agent test create --spec test-specs/resort-manager-tests.yaml --target-org <alias>
 sf agent test list --target-org my-dev-org
 sf agent test results --job-id 4KBed00fakeahmPGAQ
 sf agent test resume  --job-id 4KBed00fakeahmPGAQ
 ```
+
+**Do not reach for `sf agent generate test-spec` here.** It is an interactive REPL that prompts for
+each case, so it stalls under automation with no output. Write the spec YAML directly, or copy one
+from an existing agent and edit it.
 
 Test the three things separately, because they fail for different reasons: **subagent
 classification** (does the right subagent fire, and does it *not* fire when out of scope), **action

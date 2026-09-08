@@ -2,10 +2,14 @@
 
 Load from `dya-sf-cli`. Catalog for `project` (deploy/retrieve/generate), `data`, `sobject`/`generate metadata`, and `schema`. All `sf` v2.
 
-## Project Scaffolding (`sf project generate`)
+## Project Scaffolding
+
+**`sf project generate` is deprecated as a project scaffolder** — use `sf template generate project`.
+The deprecation does not extend to `sf project generate manifest`, which is a different subcommand
+and is current.
 
 ```bash
-sf project generate --name <proj> [--default-package-dir force-app] [--manifest]
+sf template generate project --name <proj> [--default-package-dir force-app] [--manifest]
 sf project generate manifest --source-dir force-app --name package
 sf project generate manifest --from-org <a> --include-packages managed
 ```
@@ -80,9 +84,13 @@ sf schema generate tab --output-dir force-app/.../tabs --icon 1 --directory-name
 
 ## API Passthrough (`sf api`)
 
+The `sf api request` family is **Beta**. It is the right tool for exploring an API from a terminal;
+production integrations belong behind a Named Credential and an Apex callout.
+
 ```bash
 sf api request rest "/services/data/v68.0/limits" --target-org <a>
 sf api request rest "/services/data/v68.0/sobjects/Account/001..." --method GET
+sf api request graphql --body '{"query":"{ uiapi { query { Account { edges { node { Id } } } } } }"}'
 sf api request graphql --body query.graphql --target-org <a>
 ```
 

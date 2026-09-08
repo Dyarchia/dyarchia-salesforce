@@ -14,6 +14,35 @@ with least privilege **before** activating the site.
 3. **Guest user sharing rules** — expose the specific records the public should see through
    guest sharing rules scoped to criteria, not through broad access. This is the only safe way
    to widen guest visibility.
+
+   The metadata type is `sharingGuestRules`, inside the object's
+   `sharingRules/<ObjectName>.sharingRules-meta.xml` — all rules for one object share one file:
+
+   ```xml
+   <sharingGuestRules>
+       <fullName>Public_Articles</fullName>
+       <label>Public Articles</label>
+       <accessLevel>Read</accessLevel>
+       <includeHVUOwnedRecords>false</includeHVUOwnedRecords>
+       <sharedTo><guestUser>My Site Site Guest User</guestUser></sharedTo>
+       <criteriaItems>
+           <field>IsPublic__c</field>
+           <operation>equals</operation>
+           <value>true</value>
+       </criteriaItems>
+   </sharingGuestRules>
+   ```
+
+   Three authoring rules, each of which fails the deploy when broken:
+
+   - **`<guestUser>` takes the guest user's `CommunityNickname`** — not the site's URL path prefix,
+     and not a `<role>` or `<group>` as an ordinary sharing rule would.
+   - **`<includeHVUOwnedRecords>` is required.** Set it `false` unless records owned by high-volume
+     site users should be included. Omitting it is the commonest mistake here.
+   - `<includeRecordsOwnedByAll>` belongs to `sharingCriteriaRules` and **fails** inside a guest
+     rule.
+
+   See `dya-permissions` for the sharing model these sit in.
 4. **"Let Guest Users See Other Members"** — keep off unless the site genuinely requires it.
 5. **Create flows** — the guest cannot own records. Route any public "submit"/"create" through
    an Apex service that runs in a controlled context (with the record assigned to a real owner),

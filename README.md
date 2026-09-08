@@ -14,7 +14,7 @@ Every skill loads **only on explicit invocation by name** — none auto-trigger 
 
 ## Available skills
 
-25 skills, all targeting **Winter '27 / API v68.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
+26 skills, all targeting **Winter '27 / API v68.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
 
 ### Core development
 
@@ -58,6 +58,8 @@ Every skill loads **only on explicit invocation by name** — none auto-trigger 
   B2C Commerce (Demandware lineage) — `dw.*` Script API, SFRA cartridges, Composable Storefront, SCAPI/SLAS.
 - **`dya-field-service`**
   FSL Apex namespace, scheduling and booking patterns, Scheduler REST, ServiceAppointment lifecycle, mobile extensibility.
+- **`dya-omni-channel`**
+  Service Cloud routing — the work-item-to-agent chain, presence and capacity, skills-based routing, the `routeWork` Agentforce seam.
 - **`dya-omnistudio`**
   OmniScripts, FlexCards, Integration Procedures, DataRaptors, Apex Remote Actions.
 - **`dya-revenue-cloud`**
@@ -97,9 +99,9 @@ graph LR
     Root --> Plugin[".claude-plugin/<br/>plugin · marketplace"]
     Root --> Meta["README · CHANGELOG · LICENSE"]
     Root --> Contract["CLAUDE.md · CONTRIBUTING.md<br/>contributor contract"]
-    Root --> SK["skills/<br/>25 skill folders"]
+    Root --> SK["skills/<br/>26 skill folders"]
     Root --> Shared["references-shared/<br/>platform primer canon"]
-    Root --> Dist["dist/<br/>25 .skill bundles"]
+    Root --> Dist["dist/<br/>26 .skill bundles"]
     Root --> Scripts["scripts/<br/>build · sync · validate"]
 
     SK --> Skill["dya-&lt;name&gt;/"]
@@ -129,7 +131,7 @@ Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a
 
 ## Install as a Claude Code plugin
 
-The repository is its own marketplace, so all 25 skills install in one step:
+The repository is its own marketplace, so all 26 skills install in one step:
 
 ```bash
 /plugin marketplace add Dyarchia/dyarchia-salesforce

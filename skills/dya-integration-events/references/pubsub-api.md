@@ -17,6 +17,7 @@ Load from `dya-integration-events` when an external system must publish or subsc
 | `Subscribe` | Stream events from a topic, controlling flow with `num_requested` |
 | `Publish` / `PublishStream` | Publish events to a Platform Event topic |
 | `GetTopic` | Topic metadata (can publish/subscribe, schema id) |
+| `ManagedSubscribe` | Stream from a `ManagedEventSubscription` — **the platform tracks the replay position**, not you |
 
 ## Subscribe Flow (conceptual)
 
@@ -33,6 +34,27 @@ Load from `dya-integration-events` when an external system must publish or subsc
 
 - Events are retained **72 hours**. Store the **last successfully processed replay id**; on reconnect, resume with `CUSTOM` from that id to avoid gaps and duplicates-beyond-necessary.
 - Beyond 72 h (or first-time backfill), you cannot replay from the bus — run a **reconciliation** (Bulk API query / CDC gap-fill) to resync.
+
+### Or let the platform hold the position
+
+`ManagedSubscribe` consumes a **`ManagedEventSubscription`**, identified by its DeveloperName or Id,
+and the replay position lives on the platform. That removes the single most common source of
+duplicate or skipped events — a consumer that crashed between processing an event and persisting its
+replay id.
+
+Prefer it for a long-lived subscriber. Keep `Subscribe` with manual replay bookkeeping when the
+consumer already has durable state and wants the position committed in the same transaction as the
+work.
+
+Two operational facts that look like bugs:
+
+- A create, update or delete of the subscription can take **around two minutes** to reach the
+  Pub/Sub API. `NOT_FOUND` straight after a deploy means wait and retry.
+- A subscription whose `defaultReplay` is `EARLIEST` replays **up to the full 72-hour window** the
+  moment it activates. On a busy channel that is three days of backlog arriving as fast as the
+  consumer will take it.
+
+Full element inventory and the `topicName` formats: `references/cdc-metadata.md`.
 
 ## Publishing Platform Events via Pub/Sub
 

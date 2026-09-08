@@ -146,6 +146,31 @@ testCases:
     expectedTopic: Returns
 ```
 
+## Agent Health Monitoring Alerts
+
+Alerting on agent health runs through the Tableau data-alerts resource, not through any agent-shaped
+endpoint. **There is no `sf agent alert` subcommand**, and looking for one is the usual first
+detour.
+
+```bash
+sf api request rest "/services/data/vXX.X/tableau/dataAlerts" --target-org <alias>
+```
+
+Alerts carry `dataAlertType: "agenthealthmonitoring"`. The UI equivalent lives at
+`/lightning/n/standard-AgentforceStudio?c__nav=alerts`.
+
+Four behaviours that make scripted use awkward, and are worth knowing before you write the script:
+
+- **`ownerId` is required on the list call.** There is no unfiltered list.
+- **A GET for a single alert returns 405.** List and filter client-side. Delete returns 204.
+- **Thresholds are raw 0–1 ratios, not display percentages.** 5% is `"0.05"`; `"1"` means 100%, not
+  1%. This is the one that ships a monitor firing on everything.
+- **The POST field names and casing differ from the GET response.** POST uses `utterance` where GET
+  returns `alertName`, and PascalCase `type` discriminators. Round-tripping a GET body straight back
+  into a POST fails.
+
+Notification counts from `/connect/notifications/status` are **org-global**, not per alert.
+
 ## Agent Script — Primer
 
 Agent Script is the GA, open-source language behind the new graph-based Agent Builder. It mixes natural-language instructions with **deterministic expressions**:

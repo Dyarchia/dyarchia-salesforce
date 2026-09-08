@@ -45,6 +45,82 @@ insert share;
 
 Custom objects use `MyObject__Share` with `AccessLevel` and `RowCause` (a custom **Apex sharing reason** defined on the object enables recalculation and clean maintenance). `with sharing`/`without sharing` on the class controls whether record sharing is enforced when querying.
 
+## The Metadata Behind It
+
+### Org-Wide Defaults
+
+OWD lives on the object itself — `<ObjectName>.object-meta.xml` — as `<sharingModel>` for internal
+access and `<externalSharingModel>` for external. Standard objects included: retrieve and deploy them
+as `--metadata CustomObject:<ObjectName>`, which reads oddly for `Account` but is correct.
+
+The valid values are **not the same for every object**:
+
+| Object | Values |
+|---|---|
+| Custom objects | `Private`, `Read`, `ReadWrite`, `ControlledByParent` (needs a Master-Detail field) |
+| Case | `Private`, `Read`, `ReadWrite`, **`ReadWriteTransfer`** |
+| Lead | `Private`, `Read`, `ReadWrite`, **`ReadWriteTransfer`** |
+| Campaign | `Private`, `Read`, `ReadWrite`, **`FullAccess`** |
+| Price Book (`Pricebook2`) | **`ReadSelect`** (Use), `Read` (View Only), `None` — the standard values are invalid here |
+
+And some are not configurable at all:
+
+| Object | Fixed at |
+|---|---|
+| `User` | `Read`, internal **and** external |
+| `Activity` | External fixed at `Private`; only internal is configurable |
+| `Pricebook2` | External fixed at `None` — immutable through Metadata API, Tooling API and Setup alike |
+| Knowledge article | Governed by channel visibility rather than OWD |
+
+Cross-object constraints that turn a one-object ticket into a four-object change:
+
+- Setting **Account** to `Private` forces **Contact**, **Case** and **Opportunity** to Private, and
+  all four recalculate together.
+- **Contract** follows Account's setting and cannot be set independently.
+- External access can never be more permissive than internal.
+
+### Sharing rules
+
+All rules for one object live in a single `sharingRules/<ObjectName>.sharingRules-meta.xml`, under
+three element names depending on kind: `sharingCriteriaRules`, `sharingOwnerRules` and
+`sharingGuestRules`. Retrieve with `--metadata "SharingRules:<ObjectName>"`.
+
+`<sharedTo>` targets a `<role>`, `<roleAndSubordinates>` or `<group>` — except in guest rules, where
+it targets the site guest user. Account sharing rules additionally require an `<accountSettings>`
+block with all three of its sub-elements present.
+
+**What is editable after creation, by rule kind:**
+
+| Kind | Editable |
+|---|---|
+| `sharingOwnerRules` | `<accessLevel>` **only** |
+| `sharingCriteriaRules` | `<accessLevel>`, `<criteriaItems>`, `<label>`, `<booleanFilter>` |
+| `sharingGuestRules` | `<accessLevel>`, `<criteriaItems>`, `<label>`, `<includeHVUOwnedRecords>` |
+
+**`<sharedTo>` and `<sharedFrom>` cannot be edited in place in any kind.** The platform does not
+support it and the deploy fails; the rule has to be deleted and recreated. Design owner-based rules
+on the assumption that only their access level will ever change.
+
+### Deleting a rule
+
+A normal `sf project deploy start` is **additive** and will not remove a sharing rule, however
+absent it is from the source. Deletion needs a destructive deploy naming the per-kind types —
+`SharingCriteriaRule`, `SharingOwnerRule`, `SharingGuestRule` — with members of the form
+`<ObjectName>.<RuleFullName>`. A source tree that "no longer has" a rule is not an org that no longer
+has it.
+
+### Guest sharing rules, specifically
+
+Guest rules are the mechanism behind exposing records to an unauthenticated site visitor, and they
+have their own shape:
+
+- `<sharedTo><guestUser>…</guestUser></sharedTo>`, where the value is the site guest user's
+  **`CommunityNickname`** — not the site's URL path prefix, and not a `<role>` or `<group>`.
+- **`<includeHVUOwnedRecords>` is required.** Set it to `false` unless records owned by high-volume
+  site users should be included. Omitting it is the most common authoring mistake.
+- `<includeRecordsOwnedByAll>` belongs to `sharingCriteriaRules` and **fails** inside a guest rule.
+- Guest user Ids start with `005`, like any user.
+
 ## Design Rules
 
 - Start OWD **Private** (or Read Only) and open deliberately; don't default to Public R/W.

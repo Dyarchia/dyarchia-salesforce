@@ -34,10 +34,19 @@ Check these before designing anything. Each of them ends a project that assumed 
   Salesforce Government Cloud.**
 - **English as the org's default language.**
 - **Editions**: Enterprise, Performance, Unlimited, Developer, Partner Developer.
-- **Packaging is unsupported.**
-- **Namespaced orgs are unsupported.** Developer orgs support the `c` namespace only.
+- **Packaging is supported, as 2GP**, in three flavours: managed (needs a registered namespace,
+  source hidden from the subscriber, the AppExchange route), unlocked namespaced, and unlocked
+  org-dependent (`--org-dependent`, empty namespace). It requires the Dev Hub toggle *Enable
+  Unlocked Packages and Second-Generation Managed Packages* — until that is on, `sf package create`
+  returns `NOT_FOUND` and `SELECT Id FROM Package2` reports the type as unsupported.
+- **Namespaces are supported**, and a managed package requires one. Cross-namespace, a bundle
+  reference resolves as `ns__Name`, or `c__Name` where there is no namespace.
 
-Packaging plus namespaced orgs being out means this is not currently a path for ISV work.
+So this *is* a path for ISV work. Two consequences worth knowing before choosing a flavour: IP
+protection is managed-only — `getSourceZip()` returns null to a subscriber for a managed package and
+fully readable source for an unlocked one — and upgrades are delta-based, hashing each incoming
+`dist/` asset and skipping unchanged ones, replacing developer-owned artifacts while preserving
+subscriber-owned state.
 
 ## Org setup
 
@@ -90,7 +99,19 @@ sf template generate project --name MyReactProject --template reactexternalapp
 ```
 
 `reactinternalapp` brings the required `CustomApplication` metadata; `reactexternalapp` brings the
-site metadata types.
+site metadata types (`networks/` and `sites/`) plus a full login, registration, reset and profile
+flow. **`internal` assumes an already-authenticated employee and ships no login; `external` is the
+customer- or partner-facing one.**
+
+**React is not the only framework.** `angularinternalapp` and `angularexternalapp` are the Angular
+equivalents — Angular with standalone components, signals and native control flow (`@if` / `@for`),
+built through `@angular/build:application` with the `@salesforce/angular-plugin-ui-bundle` esbuild
+plugin handling API-version substitution, the org proxy and Live Preview injection. Its component
+primitives are spartan-ng `hlm-*`, not Angular Material.
+
+`sf template generate project` always nests its output under a folder named for `--name`, so flatten
+it if you expected the files at the destination root. Both the project root and the bundle directory
+carry a `package.json`, and both need `npm install`.
 
 **Install dependencies inside the UI bundle directory, not at the project root.** This is the step
 that silently produces a broken app when skipped:
@@ -172,7 +193,7 @@ build — it breaks at runtime. That safety net is one of the things you trade a
 | Anti-Pattern | Correct approach |
 |---|---|
 | Designing before checking Hyperforce, edition and language | The constraints are absolute — verify first |
-| Planning an ISV or packaged deliverable | Packaging and namespaced orgs are unsupported |
+| Planning an ISV or packaged deliverable | Supported: 2GP managed with a namespace. Turn on the Dev Hub packaging toggle first |
 | Reaching for React for a component inside Lightning Experience | LWC. Embedding React there needs Micro-Frontend, still Developer Preview |
 | Assuming platform security carries over | With React you implement and maintain it |
 | `npm install` at the project root | Inside the `uiBundles/<app>` directory |

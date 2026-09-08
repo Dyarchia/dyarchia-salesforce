@@ -14,6 +14,8 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/shared/governor-limits.md` — the budget an action spends, and why "one transaction per action" is not a licence to skip bulkification.
 - `references/building-an-agent.md` — **the end-to-end path**: prerequisites and org setup, the two authoring workflows, the CLI commands, testing and activation. Start here if you have never built one.
 - `references/agent-script.md` — the actual syntax: blocks, `->` logic versus `|` prompt instructions, variables, routing, `available when` guards.
+- `references/agent-control-flow-pitfalls.md` — the constructs that compile and then behave differently from how they read. Read before debugging an agent that "ignores" its script.
+- `references/agent-lifecycle-metadata.md` — the bundle on disk, why deploy is not publish, the writable-versus-snapshot bundle trap, and the `sf agent` surface.
 - `references/apex-actions.md` — `@InvocableMethod` / `@InvocableVariable` actions, action-type comparison, security, bulkification, error handling.
 - `references/prompt-templates.md` — calling a template from code, batch generation with `AiJobRun`, moving templates between orgs.
 - `references/lifecycle-and-api.md` — the Agent API with real endpoints and payloads, invoking agents from Apex/Flow, `agent preview`, testing and evaluations.
@@ -108,28 +110,8 @@ Rule of thumb: **declarative for orchestration, Apex for deterministic logic the
 
 An Apex action is an `@InvocableMethod`. Its labels and descriptions are read by Atlas, so they are part of the contract.
 
-```java
-public with sharing class GetOrderStatusAction {
-
-    public class Request {
-        @InvocableVariable(label='Order Number' description='The customer order number to look up' required=true)
-        public String orderNumber;
-    }
-    public class Result {
-        @InvocableVariable(label='Status' description='Current fulfilment status of the order')
-        public String status;
-    }
-
-    @InvocableMethod(
-        label='Get Order Status'
-        description='Returns the current fulfilment status for a given order number. Use when a customer asks where their order is.'
-    )
-    public static List<Result> run(List<Request> requests) {   // bulk in, bulk out
-        // query once on the collected order numbers WITH USER_MODE, then map back
-        // one Result per Request, in the same order
-    }
-}
-```
+The full class skeleton — request and result wrappers, `@InvocableVariable` labelling, the bulk-in
+bulk-out signature: `references/apex-actions.md`.
 
 Absolute rules:
 
@@ -205,7 +187,7 @@ Test subagent classification (does the right subagent fire?), action selection, 
 
 ## 9. Observability
 
-Once live, instrument it. **Agent Platform Tracing** writes a **span** for every action execution into **Data 360 DMOs** (e.g. `ssot__TelemetryTraceSpan__dlm`), queryable via SOQL — each span records its parent, giving you a trace tree of the agent's reasoning and actions. Reading it requires the Data Cloud Data Access permission set. A **DMO** is a Data Model Object — Data 360's normalised, mapped representation of data — and the `__dlm` suffix marks one; see `dya-data360` if that is unfamiliar. Use **Session Tracing** and the Observability dashboards to find routing errors, slow actions, and ungrounded answers.
+Once live, instrument it. **Agent Platform Tracing** writes a **span** per action execution into **Data 360 DMOs**, queryable via SOQL, nested by parent. Reading them needs the Data Cloud Data Access permission set. Query `ssot__AiAgentSession__dlm`, `ssot__AiAgentInteraction__dlm` and `ssot__AiAgentInteractionStep__dlm`, plus `GenAIGatewayRequest__dlm` and `GenAIGeneration__dlm` for prompts, tokens and model. `ssot__TelemetryTraceSpan__dlm` needs separate provisioning and its key on steps is often empty — do not start there. `__dlm` marks a Data Model Object; see `dya-data360`. **Session Tracing** and the Observability dashboards surface routing errors, slow actions and ungrounded answers.
 
 ---
 
@@ -227,6 +209,7 @@ Implications:
 - Keep subagents focused on one domain; overlapping scopes cause mis-routing ("the seam problem").
 - Subagents can be backed by Apex, Flow, and Prompt Template actions independently.
 - Interop standards: A2A (agent-to-agent) and MCP let agents coordinate with tools and other agents.
+- **Handing off to a human is Omni-Channel's job.** The `routeWork` Flow action carries the work to a queue, and the same action routes work *to* an agent through `agentforceEmployeeAgentId`. Both directions of that seam are in `dya-omni-channel`.
 
 ---
 

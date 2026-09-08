@@ -15,6 +15,8 @@ This SKILL.md carries the load-bearing rules. Larger material lives in `referenc
 - `references/shared/sharing-and-access.md` — the guest user and the access model a public site
   runs under. **Read this before hardening anything.**
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
+- `references/site-provisioning.md` — creating a site through the Connect API, the source layout,
+  and the activate-then-publish sequence a new site needs before anyone can reach it.
 - `references/guest-and-seo.md` — the full guest-user hardening procedure and the SEO setup
   (slugs, sitemaps, robots.txt) for a production LWR site.
 
@@ -52,8 +54,10 @@ Standing facts:
 - Malware scanning for Salesforce Files is GA; files up to **10 GB** upload to Aura or LWR
   sites; AI-assisted Self-Service components are available; users on public email services can
   send email from a site; Chatter can be enabled in new orgs for Aura and LWR sites.
-- **React UI Bundles remains open Beta — do not use in production.** A React-hosted site is a
-  thin `appContainer` over a UI Bundle and cannot deploy to production. Build with LWC.
+- **UI Bundles now cover React and Angular and package as 2GP** (managed or unlocked, namespace
+  supported, AppExchange-distributable). A framework-hosted site is a thin `appContainer` over the
+  bundle. It is Hyperforce-only and needs the Dev Hub packaging toggle; confirm the availability
+  status for the target org before planning production on it. See `dya-lwr` §8.
 
 Sites deploy as metadata (`DigitalExperienceBundle`, `Network`, `CustomSite`,
 `DigitalExperienceConfig`); never hand-edit in production.
@@ -69,7 +73,7 @@ New, performance/SEO-sensitive public site    Enhanced LWR site (LWC)
 Content-driven site using enhanced CMS        Enhanced LWR site (required for CMS collections)
 Simple list-view-only data display            Non-enhanced LWR site (Grid, list views only)
 Existing Aura template site                   Stays Aura — migration is a rebuild, not a flip
-React SPA hosted on Salesforce                UI Bundle (open Beta — NOT production yet)
+React or Angular SPA hosted on Salesforce     UI Bundle (Hyperforce only; packages as 2GP)
 ```
 
 Pick **enhanced LWR** for new builds unless there is a reason not to. Aura-to-LWR is a
@@ -154,6 +158,17 @@ LWR sites are metadata: `DigitalExperienceBundle` (enhanced), plus `Network`, `C
 **partial deployment** for incremental changes; validate against a sandbox. Activating or
 editing a production site by hand is an incident waiting to happen.
 
+Two things to internalise before the first deploy:
+
+- **A newer LWR site abstracts FlexiPage away entirely.** Never reach for FlexiPage tooling —
+  retrieving, generating or editing one — on a `DigitalExperienceBundle` site. It is the reflex for
+  "Lightning page" and it silently does nothing here.
+- **A page needs both a `route` and a `view`** under `digitalExperiences/site/<name>1/sfdc_cms__*/`,
+  each with its own `_meta.json` and `content.json`. One without the other does not resolve.
+
+> The full source layout, creating a site through the Connect API, and the activate-then-publish
+> sequence: `references/site-provisioning.md`.
+
 ---
 
 ## 8. Decision Matrix — Quick Reference
@@ -190,7 +205,7 @@ editing a production site by hand is an incident waiting to happen.
 | Testing a guest site only while logged in | Test as the guest user, in the site's own LWS |
 | `lightning-file-upload` for site uploads | Supported mechanism; mind the guest (`dya-lwr`) |
 | Flipping an Aura site to LWR as a setting | Plan a rebuild |
-| Building a production site as a React UI Bundle | LWC LWR site (UI Bundles are open Beta) |
+| Planning a UI Bundle site without checking Hyperforce and the packaging toggle | Verify both first; LWC LWR site otherwise |
 | Editing/activating a production site by hand | Metadata + CI/CD; partial deployment |
 
 ---
@@ -204,5 +219,5 @@ editing a production site by hand is an incident waiting to happen.
 3. **Harden the guest first** — least-privilege profile, guest sharing rules, read-only, no
    ownership, clean empty state.
 4. **SEO is mandatory** — slugs (GA), platform sitemaps, `robots.txt`, lean pages.
-5. **Production means LWC + pipeline** — React UI Bundles are open Beta; deploy sites as
-   metadata, never by hand.
+5. **Production means a pipeline** — deploy sites as metadata, never by hand, whether the UI is
+   LWC or a UI Bundle.

@@ -15,6 +15,7 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/ingestion-api.md` — streaming and bulk ingestion end to end: connector and schema prerequisites, the job lifecycle, the payload test action.
 - `references/query-access.md` — SOQL on DMOs/DLOs in Apex (`__dlm`, `DATASPACE`, governor and credit notes), Connect API in Apex (`ConnectApi`), the Query API (SQL), pagination, and query best practices.
 - `references/ingestion-and-modeling.md` — Ingestion API and connectors, streaming vs batch, DLO→DMO mapping, identity resolution, calculated insights, segments, data actions/platform events, and zero-copy federation.
+- `references/code-extensions.md` — Data Custom Code: the CLI and Python SDK, project shape, `read_dlo` / `write_to_dmo`, CPU sizing, and the fact that a local run hits real data.
 
 Load a reference when building that exact thing. Data 360 is the **data layer that grounds Agentforce** (`dya-agentforce`) and is increasingly driven headlessly (`dya-headless360`); query code is Apex (`dya-apex`).
 
@@ -34,7 +35,7 @@ Standing facts:
 - **Data 360 MCP Server (Developer Preview)** — an open-source MCP server fronting roughly 200 REST operations behind a few facade tools, so a coding agent can drive Data 360. Developer Preview: not production. See `dya-headless360`.
 - **Headless DevOps for Data 360** — a pipeline can promote Data 360 logic (data transforms, code extensions) the way it promotes Apex and LWC, through DevOps data kits.
 - **Data Custom Code (Python SDK)** — author Python data-processing code locally, validate against a sandbox, deploy and monitor; logs surface in a code-extensions DLO.
-- **Apex and SOQL access to DMOs** runs under the API 67.0 security controls when issued from Apex. Querying a DMO consumes **Data Services credits** — see §8. Credits are the constraint that makes an unfiltered query expensive rather than merely slow.
+- **Apex and SOQL access to DMOs** runs under the security defaults introduced at API 67.0, which still hold at 68.0. Querying a DMO consumes **Data Services credits** — see §8. Credits are the constraint that makes an unfiltered query expensive rather than merely slow.
 
 ---
 
@@ -125,14 +126,19 @@ There are three programmatic ways to read Data 360 data. Pick by where the logic
 ### SOQL on DMOs (from Apex)
 
 ```java
-// DMO names end in __dlm. USER_MODE under API 67. This consumes Data Services credits.
-List<UnifiedIndividual__dlm> people = [
+// DMO names end in __dlm. USER_MODE by the 67.0+ defaults. Consumes Data Services credits.
+List<UnifiedssotIndividualMain__dlm> people = [
     SELECT Id, FirstName__c, LastName__c, LoyaltyTier__c
-    FROM UnifiedIndividual__dlm
+    FROM UnifiedssotIndividualMain__dlm
     WHERE LoyaltyTier__c = 'Gold' WITH USER_MODE
     LIMIT 200
 ];
 ```
+
+**Do not guess a unified DMO's name.** Identity resolution derives it from the ruleset, so it is
+org-specific — `UnifiedssotIndividualMain__dlm` above is one ruleset's output, not a platform
+constant, and a plausible-looking `UnifiedIndividual__dlm` will not compile. Read the real name off
+the ruleset in Setup, or list them with `GET /services/data/vXX.X/ssot/data-model-objects`.
 
 Hard rules for any Data 360 query (SOQL or SQL):
 - **Always a selective `WHERE`** and a `LIMIT`. An unfiltered scan of a 100M-row DMO can burn hundreds of credits in *one* query.
@@ -215,7 +221,7 @@ Grounding keeps the agent's knowledge fresh, governed, and auditable — always 
 | React to data change in real time | Data Action → platform event/webhook |
 | Ground an agent in structured data | Unified profile + CI grounding |
 | Ground an agent in documents | UDLO + vector search (RAG) |
-| Custom in-platform transform | Data Custom Code (Python SDK) |
+| Custom in-platform transform | Data Custom Code (Python SDK) — `references/code-extensions.md` |
 | Drive Data 360 from a coding agent | Data 360 MCP Server (`dya-headless360`) |
 
 ---

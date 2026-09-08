@@ -94,6 +94,56 @@ GET /api/v1/ingest/jobs/{jobId}
 States you will see: **`Open`** → **`UploadComplete`** → **`JobComplete`**. The response also carries
 `object`, `contentType` (`CSV`), `createdDate` and `systemModstamp`.
 
+## Decisions made before the first call
+
+### Stream category is not a label
+
+Every data stream declares a category, and it constrains what the stream needs and what the platform
+can do with it afterwards. Changing it later means rebuilding the stream.
+
+| Category | Requires |
+|---|---|
+| `Profile` | A primary key |
+| `Engagement` | A primary key **and an event time field** |
+| `Other` | A primary key |
+
+`Engagement` without a time field is the common mistake, because the requirement only surfaces when
+the stream refuses to activate.
+
+### Field names change on the way in
+
+**DLO field naming transforms `__c` into `_c`.** A CRM field called `Region__c` arrives as `Region_c`
+on the DLO. Any code that maps by name — a transform, a query, a Data Custom Code script — has to use
+the DLO's name, not the CRM one.
+
+### The auth flow is three hops, and the host changes
+
+```text
+1. JWT bearer assertion  →  Salesforce access token
+2. Salesforce token      →  Data 360 token (exchange)
+3. Data 360 token        →  ingest, against the TENANT URL
+```
+
+**The ingest endpoint is on the tenant URL, not the Salesforce instance URL.** Pointing step 3 at the
+instance is the failure that looks like an authentication problem and is not.
+
+### `202` means accepted, not queryable
+
+An ingest call returning `202` has handed the payload off for processing. It has not validated the
+rows and they are not yet in the DLO. Validation failures surface later, in the **Problem Records**
+DLO family — so a pipeline that checks only the HTTP status will report success while dropping rows.
+
+### Deleting a stream can delete its DLO
+
+Depending on the delete mode, removing a data stream removes the DLO it feeds. Check before deleting
+one that other objects map from.
+
+### Feature gating reads as an error
+
+`CdpDataStreams` in an error response means the capability is **not provisioned for this org or
+user** — not that the request was malformed. The activation equivalents are
+`CdpActivationTarget` and `CdpActivationExternalPlatform`.
+
 ## Choosing between them
 
 | | Streaming | Bulk |
