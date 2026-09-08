@@ -140,7 +140,8 @@ Id optimizationRequestId = new FSL.OAAS().optimize(req);  // run from async (All
 ```
 
 - **Best-practice horizon: optimize 1–7 days ahead** — schedules change frequently, so longer single passes waste compute.
-- A single Optimization Request supports up to ~**21 days** out of the box; **chain** requests (start the next when the prior finishes) for longer horizons.
+- **In-Day is time-boxed; Global is not.** In-Day Optimization is capped at **5 minutes with ESO, 10 minutes without**, and reshuffles today. A Global run works the full horizon and takes hours. Widening one request is therefore a cost decision, not a limit to discover: **chain** requests (start the next when the prior finishes).
+- **Commit Mode decides whether your DML survives.** `Always Commit` lets a dispatcher change — or your Apex `update` on a `ServiceAppointment` — land while an optimization is running; `Rollback` rejects it to protect the run. If writes are silently disappearing during an optimization window, this is why.
 - Run from a Queueable/Batch with `Database.AllowsCallouts`; never inline in a per-save trigger.
 
 ---
@@ -163,7 +164,7 @@ lxscheduler.GetAppointmentCandidatesInput input =
         .setEndTime(startDt.addDays(3).format('yyyy-MM-dd\'T\'HH:mm:ssZ'))
         .setAccountId(accountId)
         .setSchedulingPolicyId(policyId)
-        .setApiVersion(67.0)
+        .setApiVersion(68.0)
         .build();
 String response = lxscheduler.SchedulerResources.getAppointmentCandidates(input);
 ```
@@ -180,15 +181,20 @@ Headless flow: **get candidates/slots → create WorkOrder + ServiceAppointment 
 
 **ServiceAppointment lifecycle (default, customizable):** `None → Scheduled → Dispatched → In Progress → Completed`, with `Cannot Complete` / `Canceled` as exceptions. Scheduling keys off the status-category mapping in FSL Settings, not the literal label.
 
-Policies/objectives are referenced **by Id** (query by Name): `[SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = 'Customer First']`. There is **no supported "write a Work Rule in Apex" SPI** — custom matching is done with triggers/flows (e.g. the "Skill Iron Rule" pattern) or custom Gantt actions (LWC/VF) in the Dispatcher Console.
+**`FSL__` is not a constant — resolve it.** The prefix is `FSL` in a production org but `FSLQA`, `FSLMPTEST` or `FSLMPPERF` elsewhere, and an org on **Enhanced Scheduling and Optimization (ESO)** exposes native objects instead: `SchedulingPolicy`, `SchedulingConstraint`, `SchedulingRule`, `SchedulingObjective` and `SchedulingPolicyObjective`. Query `SELECT SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage` on the Tooling API **with no `WHERE` clause** — it rejects filters on `NamespacePrefix` — and filter client-side for the first prefix starting with `FSL`. An empty result means FSL is not installed. Then try the managed object and fall back to the native one on `INVALID_TYPE`.
+
+Policies/objectives are referenced **by Id** (query by Name): `[SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = 'Customer First']` — which throws `INVALID_TYPE` on an ESO-native org, so resolve first.
+
+There is **no supported "write a Work Rule in Apex" SPI**, but four declarative hooks come before any Apex: **Extended Match** (a junction object with *exactly two* Master-Detail relationships — to `ServiceResource` and the matched object; the packaged trigger fails the rule with any other number), **Match Fields** (any appointment field against any resource field), **Match Boolean** (any resource checkbox, max 5 per policy) and **Count Rule** with `countBy: Custom`. Reach for triggers/flows (the "Skill Iron Rule" pattern) or custom Gantt actions only once those are exhausted.
 
 ---
 
 ## 7. Field Service Mobile
 
-- **Custom LWC** run with target `lightning__FieldServiceMobile`; developers/users need the **Lightning SDK for Field Service Mobile** permission. **LWC Offline** (opt-in) reads/updates locally and syncs on reconnect.
+- **Licensing first.** Every mobile worker needs the **`FieldServiceMobilePsl`** permission set licence to log into the app at all — there is no separate mobile user-licence SKU, and this is the entitlement people miss. `EinsteinFieldServicePsl` adds Voice to Record Edit and Pre-Work Brief; `AgentforceForFieldServicePsl` adds Voice to Form. Confirm with `SELECT DeveloperName, TotalLicenses, UsedLicenses FROM PermissionSetLicense`. The **Lightning SDK for Field Service Mobile** permission is a separate thing: it gates custom LWC, not login.
+- **Custom LWC** run with target `lightning__FieldServiceMobile`. **LWC Offline** (opt-in) reads/updates locally and syncs on reconnect.
 - **Works offline:** LDS base components, `getRecord`/LDS, the GraphQL wire (`lightning/uiGraphQLApi`), related-list wires, and Apex *reads* of data cached while online.
-- **Does NOT work offline:** Apex *writes*, server-hitting Apex calls, triggers/validation/flows (run only on sync), and Lightning Message Service. Keep GraphQL queries small (>32 KB hurts mobile). Apex errors arrive as an **array** of error objects.
+- **Does NOT work offline:** Apex *writes*, server-hitting Apex calls, **record-triggered** automation — triggers, validation rules, workflow and record-triggered flows all fire at sync, not on the device — and Lightning Message Service. **Screen flows are the exception**: they run offline under an offline flow cache policy, and a Data Capture flow (`processType: DataCaptureFlow`, `environments: ["Offline"]`) is built to. Keep GraphQL queries small (>32 KB hurts mobile). Apex errors arrive as an **array** of error objects.
 - **Briefcase Builder** primes offline data sets (object + filter); Files and Custom Metadata aren't primed automatically. Deep links can be **signed** with the Public Security Key to suppress the security dialog.
 
 Full offline matrix and Bundling REST: `references/rest-and-mobile.md`.
@@ -223,6 +229,6 @@ Because `FSL.*` is managed-package code, **confirm signatures in a sandbox** bef
 
 1. **scope-1 + DML-before-callout** — batch with scope 1, set the arrival window (DML) then schedule (callout) in separate steps.
 2. **Signatures are real and order matters** — `schedule(policyId, appointmentId)`, `GetSlots(saId, policyId, oh, tz, sortBy, exact)`; widen `DueDate` for more slots.
-3. **Heavy work is async; optimize 1–7 days** — Queueable/Batch with `AllowsCallouts`; chain Optimization Requests past ~21 days.
+3. **Heavy work is async; optimize 1–7 days** — Queueable/Batch with `AllowsCallouts`; chain Optimization Requests for longer horizons.
 4. **External booking via Salesforce Scheduler REST** — candidates/slots, persist the SA only on slot selection.
 5. **User mode plus a managed package means verify** — explicit `with sharing` + `WITH USER_MODE`, confirm `FSL` members in a sandbox; mobile is offline-first.
