@@ -155,7 +155,7 @@ truth** and every other assertion is checked against it. Two skills are exempt b
 `dya-b2c-commerce` (Demandware lineage, no core API version) and `dya-sf-cli` (the CLI versions on
 its own weekly cadence). That allowlist is hardcoded in **both** script twins, PowerShell and bash.
 
-All 25 skills sit under the size ceiling today, so a clean tree validates with **zero errors and
+All 26 skills sit under the size ceiling today, so a clean tree validates with **zero errors and
 zero warnings**. Treat a new warning as something to fix in the same commit, not as debt to carry.
 
 ## Commit conventions

@@ -209,6 +209,7 @@ Implications:
 - Keep subagents focused on one domain; overlapping scopes cause mis-routing ("the seam problem").
 - Subagents can be backed by Apex, Flow, and Prompt Template actions independently.
 - Interop standards: A2A (agent-to-agent) and MCP let agents coordinate with tools and other agents.
+- **Handing off to a human is Omni-Channel's job.** The `routeWork` Flow action carries the work to a queue, and the same action routes work *to* an agent through `agentforceEmployeeAgentId`. Both directions of that seam are in `dya-omni-channel`.
 
 ---
 

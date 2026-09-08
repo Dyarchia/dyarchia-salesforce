@@ -24,7 +24,8 @@ This SKILL.md carries the load-bearing rules. Detail you consult rather than obe
 
 Neighbouring skills: server-side Apex → `dya-apex`; components that embed or launch flows →
 `dya-lwc`; permission and sharing design → `dya-permissions`; platform events as an integration
-surface → `dya-integration-events`; agent actions → `dya-agentforce`.
+surface → `dya-integration-events`; agent actions → `dya-agentforce`; the `routeWork` action and
+Omni-Channel routing flows → `dya-omni-channel`.
 
 ---
 
