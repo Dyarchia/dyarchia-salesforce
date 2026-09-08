@@ -16,6 +16,8 @@ References:
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the API 67.0 security defaults this model is now enforced by.
 - `references/object-and-field-access.md` — profiles vs permission sets vs groups vs muting; object (CRUD) and field (FLS) permissions; system and user permissions; record types.
 - `references/record-sharing.md` — the sharing model in full: OWD, role hierarchy, sharing rules, manual and Apex sharing, teams, implicit sharing, restriction and scoping rules.
+- `references/data-privacy-and-encryption.md` — the regulated-data axis: Shield `encryptionScheme` and the deterministic-versus-probabilistic trade-off, key models, `DsarPolicy` for subject requests, and Data Mask for sandboxes.
+- `references/dataspace-access.md` — how Data 360 objects are granted, which is a permission set element rather than any part of the sharing model.
 
 ---
 
@@ -100,15 +102,29 @@ Access widens from a restrictive baseline. Each layer can only **open up**; only
 narrow.
 
 1. **Org-Wide Defaults** — the floor, per object: Private, Public Read Only, Public Read/Write, or
-   Controlled by Parent. Separate internal and external defaults let community and portal users get a
-   stricter baseline. Start restrictive and open deliberately.
+   Controlled by Parent (which needs a Master-Detail parent). Separate internal and external defaults
+   let community and portal users get a stricter baseline; external can never be more permissive than
+   internal. Start restrictive and open deliberately.
+   Three things about OWD that catch people mid-design. **The value set is not uniform:** Case and
+   Lead add `ReadWriteTransfer`, Campaign adds `FullAccess`, and Price Book has its own model
+   entirely (`ReadSelect`, `Read`, `None`) with external **fixed at `None` and unchangeable** by any
+   API. **Some objects are not configurable at all:** User is fixed at Read internally and
+   externally, Activity's external default is fixed at Private, and Knowledge article visibility is
+   governed by channels rather than OWD. And **OWD changes cascade:** setting Account to Private
+   forces Contact, Case and Opportunity to Private and recalculates all four together, while Contract
+   simply follows Account and cannot be set independently. A "just tighten Account" ticket is
+   therefore a four-object change with a recalculation window.
 2. **Role Hierarchy** — a user inherits access to records owned by anyone below them. This is a
    *quiet* grant: nobody configures it per record, and it is easy to forget that a manager sees
    everything their reports own. "Grant Access Using Hierarchies" can be switched off for **custom**
    objects; on standard objects it is always on and cannot be disabled.
 3. **Sharing Rules** — owner-based (records owned by this group go to that group) or criteria-based
    (records matching a field filter go to a group). Guest user sharing rules are a separate,
-   deliberately restricted kind.
+   deliberately restricted kind. **Model them as immutable:** an owner-based rule allows only its
+   access level to be edited afterwards — changing who it shares from or to is not supported and the
+   deploy fails, so it is a delete-and-recreate. And a normal deploy is **additive**: it will never
+   remove a sharing rule, which needs a destructive deploy. Both facts belong in the design, not the
+   cleanup.
 4. **Manual and Apex Managed Sharing** — a single record shared with a user or group. Apex sharing
    writes `__Share` rows with a **sharing reason**, which is what makes the share recalculable and
    survivable across owner changes. Winter '27 adds an org setting to keep manual shares through an
@@ -178,6 +194,10 @@ views and the API. **Fix the model, not the symptom.**
 | Make a user genuinely unable to see a subset | **Restriction Rule** |
 | Change only what a user sees by default | **Scoping Rule** |
 | Enforce all of it in Apex | `with sharing` plus `WITH USER_MODE` |
+| Grant a permission set access to a Data 360 dataspace | `dataspaceScopes` on the PermissionSet — see `references/dataspace-access.md` |
+| Encrypt a field but keep it filterable | A **deterministic** `encryptionScheme`; probabilistic is stronger and unqueryable |
+| Export one person's data on request | A `DsarPolicy` — portability, and it **deletes nothing** |
+| Mask production data in a sandbox | Data Mask — sandbox only, and it returns 403 in production |
 
 ## 7. Anti-Patterns — NEVER Do These
 
@@ -196,6 +216,11 @@ views and the API. **Fix the model, not the symptom.**
 | An over-broad guest profile | Minimal guest profile plus guest sharing rules |
 | An integration user on a borrowed admin licence | Its own user with a purpose-built permission set |
 | Testing access only as an administrator | `System.runAs` a user carrying the real permission set |
+| Assuming a deploy removes a sharing rule | Deploys are additive; deletion needs a destructive deploy |
+| Editing an owner-based rule's `sharedTo` / `sharedFrom` | Only the access level is editable; delete and recreate |
+| Listing a required field in `fieldPermissions` | Required fields cannot carry FLS; omit them or the deploy fails |
+| `ProbabilisticEncryption` on a field you filter or sort | A deterministic scheme, accepting the weaker guarantee knowingly |
+| Assigning a permission set before its licence | If the set has a `LicenseId`, the `PermissionSetLicenseAssign` goes first |
 
 ## Summary — The Five Commandments
 
