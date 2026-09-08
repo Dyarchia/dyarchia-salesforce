@@ -8,11 +8,11 @@ Best when the logic is on-platform (an Agentforce Apex action, platform-event su
 
 ```java
 public with sharing class LoyaltyService {
-    // Static SOQL against a DMO. USER_MODE under API 67. Consumes credits.
-    public static List<UnifiedIndividual__dlm> goldMembers(String region) {
+    // Static SOQL against a DMO. USER_MODE by the 67.0+ defaults. Consumes credits.
+    public static List<UnifiedssotIndividualMain__dlm> goldMembers(String region) {
         return [
             SELECT Id, FirstName__c, LastName__c, LoyaltyPoints__c
-            FROM UnifiedIndividual__dlm
+            FROM UnifiedssotIndividualMain__dlm
             WHERE LoyaltyTier__c = 'Gold' AND Region__c = :region
             WITH USER_MODE
             ORDER BY LoyaltyPoints__c DESC
@@ -66,7 +66,7 @@ Best for object-oriented operations from on-platform code: profiles, calculated 
 ```java
 // Illustrative shape — consult the ConnectApi Data 360 classes for exact method names.
 ConnectApi.CdpQueryInput query = new ConnectApi.CdpQueryInput();
-query.sql = 'SELECT Id__c FROM UnifiedIndividual__dlm LIMIT 50';
+query.sql = 'SELECT Id__c FROM UnifiedssotIndividualMain__dlm LIMIT 50';
 ConnectApi.CdpQueryOutputV2 result = ConnectApi.CdpQuery.queryANSISql(query);
 ```
 

@@ -34,7 +34,7 @@ Standing facts:
 - **Data 360 MCP Server (Developer Preview)** — an open-source MCP server fronting roughly 200 REST operations behind a few facade tools, so a coding agent can drive Data 360. Developer Preview: not production. See `dya-headless360`.
 - **Headless DevOps for Data 360** — a pipeline can promote Data 360 logic (data transforms, code extensions) the way it promotes Apex and LWC, through DevOps data kits.
 - **Data Custom Code (Python SDK)** — author Python data-processing code locally, validate against a sandbox, deploy and monitor; logs surface in a code-extensions DLO.
-- **Apex and SOQL access to DMOs** runs under the API 67.0 security controls when issued from Apex. Querying a DMO consumes **Data Services credits** — see §8. Credits are the constraint that makes an unfiltered query expensive rather than merely slow.
+- **Apex and SOQL access to DMOs** runs under the security defaults introduced at API 67.0, which still hold at 68.0. Querying a DMO consumes **Data Services credits** — see §8. Credits are the constraint that makes an unfiltered query expensive rather than merely slow.
 
 ---
 
@@ -125,14 +125,19 @@ There are three programmatic ways to read Data 360 data. Pick by where the logic
 ### SOQL on DMOs (from Apex)
 
 ```java
-// DMO names end in __dlm. USER_MODE under API 67. This consumes Data Services credits.
-List<UnifiedIndividual__dlm> people = [
+// DMO names end in __dlm. USER_MODE by the 67.0+ defaults. Consumes Data Services credits.
+List<UnifiedssotIndividualMain__dlm> people = [
     SELECT Id, FirstName__c, LastName__c, LoyaltyTier__c
-    FROM UnifiedIndividual__dlm
+    FROM UnifiedssotIndividualMain__dlm
     WHERE LoyaltyTier__c = 'Gold' WITH USER_MODE
     LIMIT 200
 ];
 ```
+
+**Do not guess a unified DMO's name.** Identity resolution derives it from the ruleset, so it is
+org-specific — `UnifiedssotIndividualMain__dlm` above is one ruleset's output, not a platform
+constant, and a plausible-looking `UnifiedIndividual__dlm` will not compile. Read the real name off
+the ruleset in Setup, or list them with `GET /services/data/vXX.X/ssot/data-model-objects`.
 
 Hard rules for any Data 360 query (SOQL or SQL):
 - **Always a selective `WHERE`** and a `LIMIT`. An unfiltered scan of a 100M-row DMO can burn hundreds of credits in *one* query.
