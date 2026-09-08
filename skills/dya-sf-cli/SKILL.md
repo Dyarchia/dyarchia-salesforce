@@ -14,6 +14,7 @@ References (exhaustive command lists by group):
 - `references/org-and-auth.md` — install/update, `sf org login/logout`, orgs, scratch orgs, sandboxes, users, `org open/display/list`.
 - `references/metadata-and-data.md` — `sf project` (deploy/retrieve/generate), `sf data`, `sf sobject`/`generate metadata`.
 - `references/dev-and-agent.md` — `sf apex`, `sf lightning`, `sf logic`, `sf agent`, `sf package`, `sf code-analyzer`, `sf community`.
+- `references/devops-center.md` — `sf devops`: projects, pipelines, work items and promotion, plus the two async-result behaviours that make a failed promotion look green.
 
 ---
 
@@ -130,6 +131,11 @@ Full apex/lightning/logic/agent/package catalog: `references/dev-and-agent.md`.
 | Log in interactively | `sf org login web` |
 | Log in for CI (no browser) | `sf org login jwt` |
 | Spin up a scratch org | `sf org create scratch` |
+| Reuse an existing org's configuration | `sf org create shape`, then `sf org create scratch --source-org <00D…>` |
+| Start from a captured org state | `sf org create snapshot`, then `--snapshot` |
+| Assign a permission set | `sf org assign permset --name <PermSet>` |
+| Check API and storage allocations | `sf org list limits` |
+| Promote work through DevOps Center | `sf devops promote` — see `references/devops-center.md` |
 | Create a sandbox | `sf org create sandbox` |
 | New DX project | `sf template generate project` |
 | Deploy source | `sf project deploy start` |
