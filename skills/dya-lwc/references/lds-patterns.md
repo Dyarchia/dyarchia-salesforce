@@ -94,6 +94,60 @@ see `references/graphql-patterns.md`.
 record-type-aware picklist values. Deriving picklist values by hand, or hardcoding them in JavaScript,
 guarantees they drift from the org.
 
+## The full adapter directory
+
+Four modules. Reaching for Apex or GraphQL because you did not know an adapter existed is the most
+common way a component ends up heavier than it needs to be.
+
+| Module | Adapters |
+|---|---|
+| `lightning/uiRecordApi` | `getRecord`, **`getRecords`**, `createRecord`, `updateRecord`, `deleteRecord`, `notifyRecordUpdateAvailable` |
+| `lightning/uiRelatedListApi` | `getRelatedListRecords`, **`getRelatedListRecordsBatch`**, `getRelatedListInfo`, `getRelatedListInfoBatch`, `getRelatedListsInfo`, **`getRelatedListCount`** |
+| `lightning/uiObjectInfoApi` | `getObjectInfo`, **`getObjectInfos`**, `getPicklistValues`, **`getPicklistValuesByRecordType`** |
+| **`lightning/uiListsApi`** | `getListRecordsByName`, `getListInfoByName`, `getListInfosByName`, `getListInfosByObjectName`, `getListObjectInfo`, `createListInfo`, `updateListInfoByName`, `getListPreferences`, `updateListPreferences` |
+
+### `optionalFields` versus `fields`
+
+The single most common cause of a `getRecord` wire erroring in a multi-profile org:
+
+- A field the user cannot access, listed in **`fields`**, makes the whole wire **error**.
+- The same field in **`optionalFields`** is silently omitted from the result.
+
+Put anything the running user might not have FLS on into `optionalFields` and handle its absence, or
+the component breaks for one profile and works for yours.
+
+### List views
+
+```javascript
+import { getListRecordsByName } from 'lightning/uiListsApi';
+
+@wire(getListRecordsByName, {
+    objectApiName: 'Account',
+    listViewApiName: 'AllAccounts',
+    fields: ['Account.Name'],
+    pageSize: 50,              // default 50, valid 1-2000
+    sortBy: ['-Account.Name'], // leading '-' is descending
+    where: '...'               // GraphQL filter syntax
+})
+listView;
+```
+
+Also accepts `optionalFields`, `searchTerm` (wildcards supported) and `pageToken`.
+
+### `updateRecord`'s second argument
+
+```javascript
+await updateRecord(
+    { fields: { Id: recordId, Name: 'New' } },
+    { ifUnmodifiedSince: this.lastModifiedDate }   // optimistic concurrency
+);
+```
+
+Passing `ifUnmodifiedSince` turns a silent last-write-wins into a detectable conflict. The
+`recordInput` itself also accepts `triggerOtherEmail`, `triggerUserEmail`, `useDefaultRule` (case and
+lead assignment rules) and `allowSaveOnDuplicate` — all defaulting to `false`, which is why
+assignment rules appear not to fire from an LWC until you ask for them.
+
 ## Telling the cache something changed
 
 ```javascript
@@ -105,6 +159,42 @@ await notifyRecordUpdateAvailable([{ recordId: this.recordId }]);
 Call it after something outside LDS has changed a record — an Apex callout, an imperative Apex write —
 so the cache refreshes and every component bound to that record re-renders. `getRecordNotifyChange` is
 the deprecated predecessor; do not use it.
+
+## Refreshing a wired Apex method — a different mechanism
+
+`notifyRecordUpdateAvailable` refreshes the **LDS** cache. A component reading through `@wire` on an
+Apex method is not going through LDS, so that call does nothing for it and the stale data stays on
+screen with no error anywhere. Use `refreshApex`, which needs the **raw wire result** — keep it
+instead of destructuring:
+
+```javascript
+import { refreshApex } from '@salesforce/apex';
+import getContacts from '@salesforce/apex/ContactController.getContacts';
+
+export default class ContactList extends LightningElement {
+    wiredContacts;                                   // ✅ the whole result, not { data, error }
+
+    @wire(getContacts, { accountId: '$recordId' })
+    wired(result) {
+        this.wiredContacts = result;
+        if (result.data) { this.contacts = result.data; }
+    }
+
+    async handleSaved() {
+        await refreshApex(this.wiredContacts);       // ✅ re-runs the wire
+    }
+}
+```
+
+Which one to reach for:
+
+| The component reads via | Something changed the record through | Refresh with |
+|---|---|---|
+| LDS (`getRecord`, `getRelatedListRecords`, base components) | LDS imperative (`updateRecord`) | nothing — LDS updates itself |
+| LDS | Apex or a callout | `notifyRecordUpdateAvailable([{ recordId }])` |
+| **Wired** Apex | anything, including LDS | **`refreshApex(this.wiredResult)`** |
+| **Imperative** Apex | anything | call the method again — there is no wire to refresh |
+| `lightning-record-form` / `-edit-form` / `-view-form` | its own save | nothing — it refreshes itself |
 
 ## Handling errors from three different shapes
 

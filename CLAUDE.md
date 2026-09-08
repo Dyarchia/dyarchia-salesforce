@@ -54,7 +54,7 @@ dyarchia-salesforce/
 │       └── references/            # loaded on demand, never at invocation time
 │           └── shared/            # GENERATED copies of references-shared/, committed
 ├── references-shared/             # the canon: platform fundamentals, written once
-├── dist/                          # 25 pre-built .skill bundles, committed
+├── dist/                          # 26 pre-built .skill bundles, committed
 ├── scripts/                       # packaging, shared-reference sync, validation
 └── docs/                          # local working notes, untracked
 ```
@@ -142,6 +142,7 @@ plugin.json and marketplace.json versions disagree      exact
 a references/ file is never cited from SKILL.md         substring, per file
 a declared shared fragment is missing or edited         SHA-256 against references-shared/
 a synced file is not declared in shared-refs.txt        set comparison
+a skill cites `dya-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
 ```
 
 **README is the single source of truth for the platform version.** The catalogue line
@@ -159,7 +160,16 @@ invokes this skill by name`. Reword it and the skill fails validation.
 The allowlist behind that second warning is hardcoded in both scripts — `$nonSkillTokens` in the
 PowerShell version, `NON_SKILL_TOKENS` in the bash one — and is empty today. It exists for a
 `dya-`-prefixed name the README mentions on purpose without a matching folder under `skills/`; add
-any such name to **both** scripts, or the scan flags it.
+any such name to **both** scripts, or the scan flags it. The same allowlist covers the
+cross-reference check below.
+
+**The routing graph is validated.** Skills hand off to each other by naming a sibling in backticks,
+and that graph is the reason a reader can start anywhere. A rename used to break every prose mention
+of the old name silently, so the validator now scans every `.md` under a skill — `references/shared/`
+excluded, since it is generated — and **fails** on a backticked `dya-<name>` with no matching folder.
+It reads the graph that already exists in the prose rather than asking for it a second time in
+frontmatter, so adding a handoff costs nothing beyond writing the sentence. When you rename or remove
+a skill, the validator tells you which files still point at the old name.
 
 ## The frontmatter contract
 
@@ -196,7 +206,7 @@ third-party Salesforce skills; that is where the prefix earns its keep.
 - `SKILL.md` holds what must be true on every invocation. Anything consulted occasionally —
   full code listings, command catalogues, per-vendor detail — belongs in `references/`.
 - Size ceiling for `SKILL.md`: 20480 bytes. It is not a style note — `validate-skills` warns above
-  it. Past that, split into `references/`. **All 25 skills are under the ceiling, so a clean tree
+  it. Past that, split into `references/`. **All 26 skills are under the ceiling, so a clean tree
   validates with zero errors and zero warnings.** Treat a new warning as something to fix in the
   same commit rather than as accepted debt.
 - Platform fundamentals — governor limits, the access model, SOQL selectivity, API version
@@ -207,7 +217,7 @@ third-party Salesforce skills; that is where the prefix earns its keep.
 
 ### The section skeleton
 
-All 25 skills share the same shape. Match it — the consistency is what lets a reader jump between
+All 26 skills share the same shape. Match it — the consistency is what lets a reader jump between
 skills without relearning the layout.
 
 - Open with `## Platform Context — Winter '27 / API v68.0`, stating the release's relevant changes
@@ -222,7 +232,7 @@ skills without relearning the layout.
 
 ## Platform version
 
-`Winter '27 / API v68.0` is a repo-wide invariant, not a per-skill detail. It is asserted in all 25
+`Winter '27 / API v68.0` is a repo-wide invariant, not a per-skill detail. It is asserted in all 26
 Platform Context sections, in the README badge, and in the descriptions inside `plugin.json` and
 `marketplace.json`. A version bump is therefore a coordinated sweep across every source file plus a
 full rebuild of `dist/` — never a single-skill edit.
@@ -263,7 +273,7 @@ Both scripts take `SourceRoot` and `OutputRoot` overrides; the defaults are `ski
 Bundles are committed, so the build must be **reproducible**: both scripts emit entries in sorted
 order and stamp every one with a fixed 1980-01-01 timestamp. Without that, a ZIP writer records the
 current time and a rebuild produces different bytes from byte-identical sources — which dirties all
-25 binaries in the diff and buries whatever actually changed. If you touch the builders, keep that
+26 binaries in the diff and buries whatever actually changed. If you touch the builders, keep that
 property and verify it by building the same skill twice and comparing hashes.
 
 Do not assume the PowerShell and bash builders emit identical bytes; they use different ZIP

@@ -21,6 +21,7 @@ This SKILL.md carries the load-bearing rules. Detail you consult rather than obe
 - `references/testing-patterns.md` — skeletons, Stub API wiring, `RunRelevantTests` semantics.
 - `references/observability-patterns.md` — `Log__e`, `Logger`, subscriber trigger.
 - `references/performance-and-caching.md` — Platform Cache, Custom Metadata, DataWeave, ApexGuru, heap.
+- `references/static-analysis.md` — Code Analyzer: the seven engines, selectors, and the flags that fail silently.
 - `references/solid-principles.md` — SOLID applied to Apex, with Stub-API injection.
 
 Neighbouring skills own their own subjects: permissions and sharing design → `dya-permissions`;
@@ -62,8 +63,9 @@ default produces code that does not deploy.
 ## 1. Class Structure
 
 State a sharing keyword on **every** class. Default `with sharing`. Use `without sharing` only for
-system-level integration or admin tooling, with a class comment saying why. Use `inherited sharing`
-for utilities whose sharing must follow the caller.
+system-level integration or admin tooling, with a class comment saying why. From 67.0 it suppresses
+**record sharing only** — a query there still throws for a user lacking CRUD or FLS. Use
+`inherited sharing` for utilities whose sharing must follow the caller.
 
 ```apex
 // ✅
@@ -216,15 +218,12 @@ enforce user-level security, pass `AccessLevel.USER_MODE` explicitly to the `Dat
 Every trigger must be silenceable without a deployment, **per object** — you may need an integration
 or agent user to skip the Account trigger while the Case trigger keeps running.
 
-Model it as one **Hierarchy** Custom Setting, `Trigger_Settings__c`, with a Checkbox
-`<Object>_Trigger_Enabled__c` per controlled object, defaulting to checked and resolved dynamically
-at trigger entry; `false` returns immediately. This is the one case where a Custom Setting beats a
-Custom Metadata Type — hierarchy resolution (org → profile → user) is exactly what a per-user bypass
-needs, and `__mdt` cannot express it. Prefer User scope; disabling org-wide is a footgun.
+Model it as one **Hierarchy** Custom Setting resolved at trigger entry. This is the one case where a
+Custom Setting beats a Custom Metadata Type: hierarchy resolution (org → profile → user) is exactly
+what a per-user bypass needs, and `__mdt` cannot express it. It is a circuit breaker, not a recursion
+guard — keep the framework's recursion handling regardless.
 
-It is a circuit breaker, not a recursion guard: keep the framework's recursion handling regardless.
-
-> Field naming, `TriggerBypass`, entry-point wiring, and the form for a non-framework trigger: `references/trigger-framework.md`.
+> The setting's shape and field naming, `TriggerBypass`, entry-point wiring, and the form for a non-framework trigger: `references/trigger-framework.md`.
 
 ### Absolute rules
 

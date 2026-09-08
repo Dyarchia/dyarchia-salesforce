@@ -312,6 +312,24 @@ it('fires a success toast after save', async () => {
 });
 ```
 
+## Accessibility Tests with Sa11y
+
+`@sa11y/jest` runs axe assertions inside the Jest suite, so accessibility regressions fail the build
+rather than waiting for a manual audit.
+
+```bash
+npm install --save-dev @sa11y/jest
+npm test -- --testMatch="**/*.accessibility.test.js"
+```
+
+Convention is a separate `*.accessibility.test.js` file per component, so the a11y suite can be run
+and reported independently of the unit suite.
+
+**Do not prefix the command with `SA11Y_*` environment variables.** Once `@sa11y/jest` is wired into
+the project's Jest setup it runs automatically; `SA11Y_AUTO`,
+`SA11Y_ENABLE_DOM_MUTATION_OBSERVER` and `SA11Y_ENABLE_RENDERED_DOM_SAVE` belong to Salesforce's
+internal Bazel builds and do nothing in a DX project. Exit codes are Jest's usual 0 or 1.
+
 ## Coverage & CI
 
 - `npm run test:unit:coverage` writes an Istanbul report; gate the build with `coverageThreshold` in `jest.config.js`.

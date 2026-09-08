@@ -220,6 +220,23 @@ if [ -s "$README" ]; then
     done < <(grep -oE 'dya-[a-z0-9-]+' "$README" | sort -u)
 fi
 
+# Cross-reference graph: a backticked `dya-<name>` inside a skill is a routing handoff.
+# A rename that leaves one dangling breaks the graph silently, so this is an error.
+for name in "${skills[@]}"; do
+    skill_dir="$SOURCE_DIR/$name"
+    while read -r doc; do
+        [ -z "$doc" ] && continue
+        rel="${doc#"$skill_dir/"}"
+        while read -r token; do
+            [ -z "$token" ] && continue
+            [ "$token" = "$name" ] && continue
+            case " ${skills[*]} " in *" $token "*) continue ;; esac
+            case "$NON_SKILL_TOKENS" in *" $token "*) continue ;; esac
+            fail "$name : $rel cross-references '$token', which is not a skill folder"
+        done < <(grep -oE '`dya-[a-z0-9-]+`' "$doc" | tr -d '`' | sort -u)
+    done < <(find "$skill_dir" -name '*.md' -type f -not -path '*/references/shared/*')
+done
+
 summary="${#skills[@]} skill(s) checked - $errors error(s), $warnings warning(s)"
 
 if [ "$errors" -gt 0 ]; then

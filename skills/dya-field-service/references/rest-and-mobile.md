@@ -38,7 +38,7 @@ lxscheduler.GetAppointmentCandidatesInput input =
         .setEndTime(startDt.addDays(3).format('yyyy-MM-dd\'T\'HH:mm:ssZ'))
         .setAccountId(accountId)
         .setSchedulingPolicyId(policyId)
-        .setApiVersion(67.0)
+        .setApiVersion(68.0)
         .build();
 String response = lxscheduler.SchedulerResources.getAppointmentCandidates(input);
 ```
@@ -79,7 +79,7 @@ Custom LWC run with target **`lightning__FieldServiceMobile`**; developers/users
 |---|---|
 | LDS base components; `getRecord` / LDS | Apex **writes** (DML via Apex) |
 | GraphQL wire (`lightning/uiGraphQLApi`) | Server-hitting Apex calls (`@wire`/imperative) |
-| `getRelatedListRecords` / `getRelatedListCount`* | Triggers, validation rules, workflow, flows (run only on **sync**) |
+| `getRelatedListRecords` / `getRelatedListCount`* | Triggers, validation rules, workflow, **record-triggered** flows (fire on **sync**) |
 | Apex **reads** of data cached while online | `getListUi` / `getRecordUi` (limited/deprecated) |
 | | Lightning Message Service |
 

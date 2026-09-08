@@ -137,7 +137,7 @@ export default class CreateAccount extends LightningElement {
                             Industry: "Technology"
                         }
                     }) {
-                        record {
+                        Record {                      // ✅ capital R — `record` does not resolve
                             Id
                             Name { value }
                         }
@@ -147,8 +147,8 @@ export default class CreateAccount extends LightningElement {
         `;
 
         try {
-            const result = await executeMutation(mutation);
-            const newId = result.data.uiapi.AccountCreate.record.Id;
+            const result = await executeMutation(mutation, { variables: {} });  // ✅ two arguments
+            const newId = result.data.uiapi.AccountCreate.Record.Id;
         } catch (error) {
             // handle
         }
@@ -156,7 +156,63 @@ export default class CreateAccount extends LightningElement {
 }
 ```
 
-Update uses `<Object>Update` and Delete uses `<Object>Delete` mutation operations with the same shape.
+Two shapes here are easy to get wrong and fail in different ways:
+
+- The mutation payload field is **`Record`**, capitalised. The lowercase `record` does not exist in
+  the schema, so the query is rejected rather than returning null. Selecting it needs API 64.0 or
+  above, which is below our floor.
+- **`executeMutation` takes the document first and the options second** — `executeMutation(document,
+  { variables })`. Passing a single `{ query, variables }` object leaves the document undefined and
+  the call fails with nothing useful to read.
+
+Update uses `<Object>Update` and Delete uses `<Object>Delete` with the same shape, with two
+restrictions: `Create` and `Update` payloads must not select child relationships and may reach a
+`REFERENCE` field only through its `ApiName`, and **`Delete` may select only `Id`**. Fields the user
+cannot see arrive in the payload's `errors` array instead of failing the request.
+
+## Filtering Beyond a Single Object
+
+**Operators:** `eq`, `ne`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `like`, `contains`.
+
+**Semi-join and anti-join** — filter a parent by a condition on its children, which is otherwise the
+reason people fall back to Apex:
+
+```graphql
+Account(where: {
+    Id: { inq: {                       # `ninq` for the anti-join
+        Contact: { Title: { like: "%VP%" } }
+        ApiName: "AccountId"           # the parent-id field on the child
+    } }
+}) { edges { node { Id Name { value } } } }
+```
+
+Use `Id: { ne: null }` when the only condition is that a matching child exists.
+
+**The running user** is `uiapi.currentUser`, which takes no arguments and returns a `User`.
+
+**Polymorphic references** need inline fragments (`... on Account`). A field is polymorphic when its
+`referenceToInfos` has more than one entry. Navigate references by their **`relationshipName`**; when
+that is null you can only return the raw `Id`.
+
+### Discovering the schema
+
+There is **no `/graphql/sdl` route**. Introspect through `/services/data/vXX.X/graphql` with a
+standard GraphQL introspection query. The SDL runs past 265,000 lines, so grep it rather than reading
+it:
+
+```text
+^type <Object> implements Record
+^input <Object>_Filter
+^input <Object>_OrderBy
+^input <Object>(Create|Update)Input
+```
+
+### Mutation input rules
+
+- `Create` must include every required field unless `defaultedOnCreate` is true, and may set only
+  `createable` fields.
+- `Update` takes the `Id` plus `updateable` fields only.
+- `REFERENCE` fields are assigned through their `ApiName`.
 
 ## Multi-Object Query in One Call
 
@@ -183,23 +239,37 @@ get accountsAndContactsQuery() {
 
 Dependent queries (query B depends on the result of query A) require separate calls — the second `@wire` reacts to the first's result via a getter.
 
-## Batch Mutations
+## Chained Mutations
 
-Multiple mutations in one call use aliases and the `allOrNone` flag (when supported by the mutation type).
+There is **no `allOrNone` flag on a GraphQL mutation**, and aliasing the `uiapi` field itself does
+not batch anything. What the API does support is **reference chaining**: a later mutation consumes
+an Id produced by an earlier one through the `@{alias}` token.
 
 ```javascript
 const mutation = gql`
-    mutation BatchUpdate {
-        first: uiapi {
-            AccountUpdate(input: { Id: "001...", Account: { Industry: "Tech" } }) {
-                record { Id }
+    mutation CreateAccountThenContact {
+        uiapi {
+            A: AccountCreate(input: { Account: { Name: "Acme" } }) {
+                Record { Id }
             }
-        }
-        second: uiapi {
-            AccountUpdate(input: { Id: "001...", Account: { Industry: "Finance" } }) {
-                record { Id }
+            B: ContactCreate(input: {
+                Contact: { LastName: "Rivera", AccountId: "@{A}" }   // ✅ resolves to A's Id
+            }) {
+                Record { Id }
             }
         }
     }
 `;
 ```
+
+Three constraints, all load-bearing:
+
+- **The producing mutation must appear first** in the document. Order is the dependency, not the
+  alias name.
+- **Only `Create` and `Delete` can be chained from.** Referencing `@{A}` where `A` is an `Update`
+  fails.
+- The token is the whole value — `"@{A}"`, not interpolated into a larger string.
+
+For mutations with no dependency between them, issue separate calls. Nothing rolls them back
+together, so make each one idempotent rather than assuming transactional behaviour that is not
+there.

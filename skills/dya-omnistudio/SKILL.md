@@ -11,7 +11,8 @@ References:
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults a Remote Action inherits.
 - `references/shared/sharing-and-access.md` — the permission model those defaults enforce.
 - `references/apex-remote-actions.md` — the full Remote Action contract: `Callable` (Standard) vs `VlocityOpenInterface2` (Managed Package), the args/input/output/options maps, error handling, and registration.
-- `references/ips-and-datamappers.md` — Integration Procedures (actions, invoke modes), Data Mappers, and invoking IPs from Apex (`IntegrationProcedureService.runIntegrationService`) / LWC / REST.
+- `references/ips-and-datamappers.md` — Integration Procedures (actions, invoke modes, `PropertySetConfig` keys and the `%Element:field%` merge syntax), Data Mappers, and invoking IPs from Apex (`IntegrationProcedureService.runIntegrationService`) / LWC / REST.
+- `references/datapacks.md` — moving OmniStudio between orgs with the `vlocity` Build tool: the command order, job-file keys, incremental deploys, and what each error actually means.
 
 ---
 
@@ -132,6 +133,25 @@ Prefer Data Mappers over Apex for standard read/transform/write inside IPs; rese
 
 ---
 
+## 4b. Deployment — DataPacks, Not `sf project deploy`
+
+**OmniStudio artifacts are records, not metadata.** OmniScripts, FlexCards, Integration Procedures
+and Data Mappers do not move with `sf project deploy start`; they move as **DataPacks**, through the
+`vlocity` Build tool. Plan for a second pipeline beside the metadata one from the start of a project
+rather than discovering it at the first release.
+
+The order is fixed: `validateLocalData` → optionally `packGetDiffs` → `packDeploy` → then
+**`packRetry` repeatedly while the error count keeps dropping**, because dependency ordering resolves
+across passes.
+
+A DataPack is identified by its **GlobalKey**. Most deploy failures are that key disagreeing between
+source and target, not the artifact being wrong.
+
+> The command catalog, job-file keys, incremental `gitCheck` deploys and the error-to-cause table:
+> `references/datapacks.md`.
+
+---
+
 ## 5. Decision Matrix — Quick Reference
 
 | Need | Use |
@@ -146,6 +166,7 @@ Prefer Data Mappers over Apex for standard read/transform/write inside IPs; rese
 | Custom logic config can't express | Apex Remote Action (`Callable` / `VlocityOpenInterface2`) |
 | Reuse an IP from server code | `IntegrationProcedureService.runIntegrationService` |
 | Expose orchestration to external systems | Invoke IP via REST/Connect API |
+| Move OmniStudio artifacts between orgs | **DataPacks via `vlocity`**, never `sf project deploy` |
 
 ---
 

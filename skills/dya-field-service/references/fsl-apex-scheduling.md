@@ -105,7 +105,7 @@ public class OptimizeTerritoryQueueable implements Queueable, Database.AllowsCal
 }
 ```
 
-Horizon: optimize **1–7 days** ahead (schedules churn); a single request supports up to ~**21 days** out of the box — chain requests (kick the next when the prior `FSL__Optimization_Request__c` finishes) for longer ranges.
+Horizon: optimize **1–7 days** ahead (schedules churn) and chain requests — kick the next when the prior `FSL__Optimization_Request__c` finishes — for longer ranges. In-Day Optimization is time-boxed at **5 minutes with ESO, 10 minutes without**; a Global run works the whole horizon and takes hours, so a wide single request costs compute rather than hitting a documented ceiling.
 
 ## The scope-1 Batch Pattern (full)
 
@@ -131,6 +131,6 @@ Open-source libraries expose these as invocable actions for Flow and agent actio
 | Many SAs per sync transaction | scope-1 Batchable |
 | DML then callout in one transaction | Split DML step / callout step |
 | `getGradedMatrix` for a customer slot list | `AppointmentBookingService.GetSlots` |
-| Optimizing 21 days every run | 1–7 day horizon; chain for longer |
+| Widening one Optimization Request to cover weeks | 1–7 day horizon; chain for longer |
 | Inline optimization in a trigger | Queueable/Batch with `AllowsCallouts` |
 | Trusting member names without checking | Verify in a sandbox |

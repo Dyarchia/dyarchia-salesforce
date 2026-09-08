@@ -76,6 +76,30 @@ Until the feature reaches GA, production-critical tests should still be verified
 test level. Treat `RunRelevantTests` as a speed optimisation for feature branches, not as the gate
 in front of production.
 
+## Raising a class from 66.0 to 67.0 or above
+
+The version stamp is where the security defaults change, so a version bump is a testing exercise, not
+a metadata edit. Work through it in this order:
+
+1. Replace `WITH SECURITY_ENFORCED` with `WITH USER_MODE`, or `Security.stripInaccessible` where
+   partial results are acceptable.
+2. State the sharing keyword explicitly on every class rather than relying on the new `with sharing`
+   default.
+3. Decide, per operation, whether it runs in user mode or system mode. Document each justified
+   `AccessLevel.SYSTEM_MODE` or `WITH SYSTEM_MODE` — including inside `without sharing` classes,
+   which from 67.0 suppress record sharing but **not** CRUD or FLS.
+4. **Grant the required CRUD and FLS to the test users or permission sets**, then re-run the
+   affected tests as a non-administrator.
+
+Step 4 is the one that gets skipped, and it is why the failures look mysterious. `System.runAs` alone
+is not enough: the user it runs as has to carry a **permission set granting the object and field
+access the code needs**, or every user-mode query throws. A test that passes as an administrator and
+fails under `runAs` is usually reporting a missing permission set, not a bug.
+
+Triage a failure by reading the stack trace of the failing SOQL or DML for a CRUD/FLS access error.
+Where user-mode behaviour is what you intend, fix the permission set. Where system mode is genuinely
+correct, make it explicit and say why.
+
 ## Coverage
 
 75% is the deployment threshold, not the quality bar. Target 100% of meaningful branches. Coverage

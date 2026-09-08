@@ -107,6 +107,37 @@ want the REST semantics mirrored exactly, for example when porting an existing i
 See `dya-integration-auth` for the client credentials flow, and note that the OAuth
 username-password flow is retired with enforcement on 20 February 2027.
 
+## Schema Introspection — Finding Out What Exists
+
+Before querying, list what the org actually has. Four SSOT endpoints, all read-only:
+
+```text
+GET /services/data/vXX.X/ssot/data-lake-objects
+GET /services/data/vXX.X/ssot/data-lake-objects/{name}
+GET /services/data/vXX.X/ssot/data-model-objects
+GET /services/data/vXX.X/ssot/data-model-objects/{name}
+```
+
+List responses are enveloped as `{ "dataLakeObjects": [...], "totalSize": n }` and
+`{ "dataModelObjects": [...], "totalSize": n }`. Each entry carries `name`, `label`, `category`,
+`id`, `status`, `totalRecords` and `fields`. Id prefixes are **`1dl`** for a DLO and **`0dm`** for a
+DMO.
+
+This is the reliable way to resolve a **unified DMO's real name**, which identity resolution derives
+from the ruleset and is therefore org-specific rather than guessable.
+
+Every DLO also carries auto-injected system fields you did not define and will meet in a describe:
+`DataSource__c`, `InternalOrganization__c`, and the `cdp_sys_*` and `KQ_*` families. They are
+platform bookkeeping, not something the ingestion mapped.
+
+## Two SQL Constraints That Fail Confusingly
+
+- **Table names must be double-quoted** in Data 360 SQL:
+  `SELECT COUNT(*) FROM "ssot__Individual__dlm"`. Unquoted is a syntax error.
+- **A hybrid-search `prefilter` only works on fields marked prefilter-capable when the index was
+  created.** HNSW index parameters are read-only afterwards, so a prefilter that silently matches
+  nothing means the index needs rebuilding rather than the query fixing.
+
 ## Anti-Patterns
 
 | Anti-Pattern | Correct approach |
