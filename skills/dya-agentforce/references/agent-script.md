@@ -73,7 +73,9 @@ run @actions.get_account_info
 
 ### `system` — agent-wide instructions and messages
 
-`welcome` and `error` are **required**.
+The `messages` block is **optional**. Define `welcome` or `error` when a target or use case needs
+custom copy, and validate them against that target; otherwise leave the block out rather than
+padding it with placeholder text.
 
 ```agentscript
 system:

@@ -205,7 +205,7 @@ Test subagent classification (does the right subagent fire?), action selection, 
 
 ## 9. Observability
 
-Once live, instrument it. **Agent Platform Tracing** writes a **span** for every action execution into **Data 360 DMOs** (e.g. `ssot__TelemetryTraceSpan__dlm`), queryable via SOQL — each span records its parent, giving you a trace tree of the agent's reasoning and actions. Reading it requires the Data Cloud Data Access permission set. A **DMO** is a Data Model Object — Data 360's normalised, mapped representation of data — and the `__dlm` suffix marks one; see `dya-data360` if that is unfamiliar. Use **Session Tracing** and the Observability dashboards to find routing errors, slow actions, and ungrounded answers.
+Once live, instrument it. **Agent Platform Tracing** writes a **span** per action execution into **Data 360 DMOs**, queryable via SOQL, nested by parent. Reading them needs the Data Cloud Data Access permission set. Query `ssot__AiAgentSession__dlm`, `ssot__AiAgentInteraction__dlm` and `ssot__AiAgentInteractionStep__dlm`, plus `GenAIGatewayRequest__dlm` and `GenAIGeneration__dlm` for prompts, tokens and model. `ssot__TelemetryTraceSpan__dlm` needs separate provisioning and its key on steps is often empty — do not start there. `__dlm` marks a Data Model Object; see `dya-data360`. **Session Tracing** and the Observability dashboards surface routing errors, slow actions and ungrounded answers.
 
 ---
 
