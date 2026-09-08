@@ -59,8 +59,9 @@ git remote set-head origin -a
 3. Write the body in the house voice: second-person expert framing, an opening paragraph that states
    scope **and its explicit exclusions**, then the numbered rules. Say what the skill is not — the
    commerce and integration families depend on those boundaries to route correctly.
-4. Wire the routing graph. Name sibling skills in backticks wherever a reader should hand off, and
-   add the reverse pointer in every sibling that should hand off to the new skill.
+4. Wire the routing graph. Name sibling skills in backticks wherever a reader should hand off — the
+   validator checks every one of those names resolves — and add the reverse pointer in every sibling
+   that should hand off to the new skill.
 5. Move occasional-consultation material into `references/`. `SKILL.md` carries only what must be
    true on every invocation; the ceiling is 20480 bytes.
 6. Declare any shared fragments in `skills/dya-<name>/shared-refs.txt`, cite each one by filename
@@ -112,7 +113,8 @@ that is consulted rather than obeyed.
 1. Delete the source folder under `skills/` and its bundle under `dist/`.
 2. Remove every mention from the README, including the layout diagram.
 3. Remove or amend its CHANGELOG entries only while unreleased; released history stays.
-4. Grep the remaining skills for cross-references to the removed name and repair those handoffs.
+4. Repair the handoffs. Run the validator: it **fails** on every backticked `dya-<name>` that no
+   longer resolves to a folder, and names the file each one is in, so the list is the work.
 5. Run the validator. It must exit 0.
 
 ## Validation
@@ -141,6 +143,7 @@ README badge agrees with catalogue       The two halves of the README disagree
 plugin.json states the version           The published description is stale
 plugin/marketplace versions agree        The marketplace advertises a different build
 Every references/ file is cited          A reference no agent can ever reach
+Cross-referenced skills exist            A handoff points at a skill that is gone
 Shared fragments match their canon       Someone edited a generated copy
 Synced files are all declared            sync-shared-refs was not re-run
 Bundle exists                            Nothing to download

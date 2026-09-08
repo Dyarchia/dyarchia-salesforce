@@ -282,6 +282,27 @@ if ($readmeText) {
     }
 }
 
+# Cross-reference graph: a backticked `dya-<name>` inside a skill is a routing handoff.
+# A rename that leaves one dangling breaks the graph silently, so this is an error.
+foreach ($name in $skills) {
+    $skillDir = Join-Path $sourceDir $name
+    $docs = Get-ChildItem -Path $skillDir -Filter '*.md' -Recurse -File |
+        Where-Object { $_.FullName -notmatch '[\\/]references[\\/]shared[\\/]' }
+    foreach ($doc in $docs) {
+        $text = Get-Content -LiteralPath $doc.FullName -Raw
+        if (-not $text) { continue }
+        $cited = [regex]::Matches($text, '`(dya-[a-z0-9-]+)`') |
+            ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
+        foreach ($token in $cited) {
+            if ($token -eq $name) { continue }
+            if ($token -in $skills) { continue }
+            if ($token -in $nonSkillTokens) { continue }
+            $rel = $doc.FullName.Substring($skillDir.Length + 1)
+            Add-Failure "$name : $rel cross-references '$token', which is not a skill folder"
+        }
+    }
+}
+
 foreach ($w in $script:warnings) { Write-Host "WARN  $w" -ForegroundColor Yellow }
 foreach ($e in $script:errors) { Write-Host "FAIL  $e" -ForegroundColor Red }
 

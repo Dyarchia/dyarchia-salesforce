@@ -142,6 +142,7 @@ plugin.json and marketplace.json versions disagree      exact
 a references/ file is never cited from SKILL.md         substring, per file
 a declared shared fragment is missing or edited         SHA-256 against references-shared/
 a synced file is not declared in shared-refs.txt        set comparison
+a skill cites `dya-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
 ```
 
 **README is the single source of truth for the platform version.** The catalogue line
@@ -159,7 +160,16 @@ invokes this skill by name`. Reword it and the skill fails validation.
 The allowlist behind that second warning is hardcoded in both scripts — `$nonSkillTokens` in the
 PowerShell version, `NON_SKILL_TOKENS` in the bash one — and is empty today. It exists for a
 `dya-`-prefixed name the README mentions on purpose without a matching folder under `skills/`; add
-any such name to **both** scripts, or the scan flags it.
+any such name to **both** scripts, or the scan flags it. The same allowlist covers the
+cross-reference check below.
+
+**The routing graph is validated.** Skills hand off to each other by naming a sibling in backticks,
+and that graph is the reason a reader can start anywhere. A rename used to break every prose mention
+of the old name silently, so the validator now scans every `.md` under a skill — `references/shared/`
+excluded, since it is generated — and **fails** on a backticked `dya-<name>` with no matching folder.
+It reads the graph that already exists in the prose rather than asking for it a second time in
+frontmatter, so adding a handoff costs nothing beyond writing the sentence. When you rename or remove
+a skill, the validator tells you which files still point at the old name.
 
 ## The frontmatter contract
 
