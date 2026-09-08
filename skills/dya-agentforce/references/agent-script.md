@@ -77,6 +77,10 @@ The `messages` block is **optional**. Define `welcome` or `error` when a target 
 custom copy, and validate them against that target; otherwise leave the block out rather than
 padding it with placeholder text.
 
+A `system` block is **declarative**: `instructions` is prompt text, and `->` logic, `run`, `set`,
+`if` and `transition` are all illegal inside it. Logic belongs in `before_reasoning` or the
+subagent body.
+
 ```agentscript
 system:
     instructions:|
@@ -91,7 +95,7 @@ system:
 
 | Parameter | Notes |
 |---|---|
-| `developer_name` | The API name. Max 80 chars, starts with a letter, alphanumeric and underscores only, no trailing or consecutive underscores, unique in the org |
+| `developer_name` | The API name. Max 80 chars, starts with a letter, alphanumeric and underscores only, no trailing or consecutive underscores, unique in the org. **Must match the `aiAuthoringBundles/<dir>` name exactly** or the deploy fails |
 | `agent_label` | Optional display label; generated from `developer_name` if omitted |
 | `description` | The agent's goals and purpose |
 | `role`, `company` | Optional framing for the LLM |
@@ -100,6 +104,18 @@ system:
 | `runtime`, `file_upload` | Sub-blocks for streaming, citations, groundedness checks, and uploaded-file handling |
 
 `default_agent_user` is **deprecated here** — it belongs in the `access` block.
+
+`agent_type` is not a cosmetic label; each value forbids or requires things elsewhere in the file:
+
+| `agent_type` | Rules |
+|---|---|
+| `AgentforceEmployeeAgent` | **Must NOT** carry `access.default_agent_user`, an escalation subagent using `@utils.escalate`, or a `connection messaging:` block |
+| `AgentforceServiceAgent` | **Requires** `access.default_agent_user`, on a user with an Einstein Agent licence |
+
+`label:` is also valid as an optional block on both `start_agent` and `subagent`, giving a
+human-readable display name. It is distinct from the top-level `config.agent_label`.
+
+Write new `.agent` files with **4 spaces** per indent level.
 
 ### `access` — who the agent runs as
 
@@ -126,6 +142,16 @@ Use variables rather than hoping the model remembers something across turns.
 
 **Formerly called a Topic.** Renamed in April 2026; functionality unchanged, and you will still meet
 "topic" in older documentation and in some UI.
+
+Blocks go in a fixed order: `label` (optional) → `description` (required) → `system` (optional) →
+**`before_reasoning`** (optional) → `reasoning` (required) → **`after_reasoning`** (optional) →
+`actions` (optional). The two reasoning hooks run either side of the reasoning phase — and
+`before_reasoning` runs once per *execution*, which a self-transition restarts within the same turn.
+See `references/agent-control-flow-pitfalls.md`.
+
+Branching uses **`else if`**; `elif` is a syntax error. A user-written **nested `if` is
+unsupported** and lint rejects it as `unsupported-nested-if` — flatten with `else if`, with
+`and` / `or` predicates, or with sequential top-level `if` statements.
 
 ```agentscript
 subagent Order_Management:

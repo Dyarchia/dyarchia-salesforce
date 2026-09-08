@@ -14,6 +14,8 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/shared/governor-limits.md` — the budget an action spends, and why "one transaction per action" is not a licence to skip bulkification.
 - `references/building-an-agent.md` — **the end-to-end path**: prerequisites and org setup, the two authoring workflows, the CLI commands, testing and activation. Start here if you have never built one.
 - `references/agent-script.md` — the actual syntax: blocks, `->` logic versus `|` prompt instructions, variables, routing, `available when` guards.
+- `references/agent-control-flow-pitfalls.md` — the constructs that compile and then behave differently from how they read. Read before debugging an agent that "ignores" its script.
+- `references/agent-lifecycle-metadata.md` — the bundle on disk, why deploy is not publish, the writable-versus-snapshot bundle trap, and the `sf agent` surface.
 - `references/apex-actions.md` — `@InvocableMethod` / `@InvocableVariable` actions, action-type comparison, security, bulkification, error handling.
 - `references/prompt-templates.md` — calling a template from code, batch generation with `AiJobRun`, moving templates between orgs.
 - `references/lifecycle-and-api.md` — the Agent API with real endpoints and payloads, invoking agents from Apex/Flow, `agent preview`, testing and evaluations.
@@ -108,28 +110,8 @@ Rule of thumb: **declarative for orchestration, Apex for deterministic logic the
 
 An Apex action is an `@InvocableMethod`. Its labels and descriptions are read by Atlas, so they are part of the contract.
 
-```java
-public with sharing class GetOrderStatusAction {
-
-    public class Request {
-        @InvocableVariable(label='Order Number' description='The customer order number to look up' required=true)
-        public String orderNumber;
-    }
-    public class Result {
-        @InvocableVariable(label='Status' description='Current fulfilment status of the order')
-        public String status;
-    }
-
-    @InvocableMethod(
-        label='Get Order Status'
-        description='Returns the current fulfilment status for a given order number. Use when a customer asks where their order is.'
-    )
-    public static List<Result> run(List<Request> requests) {   // bulk in, bulk out
-        // query once on the collected order numbers WITH USER_MODE, then map back
-        // one Result per Request, in the same order
-    }
-}
-```
+The full class skeleton — request and result wrappers, `@InvocableVariable` labelling, the bulk-in
+bulk-out signature: `references/apex-actions.md`.
 
 Absolute rules:
 
