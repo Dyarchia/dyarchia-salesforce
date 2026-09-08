@@ -22,6 +22,46 @@ A declarative, **server-side** process that runs **multiple actions in a single 
 ### Caching
 Mind the `VlocityMetadata` / API-response cache partitions for read-heavy IPs; activate/version IPs deliberately.
 
+## `PropertySetConfig` — What Each Element Is Actually Configured With
+
+An Integration Procedure element is configured through a `PropertySetConfig` JSON block. Everything
+the skill body describes as "map the response node" is one of these keys, and knowing them is what
+lets you read or generate an IP rather than click one.
+
+| Element | Keys |
+|---|---|
+| DataRaptor Extract / Load / Transform | `bundle`, `additionalInput`, `additionalOutput`, `sendOnlyAdditionalInput`, `responseJSONPath`, `responseJSONNode`, `disableFlushCacheForGet`, `useQueueableApexRemoting` |
+| Remote Action | `remoteClass`, `remoteMethod`, the above, plus `useQueueableApexRemoting` and `useFuture` |
+| Integration Procedure Action | `ipMethod` (the nested IP's `Type_SubType`), `chainable`, `sendOnlyAdditionalInput` |
+
+### Reading another element's output
+
+**Merge syntax is `%ElementName:fieldName%`.** That is the actual mechanism behind everything
+described abstractly as passing data between steps:
+
+```json
+{ "AccountId": "%GetAccountDetails:Id%" }
+```
+
+Each element's output is stored in the IP response **under the element's own name** —
+`{"GetAccountDetails": { … }}` — which is why `responseJSONNode` exists and why renaming an element
+breaks every downstream reference to it.
+
+`sendOnlyAdditionalInput: true` suppresses the accumulated data context entirely and sends only what
+`additionalInput` declares. Use it when an element should not see upstream data, which is both a
+payload-size and a least-privilege decision.
+
+### The two async flags
+
+- **`useQueueableApexRemoting`** runs the Remote Action as a Queueable. The IP continues and the
+  result is available.
+- **`useFuture`** runs it as a `@future` method, which **returns no value**. An element with
+  `useFuture` cannot contribute to the response, so anything downstream reading its output gets
+  nothing.
+
+Reach for `chainable` on an Integration Procedure Action when the whole IP is long-running, rather
+than making individual elements async and losing their outputs.
+
 ## Invoking an IP from Apex
 
 ```apex
