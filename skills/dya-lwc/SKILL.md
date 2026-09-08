@@ -22,7 +22,8 @@ This SKILL.md carries the load-bearing rules. Detail you consult rather than obe
 - `references/state-management.md` — `@lwc/state` manager patterns and Lightning Message Service.
 - `references/dev-tooling-and-config.md` — the bundle meta XML, SLDS styling hooks, local preview, TypeScript, Dynamic Lists.
 - `references/apex-controller-contract.md` — the minimum viable `@AuraEnabled` controller with its DTO.
-- `references/jest-testing.md` — Jest setup, the `createElement` + `flushPromises` pattern, wire and Apex mocking.
+- `references/jest-testing.md` — Jest setup, the `createElement` + `flushPromises` pattern, wire and Apex mocking, accessibility tests with Sa11y.
+- `references/lws-rules.md` — the Lightning Web Security rules where ordinary JavaScript compiles and then behaves differently. Read it when a component works locally and not in the org.
 
 Server-side Apex — security design, SOQL and DML, triggers, async, observability, testing — is
 `dya-apex`. Who a controller's caller is allowed to see is `dya-permissions`. Flow mechanics are
@@ -69,7 +70,8 @@ Evaluate in order, and stop at the first option that satisfies the requirement:
 
 1. **`lightning-record-form`** and its view/edit siblings — single-record CRUD on the standard layout.
 2. **LDS wire adapters** — `lightning/uiRecordApi`, `lightning/uiRelatedListApi`,
-   `lightning/uiObjectInfoApi` for records, related lists, object metadata and picklist values.
+   `lightning/uiObjectInfoApi` and **`lightning/uiListsApi`** for records, related lists, object
+   metadata, picklist values and **list views** (`getListRecordsByName`).
 3. **GraphQL wire adapter** (`lightning/graphql` v2) — multi-object queries, filtering, aggregation,
    pagination.
 4. **LDS imperative functions** — `createRecord`, `updateRecord`, `deleteRecord`.

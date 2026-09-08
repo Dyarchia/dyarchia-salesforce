@@ -170,6 +170,50 @@ restrictions: `Create` and `Update` payloads must not select child relationships
 `REFERENCE` field only through its `ApiName`, and **`Delete` may select only `Id`**. Fields the user
 cannot see arrive in the payload's `errors` array instead of failing the request.
 
+## Filtering Beyond a Single Object
+
+**Operators:** `eq`, `ne`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `like`, `contains`.
+
+**Semi-join and anti-join** — filter a parent by a condition on its children, which is otherwise the
+reason people fall back to Apex:
+
+```graphql
+Account(where: {
+    Id: { inq: {                       # `ninq` for the anti-join
+        Contact: { Title: { like: "%VP%" } }
+        ApiName: "AccountId"           # the parent-id field on the child
+    } }
+}) { edges { node { Id Name { value } } } }
+```
+
+Use `Id: { ne: null }` when the only condition is that a matching child exists.
+
+**The running user** is `uiapi.currentUser`, which takes no arguments and returns a `User`.
+
+**Polymorphic references** need inline fragments (`... on Account`). A field is polymorphic when its
+`referenceToInfos` has more than one entry. Navigate references by their **`relationshipName`**; when
+that is null you can only return the raw `Id`.
+
+### Discovering the schema
+
+There is **no `/graphql/sdl` route**. Introspect through `/services/data/vXX.X/graphql` with a
+standard GraphQL introspection query. The SDL runs past 265,000 lines, so grep it rather than reading
+it:
+
+```text
+^type <Object> implements Record
+^input <Object>_Filter
+^input <Object>_OrderBy
+^input <Object>(Create|Update)Input
+```
+
+### Mutation input rules
+
+- `Create` must include every required field unless `defaultedOnCreate` is true, and may set only
+  `createable` fields.
+- `Update` takes the `Id` plus `updateable` fields only.
+- `REFERENCE` fields are assigned through their `ApiName`.
+
 ## Multi-Object Query in One Call
 
 Multiple queries can run in one operation. Use aliases when querying the same object twice.
