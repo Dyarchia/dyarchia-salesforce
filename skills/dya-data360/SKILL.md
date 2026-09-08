@@ -15,6 +15,7 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/ingestion-api.md` — streaming and bulk ingestion end to end: connector and schema prerequisites, the job lifecycle, the payload test action.
 - `references/query-access.md` — SOQL on DMOs/DLOs in Apex (`__dlm`, `DATASPACE`, governor and credit notes), Connect API in Apex (`ConnectApi`), the Query API (SQL), pagination, and query best practices.
 - `references/ingestion-and-modeling.md` — Ingestion API and connectors, streaming vs batch, DLO→DMO mapping, identity resolution, calculated insights, segments, data actions/platform events, and zero-copy federation.
+- `references/code-extensions.md` — Data Custom Code: the CLI and Python SDK, project shape, `read_dlo` / `write_to_dmo`, CPU sizing, and the fact that a local run hits real data.
 
 Load a reference when building that exact thing. Data 360 is the **data layer that grounds Agentforce** (`dya-agentforce`) and is increasingly driven headlessly (`dya-headless360`); query code is Apex (`dya-apex`).
 
@@ -220,7 +221,7 @@ Grounding keeps the agent's knowledge fresh, governed, and auditable — always 
 | React to data change in real time | Data Action → platform event/webhook |
 | Ground an agent in structured data | Unified profile + CI grounding |
 | Ground an agent in documents | UDLO + vector search (RAG) |
-| Custom in-platform transform | Data Custom Code (Python SDK) |
+| Custom in-platform transform | Data Custom Code (Python SDK) — `references/code-extensions.md` |
 | Drive Data 360 from a coding agent | Data 360 MCP Server (`dya-headless360`) |
 
 ---
