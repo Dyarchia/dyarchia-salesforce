@@ -82,5 +82,11 @@ sf alias unset MyOrg
 ## Notes
 
 - Scratch orgs require a **Dev Hub** (`--set-default-dev-hub` at login, or `target-dev-hub` config).
-- `org display --verbose` reveals the **access token + instance URL** — useful to feed other tools; treat as a secret.
-- Add `--json` to any command for structured output in automation.
+- **Never run `sf org display --verbose` on the user's behalf.** It returns `sfdxAuthUrl`, which is a
+  **refresh token** — running it pulls a live, long-lived credential into whatever transcript or log
+  the command output lands in. Plain `sf org display` is fine and is what you want; current CLIs
+  redact the access token from it and point at `sf org auth show-access-token`. If the user needs the
+  auth URL, tell them to run the verbose form themselves in their own terminal. The same care applies
+  to `sf org open --url-only`, whose front-door URL carries a one-time token.
+- Add `--json` to any command for structured output in automation — **except `sf code-analyzer run`**,
+  which rejects the flag. See `references/dev-and-agent.md`.

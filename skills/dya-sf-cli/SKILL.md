@@ -45,7 +45,7 @@ sf <topic> <subtopic?> <command> [--flags]
 - **`-o` / `--target-org`** selects the org (alias or username); omit to use the default.
 - **`--flags-dir <dir>`** imports flag values from files (handy for long/secret flags).
 
-Top-level topics: `org`, `project`, `apex`, `data`, `sobject`, `lightning`, `logic`, `agent`, `package`, `community`, `config`, `alias`, `schema`, `api`, `code-analyzer`, `plugins`, `doctor`, `info`, `force` (legacy).
+Top-level topics: `org`, `project`, `template`, `apex`, `data`, `sobject`, `lightning`, `logic`, `agent`, `devops`, `package`, `community`, `config`, `alias`, `schema`, `api`, `code-analyzer`, `plugins`, `doctor`, `info`, `force` (legacy).
 
 ---
 
@@ -77,7 +77,7 @@ Full auth/org/sandbox/user catalog: `references/org-and-auth.md`.
 ## 3. Metadata Deploy / Retrieve (most-used)
 
 ```bash
-sf project generate --name myProject                          # new DX project
+sf template generate project --name myProject                 # new DX project (`sf project generate` is deprecated)
 sf project deploy start --source-dir force-app                # deploy source
 sf project deploy start --manifest manifest/package.xml       # deploy by manifest
 sf project deploy preview --source-dir force-app              # dry-run diff
@@ -117,7 +117,7 @@ Full apex/lightning/logic/agent/package catalog: `references/dev-and-agent.md`.
 ## 5. Flag Conventions (v2)
 
 - Names are **kebab-case** and full words: `--target-org`, `--source-dir`, `--test-level`, `--api-name`.
-- Multi-value flags are **repeated**, not comma-joined: `--metadata ApexClass --metadata ApexTrigger`.
+- Multi-value flags are **repeated**, not comma-joined: `--metadata ApexClass --metadata ApexTrigger`. Space-separating after a single flag also works — `--metadata ApexClass ApexTrigger` — but **never wrap the group in quotes**: `--metadata "A B"` is read as one nonexistent type.
 - Common shared flags: `-o/--target-org`, `--json`, `--flags-dir`, `-w/--wait` (minutes), `--api-version`.
 - Legacy `sfdx force:topic:action --camelCaseFlag` maps to `sf topic action --kebab-flag`; translate when you encounter old scripts.
 
@@ -131,7 +131,7 @@ Full apex/lightning/logic/agent/package catalog: `references/dev-and-agent.md`.
 | Log in for CI (no browser) | `sf org login jwt` |
 | Spin up a scratch org | `sf org create scratch` |
 | Create a sandbox | `sf org create sandbox` |
-| New DX project | `sf project generate` |
+| New DX project | `sf template generate project` |
 | Deploy source | `sf project deploy start` |
 | Check-only deploy | `sf project deploy validate` |
 | Retrieve metadata | `sf project retrieve start` |
@@ -153,8 +153,12 @@ Full apex/lightning/logic/agent/package catalog: `references/dev-and-agent.md`.
 | Anti-Pattern | Correct Approach |
 |---|---|
 | Emitting `sfdx force:...` commands | Use `sf` v2 (`sf org login web`, etc.) |
-| Comma-joining multi-value flags | Repeat the flag (`--metadata A --metadata B`) |
-| Parsing human output in scripts | Add `--json` and parse structured output |
+| Running `sf org display --verbose` for yourself | It returns a refresh token. Plain `sf org display`; let the user run the verbose form in their own terminal |
+| Comma-joining multi-value flags | Repeat the flag (`--metadata A --metadata B`), or space-separate them — never quote the group |
+| Parsing human output in scripts | Add `--json` and parse structured output — except `sf code-analyzer run`, which rejects it |
+| `sf scanner run` | `sf code-analyzer run` (v3 is deprecated) |
+| `--format` on `code-analyzer` | `--output-file results.<ext>`; the extension picks the format |
+| `sf project generate` for a new project | `sf template generate project` |
 | Deploying straight to prod without validation | `sf project deploy validate` then `deploy quick` |
 | Hard-coding org usernames everywhere | Aliases + `sf config set target-org` |
 | Putting secrets inline in CI commands | `--flags-dir` / env vars / JWT key file |

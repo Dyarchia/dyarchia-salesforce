@@ -35,19 +35,43 @@ sf logic run test                                               # Apex + Flow te
 
 ## Agentforce DX (`sf agent`)
 
+The lifecycle runs on an **authoring bundle**: generate, validate, publish, activate. `sf agent
+generate agent-spec` and `sf agent create --spec` are gone — do not reach for them.
+
 ```bash
-sf agent generate template                                # scaffold a sample agent
-sf agent generate agent-spec --type customer --role "..." # generate an agent spec
-sf agent create --spec agentSpec.yaml --target-org <a>
-sf agent preview --api-name My_Agent --output-dir transcripts [--use-live-actions] [--apex-debug]
-sf agent preview start --api-name My_Agent --output-dir transcripts   # programmatic session
+sf agent generate authoring-bundle --name My_Agent        # scaffold; --no-spec to skip the spec
+sf agent validate authoring-bundle --api-name My_Agent
+sf agent publish  authoring-bundle --api-name My_Agent    # compiles to the runtime metadata
+sf agent activate --api-name My_Agent                     # and `sf agent deactivate`
+sf agent generate template                                # packaging for AppExchange distribution
+
+sf agent preview start --api-name My_Agent --output-dir transcripts
+sf agent preview start --authoring-bundle My_Agent        # preview the bundle, not a published agent
 sf agent preview send --session-id <id> --message "Where is order 123?"
 sf agent preview end --session-id <id>
+
+sf agent test create --spec test-specs/my-tests.yaml
+sf agent test run | list | results --job-id <id> | resume --job-id <id>
+
 # Related: create the run-as user
 sf org create agent-user --alias <a>
 ```
 
-`agent preview` writes trace files; `--use-live-actions` runs real actions, otherwise actions are AI-simulated (mocked).
+Two sub-topics beyond the core lifecycle:
+
+```bash
+sf agent mcp create | get | list | update | delete | fetch     # MCP servers from the CLI
+sf agent mcp asset list | replace -i <id>
+sf agent adl create | get | list | update | delete | status    # Agentforce Data Libraries
+sf agent adl upload --source-type sfdrive --library-id <id>
+sf agent adl file add | list | delete -i <id>
+```
+
+`agent preview` writes trace files. `--use-live-actions` runs real actions; `--simulate-actions` is
+its explicit counterpart and the default. **`sf agent generate test-spec` is an interactive REPL** —
+it stalls under automation, so write the spec YAML directly. `sf` must be **2.139.6 or newer** for
+agent work. Agent Script `.agent` bundles roll out through the publish workflow above, not through
+`sf agent generate template`.
 
 ## Packaging (`sf package`)
 
@@ -68,9 +92,28 @@ Supports **unlocked** and **managed 2GP** packages (1GP via `sf package1` legacy
 sf code-analyzer run --workspace force-app --view detail
 sf code-analyzer run --rule-selector Recommended --output-file results.html
 sf code-analyzer rules --rule-selector all
+sf code-analyzer config --rule-selector Security          # writes code-analyzer.yml
+sf code-analyzer ast-dump --file MyClass.cls --output-file ast.xml
 ```
 
-Runs the unified Code Analyzer (PMD, ESLint, Graph/Flow engines) for best-practice and security checks; wire into CI before deploy.
+`sf scanner run` is the deprecated v3 command; use `sf code-analyzer run`. **Seven engines**, not
+three: PMD, ESLint, CPD, RetireJS, Flow, SFGE and ApexGuru, plus a `regex` selector.
+
+Three flag facts that produce silent or confusing failures:
+
+- **There is no `--format`.** The output file's extension decides the format — `.json`, `.html`,
+  `.sarif`, `.csv`, `.xml` — via `--output-file`.
+- **`--json` is rejected here**, along with the other v3 flags `--format`, `--engine` and
+  `--category`. This is the one documented exception to adding `--json` everywhere for automation.
+- **`--rule-selector` needs the exact full rule name and takes no wildcards.** Compose it as
+  `<engine>:<category>:<severity>`, e.g. `all:Security:(1,2)`; severities run 1 (Critical) to
+  5 (Info). Look names up with `sf code-analyzer rules --rule-selector all`. A misspelled or partial
+  rule name inside `code-analyzer.yml` is **ignored without an error** — the override simply never
+  applies — and the file must sit at the project root or auto-discovery misses it.
+
+Prerequisites: `@salesforce/plugin-code-analyzer` v5+, Java 11+ (PMD, CPD, SFGE), Node 18+ (ESLint,
+RetireJS), Python 3 (Flow), and an authenticated org for ApexGuru. `sfge` wants `--workspace` and
+takes 10–20 minutes, so scope it deliberately rather than running it on every commit.
 
 ## Experience Cloud (`sf community`)
 
