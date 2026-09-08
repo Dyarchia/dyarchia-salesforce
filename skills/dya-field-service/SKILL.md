@@ -15,6 +15,8 @@ References:
 - `references/shared/governor-limits.md` — the transaction budget the scope-1 batch pattern exists to respect.
 - `references/fsl-apex-scheduling.md` — full ScheduleService / AppointmentBookingService / GradeSlotsService / OAAS reference with signatures, result-object members, and the scope-1 batch pattern.
 - `references/rest-and-mobile.md` — Salesforce Scheduler REST (candidates/slots), Appointment Bundling REST APIs, and Field Service Mobile (LWC Offline, Briefcase, what works offline).
+- `references/fsl-policy-model.md` — what a scheduling policy is made of: the junction objects, RecordType-based typing, relevance groups, database-versus-Apex rule engines, and the optimizer's penalty arithmetic.
+- `references/mobile-data-capture.md` — Data Capture flows and their Tooling deployment, the `dc*` component namespace, `DynamicDataCapture`, the sharing trap that blanks the Forms tab, and the two mobile configuration sObjects.
 
 ---
 
@@ -120,6 +122,7 @@ Key behaviours:
 - **`GetSlots` only returns slots between the SA's `EarliestStartTime` and `DueDate`** — widen `DueDate` to get more windows.
 - Slot times are relative to the supplied `TimeZone`; offset when persisting `ArrivalWindowStartTime/EndTime` if the operating-hours timezone differs.
 - **Schedule by changing Status too** — setting a SA's `Status` to a scheduled/none-mapped value schedules/unschedules it, per the FSL Settings life-cycle mapping.
+- **Latency is decided by the policy, not the call.** Work rules run in two engines: database rules filter inside the SOQL query, while Apex rules run afterwards and iterate over **every candidate that query returned**. A policy therefore needs at least one database rule, aiming to narrow to roughly **20 candidates** before any Apex rule or objective runs. A policy of pure Apex rules is what "Field Service is slow" usually turns out to be. See `references/fsl-policy-model.md`.
 
 Full members, `GradeSlotsService.getGradedMatrix`, and the `OAASRequest` fields: `references/fsl-apex-scheduling.md`.
 
@@ -179,6 +182,13 @@ Headless flow: **get candidates/slots → create WorkOrder + ServiceAppointment 
 
 **FSL managed-package custom objects:** `FSL__Scheduling_Policy__c`, `FSL__Work_Rule__c`, `FSL__Service_Goal__c` (service objectives), `FSL__Optimization_Request__c`, `FSL__Polygon__c`.
 
+Four `ServiceAppointment` facts that constrain a booking design: **`ParentRecordId` is create-only** —
+polymorphic over Account, Asset, Lead, Opportunity, WorkOrder and WorkOrderLineItem, so §5's
+headless flow must know the parent before it commits. **`DurationType`** (Minutes or Hours) governs
+what `Duration` means. **`StatusCategory`** is a restricted picklist and the concrete mechanism
+behind the status mapping below — a custom Status must declare its category. Bundling carries `BundlePolicyId` and
+`RelatedBundleId`, not only `IsBundle` and `IsBundleMember`.
+
 **ServiceAppointment lifecycle (default, customizable):** `None → Scheduled → Dispatched → In Progress → Completed`, with `Cannot Complete` / `Canceled` as exceptions. Scheduling keys off the status-category mapping in FSL Settings, not the literal label.
 
 **`FSL__` is not a constant — resolve it.** The prefix is `FSL` in a production org but `FSLQA`, `FSLMPTEST` or `FSLMPPERF` elsewhere, and an org on **Enhanced Scheduling and Optimization (ESO)** exposes native objects instead: `SchedulingPolicy`, `SchedulingConstraint`, `SchedulingRule`, `SchedulingObjective` and `SchedulingPolicyObjective`. Query `SELECT SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage` on the Tooling API **with no `WHERE` clause** — it rejects filters on `NamespacePrefix` — and filter client-side for the first prefix starting with `FSL`. An empty result means FSL is not installed. Then try the managed object and fall back to the native one on `INVALID_TYPE`.
@@ -197,7 +207,11 @@ There is **no supported "write a Work Rule in Apex" SPI**, but four declarative 
 - **Does NOT work offline:** Apex *writes*, server-hitting Apex calls, **record-triggered** automation — triggers, validation rules, workflow and record-triggered flows all fire at sync, not on the device — and Lightning Message Service. **Screen flows are the exception**: they run offline under an offline flow cache policy, and a Data Capture flow (`processType: DataCaptureFlow`, `environments: ["Offline"]`) is built to. Keep GraphQL queries small (>32 KB hurts mobile). Apex errors arrive as an **array** of error objects.
 - **Briefcase Builder** primes offline data sets (object + filter); Files and Custom Metadata aren't primed automatically. Deep links can be **signed** with the Public Security Key to suppress the security dialog.
 
-Full offline matrix and Bundling REST: `references/rest-and-mobile.md`.
+- **An empty Forms tab is usually a sharing problem, not a data one.** The tab reads through the UI API, which enforces sharing, so a Private OWD on `DynamicDataCapture` or `WorkPlan` — the platform default — returns `INSUFFICIENT_ACCESS` and the app shows "No forms available". Desktop SOQL as an admin will not reproduce it, and the app caches its sharing snapshot at login, so the technician must sign out and back in after the fix.
+- **Pre-Work Brief activation cannot be driven from Apex.** The prompt-template activation endpoint is `@ConnectHidden(from=Apex)`, so `ConnectApi.EinsteinLLM` and metadata approaches both fail by design. Drive it from the CLI or an external caller.
+
+Full offline matrix and Bundling REST: `references/rest-and-mobile.md`. Data Capture flows, the `dc*`
+components and the mobile settings objects: `references/mobile-data-capture.md`.
 
 ---
 
