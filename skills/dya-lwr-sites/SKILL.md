@@ -15,6 +15,8 @@ This SKILL.md carries the load-bearing rules. Larger material lives in `referenc
 - `references/shared/sharing-and-access.md` — the guest user and the access model a public site
   runs under. **Read this before hardening anything.**
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
+- `references/site-provisioning.md` — creating a site through the Connect API, the source layout,
+  and the activate-then-publish sequence a new site needs before anyone can reach it.
 - `references/guest-and-seo.md` — the full guest-user hardening procedure and the SEO setup
   (slugs, sitemaps, robots.txt) for a production LWR site.
 
@@ -155,6 +157,17 @@ LWR sites are metadata: `DigitalExperienceBundle` (enhanced), plus `Network`, `C
 `DigitalExperienceConfig`. Source-track them and deploy through CI/CD; on enhanced sites use
 **partial deployment** for incremental changes; validate against a sandbox. Activating or
 editing a production site by hand is an incident waiting to happen.
+
+Two things to internalise before the first deploy:
+
+- **A newer LWR site abstracts FlexiPage away entirely.** Never reach for FlexiPage tooling —
+  retrieving, generating or editing one — on a `DigitalExperienceBundle` site. It is the reflex for
+  "Lightning page" and it silently does nothing here.
+- **A page needs both a `route` and a `view`** under `digitalExperiences/site/<name>1/sfdc_cms__*/`,
+  each with its own `_meta.json` and `content.json`. One without the other does not resolve.
+
+> The full source layout, creating a site through the Connect API, and the activate-then-publish
+> sequence: `references/site-provisioning.md`.
 
 ---
 
