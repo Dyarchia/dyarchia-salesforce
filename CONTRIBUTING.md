@@ -36,8 +36,19 @@ Work flows in one direction: **feature → `develop` → `master`**.
 
 - Branch from `develop`, and set the pull-request base to `develop` by hand. GitHub offers `master`
   because it is the default branch; accepting the offer skips `develop` entirely.
-- `master` is the published branch. It is synced from `develop` after a merge, and nothing lands on
-  it directly.
+- `master` is the published branch and nothing lands on it directly. **Publishing is a fast-forward,
+  never a merge**, so the two branches share one history and cannot diverge:
+
+```bash
+git push origin develop:master
+```
+
+- Mark the publish with an annotated tag rather than a commit. A merge-based sync used to leave a
+  commit on `master` that never flowed back, so `develop` was reported as eight commits behind while
+  being byte-identical to it — and that banner invites a `git merge master` on `develop`, which
+  drags publish-only commits into the working branch. If the two ever diverge again, reconcile with
+  a single merge of `master` into `develop`; **never force-push `master`**.
+- `master` lagging `develop` between publishes is the normal state. It means unpublished work.
 - A clone or worktree created under a different default carries a stale `refs/remotes/origin/HEAD`,
   so checking out the bare default hands you the wrong branch. Repair the ref rather than routing
   around it:

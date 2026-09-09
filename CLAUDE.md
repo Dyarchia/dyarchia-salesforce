@@ -13,10 +13,26 @@ One repo per domain, one plugin per repo. Sibling domains get their own repos un
 Work flows in one direction: **feature → `develop` → `master`**.
 
 `develop` is the working branch and carries everything described in this file. `master` is the
-published branch and GitHub's default; it is synced from `develop` after a merge and nothing lands
-on it directly.
+published branch and GitHub's default; nothing lands on it directly.
 
-Two consequences follow, and both bite silently:
+**Publishing is a fast-forward, never a merge:**
+
+```bash
+git push origin develop:master
+```
+
+`master` is a pointer at whichever `develop` commit was last published, so the two branches share one
+history and cannot diverge. Mark the publish with an annotated tag rather than a commit — a tag is
+what a release marker is for, and it does not distort the branch graph.
+
+This replaced a merge-based sync in September 2026. Merging `develop` into `master` created a commit
+on `master` that never flowed back, so the counter grew by one per release and GitHub reported
+`develop` as eight commits behind `master` while the two were byte-identical. Worse than cosmetic:
+the "behind" banner invites a `git merge master` on `develop`, which drags publish-only commits into
+the working branch and breaks the one-way flow. **If you ever find the two diverged again, reconcile
+with a single merge of `master` into `develop` — never force-push `master`.**
+
+Three consequences follow, and they bite silently:
 
 - **Branch from `develop`, and set the pull-request base to `develop`.** GitHub offers `master`
   because it is the default, so the base must be changed by hand every time. A pull request that
@@ -24,6 +40,8 @@ Two consequences follow, and both bite silently:
 - A clone or worktree created under a different default still has a stale
   `refs/remotes/origin/HEAD`, so checking out the bare default hands you the wrong branch. Repair it
   with `git remote set-head origin -a` instead of routing around it.
+- **`master` lagging `develop` between publishes is the normal state**, and GitHub will say so. It
+  means unpublished work, not a problem to fix by merging anything backwards.
 
 This file and `CONTRIBUTING.md` are **versioned on every branch**. They are the contributor
 contract: a clone that lacks them cannot be contributed to correctly, and the drift between the two
