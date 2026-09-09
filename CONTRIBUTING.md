@@ -90,10 +90,11 @@ git remote set-head origin -a
 
    The order is always **sync, then build, then validate**. Building first bundles a stale copy.
 7. Add the skill to the README catalogue and to the layout diagram, and move the skill count
-   everywhere it is asserted. The validator checks five of those sites and **fails** on any that
+   everywhere it is asserted. The validator checks six of those sites and **fails** on any that
    disagree with the number of folders under `skills/` — the README catalogue line, both boxes of
-   its layout diagram, the install line, and `plugin.json`'s description. It cannot check the prose
-   in `CLAUDE.md` and this file, so update those two by hand.
+   its layout diagram, the install line, and the description of **both** `.claude-plugin/plugin.json`
+   and `.codex-plugin/plugin.json`. It cannot check the prose in `CLAUDE.md` and this file, so update
+   those two by hand.
 8. Add a CHANGELOG entry under `## [Unreleased]` → `### Added`.
 9. Run the validator. It must exit 0.
 10. Commit as `feat(skills): add dya-<name> skill`, source and bundle together, on a branch cut from
@@ -157,6 +158,7 @@ Platform Context declares the version    A version bump landed half-applied
 README badge agrees with catalogue       The two halves of the README disagree
 plugin.json states the version           The published description is stale
 plugin/marketplace versions agree        The marketplace advertises a different build
+Host manifests agree                     Claude and Codex disagree on name or version
 Every references/ file is cited          A reference no agent can ever reach
 Cross-referenced skills exist            A handoff points at a skill that is gone
 Stated skill counts match skills/        The catalogue lies about how much is in the box

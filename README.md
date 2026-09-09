@@ -96,7 +96,7 @@ Every skill loads **only on explicit invocation by name** — none auto-trigger 
 ```mermaid
 graph LR
     Root([dyarchia-salesforce/])
-    Root --> Plugin[".claude-plugin/<br/>plugin · marketplace"]
+    Root --> Plugin[".claude-plugin/ · .codex-plugin/<br/>host manifests"]
     Root --> Meta["README · CHANGELOG · LICENSE"]
     Root --> Contract["CLAUDE.md · CONTRIBUTING.md<br/>contributor contract"]
     Root --> SK["skills/<br/>26 skill folders"]
@@ -144,6 +144,27 @@ The repository is its own marketplace, so all 26 skills install in one step:
 The plugin and the marketplace share a name because this repository is both: one repo per domain, one plugin per repo. Sibling Dyarchia domains ship their own repository and their own marketplace, so the two can be installed side by side without colliding.
 
 Skills are discovered from `skills/` automatically. No MCP servers are declared — wire your own if you use them.
+
+---
+
+## Install on other agents
+
+The skills themselves are not Claude-specific. Each is a folder with a `SKILL.md` carrying `name` and `description` in YAML frontmatter — the [Agent Skills](https://agentskills.io) shape that several vendors now read. Only the manifests differ, and both live at the repository root:
+
+```text
+.claude-plugin/     plugin.json + marketplace.json
+.codex-plugin/      plugin.json
+skills/             the content, shared by both
+```
+
+- **Grok (xAI)** needs nothing. It reads Claude Code marketplaces, plugins, skills, MCP servers, agents, hooks and `CLAUDE.md` alongside its own `.grok/`, so clone the repo or install it as a plugin and it works as-is.
+- **Codex / ChatGPT** reads `.codex-plugin/plugin.json`, which points at the same `skills/` tree. Add the folder to a local marketplace with `@plugin-creator`, then install it.
+- **Mistral Vibe** takes the skill folders directly — it implements the same Agent Skills standard.
+- **Anything that reads `.agents/skills/`** (Codex and Grok both do, at repo and user level) will find the skills if you symlink or copy `skills/` there.
+
+The two manifests duplicate the plugin name, version and description, so `scripts/validate-skills` checks them against each other and fails when they drift.
+
+Gemini has no equivalent plugin-and-skill surface at the time of writing; use the `.skill` bundles or paste what you need.
 
 ---
 

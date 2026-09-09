@@ -34,6 +34,7 @@ $versionNeutralSkills = @('dya-b2c-commerce', 'dya-sf-cli')
 $sharedDir = Join-Path $repoRoot 'references-shared'
 $pluginManifest = Join-Path $repoRoot '.claude-plugin/plugin.json'
 $marketplaceManifest = Join-Path $repoRoot '.claude-plugin/marketplace.json'
+$codexManifest = Join-Path $repoRoot '.codex-plugin/plugin.json'
 
 function Get-SharedManifest {
     param([Parameter(Mandatory)] [string] $Path)
@@ -248,26 +249,50 @@ foreach ($name in $skills) {
     finally { $zip.Dispose() }
 }
 
-$pluginVersion = $null
-if (Test-Path -LiteralPath $pluginManifest) {
-    $plugin = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
-    $pluginVersion = $plugin.version
-    if ($platformVersion -and $plugin.description -notlike "*$platformVersion*") {
-        Add-Failure ".claude-plugin/plugin.json description does not state '$platformVersion'"
+# Every manifest repeats the platform version and the skill count in its description. Both have to
+# land in all of them or fail -- the plugin description is where the count silently went stale once.
+function Test-ManifestDescription {
+    param([string]$Label, [string]$Description)
+    if ($platformVersion -and $Description -notlike "*$platformVersion*") {
+        Add-Failure "$Label description does not state '$platformVersion'"
     }
-    # The skill count is asserted in prose in several places. Like the platform version, it has to
-    # land everywhere or fail -- this description is where it silently went stale once already.
-    if ($plugin.description -match '(?i)(\d+)\s+(?:domain\s+)?(?:skills?|playbooks?)') {
+    if ($Description -match '(?i)(\d+)\s+(?:domain\s+)?(?:skills?|playbooks?)') {
         if ([int]$Matches[1] -ne $skills.Count) {
-            Add-Failure (".claude-plugin/plugin.json description says {0} skills, but skills/ holds {1}" -f
+            Add-Failure ("$Label description says {0} skills, but skills/ holds {1}" -f
                 $Matches[1], $skills.Count)
         }
     }
     else {
-        Add-Warning '.claude-plugin/plugin.json description states no skill count - nothing to check it against'
+        Add-Warning "$Label description states no skill count - nothing to check it against"
     }
 }
+
+$pluginVersion = $null
+if (Test-Path -LiteralPath $pluginManifest) {
+    $plugin = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
+    $pluginVersion = $plugin.version
+    Test-ManifestDescription '.claude-plugin/plugin.json' $plugin.description
+}
 else { Add-Failure '.claude-plugin/plugin.json not found' }
+
+# The Codex manifest serves the same skills/ tree to a different host. It duplicates the name,
+# version and description, so all three are checked against the Claude manifest rather than trusted.
+if (Test-Path -LiteralPath $codexManifest) {
+    $codex = Get-Content -LiteralPath $codexManifest -Raw | ConvertFrom-Json
+    Test-ManifestDescription '.codex-plugin/plugin.json' $codex.description
+    if ($pluginVersion -and $codex.version -ne $pluginVersion) {
+        Add-Failure ("plugin.json version '{0}' and .codex-plugin/plugin.json version '{1}' disagree" -f
+            $pluginVersion, $codex.version)
+    }
+    if ($plugin -and $codex.name -ne $plugin.name) {
+        Add-Failure ("plugin.json name '{0}' and .codex-plugin/plugin.json name '{1}' disagree" -f
+            $plugin.name, $codex.name)
+    }
+    if ($codex.skills -ne "./$SourceRoot/") {
+        Add-Failure ".codex-plugin/plugin.json points skills at '$($codex.skills)', expected './$SourceRoot/'"
+    }
+}
+else { Add-Failure '.codex-plugin/plugin.json not found' }
 
 if (Test-Path -LiteralPath $marketplaceManifest) {
     $marketplace = Get-Content -LiteralPath $marketplaceManifest -Raw | ConvertFrom-Json
