@@ -196,6 +196,17 @@ if [ -f "$PLUGIN_MANIFEST" ]; then
     if [ -n "$PLATFORM_VERSION" ] && ! grep -qF "$PLATFORM_VERSION" "$PLUGIN_MANIFEST"; then
         fail ".claude-plugin/plugin.json description does not state '$PLATFORM_VERSION'"
     fi
+    # The skill count is asserted in prose in several places. Like the platform version, it has to
+    # land everywhere or fail -- this description is where it silently went stale once already.
+    plugin_count="$(grep -oiE '[0-9]+ +(domain +)?(skills?|playbooks?)' "$PLUGIN_MANIFEST" \
+        | head -1 | grep -oE '^[0-9]+')"
+    if [ -n "$plugin_count" ]; then
+        if [ "$plugin_count" -ne "${#skills[@]}" ]; then
+            fail ".claude-plugin/plugin.json description says $plugin_count skills, but skills/ holds ${#skills[@]}"
+        fi
+    else
+        warn ".claude-plugin/plugin.json description states no skill count - nothing to check it against"
+    fi
 else
     fail ".claude-plugin/plugin.json not found"
 fi
@@ -209,6 +220,23 @@ if [ -f "$MARKETPLACE_MANIFEST" ]; then
     fi
 else
     fail ".claude-plugin/marketplace.json not found"
+fi
+
+# The README asserts the skill count in four places. Each is checked against the folder count, and
+# an assertion that has been reworded away is a warning rather than a silent gap.
+if [ -s "$README" ]; then
+    check_readme_count() {
+        found="$(sed -n "s/$1/\1/p" "$README" | head -1)"
+        if [ -z "$found" ]; then
+            warn "README.md $2 no longer states a skill count"
+        elif [ "$found" -ne "${#skills[@]}" ]; then
+            fail "README.md $2 says $found skills, but skills/ holds ${#skills[@]}"
+        fi
+    }
+    check_readme_count '^\([0-9]\{1,\}\) skills, all targeting.*$'      'catalogue line'
+    check_readme_count '.*skills\/<br\/>\([0-9]\{1,\}\) skill folders.*$' 'layout diagram, skills/'
+    check_readme_count '.*dist\/<br\/>\([0-9]\{1,\}\) \.skill bundles.*$' 'layout diagram, dist/'
+    check_readme_count '.*all \([0-9]\{1,\}\) skills install in one step.*$' 'install line'
 fi
 
 if [ -s "$README" ]; then
