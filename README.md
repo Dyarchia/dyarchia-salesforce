@@ -138,8 +138,10 @@ The repository is its own marketplace, so all 26 skills install in one step:
 ```
 
 ```bash
-/plugin install dyarchia-salesforce@dyarchia
+/plugin install dyarchia-salesforce@dyarchia-salesforce
 ```
+
+The plugin and the marketplace share a name because this repository is both: one repo per domain, one plugin per repo. Sibling Dyarchia domains ship their own repository and their own marketplace, so the two can be installed side by side without colliding.
 
 Skills are discovered from `skills/` automatically. No MCP servers are declared — wire your own if you use them.
 

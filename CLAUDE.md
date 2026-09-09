@@ -264,6 +264,23 @@ and badge, the plugin description, and `references-shared/platform-deltas.md`; t
 skill's `## Platform Context` heading and re-verify its per-domain claims. The validator reports
 every skill you missed.
 
+## Plugin and marketplace identity
+
+Both manifests carry the name **`dyarchia-salesforce`**, and they are meant to match. The repository
+is simultaneously the plugin and the marketplace that serves it — one repo per domain, one plugin per
+repo — so a consumer installs with `/plugin install dyarchia-salesforce@dyarchia-salesforce`, where
+the part after the `@` is the marketplace.
+
+The marketplace was called `dyarchia` until September 2026. That name belonged to the organisation
+rather than to this repository, so every sibling domain repo would have declared a marketplace by the
+same name and a consumer adding two of them would have collided. **Name a domain repo's marketplace
+after the repo, never after the org.**
+
+The **skill count appears in `plugin.json`'s description** as well as in the README catalogue line,
+the README layout diagram and this file. The validator checks that description for the platform
+version but not for the count, so adding or removing a skill means updating it by hand — it is the
+one place the count can go stale without anything failing.
+
 ## Adding or editing a skill
 
 The prescriptive procedure lives in `CONTRIBUTING.md`. Follow it rather than improvising. The short

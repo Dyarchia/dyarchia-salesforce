@@ -89,7 +89,11 @@ git remote set-head origin -a
    ```
 
    The order is always **sync, then build, then validate**. Building first bundles a stale copy.
-7. Add the skill to the README catalogue and to the layout diagram.
+7. Add the skill to the README catalogue and to the layout diagram, and move the skill count
+   everywhere it is asserted: the README catalogue line and both boxes of its layout diagram, the
+   install line, `CLAUDE.md`, this file, and **`plugin.json`'s description**. The validator checks
+   that description for the platform version but not for the count, so it is the one place the
+   number can go stale without anything failing.
 8. Add a CHANGELOG entry under `## [Unreleased]` → `### Added`.
 9. Run the validator. It must exit 0.
 10. Commit as `feat(skills): add dya-<name> skill`, source and bundle together, on a branch cut from

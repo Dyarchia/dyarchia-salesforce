@@ -1,17 +1,17 @@
 {
-  "name": "dyarchia",
+  "name": "dyarchia-salesforce",
   "owner": {
     "name": "Dyarchia"
   },
   "metadata": {
-    "description": "Dyarchia agent capabilities, one plugin per domain"
+    "description": "The Salesforce domain of Dyarchia agent capabilities. Sibling domains ship their own repository and marketplace."
   },
   "plugins": [
     {
       "name": "dyarchia-salesforce",
       "source": "./",
       "version": "0.3.0",
-      "description": "Salesforce agent skills — Apex, LWC, Flow, Agentforce, Data 360, Commerce, Field Service, OmniStudio, Revenue Cloud, the integration family, permissions and the sf CLI."
+      "description": "Salesforce agent skills — Apex, LWC, Flow, Agentforce, Data 360, Commerce, Field Service, Omni-Channel, OmniStudio, Revenue Cloud, the integration family, permissions and the sf CLI."
     }
   ]
 }
