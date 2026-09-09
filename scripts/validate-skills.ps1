@@ -255,6 +255,17 @@ if (Test-Path -LiteralPath $pluginManifest) {
     if ($platformVersion -and $plugin.description -notlike "*$platformVersion*") {
         Add-Failure ".claude-plugin/plugin.json description does not state '$platformVersion'"
     }
+    # The skill count is asserted in prose in several places. Like the platform version, it has to
+    # land everywhere or fail -- this description is where it silently went stale once already.
+    if ($plugin.description -match '(?i)(\d+)\s+(?:domain\s+)?(?:skills?|playbooks?)') {
+        if ([int]$Matches[1] -ne $skills.Count) {
+            Add-Failure (".claude-plugin/plugin.json description says {0} skills, but skills/ holds {1}" -f
+                $Matches[1], $skills.Count)
+        }
+    }
+    else {
+        Add-Warning '.claude-plugin/plugin.json description states no skill count - nothing to check it against'
+    }
 }
 else { Add-Failure '.claude-plugin/plugin.json not found' }
 
@@ -270,6 +281,28 @@ if (Test-Path -LiteralPath $marketplaceManifest) {
     }
 }
 else { Add-Failure '.claude-plugin/marketplace.json not found' }
+
+# The README asserts the skill count in four places. Each is checked against the folder count, and
+# an assertion that has been reworded away is a warning rather than a silent gap.
+if ($readmeText) {
+    $countAssertions = @(
+        @{ Pattern = '(?m)^(\d+) skills, all targeting'; Label = 'catalogue line' }
+        @{ Pattern = 'skills/<br/>(\d+) skill folders';  Label = 'layout diagram, skills/' }
+        @{ Pattern = 'dist/<br/>(\d+) \.skill bundles';  Label = 'layout diagram, dist/' }
+        @{ Pattern = 'all (\d+) skills install in one step'; Label = 'install line' }
+    )
+    foreach ($assertion in $countAssertions) {
+        if ($readmeText -match $assertion.Pattern) {
+            if ([int]$Matches[1] -ne $skills.Count) {
+                Add-Failure ("README.md {0} says {1} skills, but skills/ holds {2}" -f
+                    $assertion.Label, $Matches[1], $skills.Count)
+            }
+        }
+        else {
+            Add-Warning ("README.md {0} no longer states a skill count" -f $assertion.Label)
+        }
+    }
+}
 
 if ($readmeText) {
     $mentioned = [regex]::Matches($readmeText, 'dya-[a-z0-9-]+') |

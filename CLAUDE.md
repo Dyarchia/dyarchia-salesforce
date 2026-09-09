@@ -161,6 +161,7 @@ a references/ file is never cited from SKILL.md         substring, per file
 a declared shared fragment is missing or edited         SHA-256 against references-shared/
 a synced file is not declared in shared-refs.txt        set comparison
 a skill cites `dya-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
+a stated skill count disagrees with skills/             5 sites: 4 in README, plugin.json description
 ```
 
 **README is the single source of truth for the platform version.** The catalogue line
@@ -276,10 +277,15 @@ rather than to this repository, so every sibling domain repo would have declared
 same name and a consumer adding two of them would have collided. **Name a domain repo's marketplace
 after the repo, never after the org.**
 
-The **skill count appears in `plugin.json`'s description** as well as in the README catalogue line,
-the README layout diagram and this file. The validator checks that description for the platform
-version but not for the count, so adding or removing a skill means updating it by hand — it is the
-one place the count can go stale without anything failing.
+The **skill count is checked wherever a script can read it**, the same way the platform version is:
+the README catalogue line, both boxes of the README layout diagram, the README install line, and
+`plugin.json`'s description. A disagreement with the number of folders under `skills/` is a hard
+failure, so the count either lands everywhere or the build stops.
+
+Two things follow. Rewording an assertion so no number survives produces a **warning** rather than
+silence — a check that quietly stops applying is worse than one that fails. And the count is still
+asserted in prose in `CLAUDE.md` and `CONTRIBUTING.md`, which nothing verifies; those are the two
+places to update by hand.
 
 ## Adding or editing a skill
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`validate-skills` now checks the stated skill count.** The count is asserted in prose in several places, and one of them — `plugin.json`'s description — went stale unnoticed when `dya-omni-channel` made it twenty-six, surviving a clean validation run because the existing check reads that description for the *platform version* only. Five sites are now verified against the number of folders under `skills/` and **fail** on disagreement: the README catalogue line, both boxes of the README layout diagram, the README install line, and the plugin description. The count therefore lands everywhere or the build stops, exactly like the platform version. Rewording an assertion so no number survives produces a **warning** rather than silence, because a check that quietly stops applying is worse than one that fails. Verified in both twins by perturbing each of the five sites in turn and by removing an assertion entirely; the prose counts in `CLAUDE.md` and `CONTRIBUTING.md` remain manual and are flagged as such.
+
 ## [0.4.0] - 2026-09-09
 
 The first release cut since `0.1.0`. The `0.2.0` and `0.3.0` version numbers were carried in the
