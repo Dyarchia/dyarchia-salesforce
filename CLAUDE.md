@@ -61,6 +61,8 @@ dyarchia-salesforce/
 ├── .claude-plugin/
 │   ├── plugin.json                # plugin identity; components auto-discovered
 │   └── marketplace.json           # the repo is its own marketplace
+├── .codex-plugin/
+│   └── plugin.json                # the same skills/ tree, served to Codex
 ├── CLAUDE.md                      # this file
 ├── CONTRIBUTING.md                # the authoring procedure, step by step
 ├── README.md                      # public catalogue and install instructions
@@ -161,7 +163,8 @@ a references/ file is never cited from SKILL.md         substring, per file
 a declared shared fragment is missing or edited         SHA-256 against references-shared/
 a synced file is not declared in shared-refs.txt        set comparison
 a skill cites `dya-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
-a stated skill count disagrees with skills/             5 sites: 4 in README, plugin.json description
+a stated skill count disagrees with skills/             6 sites: 4 in README, both plugin manifests
+the Claude and Codex manifests disagree                 name, version, and the skills/ path
 ```
 
 **README is the single source of truth for the platform version.** The catalogue line
@@ -265,9 +268,34 @@ and badge, the plugin description, and `references-shared/platform-deltas.md`; t
 skill's `## Platform Context` heading and re-verify its per-domain claims. The validator reports
 every skill you missed.
 
+## Host manifests
+
+**The skills are not Claude-specific; only the manifests are.** A skill is a folder with a `SKILL.md`
+carrying `name` and `description` in frontmatter — the Agent Skills shape that Codex, Grok and
+Mistral Vibe all read. That is why the frontmatter contract below is exactly two keys: it is the
+intersection every host requires, and hosts ignore keys they do not know.
+
+Two manifests serve the one `skills/` tree:
+
+```text
+.claude-plugin/plugin.json + marketplace.json    Claude Code
+.codex-plugin/plugin.json                        Codex / ChatGPT
+```
+
+Grok needs neither — it reads Claude Code's marketplaces, plugins, skills and instruction files with
+no configuration. Anything reading `.agents/skills/` finds the tree through a symlink.
+
+The two manifests **duplicate the plugin name, version and description**, which is exactly the drift
+this repo is built to prevent, so `validate-skills` checks all three against each other and against
+`skills/` and fails on disagreement. Adding a third host means adding it to that check in both script
+twins — never a manifest on its own.
+
+`.codex-plugin/plugin.json` also declares `"skills": "./skills/"`, which the validator pins to the
+source root. Changing `SourceRoot` without changing that string breaks the Codex install silently.
+
 ## Plugin and marketplace identity
 
-Both manifests carry the name **`dyarchia-salesforce`**, and they are meant to match. The repository
+Both Claude manifests carry the name **`dyarchia-salesforce`**, and they are meant to match. The repository
 is simultaneously the plugin and the marketplace that serves it — one repo per domain, one plugin per
 repo — so a consumer installs with `/plugin install dyarchia-salesforce@dyarchia-salesforce`, where
 the part after the `@` is the marketplace.
@@ -278,9 +306,9 @@ same name and a consumer adding two of them would have collided. **Name a domain
 after the repo, never after the org.**
 
 The **skill count is checked wherever a script can read it**, the same way the platform version is:
-the README catalogue line, both boxes of the README layout diagram, the README install line, and
-`plugin.json`'s description. A disagreement with the number of folders under `skills/` is a hard
-failure, so the count either lands everywhere or the build stops.
+the README catalogue line, both boxes of the README layout diagram, the README install line, and the
+description of **both** plugin manifests. A disagreement with the number of folders under `skills/`
+is a hard failure, so the count either lands everywhere or the build stops.
 
 Two things follow. Rewording an assertion so no number survives produces a **warning** rather than
 silence — a check that quietly stops applying is worse than one that fails. And the count is still

@@ -11,6 +11,7 @@ README="$REPO_ROOT/README.md"
 SHARED_DIR="$REPO_ROOT/references-shared"
 PLUGIN_MANIFEST="$REPO_ROOT/.claude-plugin/plugin.json"
 MARKETPLACE_MANIFEST="$REPO_ROOT/.claude-plugin/marketplace.json"
+CODEX_MANIFEST="$REPO_ROOT/.codex-plugin/plugin.json"
 
 INVOCATION_CLAUSE='Load only when the user explicitly invokes this skill by name'
 # README names that are deliberately dya-prefixed without a folder under skills/.
@@ -190,25 +191,51 @@ for name in "${skills[@]}"; do
     fi
 done
 
+# Every manifest repeats the platform version and the skill count in its description. Both have to
+# land in all of them or fail -- the plugin description is where the count silently went stale once.
+check_manifest_description() {
+    manifest="$1"; label="$2"
+    if [ -n "$PLATFORM_VERSION" ] && ! grep -qF "$PLATFORM_VERSION" "$manifest"; then
+        fail "$label description does not state '$PLATFORM_VERSION'"
+    fi
+    count="$(grep -oiE '[0-9]+ +(domain +)?(skills?|playbooks?)' "$manifest" | head -1 | grep -oE '^[0-9]+')"
+    if [ -z "$count" ]; then
+        warn "$label description states no skill count - nothing to check it against"
+    elif [ "$count" -ne "${#skills[@]}" ]; then
+        fail "$label description says $count skills, but skills/ holds ${#skills[@]}"
+    fi
+}
+
+json_field() { sed -n "s/^[[:space:]]*\"$2\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" "$1" | head -1; }
+
 PLUGIN_VERSION=""
+PLUGIN_NAME=""
 if [ -f "$PLUGIN_MANIFEST" ]; then
-    PLUGIN_VERSION="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$PLUGIN_MANIFEST" | head -1)"
-    if [ -n "$PLATFORM_VERSION" ] && ! grep -qF "$PLATFORM_VERSION" "$PLUGIN_MANIFEST"; then
-        fail ".claude-plugin/plugin.json description does not state '$PLATFORM_VERSION'"
-    fi
-    # The skill count is asserted in prose in several places. Like the platform version, it has to
-    # land everywhere or fail -- this description is where it silently went stale once already.
-    plugin_count="$(grep -oiE '[0-9]+ +(domain +)?(skills?|playbooks?)' "$PLUGIN_MANIFEST" \
-        | head -1 | grep -oE '^[0-9]+')"
-    if [ -n "$plugin_count" ]; then
-        if [ "$plugin_count" -ne "${#skills[@]}" ]; then
-            fail ".claude-plugin/plugin.json description says $plugin_count skills, but skills/ holds ${#skills[@]}"
-        fi
-    else
-        warn ".claude-plugin/plugin.json description states no skill count - nothing to check it against"
-    fi
+    PLUGIN_VERSION="$(json_field "$PLUGIN_MANIFEST" version)"
+    PLUGIN_NAME="$(json_field "$PLUGIN_MANIFEST" name)"
+    check_manifest_description "$PLUGIN_MANIFEST" ".claude-plugin/plugin.json"
 else
     fail ".claude-plugin/plugin.json not found"
+fi
+
+# The Codex manifest serves the same skills/ tree to a different host. It duplicates the name,
+# version and description, so all three are checked against the Claude manifest rather than trusted.
+if [ -f "$CODEX_MANIFEST" ]; then
+    check_manifest_description "$CODEX_MANIFEST" ".codex-plugin/plugin.json"
+    CODEX_VERSION="$(json_field "$CODEX_MANIFEST" version)"
+    CODEX_NAME="$(json_field "$CODEX_MANIFEST" name)"
+    CODEX_SKILLS="$(json_field "$CODEX_MANIFEST" skills)"
+    if [ -n "$PLUGIN_VERSION" ] && [ "$CODEX_VERSION" != "$PLUGIN_VERSION" ]; then
+        fail "plugin.json version '$PLUGIN_VERSION' and .codex-plugin/plugin.json version '$CODEX_VERSION' disagree"
+    fi
+    if [ -n "$PLUGIN_NAME" ] && [ "$CODEX_NAME" != "$PLUGIN_NAME" ]; then
+        fail "plugin.json name '$PLUGIN_NAME' and .codex-plugin/plugin.json name '$CODEX_NAME' disagree"
+    fi
+    if [ "$CODEX_SKILLS" != "./$SOURCE_ROOT/" ]; then
+        fail ".codex-plugin/plugin.json points skills at '$CODEX_SKILLS', expected './$SOURCE_ROOT/'"
+    fi
+else
+    fail ".codex-plugin/plugin.json not found"
 fi
 
 if [ -f "$MARKETPLACE_MANIFEST" ]; then
