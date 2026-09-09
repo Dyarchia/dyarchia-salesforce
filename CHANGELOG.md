@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-09
+
+The first release cut since `0.1.0`. The `0.2.0` and `0.3.0` version numbers were carried in the
+plugin manifests but never closed here, so everything between them and today's work is gathered into
+this entry rather than reconstructed into releases that were never published.
+
 ### Added
 
 - **`validate-skills` now checks the routing graph.** Skills hand off to each other by naming a sibling in backticks, and that graph is what lets a reader start anywhere in the library. It was the one contract nothing verified: renaming or removing a skill left every prose mention of the old name pointing at nothing, silently, and `CONTRIBUTING.md` could only advise grepping for them by hand. Both script twins now scan every `.md` under a skill — excluding `references/shared/`, which is generated — and **fail** on a backticked `dya-<name>` with no matching folder, naming the file each dangling reference sits in. It reads the graph already present in the prose rather than asking for it a second time in frontmatter, so adding a handoff still costs nothing beyond writing the sentence. The existing `$nonSkillTokens` / `NON_SKILL_TOKENS` allowlist covers this check too. The tree passes today: all twenty-six skills cite only names that resolve.
@@ -153,5 +159,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `[0.1.0]` release shipped under the repository's former name; the comparison links below now resolve to the renamed repository.
 - The canonical form in the repository is the unpacked skill folder. `.skill` files are build artifacts produced on demand and are not tracked in version control.
 
-[Unreleased]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.1.0...v0.4.0
 [0.1.0]: https://github.com/Dyarchia/dyarchia-salesforce/releases/tag/v0.1.0
