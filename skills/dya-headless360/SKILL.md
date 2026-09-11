@@ -27,23 +27,23 @@ Load a reference when building that exact thing. Headless 360 is the **access an
 
 Headless 360 is the platform theme that turns every Salesforce capability into an API, MCP tool or CLI command, usable by an app, a human, or an autonomous agent. It is an **access and distribution layer, not a replacement for Agentforce** — the two work together.
 
-What Winter '27 adds:
+Three things decide whether a project can use this at all, and they are the reason to read this
+section rather than skim it:
 
-| Change | Status | What it gives you |
-|---|---|---|
-| **Salesforce plugin for Claude Code** | GA | Detects a DX project and supplies org context through hosted MCP servers; installed from the Claude Plugin Marketplace. The clearest example of the whole theme: a coding agent with live org grounding. See `dya-sf-cli` |
-| **DevOps Center MCP** | GA | The same programmatic access inside a CI/CD pipeline — describe a deployment and let an agent execute it |
-| **MCP interoperability for agents** | GA | The direction reversed: an Agentforce agent calling *out* to external MCP servers. See `dya-integration-connectors-mcp` |
-| **Apex Symbol API** | Beta | Compiler-grade Apex type metadata over the Tooling API, so an IDE or AI tool can reason about Apex accurately instead of guessing from text |
+- **Maturity is uneven and mostly not GA.** The Apex Symbol API, the Salesforce DX MCP Server and
+  the Metadata API Context MCP Server are **Beta**; the Data 360 MCP Server is **Developer Preview**.
+  Hosted MCP servers and the Claude Code plugin are GA. Beta and Developer Preview do not run in
+  production orgs, so check the label before designing around a tool.
+- **Agentforce Vibes carries no maturity label at all**, and features inside it are individually
+  Beta. It is **not available in EU Operating Zone**, nor in Group, Professional or Essentials
+  editions — an availability wall, not a licensing upsell.
+- **Security carries through every surface unchanged.** The Einstein Trust Layer and the org's
+  permission model apply identically whether a capability is reached as an API, an MCP tool or a CLI
+  command. A capability exposed as an MCP tool is not a weaker capability: it runs as the
+  authenticated user.
 
-Standing facts:
-
-- **Hosted MCP servers are GA** — connect any MCP client to the org and the Headless 360 portfolio: Salesforce Platform, Data 360, Tableau, MuleSoft, Slack.
-- **Agentforce Vibes is at v4.0+**, a ground-up rebuild on Salesforce's Coding Agent Platform, orchestrated by Claude and Mastra and exposing an Agent SDK. It installs from the VS Code Marketplace and Open VSX, and also runs as a cloud-hosted IDE. **The documentation gives the product no maturity label**; individual features inside it are Beta. Material describing a "2.0" is a previous generation, and the lineage Einstein for Developers → Agentforce for Developers → Agentforce Vibes survives in URLs and in the extension id `salesforcedx-einstein-gpt`. **Not available in EU Operating Zone**, nor in Group, Professional or Essentials editions.
-- **60+ MCP tools, 30+ preconfigured coding skills, 4,000+ APIs and 220+ CLI commands** are addressable by an authorised caller.
-- **Salesforce DX MCP Server (Beta)** — developer and IDE tools: SLDS guidance, ApexGuru, LWC and Aura toolsets, Lightning Types, Metadata API context. **Data 360 MCP Server** is Developer Preview and **Metadata API Context MCP Server** is Beta.
-- **Headless and Agentforce Experience Layer (HXL/AXL)** — define an interaction once and render it natively across Slack, Teams, Voice, mobile and third-party assistants, built on Lightning Types with native React support.
-- **The Einstein Trust Layer and the org's existing security model carry through every surface unchanged.** A capability exposed as an MCP tool is not a capability with weaker security — it runs as the authenticated user.
+> What the release adds feature by feature, the addressable-surface numbers, and the Vibes naming
+> lineage that makes older documentation hard to find: `references/release-notes.md`.
 
 ---
 
