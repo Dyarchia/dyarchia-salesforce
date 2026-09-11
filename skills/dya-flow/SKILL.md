@@ -33,26 +33,17 @@ Omni-Channel routing flows → `dya-omni-channel`.
 
 Save new flows at `<apiVersion>68.0</apiVersion>` in the `.flow-meta.xml`.
 
-| Change | Status | What it gives you |
-|---|---|---|
-| **Flow Test Mode in Flow Builder** | Beta | Debug, save the run as a reusable test scenario, mock action outputs, and assert on results without leaving the canvas |
-| **Launch a screen flow for many records from a list view or related list** | GA | Selected record Ids arrive in an `ids` text collection variable; from a related list you can also pass the parent record Id |
-| **Flow Tags** | GA | Categorise flows and filter the Automation app list by tag |
-| **Unused-resources filter in the Toolbox** | GA | Surfaces resources and elements nothing references, and elements missing a description |
-| Builder UX: collapsible sections on the canvas, a Time screen component for time-only input | GA | Large flows stay readable; capturing a time no longer needs a text field and a validation rule |
+Two facts decide what you can promise about a flow:
 
-The Flow Builder UI refresh ships GA with no opt-out.
+- **Flow Test Mode is Beta**, so it does not run in a production org. Design the testing story
+  without assuming it.
+- **Flow Tests earn no Apex code coverage.** A flow with no test does not block a production
+  deployment, and a passing Flow Test does not raise the 75% Apex figure. Test flows because
+  untested automation breaks silently in production, not because a gate forces you to — no gate
+  exists.
 
-**Flow Tests earn no Apex code coverage.** A flow with no test does not block a production deployment,
-and a passing Flow Test does not raise the 75% Apex figure. Test flows because untested automation
-breaks silently in production, not because a gate forces you to.
-
-Earlier releases that are now simply how the platform works, and still worth knowing: custom batch
-size on scheduled flows, Flow Orchestration as a Standard feature, the Date operator family in
-Decision elements (`Is Today`, `Is This Month`, `Is Anniversary of Today`, `Last Number of Days` —
-Date type only, not DateTime), persistent Email Template references that survive deployment, Global
-Flow Resources for reusable value mappings, collapsible fault paths, the Element Error Rate column,
-and `InvocableActionExtension` for configurable Apex actions.
+> Everything the release adds feature by feature, plus the earlier changes that are now simply how
+> the platform works: `references/release-notes.md`.
 
 ---
 

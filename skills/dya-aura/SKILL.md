@@ -5,38 +5,49 @@ description: Salesforce Aura Components Winter '27 (API v68.0) modern developmen
 
 # Salesforce Aura Components — Modern Development
 
-You are an expert Salesforce Aura developer working on a platform where Aura is a **mature, maintenance-mode** framework. You **always** check first whether LWC is the right tool, you **always** use `lightning`-namespace base components (never the deprecated `ui` namespace), you **always** prefer Lightning Data Service over Apex, and you **always** save controllers under the modern Apex security model. Follow every rule below without exception.
+You are an expert Salesforce Aura developer. Aura is **maintenance-mode**: you check first whether
+LWC is the right tool, you use `lightning`-namespace base components and never the deprecated `ui`
+namespace, you prefer Lightning Data Service over Apex, and you save controllers under the modern
+Apex security model. Follow every rule below without exception.
 
-This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/` and are loaded on demand:
+This SKILL.md carries the load-bearing rules. Larger implementations live in `references/`, loaded
+on demand:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an `@AuraEnabled` controller inherits.
 - `references/shared/sharing-and-access.md` — the permission model behind those defaults.
 - `references/events-and-communication.md` — full component-event and application-event register/fire/handle patterns, `aura:method`, and Lightning Message Service from Aura.
 - `references/server-and-lds.md` — full `@AuraEnabled` controller, `$A.enqueueAction` + storable actions + Promise wrapper, `force:recordData`, and `lightning:recordForm` patterns.
 
-Load a reference when you are about to write or refactor code that needs that exact implementation. Aura server-side controllers are Apex — for deep Apex best practices (Service/Selector/Domain layering, async, observability, testing) load `dya-apex`. For new UI, load `dya-lwc` first.
+Aura server-side controllers are Apex: for Service/Selector/Domain layering, async, observability and
+testing, load `dya-apex`. For new UI, load `dya-lwc` first.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-Save new Aura bundles and their Apex controllers at `<apiVersion>68.0</apiVersion>`. Winter '27 brings **no new Aura framework capability**, which is itself the signal — Aura receives platform changes, not features.
+Save new bundles and their Apex controllers at `<apiVersion>68.0</apiVersion>`. Winter '27 adds **no
+new Aura framework capability** — Aura receives platform changes, not features.
 
-**No retirement date for Aura has been announced.** Maintenance mode is a reason to build new work in LWC, not a deadline you are working against; say so plainly rather than implying an end date that does not exist.
+**No retirement date has been announced.** Maintenance mode is a reason to build new work in LWC, not
+a deadline. Do not imply an end date that does not exist.
 
-Platform changes that land on Aura:
+Four platform changes reach Aura:
 
-- **An `@AuraEnabled` controller is Apex**, so the API 67.0 security defaults apply to it: an omitted sharing declaration defaults to `with sharing`, and SOQL, SOSL and DML default to `USER_MODE`. See §5, `dya-apex`, and `dya-permissions` for the model being enforced.
-- **`WITH SECURITY_ENFORCED` no longer compiles** from API 67.0. Use `WITH USER_MODE`.
-- **Lightning Web Security blocks `data:` URIs** — client-side downloads must use a `blob:` URL on the anchor `href`. See §10.
-- **Voice Toolkit API for Salesforce Voice** — new APIs/methods/events to build voice-enabled Aura (or LWC) components, now also supported on Agentforce Contact Center. Niche; relevant only for telephony components.
-- **Aura is in maintenance mode.** Salesforce ships no new Aura framework capability and steers all new development to LWC. The `ui` namespace has been deprecated since support ended **May 1, 2021** — never use it. Treat Aura as appropriate only for the specific cases in §1.
+- **An `@AuraEnabled` controller is Apex**, so the API 67.0 defaults apply: an omitted sharing
+  declaration becomes `with sharing`, and SOQL, SOSL and DML default to `USER_MODE`. §5, `dya-apex`,
+  `dya-permissions`.
+- **`WITH SECURITY_ENFORCED` no longer compiles.** Use `WITH USER_MODE`.
+- **Lightning Web Security blocks `data:` URIs**, so client-side downloads use `blob:`. §10.
+- **The `ui` namespace has been unsupported since 1 May 2021.** Never use it. §2.
+
+The Voice Toolkit API adds voice-enabled component support, extended to Agentforce Contact Center —
+relevant only if you are building telephony.
 
 ---
 
 ## 1. The First Question — Should This Be Aura At All?
 
-Before writing a single `.cmp`, walk this decision tree. Stop at the first row that fits.
+Stop at the first row that fits.
 
 | Requirement | Build it as | Aura? |
 |---|---|---|
@@ -45,13 +56,18 @@ Before writing a single `.cmp`, walk this decision tree. Stop at the first row t
 | Maintaining / extending an **existing** Aura component | Aura | YES |
 | Need to **wrap an LWC** so it can sit in an Aura-only context | Aura wrapper around LWC | YES |
 
-The historical reasons to choose Aura (quick actions, utility bar, certain Flow/Community contexts, dynamic component creation) have almost all been closed by LWC. Assume LWC unless you can name the specific gap. **Aura components can contain LWC; LWC cannot contain Aura** — so the migration path is always "wrap or replace Aura with LWC", never the reverse. When you do build Aura, add a comment stating why LWC was insufficient.
+LWC has closed almost every historical reason to choose Aura — quick actions, utility bar, Flow and
+Community contexts, dynamic component creation. Assume LWC unless you can name the specific gap, and
+when you do build Aura, comment why LWC was insufficient.
+
+**Aura can contain LWC; LWC cannot contain Aura.** The migration path is therefore always "wrap or
+replace Aura with LWC", never the reverse.
 
 ---
 
 ## 2. Base Components — `lightning` Namespace Only
 
-Use `lightning`-namespace base components for everything. They implement SLDS, accessibility, and internationalisation out of the box.
+`lightning`-namespace components implement SLDS, accessibility and internationalisation for you.
 
 ```html
 <!-- ✅ -->
@@ -60,14 +76,23 @@ Use `lightning`-namespace base components for everything. They implement SLDS, a
     <lightning:input label="Name" value="{!v.accountName}" />
 </lightning:card>
 
-<!-- ❌ — ui namespace, deprecated since May 1, 2021 -->
+<!-- ❌ — ui namespace, unsupported since May 1, 2021 -->
 <ui:button label="Save" press="{!c.handleSave}" />
 <ui:inputText value="{!v.accountName}" />
 ```
 
-`ui:button` → `lightning:button` / `lightning:buttonIcon`; `ui:inputText` → `lightning:input`; `ui:inputSelect` → `lightning:select` / `lightning:combobox`; `ui:inputRichText` → `lightning:inputRichText`; `ui:message` → `lightning:notificationsLibrary` / toast. Replace any `ui:` component you encounter during maintenance.
+Replace every `ui:` component you meet during maintenance:
 
-Styling: use SLDS utility classes and **styling hooks** (CSS custom properties) for customisation. Design tokens are legacy — Aura has supported styling hooks since Summer '24; prefer them.
+```text
+ui:button        →  lightning:button · lightning:buttonIcon
+ui:inputText     →  lightning:input
+ui:inputSelect   →  lightning:select · lightning:combobox
+ui:inputRichText →  lightning:inputRichText
+ui:message       →  lightning:notificationsLibrary · toast
+```
+
+Style with SLDS utility classes and **styling hooks** (CSS custom properties). Design tokens are
+legacy; Aura has supported hooks since Summer '24.
 
 ---
 
@@ -81,24 +106,27 @@ Styling: use SLDS utility classes and **styling hooks** (CSS custom properties) 
 <aura:attribute name="recordId" type="Id" />
 ```
 
-Always declare a `type`; set `access="private"` for internal state and `access="public"` (default) only for the component's API. Use `description` on public attributes.
+Always declare a `type`. Use `access="private"` for internal state, `access="public"` (the default)
+only for the component's API, and `description` on every public attribute.
 
 ### Bound vs unbound expressions
 
-- `{!v.value}` — **bound**: two-way data binding between parent and child. Changes propagate both directions. Use only when you actually need the child to mutate the parent's value.
-- `{#v.value}` — **unbound**: one-time, one-way. Cheaper, no change-propagation overhead. **Prefer `{#…}` for read-only display** to reduce the cost of Aura's change-tracking.
+- `{!v.value}` — **bound**, two-way. Changes propagate in both directions. Use only when the child
+  must mutate the parent's value.
+- `{#v.value}` — **unbound**, one-time and one-way. No change-tracking cost. **Use it for read-only
+  display.**
 
 ```html
-<!-- ✅ — display only, no two-way binding needed -->
+<!-- ✅ — display only -->
 <lightning:formattedText value="{#v.account.Name}" />
 
-<!-- ✅ — genuine two-way binding into an input -->
+<!-- ✅ — genuine two-way binding -->
 <lightning:input value="{!v.searchTerm}" />
 ```
 
 ### Value providers
 
-`v` (view/attributes), `c` (controller actions), `m` (renderer-rarely). Reference handlers as `{!c.handleClick}`.
+`v` attributes, `c` controller actions, `m` renderer (rare). Handlers are `{!c.handleClick}`.
 
 ### Conditional rendering and iteration
 
@@ -113,18 +141,21 @@ Always declare a `type`; set `access="private"` for internal state and `access="
 </aura:if>
 ```
 
-Use `aura:iteration` (not a server loop) for lists; key your rows by binding stable data. Use `aura:if` rather than CSS `display:none` when the subtree is expensive — `aura:if` actually removes it from the DOM.
+Use `aura:iteration` for lists, keyed on stable data. Use `aura:if` rather than `display:none` for
+expensive subtrees — `aura:if` removes them from the DOM; CSS only hides them.
 
 ---
 
 ## 4. Data Access — Lightning Data Service Before Apex
 
-Before writing an `@AuraEnabled` method, evaluate this order. Stop at the first that fits.
+Stop at the first that fits.
 
-1. **`lightning:recordForm`** — single-record create/view/edit with auto-generated fields and layout. No Apex, no client code.
-2. **`lightning:recordViewForm` / `lightning:recordEditForm`** — record read/write with custom field arrangement.
-3. **`force:recordData`** — Aura's LDS data provider: load, create, save, delete a single record declaratively, with shared client cache and automatic refresh. No Apex.
-4. **Apex `@AuraEnabled`** — only for multi-object queries, aggregates, cross-object logic, callouts, async, or non-UI-API objects.
+1. **`lightning:recordForm`** — single-record create/view/edit, auto-generated fields and layout.
+2. **`lightning:recordViewForm` / `lightning:recordEditForm`** — record read/write, custom field
+   arrangement.
+3. **`force:recordData`** — declarative load, create, save and delete of one record.
+4. **Apex `@AuraEnabled`** — only for multi-object queries, aggregates, cross-object logic, callouts,
+   async, or objects the UI API does not support.
 
 ```html
 <!-- ✅ — record edit with zero Apex -->
@@ -135,13 +166,16 @@ Before writing an `@AuraEnabled` method, evaluate this order. Stop at the first 
     onsuccess="{!c.handleSuccess}" />
 ```
 
-`force:recordData` and `lightning:recordForm` share the Lightning Data Service cache with LWC and the rest of LEX, so edits made through them refresh other components on the page automatically. Hand-rolled Apex CRUD does not — another reason to prefer LDS. Full `force:recordData` pattern in `references/server-and-lds.md`.
+The first three share the Lightning Data Service cache with LWC and the rest of Lightning
+Experience, so an edit through them refreshes every other component on the page. **Hand-rolled Apex
+CRUD does not**, which is the strongest reason to exhaust LDS first. Full `force:recordData` pattern
+in `references/server-and-lds.md`.
 
 ---
 
 ## 5. Server-Side Apex — The `@AuraEnabled` Contract
 
-When LDS can't do it, call Apex via `$A.enqueueAction`. The controller is Apex — declare `with sharing`, query `WITH USER_MODE`, and throw `AuraHandledException` on failure.
+Declare `with sharing`, query `WITH USER_MODE`, throw `AuraHandledException` on failure.
 
 ```java
 public with sharing class AccountController {
@@ -168,7 +202,8 @@ public with sharing class AccountController {
 }
 ```
 
-Client call — always handle the three action states (`SUCCESS`, `ERROR`, `INCOMPLETE`). Wrap any state mutation that must re-render in `$A.getCallback`:
+Handle all three action states — `SUCCESS`, `ERROR`, `INCOMPLETE`. Wrap any state mutation that must
+re-render in `$A.getCallback`.
 
 ```javascript
 ({
@@ -189,32 +224,34 @@ Client call — always handle the three action states (`SUCCESS`, `ERROR`, `INCO
 })
 ```
 
-`@AuraEnabled(cacheable=true)` + `action.setStorable()` serves reads from the client cache after the first call. For deep server-side rules (Selector/Service layering, async, observability), load `dya-apex`. Full `$A.enqueueAction` + Promise-wrapper pattern in `references/server-and-lds.md`.
+`@AuraEnabled(cacheable=true)` plus `action.setStorable()` serves reads from the client cache after
+the first call. Full `$A.enqueueAction` and Promise-wrapper patterns in
+`references/server-and-lds.md`.
 
 ---
 
 ## 6. Events — Component Events Before Application Events
 
-Aura has two event types. Choosing wrong is the most common Aura architecture mistake.
+Choosing wrong here is the most common Aura architecture mistake. Prefer in this order:
 
-- **Component event** — travels up the containment hierarchy (child → ancestor). Scoped, traceable, cheap. **This is the default.** Use for child-to-parent communication.
-- **Application event** — broadcast to every handler in the app regardless of hierarchy. Expensive, hard to trace, easy to over-fire. Use only when truly unrelated components must react.
-
-```
-Prefer, in order:
-1. aura:method            — parent calls a child's method synchronously (parent → child)
-2. Component event        — child notifies its ancestors (child → parent)
-3. Lightning Message Svc  — communication with LWC/Visualforce, or across separate trees
-4. Application event      — last resort: app-wide broadcast between unrelated Aura cmps
+```text
+1. aura:method            parent calls a child's method synchronously (parent → child)
+2. Component event        child notifies its ancestors. Scoped, traceable, cheap. THE DEFAULT
+3. Lightning Message Svc  reaches LWC and Visualforce, and crosses component trees
+4. Application event      last resort: broadcast to every handler in the app, regardless of
+                          hierarchy. Expensive, hard to trace, easy to over-fire
 ```
 
-For cross-technology or cross-tree communication on a Lightning page, use **Lightning Message Service**, not an application event — it also reaches LWC and Visualforce. Full register/fire/handle implementations for both event types, `aura:method`, and LMS-from-Aura: `references/events-and-communication.md`.
+For cross-technology or cross-tree communication, use **Lightning Message Service**, not an
+application event. Full register/fire/handle implementations, `aura:method` and LMS-from-Aura:
+`references/events-and-communication.md`.
 
 ---
 
 ## 7. Lifecycle — the `init` Handler
 
-Initialise in the `init` handler, not in markup. Avoid overriding `render`/`rerender`/`afterRender`/`unrender` unless you have a concrete DOM-timing need.
+Initialise in `init`, never in markup. Do not override `render` / `rerender` / `afterRender` /
+`unrender` without a concrete DOM-timing need.
 
 ```html
 <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
@@ -228,13 +265,15 @@ Initialise in the `init` handler, not in markup. Avoid overriding `render`/`rere
 })
 ```
 
-Keep controllers thin: event entry points only. Put reusable logic in the **helper**. Never put server calls or business logic directly in markup.
+Controllers are event entry points only. Reusable logic goes in the **helper**; server calls and
+business logic never go in markup.
 
 ---
 
 ## 8. Interop — Composing With LWC
 
-Aura can contain LWC. Pass data down via attributes and listen to the LWC's `CustomEvent`s with `on<Event>` handlers (lowercased event name).
+Pass data down through attributes; listen to the LWC's `CustomEvent`s with lowercased `on<Event>`
+handlers.
 
 ```html
 <!-- Aura parent embedding an LWC child named c:contactList -->
@@ -253,16 +292,20 @@ Aura can contain LWC. Pass data down via attributes and listen to the LWC's `Cus
 })
 ```
 
-Prefer building the child in LWC and the thin wrapper in Aura — that is the migration direction. Do not try to embed Aura inside LWC; it is not supported.
+Build the child in LWC and keep the Aura wrapper thin — that is the migration direction. Embedding
+Aura inside LWC is not supported.
 
 ---
 
 ## 9. Security and Error Handling
 
-- **Lightning Web Security (LWS)** is the enforced security architecture (it superseded Locker Service). Avoid non-standard browser API access; LWS distorts or blocks risky APIs. Test components under LWS.
-- **`@AuraEnabled` security** — declare `with sharing`, enforce CRUD/FLS via `WITH USER_MODE` (`WITH SECURITY_ENFORCED` no longer compiles at API 67), and use `Security.stripInaccessible` for variable-FLS reads. See `dya-apex` §3.
-- **Never return raw exceptions to the client** — throw `AuraHandledException` with a clean message; log the real cause via Platform Events (see `dya-apex` §11).
-- **Handle the `INCOMPLETE` action state** (offline / lost connection) as well as `ERROR`.
+- **Lightning Web Security** superseded Locker Service and is enforced. It distorts or blocks risky
+  browser APIs, so avoid non-standard ones and test under LWS.
+- **`@AuraEnabled`**: `with sharing`, CRUD/FLS through `WITH USER_MODE`, and
+  `Security.stripInaccessible` for variable-FLS reads. See `dya-apex` §3.
+- **Never return a raw exception to the client.** Throw `AuraHandledException` with a clean message
+  and log the real cause through Platform Events (`dya-apex` §11).
+- **Handle `INCOMPLETE`** — offline or lost connection — as well as `ERROR`.
 
 ```java
 // ✅ — clean message to the client, real cause logged server-side
@@ -276,8 +319,6 @@ catch (Exception e) {
 
 ## 10. Client-Side File Downloads — `blob:`, not `data:`
 
-Lightning Web Security blocks `data:` URIs on anchor `href`. Generate a `blob:` URL instead.
-
 ```javascript
 // ✅
 const blob = new Blob([csv], { type: "text/csv" });
@@ -287,9 +328,11 @@ link.download = "export.csv";
 link.click();
 URL.revokeObjectURL(link.href);
 
-// ❌ — blocked by LWS
+// ❌ — blocked by Lightning Web Security
 link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
 ```
+
+Give the `Blob` an explicit MIME type. An omitted type is the case LWS blocks.
 
 ---
 
@@ -342,8 +385,15 @@ link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
 
 ## Summary — The Five Commandments
 
-1. **Ask "should this be Aura at all?" first** — new UI is LWC; reserve Aura for existing components and the rare LWC gap, and wrap LWC in Aura, never the reverse.
-2. **`lightning` namespace only** — the `ui` namespace is deprecated; use SLDS styling hooks, not design tokens.
-3. **Lightning Data Service before Apex** — `lightning:recordForm` / `force:recordData` for record work; `@AuraEnabled` only for genuine server logic, and then `with sharing` + `WITH USER_MODE` + `AuraHandledException`.
-4. **Component events before application events** — `aura:method` for parent→child, component events for child→parent, Lightning Message Service for cross-tree/LWC/Visualforce, application events only as a last resort.
-5. **Thin controllers, safe async, `blob:` downloads** — initialise in `init`, keep logic in the helper, handle all three action states, wrap re-rendering callbacks in `$A.getCallback`, and use `blob:` (not `data:`) for downloads.
+1. **Ask "should this be Aura at all?" first** — new UI is LWC; reserve Aura for existing components
+   and the rare LWC gap, and wrap LWC in Aura, never the reverse.
+2. **`lightning` namespace only** — the `ui` namespace is unsupported; style with SLDS hooks, not
+   design tokens.
+3. **Lightning Data Service before Apex** — `lightning:recordForm` and `force:recordData` for record
+   work; `@AuraEnabled` only for genuine server logic, and then `with sharing` + `WITH USER_MODE` +
+   `AuraHandledException`.
+4. **Component events before application events** — `aura:method` parent→child, component events
+   child→parent, Lightning Message Service across trees and technologies, application events only as
+   a last resort.
+5. **Thin controllers, safe async, `blob:` downloads** — initialise in `init`, keep logic in the
+   helper, branch on all three action states, wrap re-rendering callbacks in `$A.getCallback`.

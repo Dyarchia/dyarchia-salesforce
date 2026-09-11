@@ -36,31 +36,19 @@ Server-side Apex — security design, SOQL and DML, triggers, async, observabili
 Save new bundles at `<apiVersion>68.0</apiVersion>`. The version is per bundle and decides that
 component's semantics; see `references/shared/metadata-and-api-versions.md`.
 
-| Change | Status | What it gives you |
-|---|---|---|
-| **Complex template expressions** | **GA** (was Beta) | JavaScript expressions directly inside `{}` in a template. Requires the bundle's `apiVersion` to be **66.0 or higher**. Replaces most formatting getters |
-| **`lwc:external`** | GA | Use a third-party custom element directly in a template. Removes the iframe workaround that used to be the only option |
+Four facts gate what compiles and deploys:
 
-Everything below is standing platform behaviour, not new, and each is stated once here rather than
-repeated in its section:
-
-- **`@lwc/state` is GA** — shared reactive state across components on a page, with built-in Lightning
-  State Managers wrapping LDS. Section 5.
-- **GraphQL queries and mutations are GA** through `lightning/graphql` (v2). The v1
-  `lightning/uiGraphQLApi` is deprecated. Section 4.
-- **`lwc:on` is GA** — event listeners attached from a JavaScript object. Section 2.
-- **`standard__flow` PageReference is GA** — launch any active flow with one `navigate` call.
-- **`lightning/accApi` is GA** — drive the Agentforce side panel headlessly.
-- **Grouped `<details>` gives native single-open accordions** with no JavaScript.
-- **Component Preview (Local Dev) is GA**; **Dynamic Lists virtualization is Developer Preview** and
-  therefore not available in production.
+- **Complex template expressions are GA, but need the bundle at `apiVersion` 66.0 or higher.** Below
+  that they do not compile, which is the version-stamp trap this skill exists to prevent.
+- **Dynamic Lists virtualization is Developer Preview**, so it is not available in production.
+  Proposing one as the default produces a component that cannot be deployed.
 - **Lightning Web Security blocks `data:` URIs** on `HTMLAnchorElement.href`. Client-side downloads
-  use `blob:`. Section 8.
+  use `blob:` with an explicit MIME type. §8 and `references/lws-rules.md`.
 - **From API 67.0 an `@AuraEnabled` class defaults to `with sharing` and user mode**, and
-  `WITH SECURITY_ENFORCED` no longer compiles. Section 7.
+  `WITH SECURITY_ENFORCED` no longer compiles. §7.
 
-Developer Preview features are not available in production orgs. Proposing one as the default produces
-a component that cannot be deployed.
+> What the release adds, and the standing GA behaviour each section builds on:
+> `references/release-notes.md`.
 
 ---
 

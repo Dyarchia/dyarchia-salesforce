@@ -26,28 +26,22 @@ Load a reference when building that exact thing. Agentforce actions are Apex/Flo
 
 ## Platform Context — Winter '27 / API v68.0
 
-Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
+Save Agentforce metadata and the Apex or Flow behind actions at `68.0`. Four facts gate what you can
+build:
 
-| Change | Status | What it gives you |
-|---|---|---|
-| **`AiAgentDefinition` and `AiAgentDefinitionVersion` metadata types** | GA at 68.0 | Agents deploy as source-controlled metadata. **Both orgs must be on 68.0** — a deploy from a 68.0 sandbox into a 67.0 org will not carry them |
-| **MCP interoperability** | GA | An agent discovers and calls tools on external MCP servers through a governed connection, instead of every capability being rebuilt as a local action. See `dya-integration-connectors-mcp` |
-| **Agent observability and analytics** | GA | Session-level tracing, built-in usage analytics, and **custom scorers** that measure agent quality against your own rules rather than a generic metric |
-| **Voice: sharper transcription, less robotic speech** | GA | Better recognition accuracy and more natural output for Agentforce Voice |
-| **24 additional conversation languages** | Beta | Not production — check the list before promising a language |
-| **Execute Data 360 SQL from Apex** | GA | An action can query Data 360 alongside org data in one class. See `dya-data360` |
+- **`AiAgentDefinition` / `AiAgentDefinitionVersion` are GA at 68.0, and both orgs must be on 68.0.**
+  A deploy from a 68.0 sandbox into a 67.0 org carries neither, silently.
+- **The 24 additional conversation languages are Beta** — not production. Check the list before
+  promising a language.
+- **An Apex action is Apex**, so it inherits the 67.0+ security defaults: `with sharing` and
+  `USER_MODE`, and `WITH SECURITY_ENFORCED` no longer compiles. See §4 and `dya-apex`.
+- **Since April 2026 a Topic is a subagent.** The functionality did not change, and older
+  documentation, parts of the UI and help-article URLs still say "topic". This skill says
+  **subagent**; they are the same thing.
 
-**Terminology:** since April 2026, what used to be called a **Topic** is a **subagent**. Nothing about
-the functionality changed, and you will still meet "topic" in older documentation, in parts of the
-UI, and in help-article URLs. This skill uses **subagent**; treat the two as the same thing.
-
-Standing platform facts:
-
-- **Atlas Reasoning Engine 3.0** powers reasoning and multi-agent routing.
-- **Multi-Agent Orchestration is GA** — an orchestrator routes work to specialist subagents based on their descriptions and actions. See §11.
-- **Agent Script is GA and open source** — natural-language instructions blended with deterministic programmatic expressions (conditionals, transitions, variables, subagent and action selection). The Agent Builder runs on a graph-based engine, and legacy agents can auto-migrate. See §5.
-- **Agentforce DX**: `agent preview` is GA for scriptable test sessions, with project scaffolding, one-command agent users, trace files, and YAML/JSON-defined evaluations (Beta). See §8.
-- **Agentforce Experience Layer (AXL)** — define an interaction once and render it natively across Slack, Teams, Voice, mobile and third-party assistants. See `dya-headless360`.
+> Everything else Winter '27 adds — MCP interoperability, observability and custom scorers, Voice
+> improvements, Data 360 SQL from Apex, and the standing facts about Atlas 3.0, Agent Script and
+> Agentforce DX: `references/release-notes.md`.
 - **An Apex action is Apex**, so it inherits the API 67.0 security defaults: `with sharing` and `USER_MODE`, and `WITH SECURITY_ENFORCED` no longer compiles. See §4 and `dya-apex`.
 
 ---

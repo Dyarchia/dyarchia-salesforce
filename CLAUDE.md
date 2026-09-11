@@ -63,6 +63,7 @@ dyarchia-salesforce/
 │   └── marketplace.json           # the repo is its own marketplace
 ├── .codex-plugin/
 │   └── plugin.json                # the same skills/ tree, served to Codex
+├── commands/                      # slash commands; outside the validator's reach
 ├── CLAUDE.md                      # this file
 ├── CONTRIBUTING.md                # the authoring procedure, step by step
 ├── README.md                      # public catalogue and install instructions
@@ -82,8 +83,14 @@ dyarchia-salesforce/
 `.claude/` may exist locally — agent settings, repo-local skills, worktrees — and is gitignored in
 full. Nothing inside it is part of the contract; `CONTRIBUTING.md` is.
 
-Not present yet, reserved by convention: `agents/`, `commands/`, `hooks/`, and `mcp/` for MCP
-servers written here. Third-party MCP servers are not vendored and not declared.
+`commands/` holds slash commands. **The validator does not walk it** — it only walks `skills/` — so a
+command is not counted as a skill, needs no Platform Context heading and gets no `.skill` bundle.
+That is the reason a meta-command like `/dya-sf-skills` lives there rather than under `skills/`:
+it is not a Salesforce domain playbook and must not inflate the skill count.
+
+Not present yet, reserved by convention: `agents/`, `hooks/`, and `mcp/` for MCP servers written
+here. Third-party MCP servers are not vendored and not declared. `build-plugin` already packs all
+three, so adding one ships it without touching the packer.
 
 `sources/` may exist locally: read-only clones of third-party repos kept as raw material. It is
 gitignored, never installed, never published. Do not glob or grep across it by accident — it is
@@ -398,11 +405,18 @@ change that caused it.
 
 ## Architecture status
 
-Implemented: the plugin and marketplace manifests, `skills/`, the packaging and validation scripts.
+Implemented: the plugin, marketplace and Codex manifests, `skills/`, `commands/`, the packaging and
+validation scripts.
 
-**Not implemented:** `agents/`, `commands/`, `hooks/` and `mcp/`. Nothing depends on them; they are
-additive whenever a real recurring need shows up in project work. When they arrive, the principles
-that govern them are already decided:
+`commands/` holds one entry, `/dya-sf-skills`, and it exists because of a consequence of the
+frontmatter contract. Skills that load **only on explicit invocation** are undiscoverable by
+definition: asking a Salesforce question never surfaces them, so a reader who does not already know
+the catalogue never finds it. The command prints that catalogue. It reads the descriptions already in
+context rather than the filesystem, so it cannot drift from what is installed.
+
+**Not implemented:** `agents/`, `hooks/` and `mcp/`. Nothing depends on them; they are additive
+whenever a real recurring need shows up in project work. When they arrive, the principles that
+govern them are already decided:
 
 - Sub-agents declare their tool list and model in frontmatter. Review and audit agents get no write
   tools — the guarantee is structural, not an instruction the model can forget.
