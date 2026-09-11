@@ -1,10 +1,10 @@
 # dyarchia-salesforce
 
 The Salesforce domain plugin of the Dyarchia umbrella: a library of agent skills targeting
-Winter '27 / API v68.0, packaged as a Claude Code plugin and as portable `.skill` bundles.
+Winter '27 / API v68.0, packaged as a Claude Code plugin, a Claude Desktop `.plugin` archive, and portable `.skill` bundles.
 
 This repo ships **content**, not software. There is no application and no runtime — only the
-`SKILL.md` files, the manifests that let Claude Code install them, and two packaging scripts.
+`SKILL.md` files, the manifests that let hosts install them, and the packaging scripts.
 
 One repo per domain, one plugin per repo. Sibling domains get their own repos under the same org.
 
@@ -74,7 +74,7 @@ dyarchia-salesforce/
 │       └── references/            # loaded on demand, never at invocation time
 │           └── shared/            # GENERATED copies of references-shared/, committed
 ├── references-shared/             # the canon: platform fundamentals, written once
-├── dist/                          # 26 pre-built .skill bundles, committed
+├── dist/                          # 26 .skill bundles + 1 .plugin archive, committed
 ├── scripts/                       # packaging, shared-reference sync, validation
 └── docs/                          # local working notes, untracked
 ```
@@ -91,7 +91,7 @@ large.
 
 ## Commands
 
-There is no test runner, no linter and no CI. Three scripts, each with a PowerShell and a bash twin,
+There is no test runner, no linter and no CI. Four scripts, each with a PowerShell and a bash twin,
 are the entire tooling surface. The order matters: **sync, then build, then validate** — building
 before syncing bundles a stale copy, and the validator catches it. Both `.ps1` files declare `#Requires -Version 7.0`.
 
@@ -99,12 +99,14 @@ before syncing bundles a stale copy, and the validator catches it. Both `.ps1` f
 scripts/sync-shared-refs.sh            # materialise references-shared/ into each skill
 scripts/build-skill.sh                 # rebuild every bundle
 scripts/build-skill.sh dya-apex        # rebuild one; accepts several names
+scripts/build-plugin.sh                # one .plugin archive of the whole library
 scripts/validate-skills.sh             # the gate; must exit 0
 ```
 
 ```powershell
 pwsh -NoProfile -File scripts/sync-shared-refs.ps1
 pwsh -NoProfile -File scripts/build-skill.ps1 dya-apex
+pwsh -NoProfile -File scripts/build-plugin.ps1
 pwsh -NoProfile -File scripts/validate-skills.ps1
 ```
 
@@ -329,6 +331,28 @@ Source and bundle drift is the failure mode this repo is most exposed to. `valid
 exists to catch it; run it before every commit that touches `skills/`.
 
 ## Bundle packaging
+
+Two archive shapes ship from `dist/`, and they exist for different hosts. Do not try to make one
+serve both.
+
+```text
+artifact                        root entry            consumed by
+------------------------------  --------------------  ---------------------------
+dya-<name>.skill                <name>/               one skill, uploaded by hand
+dyarchia-salesforce.plugin      .claude-plugin/       the whole library, Claude Desktop
+```
+
+**Claude Desktop imports the `.plugin`, never a `.skill`.** It accepts only `.zip` and `.plugin`
+extensions and requires a `.claude-plugin/plugin.json` at the archive root, or a `SKILL.md` at the
+root. A `.skill` bundle has neither — it is rooted at `<name>/` and carries no manifest — so it is
+rejected with *"The archive must contain a .claude-plugin/plugin.json manifest, or a top-level
+SKILL.md"*. Renaming the extension does not fix it; the shape is wrong, not the label.
+
+`scripts/build-plugin` packs `.claude-plugin/`, `.codex-plugin/`, `skills/`, `README.md` and
+`LICENSE`. It deliberately omits `references-shared/` (each skill already carries its synced
+copies), `scripts/`, `dist/` and `docs/`. The archive is **not** validated by `validate-skills`,
+which only looks up `dist/<name>.skill` per skill — rebuild it in the same commit as any change to
+`skills/` or a manifest, or it ships stale.
 
 A `.skill` file is a ZIP whose top-level entry is the skill folder — unzipping yields
 `dya-apex/SKILL.md`, never a nested `skills/dya-apex/SKILL.md`.
