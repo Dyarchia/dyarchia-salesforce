@@ -26,16 +26,17 @@ Load a reference when building that exact thing. Data 360 is the **data layer th
 - **"Data Cloud" was rebranded to "Data 360" on October 14, 2025.** Same product; you'll still see "Data Cloud" in older docs, API names, and the `Data Cloud Data Access` permission set. Use "Data 360" in new work.
 **Data 360 ships on its own monthly cadence**, not the three-times-a-year platform release. Winter '27 changes are dated around October 2026, and a feature can appear between platform releases — check the Data 360 release notes rather than assuming the platform release note set is complete.
 
-| Change | Status | What it gives you |
-|---|---|---|
-| **Execute Data 360 SQL from Apex** | GA | Run a Data 360 SQL query directly from Apex, so custom logic and Data 360 data live in one class instead of an integration between them. See `dya-apex` |
+Three facts gate the work:
 
-Standing facts:
+- **Executing Data 360 SQL from Apex is GA**, so custom logic and Data 360 data can live in one
+  class instead of an integration between them. See `dya-apex`.
+- **The Data 360 MCP Server is Developer Preview** — not production. See `dya-headless360`.
+- **Apex and SOQL against DMOs run under the 67.0+ security defaults, and every query spends Data
+  Services credits.** Credits are what make an unfiltered query expensive rather than merely slow,
+  which is why §8 exists and why the selectivity rules here are not style advice.
 
-- **Data 360 MCP Server (Developer Preview)** — an open-source MCP server fronting roughly 200 REST operations behind a few facade tools, so a coding agent can drive Data 360. Developer Preview: not production. See `dya-headless360`.
-- **Headless DevOps for Data 360** — a pipeline can promote Data 360 logic (data transforms, code extensions) the way it promotes Apex and LWC, through DevOps data kits.
-- **Data Custom Code (Python SDK)** — author Python data-processing code locally, validate against a sandbox, deploy and monitor; logs surface in a code-extensions DLO.
-- **Apex and SOQL access to DMOs** runs under the security defaults introduced at API 67.0, which still hold at 68.0. Querying a DMO consumes **Data Services credits** — see §8. Credits are the constraint that makes an unfiltered query expensive rather than merely slow.
+> Headless DevOps for Data 360, Data Custom Code and the rest of the release surface:
+> `references/release-notes.md`.
 
 ---
 
