@@ -35,7 +35,10 @@ if (-not (Test-Path -LiteralPath $manifest)) {
 $included = @(
     '.claude-plugin',
     '.codex-plugin',
-    $SourceRoot
+    $SourceRoot,
+    'commands',
+    'agents',
+    'hooks'
 )
 $includedFiles = @('README.md', 'LICENSE')
 

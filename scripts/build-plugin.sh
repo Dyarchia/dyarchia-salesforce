@@ -26,7 +26,7 @@ rm -f "$DEST"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-for dir in .claude-plugin .codex-plugin "$SOURCE_ROOT"; do
+for dir in .claude-plugin .codex-plugin "$SOURCE_ROOT" commands agents hooks; do
     [ -d "$REPO_ROOT/$dir" ] || continue
     mkdir -p "$STAGE/$(dirname "$dir")"
     cp -R "$REPO_ROOT/$dir" "$STAGE/$dir"

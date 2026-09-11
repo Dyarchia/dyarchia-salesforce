@@ -10,6 +10,8 @@ Agent skills are reusable instruction packs that customise how an AI coding agen
 
 Every skill loads **only on explicit invocation by name** — none auto-trigger on generic Salesforce questions.
 
+That makes them undiscoverable on purpose, so the plugin ships **`/dya-sf-skills`**: run it to print the catalogue with what each skill covers, then invoke the one you want by name. Add a word to filter — `/dya-sf-skills integration`.
+
 ---
 
 ## Available skills
@@ -101,7 +103,8 @@ graph LR
     Root --> Contract["CLAUDE.md · CONTRIBUTING.md<br/>contributor contract"]
     Root --> SK["skills/<br/>26 skill folders"]
     Root --> Shared["references-shared/<br/>platform primer canon"]
-    Root --> Dist["dist/<br/>26 .skill bundles"]
+    Root --> Dist["dist/<br/>26 .skill + 1 .plugin"]
+    Root --> Cmds["commands/<br/>/dya-sf-skills"]
     Root --> Scripts["scripts/<br/>build · sync · validate"]
 
     SK --> Skill["dya-&lt;name&gt;/"]
@@ -118,14 +121,14 @@ graph LR
     class Root root
     class SK,Skill,Shared domainFolder
     class SM,Refs,SharedRefs skillFolder
-    class Plugin,Meta,Contract,Dist,Scripts meta
+    class Plugin,Meta,Contract,Dist,Scripts,Cmds meta
 ```
 
 Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand. Repo-level files never get bundled into the installable skill.
 
 `references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill lists the fragments it needs in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. The copies are committed so every bundle stays self-contained; the canon is what you edit.
 
-`agents/`, `commands/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
+`agents/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
 
 ---
 
