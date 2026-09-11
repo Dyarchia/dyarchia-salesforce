@@ -147,6 +147,22 @@ Skills are discovered from `skills/` automatically. No MCP servers are declared 
 
 ---
 
+## Install in Claude Desktop
+
+Claude Desktop imports a **plugin archive**, not a skill bundle. Download [`dist/dyarchia-salesforce.plugin`](dist) and import it — one file, all 26 skills.
+
+It accepts only `.zip` and `.plugin` extensions, and the archive must carry a `.claude-plugin/plugin.json` at its root. The per-skill `.skill` bundles satisfy neither: they are rooted at `<skill-name>/` and carry no manifest, so importing one fails with *"The archive must contain a .claude-plugin/plugin.json manifest, or a top-level SKILL.md"*. Renaming a `.skill` to `.zip` does not help — use the `.plugin`.
+
+```bash
+pwsh -NoProfile -File scripts/build-plugin.ps1
+```
+
+```bash
+scripts/build-plugin.sh
+```
+
+---
+
 ## Install on other agents
 
 The skills themselves are not Claude-specific. Each is a folder with a `SKILL.md` carrying `name` and `description` in YAML frontmatter — the [Agent Skills](https://agentskills.io) shape that several vendors now read. Only the manifests differ, and both live at the repository root:

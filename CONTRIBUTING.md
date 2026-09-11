@@ -81,14 +81,21 @@ git remote set-head origin -a
    ```bash
    scripts/sync-shared-refs.sh dya-<name>
    scripts/build-skill.sh dya-<name>
+   scripts/build-plugin.sh
    ```
 
    ```powershell
    pwsh -NoProfile -File scripts/sync-shared-refs.ps1 dya-<name>
    pwsh -NoProfile -File scripts/build-skill.ps1 dya-<name>
+   pwsh -NoProfile -File scripts/build-plugin.ps1
    ```
 
    The order is always **sync, then build, then validate**. Building first bundles a stale copy.
+
+   `build-plugin` rebuilds `dist/dyarchia-salesforce.plugin`, the single archive Claude Desktop
+   imports. **The validator does not check it** — it only looks up `dist/<name>.skill` per skill — so
+   rebuild it in the same commit as any change to `skills/` or a manifest, or it ships stale with
+   nothing to catch it.
 7. Add the skill to the README catalogue and to the layout diagram, and move the skill count
    everywhere it is asserted. The validator checks six of those sites and **fails** on any that
    disagree with the number of folders under `skills/` — the README catalogue line, both boxes of
