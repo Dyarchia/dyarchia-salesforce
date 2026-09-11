@@ -103,7 +103,7 @@ graph LR
     Root --> Contract["CLAUDE.md · CONTRIBUTING.md<br/>contributor contract"]
     Root --> SK["skills/<br/>26 skill folders"]
     Root --> Shared["references-shared/<br/>platform primer canon"]
-    Root --> Dist["dist/<br/>26 .skill + 1 .plugin"]
+    Root --> Dist["dist/<br/>26 .skill bundles + 1 .plugin"]
     Root --> Cmds["commands/<br/>/dya-sf-skills"]
     Root --> Scripts["scripts/<br/>build · sync · validate"]
 
