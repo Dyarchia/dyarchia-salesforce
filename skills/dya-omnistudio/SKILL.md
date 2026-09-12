@@ -25,11 +25,13 @@ Winter '27 changes **nothing in the OmniStudio programmatic contracts**: the `Ca
 the Apex Remote Action signatures are all unchanged. Say so rather than inventing novelty — the
 release reaches OmniStudio only through the platform changes below.
 
-- **Two flavours, and they differ in code.** **OmniStudio Standard** is metadata-based and on core,
-  in the **`omnistudio`** namespace, implementing **`Callable`**. The original **Managed Package**
-  ("OmniStudio for Vlocity") carries an industry namespace — **`vlocity_cmt`**, `vlocity_ins`,
-  `vlocity_ps` — and extends **`VlocityOpenInterface`/`VlocityOpenInterface2`**. Always confirm which
-  the org uses: class references, interfaces and tooling all differ.
+- **Two flavours and three interfaces.** **OmniStudio Standard** is metadata-based and on core, in
+  the **`omnistudio`** namespace; the original **Managed Package** ("OmniStudio for Vlocity")
+  carries an industry namespace — **`vlocity_cmt`**, `vlocity_ins`, `vlocity_ps`. The interfaces do
+  not map one-to-one onto that split: **`System.Callable` is the forward path on both**, Standard
+  **also** exposes **`omnistudio.VlocityOpenInterface2`**, and the managed package has
+  **`vlocity_*.VlocityOpenInterface`/`VlocityOpenInterface2`**. Always confirm which namespace and
+  which interface the org uses: class references and tooling differ with it.
 - Components are **LWC-based at runtime** — OmniScripts and FlexCards render as Lightning Web
   Components — and **JSON-defined** in metadata.
 - Custom logic plugs in through **Apex Remote Actions**, and from API 67.0 that Apex defaults to
@@ -118,6 +120,13 @@ extending `VlocityOpenInterface(2)` are invocable from OmniStudio; dispatch on `
 **bulk-safe, `WITH USER_MODE`, and free of SOQL and DML in loops**. Register the class and method in
 the Remote Action element as **Remote Class** and **Remote Method**. Full contract and errors:
 `references/apex-remote-actions.md`.
+
+**A `{ inputMap, options }` envelope is a different call site, not a correction of this one.** Other
+libraries publish a generic `System.Callable` skeleton that reads `args.get('inputMap')` and
+*returns* a response map. That is for Industries Apex called by your own code, and for migrating
+off `VlocityOpenInterface` — not for a Remote Action, where the OmniStudio runtime supplies
+`input`, `output` and `options` and reads the `output` map back. Do not "fix" the sample above to
+match it.
 
 ---
 

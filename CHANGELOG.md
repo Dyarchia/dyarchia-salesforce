@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **The OmniStudio Remote Action contract is settled, and it needed no org.** It had been parked as blocked for months because `dya-omnistudio` and Salesforce's own `sf-skills` described the `Callable` contract differently and only a live org seemed able to decide. GitHub code search decided it instead. **The `args` keys were never a contradiction:** `args.get('input')` appears in real implementation classes, while every leading hit for `args.get('inputMap')` is `sf-skills` itself or a mirror of it, and upstream's own file header says what it is for — *"use when integrating with Open Interface callers"*, in files named `pattern_callable_vanilla`, `pattern_callable_openinterface` and `pattern_migration`. It is a generic `System.Callable` skeleton for Industries Apex and for migrating off `VlocityOpenInterface`, not a description of what the OmniStudio runtime passes a Remote Action. §2 now says so, so nobody "fixes" the sample to match it.
+
+  **The namespace mapping was genuinely wrong here**, and upstream had it right. The skill described a two-way split — core implements `Callable`, managed extends `VlocityOpenInterface2` — but **`omnistudio.VlocityOpenInterface2` exists**, visible in `omnistudio__*.cls` classes retrieved from a managed package in a repository unrelated to either skill library. It is three interfaces across two flavours, with `System.Callable` the forward path on both.
+
 ## [0.5.2] - 2026-09-12
 
 ### Fixed
