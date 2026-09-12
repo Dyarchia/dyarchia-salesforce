@@ -18,6 +18,8 @@ That makes them undiscoverable on purpose, so the plugin ships **`/dya-sf-skills
 
 26 skills, all targeting **Winter '27 / API v68.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
 
+Two skills are deliberately exempt from that version and say so in their own Platform Context: **`dya-b2c-commerce`**, which is the Demandware-lineage platform and has no Salesforce core API version at all, and **`dya-sf-cli`**, which tracks the CLI's own weekly cadence rather than the platform release. The validator allowlists both.
+
 ### Core development
 
 - **`dya-apex`**
@@ -125,7 +127,7 @@ graph LR
 
 Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand.
 
-`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill lists the fragments it needs in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. The copies are committed so every skill folder stays self-contained; the canon is what you edit.
+`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill that needs any lists them in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. A skill the canon does not apply to carries no such file — `dya-b2c-commerce` is the one today, because nothing on that platform is Salesforce core. The copies are committed so every skill folder stays self-contained; the canon is what you edit.
 
 `agents/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
 
@@ -151,7 +153,7 @@ Skills are discovered from `skills/` automatically. No MCP servers are declared 
 
 ## Install on other agents
 
-The skills themselves are not Claude-specific. Each is a folder with a `SKILL.md` carrying `name` and `description` in YAML frontmatter — the [Agent Skills](https://agentskills.io) shape that several vendors now read. Only the manifests differ, and both live at the repository root:
+The skills themselves are not Claude-specific. Each is a folder with a `SKILL.md` carrying `name` and `description` in YAML frontmatter — the [Agent Skills](https://agentskills.io) shape that several vendors now read. Only the manifests differ, and they sit beside the content at the repository root:
 
 ```text
 .claude-plugin/     plugin.json + marketplace.json
@@ -172,7 +174,7 @@ Gemini has no equivalent plugin-and-skill surface at the time of writing; copy t
 
 ## Install from disk
 
-Agents that read skills directly from a folder on disk need no zipping — copy the skill folder into the directory matching the scope you want:
+Agents that read skills directly from a folder on disk need no install step — copy the skill folder into the directory matching the scope you want:
 
 ```mermaid
 flowchart LR
@@ -204,8 +206,11 @@ Work flows in one direction: **feature → `develop` → `master`**.
 - **Branch from `develop`.** It is the working branch and always carries the current state.
 - **Open the pull request against `develop`.** GitHub proposes `master` because that is the
   repository's default branch, so the base has to be changed by hand on every pull request.
-- **`master` is the published branch.** It is synced from `develop` after a merge; nothing lands on
-  it directly.
+- **`master` is the published branch.** Publishing is a fast-forward of `develop` onto it
+  (`git push origin develop:master`), never a merge — a merge commit on `master` never flows back,
+  so the two branches drift apart by one commit per release. Nothing lands on `master` directly.
+- **Every pull request needs the owner's review.** `.github/CODEOWNERS` assigns the whole tree, and
+  both branches are protected.
 
 If a clone or worktree predates a change of default branch, its `refs/remotes/origin/HEAD` is stale
 and `git checkout` on the bare default gives you the wrong branch. Fix the ref rather than working
@@ -223,7 +228,7 @@ Shared fundamentals are never copy-pasted between skills. Edit the canon under `
 
 The full contract lives in [`CLAUDE.md`](CLAUDE.md), and the step-by-step procedure for adding, editing, splitting or removing a skill lives in [`CONTRIBUTING.md`](CONTRIBUTING.md). Both are versioned: read them before your first change rather than inferring the conventions from the diff.
 
-A source edit is only half the change. Run `scripts/validate-skills` before you commit it. The validator checks that every skill's Platform Context declares the platform version this README states, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, that every synced fragment still matches its canon, and that every backticked cross-reference between skills resolves. It must exit 0 before any commit that touches `skills/`.
+A source edit is only half the change. Run `scripts/validate-skills` before you commit it. The validator checks that every skill's Platform Context declares the platform version this README states — bar the two exempt skills named above —, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, that every synced fragment still matches its canon, and that every backticked cross-reference between skills resolves. It must exit 0 before any commit that touches `skills/`.
 
 ---
 
