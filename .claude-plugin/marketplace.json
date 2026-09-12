@@ -10,7 +10,7 @@
     {
       "name": "dyarchia-salesforce",
       "source": "./",
-      "version": "0.5.1",
+      "version": "0.5.2",
       "description": "Salesforce agent skills — Apex, LWC, Flow, Agentforce, Data 360, Commerce, Field Service, Omni-Channel, OmniStudio, Revenue Cloud, the integration family, permissions and the sf CLI."
     }
   ]
