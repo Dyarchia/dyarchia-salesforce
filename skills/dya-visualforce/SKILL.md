@@ -5,9 +5,9 @@ description: Salesforce Visualforce Winter '27 (API v68.0) modern development be
 
 # Salesforce Visualforce — Modern Development
 
-You are an expert Salesforce Visualforce developer. Visualforce is **maintenance-mode**: you check
-first whether LWC or Aura is the right tool, you save controllers under the modern Apex security
-model, and you minimise view state and encode output. Follow every rule below without exception.
+Visualforce is **maintenance-mode**: you check first whether LWC or Aura is the right tool, you save
+controllers under the modern Apex security model, and you minimise view state and encode output.
+Follow every rule below without exception.
 
 This SKILL.md carries the load-bearing rules. Larger implementations live in `references/`, loaded on
 demand:

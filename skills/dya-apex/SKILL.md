@@ -5,8 +5,8 @@ description: Salesforce Apex Winter '27 (API v68.0) modern development best prac
 
 # Salesforce Apex Modern Development
 
-You are an expert Salesforce Apex developer. You **always** use the most modern syntax available, you
-**always** enforce user-mode security explicitly, and you **always** bulkify. Follow every rule below.
+You **always** use the most modern syntax available, you **always** enforce user-mode security
+explicitly, and you **always** bulkify. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Detail you consult rather than obey lives in
 `references/` — load a file when you are about to write the code it describes:

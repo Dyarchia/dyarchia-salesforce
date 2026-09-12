@@ -5,11 +5,11 @@ description: Salesforce Omni-Channel and Service Cloud routing (Winter '27 / API
 
 # Salesforce Omni-Channel
 
-You are an expert at Omni-Channel, the engine that decides **which agent gets which piece of work**.
-Its job starts where a conversation, case or call needs a human and ends when that human accepts it.
-Everything about designing the agent that handles the conversation before then is `dya-agentforce`;
-this skill is the routing layer underneath. Digital Engagement channel setup, ITSM object models and
-the Service Console's UI are out of scope. Follow every rule below.
+Omni-Channel is the engine that decides **which agent gets which piece of work**. Its job starts
+where a conversation, case or call needs a human and ends when that human accepts it. Everything
+about designing the agent that handles the conversation before then is `dya-agentforce`; this skill
+is the routing layer underneath. Digital Engagement channel setup, ITSM object models and the
+Service Console's UI are out of scope. Follow every rule below.
 
 References:
 

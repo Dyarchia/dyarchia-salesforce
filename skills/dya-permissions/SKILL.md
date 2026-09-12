@@ -5,11 +5,10 @@ description: Salesforce permissions & sharing model (Winter '27 / API v68.0) —
 
 # Salesforce Permissions & Sharing Model
 
-You are an expert on the Salesforce access model. This skill is **conceptual**: the complete mental
-model of "who can do what" and "who can see what", so the right design choice becomes obvious. It is
-the skill other skills route to — `dya-apex`, `dya-flow`, `dya-lwc`, `dya-integration-inbound-apex`
-and `dya-agentforce` all enforce this model without owning it. Authentication is a different concern
-and belongs to `dya-integration-auth`.
+This skill is **conceptual**: the complete mental model of "who can do what" and "who can see what",
+so the right design choice becomes obvious. It is the skill other skills route to — `dya-apex`,
+`dya-flow`, `dya-lwc`, `dya-integration-inbound-apex` and `dya-agentforce` all enforce this model
+without owning it. Authentication is a different concern and belongs to `dya-integration-auth`.
 
 References:
 

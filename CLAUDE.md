@@ -216,7 +216,11 @@ third-party Salesforce skills; that is where the prefix earns its keep.
 
 ## Skill body conventions
 
-- Second-person expert framing: "You are an expert X. You **always** ... Follow every rule below."
+- **Never assign an identity.** No skill opens with "You are an expert X": the `#` heading already
+  names the domain, and these skills compose — a reader loading `dya-apex`, `dya-lwc` and
+  `dya-flow` would be told they are three different people. Open on what is true about the domain
+  instead, and keep the second-person imperative for the rules themselves, which do compose:
+  "You **always** ... Follow every rule below."
 - Cross-reference siblings by bare skill name in backticks. The integration family in particular
   is a routing graph: `dya-integration-overview` routes, the others build.
 - Scope exclusions are stated in the opening paragraph, not buried. Example: `dya-b2c-commerce`

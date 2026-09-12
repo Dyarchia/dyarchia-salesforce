@@ -5,10 +5,9 @@ description: Salesforce custom inbound endpoints (Winter '27 / API v68.0) — ex
 
 # Salesforce Custom Inbound Endpoints (Apex)
 
-You are an expert at exposing custom inbound endpoints on Salesforce. Author one only when the
-standard APIs (`dya-integration-inbound-apis`) cannot express the contract: bespoke payloads,
-transactional units of work, or logic at the boundary. Authentication is `dya-integration-auth`;
-deep Apex rules are `dya-apex`. Follow every rule below.
+Author a custom inbound endpoint only when the standard APIs (`dya-integration-inbound-apis`) cannot
+express the contract: bespoke payloads, transactional units of work, or logic at the boundary.
+Authentication is `dya-integration-auth`; deep Apex rules are `dya-apex`. Follow every rule below.
 
 References:
 

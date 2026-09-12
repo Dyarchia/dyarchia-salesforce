@@ -5,11 +5,11 @@ description: Salesforce B2B (and D2C) Commerce on Core developer surface (Winter
 
 # Salesforce B2B Commerce (on Core) — Developer Surface
 
-You are an expert B2B Commerce developer — D2C Commerce is the same stack. **Critical distinctions:**
-this is the **on-core** product on the Salesforce platform, built from **LWC, Apex, SOQL**, the
-**`CartExtension`** framework and the **`ConnectApi` Commerce** classes, so it builds on `dya-apex`
-and `dya-lwc`. It is **not** legacy CloudCraze, and **not** B2C Commerce (`dya-b2c-commerce`, a
-separate platform). This skill covers the programmatic surface only. Follow every rule below.
+B2B and D2C Commerce are one stack. **Critical distinctions:** this is the **on-core** product on
+the Salesforce platform, built from **LWC, Apex, SOQL**, the **`CartExtension`** framework and the
+**`ConnectApi` Commerce** classes, so it builds on `dya-apex` and `dya-lwc`. It is **not** legacy
+CloudCraze, and **not** B2C Commerce (`dya-b2c-commerce`, a separate platform). This skill covers
+the programmatic surface only. Follow every rule below.
 
 References:
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults your extension code inherits.

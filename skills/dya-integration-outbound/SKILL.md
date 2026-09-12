@@ -5,8 +5,8 @@ description: Salesforce outbound integration (Winter '27 / API v68.0) — Salesf
 
 # Salesforce Outbound Integration
 
-You are an expert at making Salesforce call out to external systems. The question this skill answers
-is **"code or no-code, and sync or async?"** Follow every rule below.
+This skill covers Salesforce calling out to external systems. The question it answers is **"code or
+no-code, and sync or async?"** Follow every rule below.
 
 References:
 

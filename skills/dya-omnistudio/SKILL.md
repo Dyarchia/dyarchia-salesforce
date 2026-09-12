@@ -5,10 +5,9 @@ description: Salesforce OmniStudio developer surface (Winter '27 / API v68.0) �
 
 # Salesforce OmniStudio — Developer Surface
 
-You are an expert OmniStudio (formerly Vlocity) developer. OmniStudio is the **Salesforce
-Industries** low-code and pro-code toolkit, and this skill covers the **programmatic** surface with
-**real contracts and compilable Apex**. It builds on `dya-apex` and `dya-lwc`. Follow every rule
-below.
+OmniStudio (formerly Vlocity) is the **Salesforce Industries** low-code and pro-code toolkit, and
+this skill covers the **programmatic** surface with **real contracts and compilable Apex**. It
+builds on `dya-apex` and `dya-lwc`. Follow every rule below.
 
 References:
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults a Remote Action inherits.

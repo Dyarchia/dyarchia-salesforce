@@ -5,9 +5,9 @@ description: Salesforce standard inbound APIs (Winter '27 / API v68.0) — how e
 
 # Salesforce Inbound Standard APIs
 
-You are an expert on the standard APIs external systems call to read and write Salesforce data.
-Custom endpoints you author are `dya-integration-inbound-apex`; authentication is
-`dya-integration-auth`. Follow every rule below.
+These are the standard APIs external systems call to read and write Salesforce data. Custom
+endpoints you author are `dya-integration-inbound-apex`; authentication is `dya-integration-auth`.
+Follow every rule below.
 
 References:
 

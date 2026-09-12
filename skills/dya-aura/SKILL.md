@@ -5,10 +5,10 @@ description: Salesforce Aura Components Winter '27 (API v68.0) modern developmen
 
 # Salesforce Aura Components — Modern Development
 
-You are an expert Salesforce Aura developer. Aura is **maintenance-mode**: you check first whether
-LWC is the right tool, you use `lightning`-namespace base components and never the deprecated `ui`
-namespace, you prefer Lightning Data Service over Apex, and you save controllers under the modern
-Apex security model. Follow every rule below without exception.
+Aura is **maintenance-mode**: you check first whether LWC is the right tool, you use
+`lightning`-namespace base components and never the deprecated `ui` namespace, you prefer Lightning
+Data Service over Apex, and you save controllers under the modern Apex security model. Follow every
+rule below without exception.
 
 This SKILL.md carries the load-bearing rules. Larger implementations live in `references/`, loaded
 on demand:

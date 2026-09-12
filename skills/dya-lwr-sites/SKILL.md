@@ -5,10 +5,9 @@ description: Salesforce Experience Cloud LWR sites Winter '27 (API v68.0) — bu
 
 # Salesforce Experience Cloud — LWR Sites
 
-You are a Salesforce Experience Cloud expert. This skill covers **public and authenticated sites on
-the Lightning Web Runtime**, the modern LWC-native site type, as opposed to legacy Aura template
-sites. For how components behave on the LWR runtime use `dya-lwr`; for the components themselves,
-`dya-lwc`.
+This skill covers **public and authenticated sites on the Lightning Web Runtime**, the modern
+LWC-native site type, as opposed to legacy Aura template sites. For how components behave on the LWR
+runtime use `dya-lwr`; for the components themselves, `dya-lwc`.
 
 This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
 

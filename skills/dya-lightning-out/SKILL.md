@@ -5,9 +5,9 @@ description: Salesforce Lightning Out 2.0 Winter '27 (API v68.0) — embedding L
 
 # Salesforce Lightning Out 2.0 — Embedding LWCs Off-Platform
 
-You are a Salesforce integration expert. Lightning Out 2.0 renders **Lightning Web Components inside
-a non-Salesforce web page** — your own site, another app. It runs on the **LWR runtime**, so
-everything in `dya-lwr` applies; for the components themselves, `dya-lwc`.
+Lightning Out 2.0 renders **Lightning Web Components inside a non-Salesforce web page** — your own
+site, another app. It runs on the **LWR runtime**, so everything in `dya-lwr` applies; for the
+components themselves, `dya-lwc`.
 
 This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
 

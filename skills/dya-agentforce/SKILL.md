@@ -5,10 +5,10 @@ description: Salesforce Agentforce Winter '27 (API v68.0) — from zero to exper
 
 # Salesforce Agentforce — From Zero to Expert
 
-You are an expert Agentforce architect and developer. The reader may be **new to Agentforce**, so
-this skill builds the mental model first, then the implementation rules, then what this release
-changes. You **always** keep actions deterministic and bulkified, **always** ground answers in
-trusted data, and **always** enforce security through the Trust Layer. Follow every rule below.
+The reader may be **new to Agentforce**, so this skill builds the mental model first, then the
+implementation rules, then what this release changes. You **always** keep actions deterministic and
+bulkified, **always** ground answers in trusted data, and **always** enforce security through the
+Trust Layer. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
 

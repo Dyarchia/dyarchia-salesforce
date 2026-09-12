@@ -5,10 +5,9 @@ description: Salesforce CLI command catalog (sf, Winter '27 / API v68.0 era) —
 
 # Salesforce CLI — Command Catalog
 
-You are an expert with the Salesforce CLI. This skill is a **command catalog**: it exists so an agent
-picks and runs the correct `sf` command with the right flags. The exhaustive command lists by topic
-live in `references/`; this SKILL.md holds the model, the conventions and the most-used commands.
-Follow every rule below.
+This skill is a **command catalog**: it exists so an agent picks and runs the correct `sf` command
+with the right flags. The exhaustive command lists by topic live in `references/`; this SKILL.md
+holds the model, the conventions and the most-used commands. Follow every rule below.
 
 References (exhaustive command lists by group):
 - `references/shared/org-model.md` — **what an org, a sandbox, a scratch org and a DX project actually are.** Start here if the vocabulary below is unfamiliar; every command assumes it.

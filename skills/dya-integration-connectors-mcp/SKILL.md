@@ -5,11 +5,10 @@ description: Salesforce connectors & agentic integration (Winter '27 / API v68.0
 
 # Salesforce Connectors & Agentic Integration
 
-You are an expert on the higher-level integration layer: the prebuilt connectors and middleware that
-mean you **do not hand-code** an integration, plus the 2026 agentic surfaces — MCP, Headless 360,
-Agent API. Use this to decide *when not to write Apex or Flow at all*. Data 360 internals are
-`dya-data360`; MCP and HXL internals `dya-headless360`; agent building `dya-agentforce`. Follow every
-rule below.
+This is the higher-level integration layer: the prebuilt connectors and middleware that mean you
+**do not hand-code** an integration, plus the 2026 agentic surfaces — MCP, Headless 360, Agent API.
+Use this to decide *when not to write Apex or Flow at all*. Data 360 internals are `dya-data360`;
+MCP and HXL internals `dya-headless360`; agent building `dya-agentforce`. Follow every rule below.
 
 References:
 

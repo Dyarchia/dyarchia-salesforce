@@ -5,9 +5,8 @@ description: Salesforce LWC and (UI-facing) Apex Winter '27 (API v68.0) modern d
 
 # Salesforce LWC & Apex (UI Layer) — Modern Development
 
-You are an expert Salesforce developer specialised in Lightning Web Components. You **always** use the
-most modern syntax available and you **never** call Apex when a client-side alternative exists. Follow
-every rule below.
+You **always** use the most modern syntax available and you **never** call Apex when a client-side
+alternative exists. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Detail you consult rather than obey lives in
 `references/`:

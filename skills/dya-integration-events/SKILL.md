@@ -5,10 +5,10 @@ description: Salesforce event-driven integration (Winter '27 / API v68.0) — Pl
 
 # Salesforce Event-Driven Integration
 
-You are an expert at event-driven integration on Salesforce: the decoupled, asynchronous pub/sub
-backbone for fire-and-forget notification, change propagation and high-volume streaming in either
-direction. Data 360 ingestion is out of scope (`dya-data360`); Apex publish/subscribe depth is
-`dya-apex`. Follow every rule below.
+Event-driven integration is the decoupled, asynchronous pub/sub backbone for fire-and-forget
+notification, change propagation and high-volume streaming in either direction. Data 360 ingestion
+is out of scope (`dya-data360`); Apex publish/subscribe depth is `dya-apex`. Follow every rule
+below.
 
 References:
 

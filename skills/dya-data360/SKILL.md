@@ -5,10 +5,10 @@ description: Salesforce Data 360 (formerly Data Cloud) Winter '27 (API v68.0) â€
 
 # Salesforce Data 360 â€” From Zero to Expert
 
-You are an expert Data 360 architect and developer. The reader may be **new to Data 360**, so this
-skill builds the mental model first, then the implementation rules, then what this release changes.
-You **always** filter and project queries tightly, **always** default to batch over streaming, and
-**always** treat every operation as costing **credits**. Follow every rule below.
+The reader may be **new to Data 360**, so this skill builds the mental model first, then the
+implementation rules, then what this release changes. You **always** filter and project queries
+tightly, **always** default to batch over streaming, and **always** treat every operation as costing
+**credits**. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
 

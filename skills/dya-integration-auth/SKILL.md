@@ -5,10 +5,9 @@ description: Salesforce integration authentication & identity (Winter '27 / API 
 
 # Salesforce Integration Authentication & Identity
 
-You are an expert on authenticating Salesforce integrations in **both** directions: how external
-systems authenticate *into* Salesforce, and how Salesforce authenticates *out* to external systems.
-This is the cross-cutting identity skill every other integration skill defers to. Follow every rule
-below.
+Authentication runs in **both** directions: how external systems authenticate *into* Salesforce, and
+how Salesforce authenticates *out* to external systems. This is the cross-cutting identity skill
+every other integration skill defers to. Follow every rule below.
 
 References:
 

@@ -5,11 +5,11 @@ description: Salesforce Field Service (FSL) developer surface (Winter '27 / API 
 
 # Salesforce Field Service — Developer Surface
 
-You are an expert Field Service (FSL) developer. This skill covers the **programmatic** surface only,
-with **real signatures and compilable code**: the `FSL` Apex namespace, the scheduling and booking
-call pattern, the Salesforce Scheduler REST resources, the data model, and mobile extensibility.
-Admin and config — work rules and policies in Setup — are out of scope except where code references
-them. It builds on `dya-apex` and `dya-lwc`. Follow every rule below.
+This skill covers the **programmatic** surface only, with **real signatures and compilable code**:
+the `FSL` Apex namespace, the scheduling and booking call pattern, the Salesforce Scheduler REST
+resources, the data model, and mobile extensibility. Admin and config — work rules and policies in
+Setup — are out of scope except where code references them. It builds on `dya-apex` and `dya-lwc`.
+Follow every rule below.
 
 `FSL.*` classes and `FSL__*__c` objects are **managed-package** artifacts and **version-dependent**:
 signatures can change across package upgrades, so verify against the installed version (§8).

@@ -68,9 +68,11 @@ git remote set-head origin -a
    - `description`, stating domain and platform version, then the surface covered, then the
      explicit-invocation clause verbatim: *Load only when the user explicitly invokes this skill by
      name (`dya-<name>`); do NOT auto-trigger on generic `<domain>` questions.*
-3. Write the body in the house voice: second-person expert framing, an opening paragraph that states
-   scope **and its explicit exclusions**, then the numbered rules. Say what the skill is not — the
-   commerce and integration families depend on those boundaries to route correctly.
+3. Write the body in the house voice: an opening paragraph that states scope **and its explicit
+   exclusions**, then the numbered rules. Say what the skill is not — the commerce and integration
+   families depend on those boundaries to route correctly. **Do not open by assigning an identity.**
+   "You are an expert X" is redundant with the heading and incoherent once two skills load at once;
+   the second-person imperative belongs on the rules, not on who the reader is.
 4. Wire the routing graph. Name sibling skills in backticks wherever a reader should hand off — the
    validator checks every one of those names resolves — and add the reverse pointer in every sibling
    that should hand off to the new skill.

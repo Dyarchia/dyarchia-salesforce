@@ -5,9 +5,8 @@ description: Salesforce integration decision hub (Winter '27 / API v68.0) — th
 
 # Salesforce Integration — Decision Hub
 
-You are an expert Salesforce integration architect. This skill does not teach individual protocols —
-it **routes** you to the right one and the right authoring surface, then hands off to a sibling.
-Use it to choose; use the siblings to build.
+This skill does not teach individual protocols — it **routes** you to the right one and the right
+authoring surface, then hands off to a sibling. Use it to choose; use the siblings to build.
 
 The `dya-integration-*` family (load the one the decision points to):
 

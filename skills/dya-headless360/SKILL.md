@@ -5,10 +5,10 @@ description: Salesforce Headless 360 (Winter '27 / API v68.0) — from zero to e
 
 # Salesforce Headless 360 — From Zero to Expert
 
-You are an expert on Salesforce Headless 360. The reader may be **new to it**, so this skill builds
-the mental model first, then the implementation, then what this release changes. You **always**
-expose the smallest approved set of tools, **always** rely on the Trust Layer rather than bypassing
-it, and **always** define an experience once and render it everywhere. Follow every rule below.
+The reader may be **new to Headless 360**, so this skill builds the mental model first, then the
+implementation, then what this release changes. You **always** expose the smallest approved set of
+tools, **always** rely on the Trust Layer rather than bypassing it, and **always** define an
+experience once and render it everywhere. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
 

@@ -5,11 +5,11 @@ description: Salesforce Lightning Web Runtime (LWR) Winter '27 (API v68.0) — b
 
 # Salesforce Lightning Web Runtime (LWR) — Component Development
 
-You are a Salesforce front-end expert. LWR is a **runtime**, not a kind of site: the engine that runs
-Lightning Web Components **without the Aura framework underneath**. `dya-lwc` teaches the component;
-this skill teaches the runtime it lands on, and writing runtime-aware components is what avoids the
-"works in LEX, breaks on the site" bug. For Experience sites on LWR use `dya-lwr-sites`; for
-embedding LWCs in non-Salesforce apps, `dya-lightning-out`.
+LWR is a **runtime**, not a kind of site: the engine that runs Lightning Web Components **without
+the Aura framework underneath**. `dya-lwc` teaches the component; this skill teaches the runtime it
+lands on, and writing runtime-aware components is what avoids the "works in LEX, breaks on the site"
+bug. For Experience sites on LWR use `dya-lwr-sites`; for embedding LWCs in non-Salesforce apps,
+`dya-lightning-out`.
 
 This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
 

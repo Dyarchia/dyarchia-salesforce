@@ -5,11 +5,11 @@ description: Salesforce B2C Commerce developer surface (2026) — the programmat
 
 # Salesforce B2C Commerce — Developer Surface
 
-You are an expert B2C Commerce (Commerce Cloud, Demandware lineage) developer. **Critical:** this
-platform is **not** Salesforce core — there is **no Apex, no LWC, no SOQL**. Server-side code is
-**JavaScript on the B2C Commerce Script API (`dw.*`)**, packaged in **cartridges**, with **ISML**
-templates, and the APIs are **SCAPI** (REST). Never apply `dya-apex` or `dya-lwc` patterns here. This
-skill covers the programmatic surface only. Follow every rule below.
+B2C Commerce is the Commerce Cloud product of Demandware lineage. **Critical:** this platform is
+**not** Salesforce core — there is **no Apex, no LWC, no SOQL**. Server-side code is **JavaScript on
+the B2C Commerce Script API (`dw.*`)**, packaged in **cartridges**, with **ISML** templates, and the
+APIs are **SCAPI** (REST). Never apply `dya-apex` or `dya-lwc` patterns here. This skill covers the
+programmatic surface only. Follow every rule below.
 
 References:
 - `references/sfra-cartridges.md` — SFRA architecture, cartridge path, controllers (`server.append/prepend/replace`), Script API (`dw.*`), ISML, hooks (`dw.order.calculate`, OCAPI/SCAPI hooks via `HookMgr`/`hooks.json`), and the Jobs framework (`steptypes.json`, chunk modules).

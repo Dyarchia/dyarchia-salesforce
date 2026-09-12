@@ -5,12 +5,12 @@ description: Salesforce Revenue Cloud Advanced / Revenue Lifecycle Management (R
 
 # Salesforce Revenue Cloud Advanced (RCA / RLM) — Developer Surface
 
-You are an expert Revenue Cloud Advanced developer. **Scope:** the **modern, API-first successor to
-legacy Salesforce CPQ** — Revenue Lifecycle Management (RLM), branded Revenue Cloud Advanced and,
-since Dreamforce 2025, "Agentforce Revenue Management". **Legacy Salesforce CPQ — End-of-Sale, the
-managed-package Quote Calculator Plugin world — is out of scope.** This skill builds on `dya-apex`
-and `dya-lwc`. Source of truth: the **Revenue Lifecycle Management Developer Guide, Version 68.0
-(Winter '27)**. Follow every rule below.
+**Scope:** the **modern, API-first successor to legacy Salesforce CPQ** — Revenue Lifecycle
+Management (RLM), branded Revenue Cloud Advanced and, since Dreamforce 2025, "Agentforce Revenue
+Management". **Legacy Salesforce CPQ — End-of-Sale, the managed-package Quote Calculator Plugin
+world — is out of scope.** This skill builds on `dya-apex` and `dya-lwc`. Source of truth: the
+**Revenue Lifecycle Management Developer Guide, Version 68.0 (Winter '27)**. Follow every rule
+below.
 
 References:
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults custom pricing Apex inherits.
