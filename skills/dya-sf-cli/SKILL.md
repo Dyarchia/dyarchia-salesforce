@@ -5,7 +5,10 @@ description: Salesforce CLI command catalog (sf, Winter '27 / API v68.0 era) —
 
 # Salesforce CLI — Command Catalog
 
-You are an expert with the Salesforce CLI. This skill is a **command catalog**: its job is to let an agent pick and run the correct `sf` command with the right flags. The load-bearing command lists by topic live in `references/`; this SKILL.md holds the model, conventions, and the most-used commands. Follow every rule below.
+You are an expert with the Salesforce CLI. This skill is a **command catalog**: it exists so an agent
+picks and runs the correct `sf` command with the right flags. The exhaustive command lists by topic
+live in `references/`; this SKILL.md holds the model, the conventions and the most-used commands.
+Follow every rule below.
 
 References (exhaustive command lists by group):
 - `references/shared/org-model.md` — **what an org, a sandbox, a scratch org and a DX project actually are.** Start here if the vocabulary below is unfamiliar; every command assumes it.
@@ -20,17 +23,25 @@ References (exhaustive command lists by group):
 
 ## Platform Context — 2026
 
-- The modern executable is **`sf`** (CLI v2). The legacy **`sfdx`** style still works under the `sf force` (legacy) topic, but **always emit `sf` v2 commands** (`sf org login web`, not `sfdx force:auth:web:login`).
+- The modern executable is **`sf`** (CLI v2). The legacy **`sfdx`** style still works under the
+  `sf force` topic, but **always emit `sf` v2 commands**: `sf org login web`, never
+  `sfdx force:auth:web:login`.
 - **Agentforce DX** is first-class: `sf agent` (preview, generate) and `sf org create agent-user`.
-- Commands are organized into **topics** (`sf <topic> <command>`). The CLI is plugin-based; topics map to plugins.
-- Many commands are **scriptable** with `--json`, and most accept `--target-org` (`-o`) and `--flags-dir`.
-- **The CLI versions on its own weekly cadence, not the platform release.** A `sf` version is not an API version, and the two move independently — which is why this skill carries no platform version in its heading.
+- Commands are organised into **topics** (`sf <topic> <command>`), and the CLI is plugin-based, so
+  topics map to plugins.
+- Most commands are **scriptable** with `--json`, and accept `--target-org` (`-o`) and `--flags-dir`.
+- **The CLI versions on its own weekly cadence, not the platform release.** A `sf` version is not an
+  API version and the two move independently, which is why this skill carries no platform version in
+  its heading.
 
 What the Winter '27 platform release changes for CLI work:
 
-- **Only invalid Apex classes and triggers recompile on deploy** (GA) — deploys against large orgs get materially faster with no change on your side.
-- **`AiAgentDefinition` and `AiAgentDefinitionVersion` are metadata types at API 68.0** (GA), so agents deploy and retrieve like any other source. **Both orgs must be on 68.0** for that to work.
-- **A Salesforce plugin for Claude Code** (GA) detects a DX project and supplies org context through hosted MCP servers, installed from the Claude Plugin Marketplace. See `dya-headless360`.
+- **Only invalid Apex classes and triggers recompile on deploy** (GA), so deploys against large orgs
+  get materially faster with no change on your side.
+- **`AiAgentDefinition` and `AiAgentDefinitionVersion` are metadata types at API 68.0** (GA), so
+  agents deploy and retrieve like any other source. **Both orgs must be on 68.0.**
+- **A Salesforce plugin for Claude Code** (GA) detects a DX project and supplies org context through
+  hosted MCP servers, installed from the Claude Plugin Marketplace. See `dya-headless360`.
 - **DevOps Center MCP** (GA) brings the same programmatic access into a CI/CD pipeline.
 
 ---
@@ -42,11 +53,14 @@ sf <topic> <subtopic?> <command> [--flags]
 ```
 
 - Discover with `sf commands`, `sf <topic> --help`, `sf <topic> <command> --help`.
-- **`--json`** on (almost) any command for machine-readable output — use this when parsing results programmatically.
-- **`-o` / `--target-org`** selects the org (alias or username); omit to use the default.
-- **`--flags-dir <dir>`** imports flag values from files (handy for long/secret flags).
+- **`--json`** works on almost any command. Use it whenever results are parsed programmatically.
+- **`-o` / `--target-org`** selects the org by alias or username; omit it to use the default.
+- **`--flags-dir <dir>`** imports flag values from files, which is how long or secret flags are
+  passed.
 
-Top-level topics: `org`, `project`, `template`, `apex`, `data`, `sobject`, `lightning`, `logic`, `agent`, `devops`, `package`, `community`, `config`, `alias`, `schema`, `api`, `code-analyzer`, `plugins`, `doctor`, `info`, `force` (legacy).
+Top-level topics: `org`, `project`, `template`, `apex`, `data`, `sobject`, `lightning`, `logic`,
+`agent`, `devops`, `package`, `community`, `config`, `alias`, `schema`, `api`, `code-analyzer`,
+`plugins`, `doctor`, `info`, `force` (legacy).
 
 ---
 
@@ -71,7 +85,7 @@ sf org create sandbox --definition-file sandbox-def.json --alias uat
 sf org create agent-user --alias myorg                        # Agentforce service user
 ```
 
-Full auth/org/sandbox/user catalog: `references/org-and-auth.md`.
+Full auth, org, sandbox and user catalog: `references/org-and-auth.md`.
 
 ---
 
@@ -88,7 +102,7 @@ sf project deploy validate --source-dir force-app             # check-only (no c
 sf project deploy quick --job-id <id>                         # deploy a validated set
 ```
 
-Full project/data/sobject catalog: `references/metadata-and-data.md`.
+Full project, data and sobject catalog: `references/metadata-and-data.md`.
 
 ---
 
@@ -111,16 +125,22 @@ sf agent generate template
 sf agent preview --api-name My_Agent --output-dir transcripts
 ```
 
-Full apex/lightning/logic/agent/package catalog: `references/dev-and-agent.md`.
+Full apex, lightning, logic, agent and package catalog: `references/dev-and-agent.md`.
 
 ---
 
 ## 5. Flag Conventions (v2)
 
-- Names are **kebab-case** and full words: `--target-org`, `--source-dir`, `--test-level`, `--api-name`.
-- Multi-value flags are **repeated**, not comma-joined: `--metadata ApexClass --metadata ApexTrigger`. Space-separating after a single flag also works — `--metadata ApexClass ApexTrigger` — but **never wrap the group in quotes**: `--metadata "A B"` is read as one nonexistent type.
-- Common shared flags: `-o/--target-org`, `--json`, `--flags-dir`, `-w/--wait` (minutes), `--api-version`.
-- Legacy `sfdx force:topic:action --camelCaseFlag` maps to `sf topic action --kebab-flag`; translate when you encounter old scripts.
+- Names are **kebab-case** and full words: `--target-org`, `--source-dir`, `--test-level`,
+  `--api-name`.
+- Multi-value flags are **repeated**, never comma-joined:
+  `--metadata ApexClass --metadata ApexTrigger`. Space-separating after a single flag also works,
+  `--metadata ApexClass ApexTrigger`, but **never wrap the group in quotes**: `--metadata "A B"` is
+  read as one nonexistent type.
+- Common shared flags: `-o/--target-org`, `--json`, `--flags-dir`, `-w/--wait` (minutes),
+  `--api-version`.
+- Legacy `sfdx force:topic:action --camelCaseFlag` maps to `sf topic action --kebab-flag`. Translate
+  old scripts when you meet them.
 
 ---
 

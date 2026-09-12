@@ -5,39 +5,56 @@ description: Salesforce Visualforce Winter '27 (API v68.0) modern development be
 
 # Salesforce Visualforce — Modern Development
 
-You are an expert Salesforce Visualforce developer working on a platform where Visualforce is a **mature, maintenance-mode** technology. You **always** check first whether LWC or Aura is the right tool, you **always** save controllers under the modern Apex security model, and you **always** minimise view state and encode output. Follow every rule below without exception.
+You are an expert Salesforce Visualforce developer. Visualforce is **maintenance-mode**: you check
+first whether LWC or Aura is the right tool, you save controllers under the modern Apex security
+model, and you minimise view state and encode output. Follow every rule below without exception.
 
-This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/` and are loaded on demand:
+This SKILL.md carries the load-bearing rules. Larger implementations live in `references/`, loaded on
+demand:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults a Visualforce controller inherits.
 - `references/shared/sharing-and-access.md` — the permission model those defaults enforce.
 - `references/controller-patterns.md` — full controller extension skeleton, view state and `transient` discipline, bulkified getters and actions, injection-safe dynamic SOQL, CRUD and FLS enforcement in custom controllers.
 - `references/javascript-remoting.md` — full `@RemoteAction` patterns, Remoting vs `<apex:actionFunction>` vs Remote Objects, bulkified remoting, error handling.
 
-Load a reference when you are about to write or refactor code that needs that exact implementation. Visualforce controllers are Apex — for deep Apex best practices (Service/Selector/Domain layering, async, observability, testing) load the companion skill `dya-apex`. For new Lightning UI, load `dya-lwc` or `dya-aura`.
+Visualforce controllers are Apex: for Service/Selector/Domain layering, async, observability and
+testing, load `dya-apex`. For new Lightning UI, load `dya-lwc` or `dya-aura`.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-Save new pages, components and their Apex controllers at `<apiVersion>68.0</apiVersion>`. Winter '27 brings **no new Visualforce markup**, which is itself the signal — Visualforce receives platform changes, not features.
+Save new pages, components and their Apex controllers at `<apiVersion>68.0</apiVersion>`. Winter '27
+brings **no new Visualforce markup**, which is itself the signal: Visualforce receives platform
+changes, not features.
 
-**No retirement date for Visualforce has been announced.** Maintenance mode is a reason to build new work in LWC, not a deadline; do not imply an end date that does not exist.
+**No retirement date has been announced.** Maintenance mode is a reason to build new work in LWC, not
+a deadline. Do not imply an end date that does not exist.
 
-Platform changes that land on Visualforce:
+Six platform changes reach Visualforce:
 
-- **SLDS 2.0** — an org that adopts it gets Visualforce adapting to the new styling, which is the cheapest way to stop a legacy page looking obviously legacy next to modern UI. Worth raising whenever someone asks why an old page looks wrong.
-- **A Visualforce controller is Apex**, so the API 67.0 security defaults apply: SOQL, SOSL, DML and `Database.*` default to `USER_MODE`, and an omitted sharing declaration on a custom controller or extension defaults to `with sharing`. See §3, `dya-apex`, and `dya-permissions`.
-- **`WITH SECURITY_ENFORCED` no longer compiles** from API 67.0. Use `WITH USER_MODE`. See §3.
-- **HTTPS is enforced everywhere** — every Visualforce page and custom domain serves over HTTPS without exception. Never hard-code an `http://` resource or callback URL; use `URLFOR($Resource…)`, a relative URL, or a Named Credential.
-- **Lightning Web Security blocks `data:` URIs** — when a VF page is embedded in Lightning Experience and generates a client-side download, `HTMLAnchorElement.href` no longer accepts `data:` URIs. Generate a `blob:` URL instead. See §8.
-- **Visualforce remains in maintenance mode.** Salesforce ships no new framework features for it and steers all new UI to LWC, then Aura. Treat VF as appropriate only for the specific cases in §1 — not as the default for new work.
+- **SLDS 2.0** — an org that adopts it gets Visualforce adapting to the new styling, the cheapest way
+  to stop a legacy page looking obviously legacy beside modern UI. Raise it whenever someone asks why
+  an old page looks wrong.
+- **A Visualforce controller is Apex**, so the API 67.0 security defaults apply: SOQL, SOSL, DML and
+  `Database.*` default to `USER_MODE`, and an omitted sharing declaration on a custom controller or
+  extension defaults to `with sharing`. §3, `dya-apex`, `dya-permissions`.
+- **`WITH SECURITY_ENFORCED` no longer compiles.** Use `WITH USER_MODE`. §3.
+- **HTTPS is enforced everywhere** — every Visualforce page and custom domain serves over HTTPS
+  without exception. Never hard-code an `http://` resource or callback URL; use `URLFOR($Resource…)`,
+  a relative URL, or a Named Credential.
+- **Lightning Web Security blocks `data:` URIs.** In a VF page embedded in Lightning Experience,
+  `HTMLAnchorElement.href` no longer accepts them, so client-side downloads generate a `blob:` URL.
+  §8.
+- **Visualforce is in maintenance mode.** Salesforce ships no new framework features and steers all
+  new UI to LWC, then Aura. It is appropriate only for the cases in §1, never the default for new
+  work.
 
 ---
 
 ## 1. The First Question — Should This Be Visualforce At All?
 
-Before writing a single `<apex:page>`, walk this decision tree. Stop at the first row that fits.
+Stop at the first row that fits.
 
 | Requirement | Build it as | Visualforce? |
 |---|---|---|
@@ -49,33 +66,46 @@ Before writing a single `<apex:page>`, walk this decision tree. Stop at the firs
 | Maintaining/extending an **existing** VF page in a packaged or legacy app | Visualforce | YES |
 | Content that must run inside an **iframe** sandbox | Visualforce | YES |
 
-If the answer is "NO", say so and point to the right skill. Building new Lightning UI in Visualforce is itself the anti-pattern. When you do build VF, add a comment at the top of the page stating which exception above justifies it.
+Where the answer is NO, say so and point to the right skill. Building new Lightning UI in Visualforce
+is itself the anti-pattern. When you do build VF, comment at the top of the page which exception
+above justifies it.
 
-**PDF caveat:** `renderAs="pdf"` uses a legacy rendering engine. Keep PDF pages to simple HTML/CSS (tables, basic styling), avoid JavaScript (it does not run during PDF generation), and test page breaks. Do not pull SLDS into a PDF page — it bloats and renders unpredictably.
+**PDF caveat:** `renderAs="pdf"` uses a legacy rendering engine. Keep PDF pages to simple HTML and
+CSS — tables, basic styling — avoid JavaScript, which does not run during PDF generation, and test
+page breaks. Never pull SLDS into a PDF page: it bloats and renders unpredictably.
 
 ---
 
 ## 2. MVC and Controller Choice
 
-Visualforce is strict MVC: markup is the View, the controller/extension is the Controller, SObjects are the Model. Keep logic out of the page.
+Visualforce is strict MVC — markup is the View, the controller or extension is the Controller,
+SObjects are the Model. Keep logic out of the page.
 
 ### Controller decision order
 
-1. **Standard controller** (`standardController="Account"`) — single-record CRUD with built-in save/edit/delete/cancel. It enforces CRUD/FLS and sharing automatically. Prefer it.
-2. **Standard controller + extension** (`extensions="AccountExt"`) — when you need extra actions or data on top of standard behaviour. The extension constructor takes `ApexPages.StandardController`.
-3. **Standard list controller** (`recordSetVar="accounts"`) — list pages with built-in pagination and filtering.
-4. **Custom controller** (`controller="MyController"`) — only when no standard controller fits. A custom controller runs in **system mode for CRUD/FLS by default** unless you declare `with sharing` and enforce field access yourself — see §3.
+1. **Standard controller** (`standardController="Account"`) — single-record CRUD with built-in
+   save, edit, delete and cancel. It enforces CRUD, FLS and sharing automatically. Prefer it.
+2. **Standard controller + extension** (`extensions="AccountExt"`) — for extra actions or data on top
+   of standard behaviour. The extension constructor takes `ApexPages.StandardController`.
+3. **Standard list controller** (`recordSetVar="accounts"`) — list pages with built-in pagination and
+   filtering.
+4. **Custom controller** (`controller="MyController"`) — only when no standard controller fits. It
+   runs in **system mode for CRUD and FLS by default** unless you declare `with sharing` and enforce
+   field access yourself. See §3.
 
-Reuse standard controllers wherever possible: they give you record security and persistence for free.
+Reuse standard controllers wherever possible: record security and persistence come free.
 
 ### Controller rules — absolute
 
-- One controller/extension per page concern; no business logic in the markup.
-- **No SOQL or DML inside a getter.** Getters are called repeatedly during rendering; a query in a getter is the classic governor-limit bomb. Query once in the constructor (or a `PageReference` action) and cache the result in a member field.
-- Bulkify exactly as in Apex — assume the page can act on many records.
-- Delegate SOQL to a Selector/Gateway class; delegate business operations to a Service class (see `dya-apex`).
+- One controller or extension per page concern, and no business logic in the markup.
+- **No SOQL or DML inside a getter.** Getters are called repeatedly during rendering, so a query in
+  one is the classic governor-limit bomb. Query once in the constructor or a `PageReference` action
+  and cache the result in a member field.
+- Bulkify exactly as in Apex: assume the page can act on many records.
+- Delegate SOQL to a Selector or Gateway class and business operations to a Service class
+  (`dya-apex`).
 
-```java
+```apex
 // ✅ — query once in the constructor, expose via a cached field
 public with sharing class AccountExt {
     public List<Contact> contacts { get; private set; }
@@ -90,7 +120,7 @@ public with sharing class AccountExt {
 }
 ```
 
-```java
+```apex
 // ❌ — SOQL in a getter: re-runs on every reference, blows up view state and limits
 public List<Contact> getContacts() {
     return [SELECT Id, Name FROM Contact WHERE AccountId = :acctId];
@@ -103,9 +133,10 @@ public List<Contact> getContacts() {
 
 ### CRUD / FLS in controllers
 
-Standard controllers enforce CRUD/FLS/sharing automatically. **Custom controllers do not** — you must enforce it. The API 67.0 defaults help you, but state them explicitly anyway.
+Standard controllers enforce CRUD, FLS and sharing automatically. **Custom controllers do not**, so
+you enforce it. The API 67.0 defaults help, but state them explicitly anyway.
 
-```java
+```apex
 // ✅ — explicit sharing + USER_MODE; CRUD/FLS enforced by the query
 public with sharing class InvoiceController {
     public List<Invoice__c> invoices { get; private set; }
@@ -123,11 +154,14 @@ public with sharing class InvoiceController {
 [SELECT Id FROM Invoice__c WITH SECURITY_ENFORCED];
 ```
 
-For DML in a custom controller use `Database.*` with `AccessLevel.USER_MODE`; for records returned to the page whose FLS varies, use `Security.stripInaccessible`. Full rules in `dya-apex` §3.
+For DML in a custom controller use `Database.*` with `AccessLevel.USER_MODE`, and for records
+returned to the page whose FLS varies, `Security.stripInaccessible`. Full rules in `dya-apex` §3.
 
 ### Output encoding — Visualforce auto-encodes, but only in HTML context
 
-`{!expression}` is automatically HTML-encoded by the platform. That protects HTML body context only. Inside a `<script>` block, a JS string, an inline event handler, a URL, or a style attribute, you MUST encode explicitly:
+`{!expression}` is automatically HTML-encoded by the platform, which protects the HTML body context
+and nothing else. Inside a `<script>` block, a JS string, an inline event handler, a URL or a style
+attribute, you MUST encode explicitly:
 
 ```html
 <!-- ✅ — JS-in-HTML context -->
@@ -140,27 +174,36 @@ For DML in a custom controller use `Database.*` with `AccessLevel.USER_MODE`; fo
 <script>var name = '{!account.Name}';</script>
 ```
 
-Encoding functions: `HTMLENCODE`, `JSENCODE`, `JSINHTMLENCODE`, `URLENCODE`. Never disable platform escaping with `escape="false"` on user-supplied data.
+The encoding functions are `HTMLENCODE`, `JSENCODE`, `JSINHTMLENCODE` and `URLENCODE`. Never disable
+platform escaping with `escape="false"` on user-supplied data.
 
 ### SOQL injection in dynamic queries
 
-Same rule as Apex: never concatenate user input into a query string. Use bind variables, `Database.queryWithBinds(..., AccessLevel.USER_MODE)`, or `String.escapeSingleQuotes` as a last resort. Full pattern in `references/controller-patterns.md`.
+The Apex rule applies unchanged: never concatenate user input into a query string. Use bind
+variables, `Database.queryWithBinds(..., AccessLevel.USER_MODE)`, or `String.escapeSingleQuotes` as a
+last resort. Full pattern in `references/controller-patterns.md`.
 
 ---
 
 ## 4. View State — Keep It Small
 
-Standard Visualforce (`<apex:form>` postbacks) serialises controller state into a hidden **view state** field on every request. The hard limit is **135 KB**. Bloated view state is the number-one cause of slow VF pages and `Maximum view state size limit exceeded` errors.
+Standard Visualforce (`<apex:form>` postbacks) serialises controller state into a hidden **view
+state** field on every request, against a hard limit of **135 KB**. Bloated view state is the
+number-one cause of slow VF pages and `Maximum view state size limit exceeded` errors.
 
 ### Rules
 
-- Mark any controller field not needed across postbacks as **`transient`** (it is excluded from view state). Collections used only to render the current response, large blobs, and derived data should all be `transient`.
-- Don't hold large query results in non-transient fields. Query what the current request needs; re-query on the next action if necessary.
+- Mark any controller field not needed across postbacks **`transient`**, which excludes it from view
+  state: collections used only to render the current response, large blobs, derived data.
+- Never hold large query results in non-transient fields. Query what the current request needs and
+  re-query on the next action.
 - Project only the fields you display — `SELECT Id, Name`, never `SELECT` everything.
-- Prefer **JavaScript Remoting** (§5) for data-heavy interactions: remoting calls carry **no view state** at all.
-- Bind `<apex:inputField>`/`<apex:outputField>` to SObject fields rather than copying values into many scalar controller properties.
+- Prefer **JavaScript Remoting** (§5) for data-heavy interactions: remoting calls carry no view state
+  at all.
+- Bind `<apex:inputField>` and `<apex:outputField>` to SObject fields rather than copying values into
+  many scalar controller properties.
 
-```java
+```apex
 // ✅ — render-only data excluded from view state
 public with sharing class ReportController {
     public transient List<AggregateResult> summary { get; private set; }
@@ -173,15 +216,18 @@ public with sharing class ReportController {
 }
 ```
 
-Inspect view state with the **View State Inspector** (enable *Development Mode* in user settings) before shipping any non-trivial form page.
+Inspect view state with the **View State Inspector** — enable *Development Mode* in user settings —
+before shipping any non-trivial form page.
 
 ---
 
 ## 5. JavaScript Remoting Over `<apex:actionFunction>`
 
-For asynchronous, partial-page server interaction, **JavaScript Remoting** (`@RemoteAction`) is the modern default. It is stateless (no view state), faster, and gives you direct control over the request/response in JS.
+For asynchronous, partial-page server interaction, **JavaScript Remoting** (`@RemoteAction`) is the
+modern default: stateless, no view state, faster, and with direct control over request and response
+in JS.
 
-```java
+```apex
 public with sharing class AccountRemote {
     @RemoteAction
     public static List<Account> findByName(String namePrefix) {
@@ -217,13 +263,16 @@ public with sharing class AccountRemote {
 | Basic record CRUD from JS without writing Apex | **Remote Objects** (`<apex:remoteObjects>`) |
 | Declarative rerender on a standard component event | `<apex:actionSupport>` / `rerender` |
 
-Avoid `<apex:actionFunction>` and `<apex:actionSupport>` for anything data-heavy — they round-trip the whole view state. Full remoting patterns, bulkified signatures, and error handling: `references/javascript-remoting.md`.
+Avoid `<apex:actionFunction>` and `<apex:actionSupport>` for anything data-heavy: they round-trip the
+whole view state. Full remoting patterns, bulkified signatures and error handling:
+`references/javascript-remoting.md`.
 
 ---
 
 ## 6. Styling — SLDS, Not Hand-Rolled CSS
 
-To make a Visualforce page look native in Lightning Experience, opt into the Salesforce Lightning Design System rather than writing bespoke CSS.
+Make a Visualforce page look native in Lightning Experience by opting into the Salesforce Lightning
+Design System rather than writing bespoke CSS.
 
 ```html
 <!-- ✅ — platform applies SLDS + LEX look-and-feel -->
@@ -235,15 +284,19 @@ To make a Visualforce page look native in Lightning Experience, opt into the Sal
 </apex:page>
 ```
 
-- `lightningStylesheets="true"` on `<apex:page>` gives standard VF components a Lightning skin in LEX/mobile.
-- `<apex:slds />` loads SLDS so you can use SLDS utility classes; wrap your markup in a `slds-scope` container.
-- Reference SLDS classes; avoid hard-coded colours, fonts, and pixel widths. Do not pull SLDS into `renderAs="pdf"` pages (§1).
+- `lightningStylesheets="true"` on `<apex:page>` gives standard VF components a Lightning skin in LEX
+  and mobile.
+- `<apex:slds />` loads SLDS for its utility classes; wrap your markup in a `slds-scope` container.
+- Reference SLDS classes and avoid hard-coded colours, fonts and pixel widths. Never pull SLDS into a
+  `renderAs="pdf"` page (§1).
 
 ---
 
 ## 7. Interop — Talking to Aura / LWC via Lightning Message Service
 
-When a Visualforce page is embedded on a Lightning page alongside Aura or LWC, **Lightning Message Service (LMS)** is the only supported way to communicate across the DOM boundary. Never use `window.postMessage` hacks or scrape the parent DOM.
+Where a Visualforce page is embedded on a Lightning page alongside Aura or LWC, **Lightning Message
+Service** is the only supported way to communicate across the DOM boundary. Never use
+`window.postMessage` hacks or scrape the parent DOM.
 
 ```html
 <apex:page lightningStylesheets="true">
@@ -271,13 +324,16 @@ When a Visualforce page is embedded on a Lightning page alongside Aura or LWC, *
 </apex:page>
 ```
 
-The message channel is a metadata type (`*.messageChannel-meta.xml`) shared by LWC, Aura, and VF — the same channel the LWC/Aura side uses. Keep payloads small and serialisable; always unsubscribe when done. For the LWC/Aura side of the same channel, see `dya-lwc` / `dya-aura`.
+The message channel is a metadata type (`*.messageChannel-meta.xml`) shared by LWC, Aura and VF — the
+same channel the LWC or Aura side uses. Keep payloads small and serialisable, and always unsubscribe
+when done. For the other side of the same channel, see `dya-lwc` and `dya-aura`.
 
 ---
 
 ## 8. Client-Side File Downloads — `blob:`, not `data:`
 
-Lightning Web Security blocks `data:` URIs on anchor `href`. A VF page running inside LEX that builds a file for download in JavaScript must use a `blob:` URL.
+Lightning Web Security blocks `data:` URIs on an anchor `href`, so a VF page running inside LEX that
+builds a file for download in JavaScript uses a `blob:` URL.
 
 ```javascript
 // ✅
@@ -292,7 +348,8 @@ URL.revokeObjectURL(link.href);
 link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
 ```
 
-For server-generated files, prefer `renderAs="pdf"` or a controller that returns a `PageReference` to a content resource.
+For server-generated files, prefer `renderAs="pdf"` or a controller returning a `PageReference` to a
+content resource.
 
 ---
 
