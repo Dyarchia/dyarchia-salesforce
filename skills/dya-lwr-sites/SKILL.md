@@ -25,7 +25,7 @@ Designing the guest profile and its sharing rules is `dya-permissions`.
 
 ## Platform Context — Winter '27 / API v68.0
 
-**LWR sites are GA and the recommended site type for new builds.** Hold these:
+**LWR sites are GA and the recommended site type for new builds.**
 
 - **LWR sites are LWC-native** — HTML/CSS/JS through Lightning Web Components, built for
   performance and developer control. Legacy **Aura template sites** still exist and are not this
@@ -155,8 +155,6 @@ LWR sites are metadata: `DigitalExperienceBundle` (enhanced), plus `Network`, `C
 `DigitalExperienceConfig`. Source-track them, deploy through CI/CD, use **partial deployment** for
 incremental changes on enhanced sites, and validate against a sandbox. Activating or editing a
 production site by hand is an incident waiting to happen.
-
-Two things to internalise before the first deploy:
 
 - **A newer LWR site abstracts FlexiPage away entirely.** Never reach for FlexiPage tooling —
   retrieving, generating or editing one — on a `DigitalExperienceBundle` site. It is the reflex for

@@ -181,8 +181,6 @@ auditable.
 
 ## 7. Invoking Agents Headlessly
 
-Two ways in:
-
 - **Agent API** (REST) — start a session, send messages with context, receive structured responses,
   with **no logged-in user**. For server-side and customer-facing integrations.
 - **AI Agent action** (Apex / Flow) — trigger any active agent from automation: a Quick Action, a

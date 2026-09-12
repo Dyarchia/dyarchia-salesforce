@@ -32,9 +32,9 @@ What an MCP call is allowed to see is the calling user's permission model — `d
 Standing facts:
 
 - **Hosted MCP servers are GA.** Salesforce-hosted servers expose sObject operations, Data 360,
-  Tableau and product APIs to any MCP client. Custom servers expose Flows, Apex actions and Named
-  Query APIs as tools. Every MCP transaction runs **as the authenticated user**, with object, field
-  and sharing enforcement intact, and every call counts against the daily API allocation.
+  Tableau and product APIs to any MCP client. Every MCP transaction runs **as the authenticated
+  user**, with object, field and sharing enforcement intact, and every call counts against the
+  daily API allocation.
 - **API Catalog for Salesforce** is the central hub for APIs and MCP servers across MuleSoft, Heroku
   and Apex, and converts API operations into invocable actions for Flow, Apex and Agentforce.
 - **Named Query API is GA** — custom SOQL exposed as a scalable REST or agent action.

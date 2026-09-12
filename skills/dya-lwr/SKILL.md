@@ -27,8 +27,6 @@ Save bundles at `<apiVersion>68.0</apiVersion>`. Winter '27 adds `lwc:external`,
 third-party custom element directly instead of through an iframe — a bigger deal on LWR, where
 third-party widgets most often need embedding. See `dya-lwc`.
 
-The runtime facts you must hold:
-
 - **LWR is GA and runs in several places** — Experience Cloud LWR sites, authenticated and public;
   Lightning Out 2.0; standalone LWR on Node/Heroku.
 - **Lightning Experience desktop is NOT on LWR.** The internal CRM app runs on the **Aura runtime**,
@@ -102,8 +100,6 @@ export default class GoExternal extends NavigationMixin(LightningElement) {
 
 ## 4. Security — Lightning Web Security and CSP
 
-LWR enforces **Lightning Web Security**, not Lightning Locker:
-
 - An LWR site runs its **own LWS instance**, unaffected by the org's global LWS setting. Test in the
   actual site, not in Lightning Experience.
 - LWS supports the cross-namespace LWC communication Locker blocked.
@@ -115,7 +111,7 @@ LWR enforces **Lightning Web Security**, not Lightning Locker:
 
 ## 5. Base Components — Not All Are Supported
 
-LWR ships **fewer** base components and templates than the Aura framework; some do not exist on it.
+LWR ships **fewer** base components and templates than the Aura framework.
 
 - **`lightning-file-upload` is not supported on LWR sites.** The platform separately allows *file
   uploads up to 10 GB* to an Aura or LWR site, but that is file capacity, not this base component.
@@ -128,8 +124,6 @@ LWR ships **fewer** base components and templates than the Aura framework; some 
 
 ## 6. Guest / Unauthenticated Context
 
-LWR sites are frequently browsed by users who are **not logged in**:
-
 - The guest user is **read-only at most**, **cannot own records**, and sees only what the guest
   profile and sharing explicitly grant.
 - Never assume `@AuraEnabled` data is present — results may be empty or access-denied. Render the
@@ -141,8 +135,6 @@ Site-level guest hardening lives in `dya-lwr-sites`; this is the component-side 
 ---
 
 ## 7. Performance Posture
-
-LWR is lean by design:
 
 - Mind bundle size, lazy-load heavy work, and keep large libraries out of a guest-facing page.
 - Let LDS and GraphQL own data and caching rather than hand-rolling fetch-and-store.

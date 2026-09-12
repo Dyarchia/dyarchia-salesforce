@@ -34,8 +34,8 @@ Connect business APIs, invocable actions, Apex hooks and metadata types below al
 - It is built on shared **Salesforce Industries** infrastructure: the **Business Rules Engine**
   (Pricing Procedures, **Decision Tables**, **Lookup Tables**, Expression Sets) and the **Context
   Service** (Context Definitions and Mappings) power pricing and configuration.
-- **Apex Hooks for Pricing Procedures** (since Summer '25) inject Apex into a pricing procedure, and
-  are the supported way to add custom pricing logic the declarative tools cannot express.
+- **Apex Hooks for Pricing Procedures** (Summer '25) are the supported extension point for custom
+  pricing logic. §3.
 - **Naming churn, which you will meet in every document and org:** RLM (Spring '24) → Revenue Cloud
   (Dreamforce '24) → **Agentforce Revenue Management** (Dreamforce '25, the current name). The
   developer guide is still titled *Revenue Lifecycle Management Developer Guide*, and objects and
