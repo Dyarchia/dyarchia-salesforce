@@ -5,7 +5,10 @@ description: Salesforce Headless 360 (Winter '27 / API v68.0) — from zero to e
 
 # Salesforce Headless 360 — From Zero to Expert
 
-You are an expert on Salesforce Headless 360. The reader may be **new to it**, so this skill builds the mental model first, then the implementation, then what this release changes. You **always** expose the smallest approved set of tools, **always** rely on the Trust Layer rather than bypassing it, and **always** define an experience once and render it everywhere. Follow every rule below.
+You are an expert on Salesforce Headless 360. The reader may be **new to it**, so this skill builds
+the mental model first, then the implementation, then what this release changes. You **always**
+expose the smallest approved set of tools, **always** rely on the Trust Layer rather than bypassing
+it, and **always** define an experience once and render it everywhere. Follow every rule below.
 
 This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
 
@@ -19,16 +22,15 @@ This SKILL.md carries the load-bearing rules. Larger reference implementations l
 - `references/mcp-servers.md` — the MCP server taxonomy (hosted vs DX vs custom vs Data 360), building custom MCP tools from Apex Actions / Flows / Apex REST, connecting external clients (Claude), and token-scoped security.
 - `references/experience-layer.md` — the Headless/Agentforce Experience Layer (HXL/AXL), Lightning Types, "define once, render everywhere", native React, and when to use which surface.
 
-Load a reference when building that exact thing. Headless 360 is the **access and distribution layer** over the whole platform — including Agentforce (`dya-agentforce`) and Data 360 (`dya-data360`).
+Load a reference when building that exact thing. Headless 360 is the **access and distribution layer**
+over the whole platform, Agentforce (`dya-agentforce`) and Data 360 (`dya-data360`) included.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-Headless 360 is the platform theme that turns every Salesforce capability into an API, MCP tool or CLI command, usable by an app, a human, or an autonomous agent. It is an **access and distribution layer, not a replacement for Agentforce** — the two work together.
-
-Three things decide whether a project can use this at all, and they are the reason to read this
-section rather than skim it:
+Headless 360 turns every Salesforce capability into an API, MCP tool or CLI command, usable by an
+app, a human or an autonomous agent. Three things decide whether a project can use it at all:
 
 - **Maturity is uneven and mostly not GA.** The Apex Symbol API, the Salesforce DX MCP Server and
   the Metadata API Context MCP Server are **Beta**; the Data 360 MCP Server is **Developer Preview**.
@@ -39,8 +41,7 @@ section rather than skim it:
   editions — an availability wall, not a licensing upsell.
 - **Security carries through every surface unchanged.** The Einstein Trust Layer and the org's
   permission model apply identically whether a capability is reached as an API, an MCP tool or a CLI
-  command. A capability exposed as an MCP tool is not a weaker capability: it runs as the
-  authenticated user.
+  command. A capability exposed as an MCP tool runs as the authenticated user.
 
 > What the release adds feature by feature, the addressable-surface numbers, and the Vibes naming
 > lineage that makes older documentation hard to find: `references/release-notes.md`.
@@ -49,7 +50,10 @@ section rather than skim it:
 
 ## 1. Foundations — What Headless 360 Is
 
-"Headless" means removing the "head" — the UI. A headless system exposes its functionality through **programmatic access** instead of screens. Headless 360 does that for the **entire** Salesforce platform: records, business logic, automations, metadata, DevOps, Agentforce, and Data 360 all become reachable without opening a browser.
+"Headless" means removing the head: the UI. A headless system exposes its functionality through
+**programmatic access** instead of screens, and Headless 360 does that for the **entire** platform —
+records, business logic, automations, metadata, DevOps, Agentforce and Data 360, all reachable
+without a browser.
 
 There are **three surfaces**, all enforcing the same trust layer:
 
@@ -66,32 +70,44 @@ There are **three surfaces**, all enforcing the same trust layer:
             └───────────────────────────────────────────────┘
 ```
 
-Two lanes that converge:
-- **Build-time** — coding agents and developers build *against* your org (DX MCP tools, coding skills, CLI, Agentforce Vibes).
-- **Runtime** — business agents and apps *serve from* your org, with output rendered natively per channel via the Experience Layer.
+Two lanes converge:
+- **Build-time** — coding agents and developers build *against* your org: DX MCP tools, coding
+  skills, CLI, Agentforce Vibes.
+- **Runtime** — business agents and apps *serve from* your org, output rendered natively per channel
+  by the Experience Layer.
 
-**What's actually new:** you've built headless for years (REST APIs, Mobile SDK, React on Experience Cloud). What changed is that **AI models can now discover, call, and compose capabilities at runtime** — without per-integration glue written in advance — because every capability is described as an agent-accessible tool.
+**What is actually new:** headless has existed for years through REST APIs, the Mobile SDK and React
+on Experience Cloud. What changed is that **AI models now discover, call and compose capabilities at
+runtime**, with no per-integration glue written in advance, because every capability is described as
+an agent-accessible tool.
 
-**Where the others fit:** Agentforce is the reasoning/agent layer; Data 360 is the data mesh underneath; Headless 360 is how both (and the rest of the platform) are exposed and rendered. Agentforce *provides* capabilities; Headless 360 *distributes* them.
+**Where the others fit:** Agentforce reasons, Data 360 is the data mesh underneath, and Headless 360
+exposes and renders both. Agentforce *provides* capabilities; Headless 360 *distributes* them.
 
 ---
 
 ## 2. Surface 1 — APIs
 
-The 4,000+ existing REST/Connect/Platform APIs are the foundation. What Headless 360 adds is **intent**: every endpoint is explicitly documented as an **agent-accessible surface**, with guidance on **token-scoped access** and **Named Credentials**.
+The 4,000+ existing REST/Connect/Platform APIs are the foundation. Headless 360 adds **intent**:
+every endpoint is documented as an **agent-accessible surface**, with guidance on **token-scoped
+access** and **Named Credentials**.
 
-- For programmatic data/logic access, the existing REST and Connect APIs remain the workhorse.
-- The **Agent API** (REST) lets external systems invoke agent sessions headlessly (see `dya-agentforce` §7).
-- The **Data 360 APIs** (Query, Profile, Connect) expose the data mesh (see `dya-data360` §5).
+- REST and Connect remain the workhorse for programmatic data and logic access.
+- The **Agent API** (REST) invokes agent sessions headlessly from an external system — see
+  `dya-agentforce` §7.
+- The **Data 360 APIs** (Query, Profile, Connect) expose the data mesh — see `dya-data360` §5.
 - **Named Query API** (GA) exposes custom SOQL as scalable, agent-callable actions.
 
-Treat APIs as the lowest-level surface: maximal control, but you write the integration. Reach for MCP when you want an *agent* to discover and call capabilities dynamically.
+APIs are the lowest-level surface: maximal control, but you write the integration. Reach for MCP when
+an *agent* must discover and call capabilities dynamically.
 
 ---
 
 ## 3. Surface 2 — MCP (the Headline)
 
-The **Model Context Protocol (MCP)** is the open standard that lets AI clients **discover** approved tools, understand their inputs, **call** them, and get results — instead of guessing how to use your org. Headless 360 leans on MCP heavily. There are four server categories — do not conflate them:
+The **Model Context Protocol** is the open standard that lets AI clients **discover** approved tools,
+understand their inputs, **call** them and receive results, instead of guessing how to use your org.
+There are four server categories, and conflating them is the common error:
 
 | Server | Audience | Purpose |
 |---|---|---|
@@ -100,26 +116,34 @@ The **Model Context Protocol (MCP)** is the open standard that lets AI clients *
 | **Salesforce DX MCP Server** (Beta) | Developers / IDEs | Dev workflows: metadata, tests, SLDS/ApexGuru/LWC tooling, Lightning Types |
 | **Data 360 MCP Server** (Dev Preview) | Coding agents | Drive Data 360 via three facade tools (`search`, `payload_examples`, …) |
 
-**Do not treat the DX MCP server as a production business-user server** — it's for development workflows authenticated via the Salesforce CLI.
+**The DX MCP server is not a production business-user server.** It serves development workflows and
+authenticates through the Salesforce CLI.
 
 ### Building custom MCP tools
 
-A custom hosted MCP server can expose tools built from existing platform artefacts — no new runtime needed:
+A custom hosted MCP server exposes tools built from existing platform artefacts, with no new runtime:
 
 - **Flow** — an **autolaunched** flow with defined inputs and outputs. Not screen, not scheduled.
 - **Apex Invocable Action** — a **`global`** method annotated `@InvocableMethod`.
-- **`@AuraEnabled` Apex method** — the one people miss: methods already serving as Lightning controllers become agent tools with **no new code**.
+- **`@AuraEnabled` Apex method** — the one people miss: methods already serving as Lightning
+  controllers become agent tools with **no new code**.
 - **Apex REST** — a `@RestResource` class.
 - **API Catalog endpoint** — registered platform and Connect APIs; coverage is still expanding.
 
 The method's inputs and outputs **are** the tool's parameter schema, so nested types make a tool hard
 to call correctly — and changing the Apex does **not** resync the tool configuration in Setup.
 
-This is the bridge: the same `@InvocableMethod` you wrote as an **Agentforce action** can also be an **MCP tool** for an external coding/business agent. Build the capability once; expose it through whichever surface the caller uses.
+This is the bridge: the same `@InvocableMethod` written as an **Agentforce action** is also an **MCP
+tool** for an external coding or business agent. Build the capability once, expose it through
+whichever surface the caller uses.
 
 ### Golden rule of MCP exposure
 
-**Expose the smallest set of approved tools, never unrestricted access.** Past a few dozen tools an AI client starts choosing badly — curation is the design, not housekeeping. Think of every tool on the platform as a buffet and a server as the plate curated for one persona. A tool's description is how the model decides to call it — write descriptions like the routing logic they are (same discipline as Agentforce action descriptions).
+**Expose the smallest set of approved tools, never unrestricted access.** Past a few dozen tools an
+AI client starts choosing badly, so curation is the design rather than housekeeping: every tool on
+the platform is a buffet, and a server is the plate curated for one persona. A tool's description is
+how the model decides to call it — write descriptions like the routing logic they are, with the same
+discipline as Agentforce action descriptions.
 
 > Standard versus custom servers, the backing-type requirements, and the External Client App callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and security: `references/mcp-servers.md`.
 > Vibes itself — Plan Mode, Rules, permission modes: `references/agentic-dev-tooling.md`.
@@ -128,7 +152,8 @@ This is the bridge: the same `@InvocableMethod` you wrote as an **Agentforce act
 
 ## 4. Surface 3 — CLI
 
-The Salesforce CLI's **220+ commands** are a first-class Headless 360 surface for automation and DevOps. The current emphasis is Agentforce DX and credential security:
+The Salesforce CLI's **220+ commands** are a first-class surface for automation and DevOps. The
+current emphasis is Agentforce DX and credential security:
 
 ```bash
 sf agent generate template      # scaffold a runnable sample agent
@@ -136,31 +161,60 @@ sf agent generate agent-user    # provision a service agent user in one command
 sf agent preview start|send|sessions|end   # scriptable interactive test sessions (GA)
 ```
 
-Use the CLI for headless DevOps: deploy/retrieve metadata, run tests, and promote **Data 360** logic the same way you promote Apex/LWC (DevOps data kits). Anything you can click, you can increasingly script.
+Use the CLI for headless DevOps: deploy and retrieve metadata, run tests, and promote **Data 360**
+logic exactly as you promote Apex and LWC, through DevOps data kits. Anything clickable is
+increasingly scriptable.
 
 ---
 
 ## 5. The Experience Layer (HXL / AXL)
 
-The **Headless Experience Layer** (its agent-facing form is the **Agentforce Experience Layer, AXL**) is a runtime that **decouples a capability's definition from its rendering surface**. You define a UI fragment / interaction **once**; HXL renders it natively as a Slack block, a Teams card, a mobile card, a voice interaction, or a response inside ChatGPT/Claude/Gemini — no per-channel rebuild.
+The **Headless Experience Layer** — its agent-facing form is the **Agentforce Experience Layer,
+AXL** — **decouples a capability's definition from its rendering surface**. Define a UI fragment or
+interaction **once**; HXL renders it natively as a Slack block, a Teams card, a mobile card, a voice
+interaction or a response inside ChatGPT, Claude or Gemini, with no per-channel rebuild.
 
-- Business logic, data, and permissions stay **separate** from the screen — "define intent once, render natively everywhere."
-- It's built on **Lightning Types** — JSON-based types that structure, validate and display data. Standard types ship with an editor and renderer; custom ones are `LightningTypeBundle` metadata (API 64.0+) with optional per-channel UI overrides. See `references/lightning-types.md`.
-- **Native React** support lets developers who want full control build custom interfaces in any design language over the same capabilities.
-- Today the build-time surface is mature; the runtime surface already handles straightforward cases (e.g. a support agent returning a case summary in a Slack thread) and is expanding.
+- Business logic, data and permissions stay **separate** from the screen: define intent once, render
+  natively everywhere.
+- It is built on **Lightning Types**, JSON-based types that structure, validate and display data.
+  Standard types ship with an editor and renderer; custom ones are `LightningTypeBundle` metadata
+  (API 64.0+) with optional per-channel UI overrides. See `references/lightning-types.md`.
+- **Native React** support lets developers who want full control build custom interfaces in any
+  design language over the same capabilities.
+- The build-time surface is mature; the runtime surface already handles straightforward cases — a
+  support agent returning a case summary in a Slack thread — and is expanding.
 
-Use HXL/Lightning Types when the **same capability must appear across multiple channels**. Use plain LWC/Aura (see `dya-lwc` / `dya-aura`) when the target is only Lightning Experience. Full detail: `references/experience-layer.md`.
+Use HXL and Lightning Types when the **same capability must appear across multiple channels**. Use
+plain LWC or Aura (`dya-lwc`, `dya-aura`) when the target is only Lightning Experience. Full detail:
+`references/experience-layer.md`.
 
 ---
 
 ## 6. Dev Tooling — Agentforce Vibes, DX MCP, Skills & Rules
 
-- **Agentforce Vibes (v4.0+)** — an agentic development environment, as a VS Code extension and as a cloud IDE. A lead agent delegates to specialised sub-agents running in parallel, **each in its own Git worktree** so concurrent work does not collide. **Plan Mode changes no files until you approve the plan.** **Rules** are always-on standards in `.vibes/rules/` (commit them); **Skills** activate on demand. Permission modes run from *Ask every time* through *Run safe defaults* to *Bypass* — and the safety guardrails apply **only** in the middle one.
-- **Salesforce DX MCP Server** (Beta) — preconfigured in the Vibes extension; toolsets include `lwc-experts`, `aura-experts` (Aura→LWC migration), SLDS guidance, ApexGuru code review, Lightning Types (`create_lightning_type`), and Metadata API context. Some toolsets require enabling global rules (e.g. `a4d-general-rules`, `a4d-lwc-rules`).
-- **Coding skills** (30+) — preconfigured capability bundles that give coding agents live, best-practice-aware access to your platform.
-- **React and Angular apps on Salesforce Multi-Framework** — the framework-agnostic runtime. The app is a DX project carrying the **`UIBundle`** metadata type under `uiBundles/`, scaffolded with `sf template generate project` (or `sf template generate ui-bundle` inside an existing project), with data access through the GraphQL **Data SDK**. This is what "native React" in §5 means concretely. Check feasibility before designing: **Hyperforce only**, and the Dev Hub packaging toggle before any 2GP work. Distribution is a solved problem — managed or unlocked 2GP, namespace supported — but platform security is **not** inherited the way LWC inherits it.
+- **Agentforce Vibes (v4.0+)** — an agentic development environment, as a VS Code extension and as a
+  cloud IDE. A lead agent delegates to specialised sub-agents running in parallel, **each in its own
+  Git worktree**, so concurrent work does not collide. **Plan Mode changes no files until you approve
+  the plan.** **Rules** are always-on standards in `.vibes/rules/` — commit them — while **Skills**
+  activate on demand. Permission modes run from *Ask every time* through *Run safe defaults* to
+  *Bypass*, and the safety guardrails apply **only** in the middle one.
+- **Salesforce DX MCP Server** (Beta) — preconfigured in the Vibes extension. Toolsets include
+  `lwc-experts`, `aura-experts` (Aura→LWC migration), SLDS guidance, ApexGuru code review, Lightning
+  Types (`create_lightning_type`) and Metadata API context. Some require enabling global rules such
+  as `a4d-general-rules` and `a4d-lwc-rules`.
+- **Coding skills** (30+) — preconfigured capability bundles giving coding agents live,
+  best-practice-aware access to your platform.
+- **React and Angular apps on Salesforce Multi-Framework** — the framework-agnostic runtime, and what
+  "native React" in §5 means concretely. The app is a DX project carrying the **`UIBundle`** metadata
+  type under `uiBundles/`, scaffolded with `sf template generate project` (or
+  `sf template generate ui-bundle` inside an existing project), with data access through the GraphQL
+  **Data SDK**. Check
+  feasibility before designing: **Hyperforce only**, and the Dev Hub packaging toggle before any 2GP
+  work. Distribution is solved — managed or unlocked 2GP, namespace supported — but platform security
+  is **not** inherited the way LWC inherits it.
 
-These accelerate *building on* Salesforce; they are distinct from the hosted servers that let business agents *operate* your org.
+These accelerate *building on* Salesforce. They are distinct from the hosted servers that let
+business agents *operate* your org.
 
 ---
 
@@ -168,10 +222,15 @@ These accelerate *building on* Salesforce; they are distinct from the hosted ser
 
 Headless 360 changes the surface, **not** the security model:
 
-- **Your existing model carries through** — sharing rules, FLS, and permission sets are enforced automatically regardless of how data is accessed (API, MCP, CLI).
-- **The Einstein Trust Layer** applies on every agent path: masking, dynamic grounding, FLS, zero-data-retention with LLM providers.
-- **Token-scoped, least-privilege access** — authenticate with OAuth (External Client Apps / JWT for server-to-server), scope tokens to the minimum, and use **Named Credentials** for outbound. The new **Any API Auth** permission governs who may use legacy SOAP `login()` (retiring Summer '27 — migrate to OAuth/External Client Apps).
-- **Curate the toolset** — expose a small, approved set of MCP tools, not the whole org. A broad toolset is both a security and a reliability liability.
+- **Your existing model carries through.** Sharing rules, FLS and permission sets are enforced
+  automatically however the data is reached — API, MCP or CLI.
+- **The Einstein Trust Layer** applies on every agent path: masking, dynamic grounding, FLS,
+  zero-data-retention with LLM providers.
+- **Token-scoped, least-privilege access.** Authenticate with OAuth — External Client Apps, or JWT
+  for server-to-server — scope tokens to the minimum, and use **Named Credentials** for outbound.
+  The **Any API Auth** permission governs who may use legacy SOAP `login()`, retiring Summer '27;
+  migrate to OAuth and External Client Apps.
+- **Curate the toolset.** A broad toolset is both a security and a reliability liability.
 
 ---
 

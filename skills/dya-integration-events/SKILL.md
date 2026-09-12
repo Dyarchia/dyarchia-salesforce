@@ -5,7 +5,10 @@ description: Salesforce event-driven integration (Winter '27 / API v68.0) — Pl
 
 # Salesforce Event-Driven Integration
 
-You are an expert at event-driven integration on Salesforce — the decoupled, asynchronous, pub/sub backbone. Use this for fire-and-forget notification, change propagation, and high-volume streaming in either direction. Data 360 ingestion is out of scope here (see `dya-data360`); Apex publish/subscribe depth is in `dya-apex`. Follow every rule below.
+You are an expert at event-driven integration on Salesforce: the decoupled, asynchronous pub/sub
+backbone for fire-and-forget notification, change propagation and high-volume streaming in either
+direction. Data 360 ingestion is out of scope (`dya-data360`); Apex publish/subscribe depth is
+`dya-apex`. Follow every rule below.
 
 References:
 
@@ -19,9 +22,9 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 changes little in this area directly. What it changes is the surrounding surface: **agents
-now discover external tools through governed MCP connections**, which makes an event-driven backbone
-the natural way to feed them without polling. See `dya-integration-connectors-mcp`.
+Winter '27 changes little here directly. It changes the surrounding surface: **agents now discover
+external tools through governed MCP connections**, which makes an event-driven backbone the natural
+way to feed them without polling. See `dya-integration-connectors-mcp`.
 
 Standing facts that decide designs here:
 
@@ -30,8 +33,8 @@ Standing facts that decide designs here:
   it over the legacy CometD Streaming API in every new build.
 - **PushTopic and Generic Streaming are legacy** — no longer enhanced, limited support. Migrate
   PushTopic to CDC and Generic Streaming to Platform Events.
-- **Events are retained 72 hours** on the event bus. A subscriber can replay from a stored replay id
-  within that window and no further — beyond it, only a reconciliation batch recovers the gap.
+- **Events are retained 72 hours** on the event bus. A subscriber replays from a stored replay id
+  within that window and no further; beyond it, only a reconciliation batch recovers the gap.
 - **From API 67.0** publish and subscribe code defaults to `with sharing` and `USER_MODE`. CDC and
   Platform Event Apex triggers run in **system mode**, like every trigger, so they see records the
   subscribing user could not.
@@ -46,17 +49,22 @@ Standing facts that decide designs here:
 | **Change Data Capture (CDC)** | Salesforce, automatically on record change | Mirrors the object + change header | Propagate create/update/delete/undelete to external systems |
 | **Real-Time Event Monitoring** | Salesforce, on security/audit events | Salesforce-defined | Security/audit streaming |
 
-Rule of thumb: **CDC** when you want to react to *record changes* you didn't have to instrument; **Platform Events** when you want to publish a *business fact* with a shape you control.
+**CDC** reacts to *record changes* you never had to instrument. **Platform Events** publish a
+*business fact* whose shape you control.
 
 ---
 
 ## 2. Pub/Sub API — the External Interface
 
-The Pub/Sub API is a **gRPC/HTTP-2** service with Avro-encoded binary payloads, available in many languages, with **bidirectional streaming** and **pull-based flow control** (the subscriber requests N events at a time, max 100 per fetch).
+A **gRPC/HTTP-2** service with Avro-encoded binary payloads, available in many languages, with
+**bidirectional streaming** and **pull-based flow control**: the subscriber requests N events at a
+time, at most 100 per fetch.
 
-- **One interface for all three event types** — subscribe to Platform Events, CDC, and RTEM through the same API.
-- **Replay:** events live on the bus for **72 hours**; resubscribe from `LATEST`, `EARLIEST`, or a specific **replay id** to recover missed events.
-- **Efficient:** Avro binary + flow control make it far lighter than the old CometD Streaming API; prefer it for every new external subscriber/publisher.
+- **One interface for all three event types** — Platform Events, CDC and RTEM.
+- **Replay:** events live on the bus for **72 hours**; resubscribe from `LATEST`, `EARLIEST` or a
+  specific **replay id** to recover missed events.
+- **Efficient:** Avro binary plus flow control make it far lighter than the old CometD Streaming API.
+  Prefer it for every new external subscriber or publisher.
 
 Subscribe/publish flow and replay handling: `references/pubsub-api.md`.
 
@@ -64,16 +72,19 @@ Subscribe/publish flow and replay handling: `references/pubsub-api.md`.
 
 ## 3. Platform Events
 
-Custom pub/sub messages with a schema you define (`__e`). Publish from Apex, Flow, Process, or the API; subscribe from Apex triggers, Flow, `lightning/empApi` (in-org UI), or externally via Pub/Sub.
+Custom pub/sub messages with a schema you define (`__e`). Publish from Apex, Flow, Process or the
+API; subscribe from Apex triggers, Flow, `lightning/empApi` for in-org UI, or externally via Pub/Sub.
 
 ```apex
 // Publish (Apex)
 EventBus.publish(new Order_Placed__e(Order_Id__c = ordId, Amount__c = amt));
 ```
 
-- **Publish behaviour:** *Publish Immediately* (fires even if the transaction rolls back) vs *Publish After Commit* (fires only on commit) — choose deliberately.
-- **Fire-and-forget decoupling:** the publisher doesn't know or wait for subscribers. Ideal for "order placed → tell N systems."
-- **High volume:** designed for throughput; pair with Pub/Sub for external consumers.
+- **Publish behaviour:** *Publish Immediately* fires even if the transaction rolls back; *Publish
+  After Commit* fires only on commit. Choose deliberately.
+- **Fire-and-forget decoupling:** the publisher neither knows nor waits for subscribers — ideal for
+  "order placed → tell N systems".
+- **High volume:** designed for throughput; pair it with Pub/Sub for external consumers.
 
 Definitions and subscribe patterns: `references/platform-events-cdc.md`.
 
@@ -81,11 +92,14 @@ Definitions and subscribe patterns: `references/platform-events-cdc.md`.
 
 ## 4. Change Data Capture (CDC)
 
-Salesforce emits a change event whenever a record is created/updated/deleted/undeleted on a CDC-enabled object — no code to produce it.
+Salesforce emits a change event whenever a record is created, updated, deleted or undeleted on a
+CDC-enabled object, with no code to produce it.
 
-- Subscribe externally via **Pub/Sub API** (the common ETL/replication pattern) or in-org via an **Apex CDC trigger**.
-- The payload carries a **change event header** (change type, changed fields, record ids) plus the changed field values.
-- Use for keeping an external store in sync with Salesforce without polling.
+- Subscribe externally via the **Pub/Sub API**, the common ETL and replication pattern, or in-org via
+  an **Apex CDC trigger**.
+- The payload carries a **change event header** — change type, changed fields, record ids — plus the
+  changed field values.
+- Use it to keep an external store in sync with Salesforce without polling.
 
 **Enabling it is `PlatformEventChannelMember`, and nothing else.** There is no `ChangeDataCapture`
 metadata type, no `.changeDataCapture-meta.xml`, no `changeDataCapture/` directory — a file by that
@@ -119,13 +133,13 @@ The default channel value is exactly **`ChangeEvents`** — not `data/ChangeEven
 | **Generic Streaming** | Legacy, not enhanced | Platform Events |
 | **CometD Streaming API** | Superseded for external subscribers | Pub/Sub API |
 
-If you find these in an org, plan migration; never start new work on them.
+Where you find these in an org, plan the migration. Never start new work on them.
 
 ---
 
 ## 6. Webhook Patterns (Salesforce has no native outbound webhooks)
 
-To "call a URL when something happens," compose existing primitives:
+"Call a URL when something happens" is composed from existing primitives:
 
 | Pattern | How | When |
 |---|---|---|
@@ -134,16 +148,24 @@ To "call a URL when something happens," compose existing primitives:
 | **Platform Event → external subscriber** | Publish PE; external app subscribes via Pub/Sub | Decoupled, durable, many consumers |
 | **Outbound Message** | Workflow-based SOAP push | Legacy only |
 
-Prefer **Platform Event → Pub/Sub** for durable, multi-consumer, decoupled "webhooks"; use Flow HTTP Callout for the simple single-target case. (Outbound paths: `dya-integration-outbound`.)
+Prefer **Platform Event → Pub/Sub** for durable, multi-consumer, decoupled webhooks, and Flow HTTP
+Callout for the simple single target. Outbound paths: `dya-integration-outbound`.
 
 ---
 
 ## 7. Delivery, Replay & Idempotency
 
-- **At-least-once delivery** — consumers may see an event more than once; make handlers **idempotent** (dedupe on a business key or the replay id).
-- **72 h retention** — store the last processed replay id and resume from it; design a reconciliation batch for gaps beyond the window. **Or do not hand-roll it at all:** a `ManagedEventSubscription` makes the platform track the replay position for you, and the Pub/Sub API consumes it through the **`ManagedSubscribe`** RPC instead of `Subscribe`. That is the right default for a long-lived in-platform consumer; keep manual replay bookkeeping for an external subscriber that already has durable state of its own.
-- **Order** — events are delivered in publish order per channel, but don't assume cross-channel ordering.
-- **Allocations** — event publishing and delivery (CDC/PE) have daily allocations; high-volume designs must account for them.
+- **At-least-once delivery.** Consumers may see an event more than once, so every handler is
+  **idempotent** — dedupe on a business key or the replay id.
+- **72 h retention.** Store the last processed replay id and resume from it, and design a
+  reconciliation batch for gaps beyond the window. **Or do not hand-roll it at all:** a
+  `ManagedEventSubscription` makes the platform track the replay position, and the Pub/Sub API
+  consumes it through the **`ManagedSubscribe`** RPC instead of `Subscribe`. That is the right
+  default for a long-lived in-platform consumer; keep manual replay bookkeeping for an external
+  subscriber that already has durable state of its own.
+- **Order.** Events are delivered in publish order per channel. Never assume cross-channel ordering.
+- **Allocations.** Event publishing and delivery carry daily allocations; a high-volume design
+  accounts for them.
 
 ---
 
