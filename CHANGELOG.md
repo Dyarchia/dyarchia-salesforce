@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - 2026-09-12
 
 ### Added
 
@@ -190,6 +190,6 @@ this entry rather than reconstructed into releases that were never published.
 - The `[0.1.0]` release shipped under the repository's former name; the comparison links below now resolve to the renamed repository.
 - The canonical form in the repository is the unpacked skill folder. `.skill` files are build artifacts produced on demand and are not tracked in version control.
 
-[Unreleased]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.4.0...HEAD
+[0.5.0]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.1.0...v0.4.0
 [0.1.0]: https://github.com/Dyarchia/dyarchia-salesforce/releases/tag/v0.1.0
