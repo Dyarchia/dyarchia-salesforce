@@ -5,11 +5,11 @@ description: Salesforce permissions & sharing model (Winter '27 / API v68.0) —
 
 # Salesforce Permissions & Sharing Model
 
-You are an expert on the Salesforce access model. This skill is **conceptual**: it gives the complete
-mental model of "who can do what" and "who can see what" so the right design choice becomes obvious.
-It is the skill other skills route to — `dya-apex`, `dya-flow`, `dya-lwc`,
-`dya-integration-inbound-apex` and `dya-agentforce` all enforce this model without owning it.
-Authentication is a different concern and belongs to `dya-integration-auth`.
+You are an expert on the Salesforce access model. This skill is **conceptual**: the complete mental
+model of "who can do what" and "who can see what", so the right design choice becomes obvious. It is
+the skill other skills route to — `dya-apex`, `dya-flow`, `dya-lwc`, `dya-integration-inbound-apex`
+and `dya-agentforce` all enforce this model without owning it. Authentication is a different concern
+and belongs to `dya-integration-auth`.
 
 References:
 
@@ -24,8 +24,8 @@ References:
 ## Platform Context — Winter '27 / API v68.0
 
 **Minimum access is the modern default.** A thin base profile plus additive permission sets is the
-shape Salesforce steers orgs toward, and it is where new capability lands. Grant through permission
-sets and permission set groups; keep the profile as a baseline.
+shape Salesforce steers orgs toward, and where new capability lands. Grant through permission sets
+and permission set groups; keep the profile as a baseline.
 
 **The model is enforced in code.** From API 67.0, Apex SOQL, SOSL and DML default to `USER_MODE`, so
 the running user's object, field and sharing access governs what controller and integration code can
@@ -41,9 +41,9 @@ What Winter '27 changes:
 | **View Setup Audit Trail becomes a standalone permission** | GA | Auditors can be granted the trail without the broader permission that used to carry it — a real least-privilege improvement |
 | **Keep Manual Shares When Transferring Records** | GA, off by default | An org-wide setting. Previously every manual share on a record was destroyed the moment ownership changed; this preserves them |
 
-Profile filtering has a bypass list — View All Profiles, Customize Application, Manage Users and
-five others. **Granting View All Profiles to undo it defeats the point.** If something breaks,
-find out what actually needed the profile name; broad visibility is the fallback, not the plan.
+Profile filtering has a bypass list — View All Profiles, Customize Application, Manage Users and five
+others. **Granting View All Profiles to undo it defeats the point.** When something breaks, find out
+what actually needed the profile name; broad visibility is the fallback, not the plan.
 
 ---
 
@@ -60,9 +60,9 @@ WHICH RECORDS can they SEE?   →  Sharing model
                                          Manual/Apex sharing → Teams → (Restriction/Scoping)
 ```
 
-Object and field access answers "can this user edit *Accounts* and the *Revenue* field at all?"
-Sharing answers "which *specific Account records*?" A user needs **both** to act on a record, and
-almost every access bug is one axis being satisfied while the other is not:
+Object and field access answers "can this user edit *Accounts* and the *Revenue* field at all?";
+sharing answers "which *specific Account records*?" A user needs **both** to act on a record, and
+almost every access bug is one axis satisfied while the other is not:
 
 - *"It's shared with them but they can't edit it"* → missing object or field permission.
 - *"They have Edit on the object but the list is empty"* → missing sharing.
@@ -76,9 +76,9 @@ almost every access bug is one axis being satisfied while the other is not:
 3. **Permission Set Groups** — bundles of permission sets for a persona; assign the group, not the parts.
 4. **Muting Permission Sets** — *subtract* specific permissions inside a group.
 
-Permissions are **purely additive**. If any assigned source grants something, the user has it. There
-is no "deny" and you cannot take a permission away by adding another set — muting inside a group is
-the single exception, and it works only within that group.
+Permissions are **purely additive**: if any assigned source grants something, the user has it. There
+is no deny, and adding a set never takes a permission away. Muting inside a group is the single
+exception, and it works only within that group.
 
 ### What they grant
 
@@ -89,31 +89,31 @@ the single exception, and it works only within that group.
 
 ### Record types
 
-A **record type** selects which picklist values and which page layout apply to a record, and which
-business process it follows. Access to a record type is granted through the profile or permission
-set, separately from field permissions. It shapes *data entry*, not *record visibility* — confusing
-the two is a common and expensive mistake.
+A **record type** selects which picklist values and page layout apply to a record, and which business
+process it follows. Access to one is granted through the profile or permission set, separately from
+field permissions. It shapes *data entry*, not *record visibility* — confusing the two is a common
+and expensive mistake.
 
 > Full detail and decision rules: `references/object-and-field-access.md`.
 
 ## 3. Which Records — the Sharing Model
 
-Access widens from a restrictive baseline. Each layer can only **open up**; only restriction rules
+Access widens from a restrictive baseline. Each layer only **opens up**; only restriction rules
 narrow.
 
 1. **Org-Wide Defaults** — the floor, per object: Private, Public Read Only, Public Read/Write, or
-   Controlled by Parent (which needs a Master-Detail parent). Separate internal and external defaults
-   let community and portal users get a stricter baseline; external can never be more permissive than
-   internal. Start restrictive and open deliberately.
-   Three things about OWD that catch people mid-design. **The value set is not uniform:** Case and
-   Lead add `ReadWriteTransfer`, Campaign adds `FullAccess`, and Price Book has its own model
-   entirely (`ReadSelect`, `Read`, `None`) with external **fixed at `None` and unchangeable** by any
-   API. **Some objects are not configurable at all:** User is fixed at Read internally and
-   externally, Activity's external default is fixed at Private, and Knowledge article visibility is
-   governed by channels rather than OWD. And **OWD changes cascade:** setting Account to Private
-   forces Contact, Case and Opportunity to Private and recalculates all four together, while Contract
-   simply follows Account and cannot be set independently. A "just tighten Account" ticket is
-   therefore a four-object change with a recalculation window.
+   Controlled by Parent, which needs a Master-Detail parent. Separate internal and external defaults
+   give community and portal users a stricter baseline, and external can never be more permissive
+   than internal. Start restrictive and open deliberately.
+   Three things about OWD catch people mid-design. **The value set is not uniform:** Case and Lead
+   add `ReadWriteTransfer`, Campaign adds `FullAccess`, and Price Book has its own model entirely
+   (`ReadSelect`, `Read`, `None`) with external **fixed at `None` and unchangeable** by any API.
+   **Some objects are not configurable at all:** User is fixed at Read internally and externally,
+   Activity's external default is fixed at Private, and Knowledge article visibility is governed by
+   channels rather than OWD. And **OWD changes cascade:** setting Account to Private forces Contact,
+   Case and Opportunity to Private and recalculates all four together, while Contract follows Account
+   and cannot be set independently. A "just tighten Account" ticket is therefore a four-object change
+   with a recalculation window.
 2. **Role Hierarchy** — a user inherits access to records owned by anyone below them. This is a
    *quiet* grant: nobody configures it per record, and it is easy to forget that a manager sees
    everything their reports own. "Grant Access Using Hierarchies" can be switched off for **custom**
@@ -121,10 +121,9 @@ narrow.
 3. **Sharing Rules** — owner-based (records owned by this group go to that group) or criteria-based
    (records matching a field filter go to a group). Guest user sharing rules are a separate,
    deliberately restricted kind. **Model them as immutable:** an owner-based rule allows only its
-   access level to be edited afterwards — changing who it shares from or to is not supported and the
-   deploy fails, so it is a delete-and-recreate. And a normal deploy is **additive**: it will never
-   remove a sharing rule, which needs a destructive deploy. Both facts belong in the design, not the
-   cleanup.
+   access level to be edited afterwards, so changing who it shares from or to fails the deploy and
+   becomes a delete-and-recreate. And a normal deploy is **additive**: it never removes a sharing
+   rule, which needs a destructive deploy. Both facts belong in the design, not the cleanup.
 4. **Manual and Apex Managed Sharing** — a single record shared with a user or group. Apex sharing
    writes `__Share` rows with a **sharing reason**, which is what makes the share recalculable and
    survivable across owner changes. Winter '27 adds an org setting to keep manual shares through an
@@ -134,21 +133,19 @@ narrow.
    ones that surprise people: read access to a child record grants read on its parent Account;
    Account access grants access to the associated Contacts, Cases and Opportunities under some OWD
    combinations; and portal and community users get implicit access to their own account's records.
-   You will not find these in any sharing rule, and they explain most "why can they see this?"
-   investigations.
+   None appear in any sharing rule, and they explain most "why can they see this?" investigations.
 
 ### The two narrowing layers, and the difference people get wrong
 
 - **Restriction Rules** genuinely *remove* visibility. Within objects the user already has access to,
   they filter down to a subset — "this user sees only Cases of type Internal". What the rule excludes
   is gone: not in list views, not in reports, not in a user-mode query.
-- **Scoping Rules** change only the **default view**. They set which records a user sees *first*,
-  without changing what they *can* reach. Search, a direct link, or removing the filter still gets
+- **Scoping Rules** change only the **default view**. They set which records a user sees *first*
+  without changing what they *can* reach: search, a direct link or removing the filter still gets
   there.
 
-If the requirement is "must not see", it is a restriction rule. If it is "should not have to wade
-through", it is a scoping rule. Using a scoping rule for a confidentiality requirement is a data
-leak that looks correct in a demo.
+"Must not see" is a restriction rule. "Should not have to wade through" is a scoping rule. Using a
+scoping rule for a confidentiality requirement is a data leak that looks correct in a demo.
 
 > Full evaluation order, Apex sharing shapes, and edge cases: `references/record-sharing.md`.
 
@@ -159,10 +156,10 @@ profile with no role, a separate and deliberately weak class of sharing rules, a
 objects. Anything a guest user can reach, the internet can reach. Never assume the guest profile is
 restrictive by accident; read what it actually grants. See `dya-lwr-sites`.
 
-**Integration users** should be their own user with their own permission set, not a licence borrowed
-from a departed admin. Give them exactly the objects and fields the integration touches, and expect
-API 67.0 user mode to enforce it — an integration that "worked before" and now returns fewer rows is
-usually an integration that was quietly relying on an over-broad profile.
+**Integration users** get their own user and their own permission set, never a licence borrowed from
+a departed admin. Grant exactly the objects and fields the integration touches, and expect API 67.0
+user mode to enforce it: an integration that "worked before" and now returns fewer rows was quietly
+relying on an over-broad profile.
 
 ## 5. How Access Is Enforced in Code
 
@@ -171,9 +168,9 @@ usually an integration that was quietly relying on an over-broad profile.
 - **Triggers run in system mode always** — they see every record and field regardless of the user.
 - **Flow** has its own three run contexts, and the record-triggered default bypasses object and field permissions. See `dya-flow`.
 
-The practical consequence: a too-narrow permission set or OWD makes user-mode code return fewer rows
-or throw. Widening permissions to make the error go away also exposes that data in reports, list
-views and the API. **Fix the model, not the symptom.**
+A too-narrow permission set or OWD therefore makes user-mode code return fewer rows or throw.
+Widening permissions to clear the error also exposes that data in reports, list views and the API.
+**Fix the model, not the symptom.**
 
 ## 6. Decision Matrix
 

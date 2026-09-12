@@ -5,7 +5,10 @@ description: Salesforce OmniStudio developer surface (Winter '27 / API v68.0) �
 
 # Salesforce OmniStudio — Developer Surface
 
-You are an expert OmniStudio (formerly Vlocity) developer. OmniStudio is the **Salesforce Industries** low-code + pro-code toolkit. This skill covers the **programmatic** surface with **real contracts and compilable Apex**. It builds on `dya-apex`/`lwc`. Follow every rule below.
+You are an expert OmniStudio (formerly Vlocity) developer. OmniStudio is the **Salesforce
+Industries** low-code and pro-code toolkit, and this skill covers the **programmatic** surface with
+**real contracts and compilable Apex**. It builds on `dya-apex` and `dya-lwc`. Follow every rule
+below.
 
 References:
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults a Remote Action inherits.
@@ -18,12 +21,23 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 changes **nothing in the OmniStudio programmatic contracts** — the `Callable` and `VlocityOpenInterface2` interfaces, the Integration Procedure and Data Mapper invocation shapes, and the Apex Remote Action signatures are all unchanged. Say so rather than inventing novelty; the release matters here only through the platform changes below.
+Winter '27 changes **nothing in the OmniStudio programmatic contracts**: the `Callable` and
+`VlocityOpenInterface2` interfaces, the Integration Procedure and Data Mapper invocation shapes and
+the Apex Remote Action signatures are all unchanged. Say so rather than inventing novelty — the
+release reaches OmniStudio only through the platform changes below.
 
-- **Two flavors, and they differ in code:** **OmniStudio Standard** (metadata-based, on core, **`omnistudio`** namespace, implement **`Callable`**) vs the original **Managed Package** ("OmniStudio for Vlocity", industry namespace like **`vlocity_cmt`** / `vlocity_ins` / `vlocity_ps`, extend **`VlocityOpenInterface`/`VlocityOpenInterface2`**). Always confirm which the org uses — class references, interfaces, and tooling differ.
-- Components are **LWC-based at runtime** (OmniScripts/FlexCards render as Lightning Web Components) and **JSON-defined** in metadata.
-- Custom logic plugs in via **Apex Remote Actions**, and from API 67.0 that Apex defaults to `with sharing` and `USER_MODE`, with `WITH SECURITY_ENFORCED` no longer compiling — use `WITH USER_MODE`. See `dya-permissions` for the model being enforced.
-- IPs and Data Mappers are invocable from **Apex**, **LWC**, **REST/Connect API**, and OmniStudio components — build once, reuse everywhere.
+- **Two flavours, and they differ in code.** **OmniStudio Standard** is metadata-based and on core,
+  in the **`omnistudio`** namespace, implementing **`Callable`**. The original **Managed Package**
+  ("OmniStudio for Vlocity") carries an industry namespace — **`vlocity_cmt`**, `vlocity_ins`,
+  `vlocity_ps` — and extends **`VlocityOpenInterface`/`VlocityOpenInterface2`**. Always confirm which
+  the org uses: class references, interfaces and tooling all differ.
+- Components are **LWC-based at runtime** — OmniScripts and FlexCards render as Lightning Web
+  Components — and **JSON-defined** in metadata.
+- Custom logic plugs in through **Apex Remote Actions**, and from API 67.0 that Apex defaults to
+  `with sharing` and `USER_MODE`, with `WITH SECURITY_ENFORCED` no longer compiling — use
+  `WITH USER_MODE`. See `dya-permissions` for the model being enforced.
+- IPs and Data Mappers are invocable from **Apex**, **LWC**, **REST/Connect API** and OmniStudio
+  components: build once, reuse everywhere.
 
 ---
 
@@ -36,13 +50,16 @@ Winter '27 changes **nothing in the OmniStudio programmatic contracts** — the 
 | **Integration Procedure (IP)** | Server-side, declarative orchestration in a single server call | Data read/write, callouts, transformation; the "controller" behind OmniScripts/FlexCards |
 | **DataRaptor / Data Mapper** | Extract / Transform / Load / Turbo for shaping Salesforce data | Read/write/transform data inside IPs and components |
 
-Mental model: **OmniScript/FlexCard = presentation; Integration Procedure = server-side logic; Data Mapper = data access/shaping; Apex Remote Action = custom code escape hatch.**
+The mental model: **OmniScript and FlexCard are presentation, the Integration Procedure is
+server-side logic, the Data Mapper is data access and shaping, and an Apex Remote Action is the
+custom-code escape hatch.**
 
 ---
 
 ## 2. Apex Remote Actions — the Real Contract
 
-When configuration can't do it, call Apex from FlexCards, OmniScripts, or IPs via a **Remote Action**. The class **must** implement the right contract for the org's flavor:
+Where configuration cannot do it, call Apex from FlexCards, OmniScripts or IPs through a **Remote
+Action**. The class **must** implement the contract for the org's flavour.
 
 **OmniStudio Standard — implement `Callable`:**
 
@@ -96,15 +113,23 @@ global with sharing class AccountRemoteActions implements vlocity_cmt.VlocityOpe
 }
 ```
 
-Rules: `global with sharing`; only methods on classes implementing `Callable` / extending `VlocityOpenInterface(2)` are invocable from OmniStudio; dispatch on `methodName`; read `input`, write `outMap`/`output`, read `options`; return `Boolean` success. **Bulk-safe, `WITH USER_MODE`, no SOQL/DML in loops** (it's Apex). Register the class + method in the Remote Action element (**Remote Class** + **Remote Method**). Full contract + errors: `references/apex-remote-actions.md`.
+Rules: the class is `global with sharing`; only methods on classes implementing `Callable` or
+extending `VlocityOpenInterface(2)` are invocable from OmniStudio; dispatch on `methodName`; read
+`input`, write `outMap`/`output`, read `options`; return `Boolean` success. It is Apex, so it is
+**bulk-safe, `WITH USER_MODE`, and free of SOQL and DML in loops**. Register the class and method in
+the Remote Action element as **Remote Class** and **Remote Method**. Full contract and errors:
+`references/apex-remote-actions.md`.
 
 ---
 
 ## 3. Integration Procedures (the server-side workhorse)
 
-IPs run **multiple actions in a single server call** (declarative, server-side). Common actions: DataRaptor Extract/Load, **HTTP Action** (callout), **Remote Action** (Apex), Set Values, Response Action, Conditional/Loop Block, Integration Procedure Action (compose).
+IPs run **multiple actions in a single server call**, declaratively and server-side. Common actions:
+DataRaptor Extract/Load, **HTTP Action** (callout), **Remote Action** (Apex), Set Values, Response
+Action, Conditional and Loop Block, and Integration Procedure Action to compose.
 
-- **Invoke from Apex** with `omnistudio.IntegrationProcedureService.runIntegrationService(...)` (Standard) / the `vlocity_*` equivalent (Managed):
+- **Invoke from Apex** with `omnistudio.IntegrationProcedureService.runIntegrationService(...)` on
+  Standard, or the `vlocity_*` equivalent on Managed:
 
 ```apex
 Map<String, Object> output = (Map<String, Object>) omnistudio.IntegrationProcedureService
@@ -113,10 +138,11 @@ Map<String, Object> output = (Map<String, Object>) omnistudio.IntegrationProcedu
                            new Map<String, Object>());                         // options
 ```
 
-- Invoke from **OmniScripts/FlexCards**, **LWC**, and **REST/Connect API** too.
-- **Invoke modes:** non-blocking (run while the OmniScript continues) vs blocking; map the **Response JSON Node/Path** so downstream elements receive a non-blocking result.
+- They are equally invocable from **OmniScripts and FlexCards**, **LWC** and **REST/Connect API**.
+- **Invoke modes:** non-blocking runs while the OmniScript continues, blocking does not. Map the
+  **Response JSON Node/Path** so downstream elements receive a non-blocking result.
 
-Full IP/Data Mapper patterns: `references/ips-and-datamappers.md`.
+Full IP and Data Mapper patterns: `references/ips-and-datamappers.md`.
 
 ---
 
@@ -129,11 +155,12 @@ Full IP/Data Mapper patterns: `references/ips-and-datamappers.md`.
 | **Load** | Write JSON to Salesforce (DML) |
 | **Turbo Extract** | High-performance single-object read |
 
-Prefer Data Mappers over Apex for standard read/transform/write inside IPs; reserve Apex Remote Actions for logic they can't express.
+Prefer Data Mappers over Apex for standard read, transform and write inside IPs, and reserve Apex
+Remote Actions for logic they cannot express.
 
 ---
 
-## 4b. Deployment — DataPacks, Not `sf project deploy`
+## 5. Deployment — DataPacks, Not `sf project deploy`
 
 **OmniStudio artifacts are records, not metadata.** OmniScripts, FlexCards, Integration Procedures
 and Data Mappers do not move with `sf project deploy start`; they move as **DataPacks**, through the
@@ -152,7 +179,7 @@ source and target, not the artifact being wrong.
 
 ---
 
-## 5. Decision Matrix — Quick Reference
+## 6. Decision Matrix — Quick Reference
 
 | Need | Use |
 |---|---|
@@ -170,7 +197,7 @@ source and target, not the artifact being wrong.
 
 ---
 
-## 6. Anti-Patterns — NEVER Do These
+## 7. Anti-Patterns — NEVER Do These
 
 | Anti-Pattern | Correct Approach |
 |---|---|
