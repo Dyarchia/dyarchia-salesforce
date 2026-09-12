@@ -174,6 +174,8 @@ a synced file is not declared in shared-refs.txt        set comparison
 a skill cites `dya-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
 a stated skill count disagrees with skills/             6 sites: 4 in README, both plugin manifests
 the Claude and Codex manifests disagree                 name, version, and the skills/ path
+the .plugin archive is stale or missing                 SHA-256 over the packed set, both ways
+the .plugin archive has no root plugin.json             entry presence - Desktop rejects it
 ```
 
 **README is the single source of truth for the platform version.** The catalogue line
@@ -355,11 +357,13 @@ root. A `.skill` bundle has neither — it is rooted at `<name>/` and carries no
 rejected with *"The archive must contain a .claude-plugin/plugin.json manifest, or a top-level
 SKILL.md"*. Renaming the extension does not fix it; the shape is wrong, not the label.
 
-`scripts/build-plugin` packs `.claude-plugin/`, `.codex-plugin/`, `skills/`, `README.md` and
-`LICENSE`. It deliberately omits `references-shared/` (each skill already carries its synced
-copies), `scripts/`, `dist/` and `docs/`. The archive is **not** validated by `validate-skills`,
-which only looks up `dist/<name>.skill` per skill — rebuild it in the same commit as any change to
-`skills/` or a manifest, or it ships stale.
+`scripts/build-plugin` packs `.claude-plugin/`, `.codex-plugin/`, `skills/`, `commands/`,
+`agents/`, `hooks/`, `README.md` and `LICENSE`. It deliberately omits `references-shared/` (each
+skill already carries its synced copies), `scripts/`, `dist/` and `docs/`. **`validate-skills`
+checks the archive against that same set**, by SHA-256 in both directions and for the root
+`.claude-plugin/plugin.json` Claude Desktop demands, so a stale archive is a hard failure rather
+than a silent ship. The packed set is written out twice — once in the packer, once in the
+validator — and they agree only because someone keeps them agreeing: change one, change the other.
 
 A `.skill` file is a ZIP whose top-level entry is the skill folder — unzipping yields
 `dya-apex/SKILL.md`, never a nested `skills/dya-apex/SKILL.md`.

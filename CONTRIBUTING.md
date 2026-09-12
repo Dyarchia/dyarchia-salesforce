@@ -93,9 +93,8 @@ git remote set-head origin -a
    The order is always **sync, then build, then validate**. Building first bundles a stale copy.
 
    `build-plugin` rebuilds `dist/dyarchia-salesforce.plugin`, the single archive Claude Desktop
-   imports. **The validator does not check it** — it only looks up `dist/<name>.skill` per skill — so
-   rebuild it in the same commit as any change to `skills/` or a manifest, or it ships stale with
-   nothing to catch it.
+   imports. The validator compares it against the packed set by SHA-256, so skipping this step
+   after a change to `skills/`, `commands/` or a manifest fails the gate instead of shipping stale.
 7. Add the skill to the README catalogue and to the layout diagram, and move the skill count
    everywhere it is asserted. The validator checks six of those sites and **fails** on any that
    disagree with the number of folders under `skills/` — the README catalogue line, both boxes of

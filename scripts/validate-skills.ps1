@@ -267,6 +267,7 @@ function Test-ManifestDescription {
     }
 }
 
+$plugin = $null
 $pluginVersion = $null
 if (Test-Path -LiteralPath $pluginManifest) {
     $plugin = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
@@ -306,6 +307,74 @@ if (Test-Path -LiteralPath $marketplaceManifest) {
     }
 }
 else { Add-Failure '.claude-plugin/marketplace.json not found' }
+
+# The .plugin archive is the only artifact Claude Desktop imports, and nothing here used to look
+# at it: the per-skill loop checks dist/<name>.skill and stops, so an archive built before the last
+# edit to skills/ or to a manifest passed a clean run and shipped stale. The packed set below
+# mirrors scripts/build-plugin -- change one and change the other.
+$pluginPackedDirs = @('.claude-plugin', '.codex-plugin', $SourceRoot, 'commands', 'agents', 'hooks')
+$pluginPackedFiles = @('README.md', 'LICENSE')
+
+if ($plugin) {
+    $archive = Join-Path $outputDir "$($plugin.name).plugin"
+    if (-not (Test-Path -LiteralPath $archive)) {
+        Add-Failure "no plugin archive at $OutputRoot/$($plugin.name).plugin - run build-plugin"
+    }
+    else {
+        $packed = @{}
+        $repoPrefix = $repoRoot.Length + 1
+        foreach ($dir in $pluginPackedDirs) {
+            $full = Join-Path $repoRoot $dir
+            if (-not (Test-Path -LiteralPath $full)) { continue }
+            foreach ($file in Get-ChildItem -LiteralPath $full -Recurse -File) {
+                $rel = $file.FullName.Substring($repoPrefix) -replace '\\', '/'
+                $packed[$rel] = (Get-FileHash -Algorithm SHA256 -LiteralPath $file.FullName).Hash
+            }
+        }
+        foreach ($leaf in $pluginPackedFiles) {
+            $full = Join-Path $repoRoot $leaf
+            if (Test-Path -LiteralPath $full -PathType Leaf) {
+                $packed[$leaf] = (Get-FileHash -Algorithm SHA256 -LiteralPath $full).Hash
+            }
+        }
+
+        $zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
+        try {
+            $seen = @{}
+            foreach ($entry in $zip.Entries) {
+                if ($entry.FullName.EndsWith('/')) { continue }
+                if ($entry.FullName.Contains('\')) {
+                    Add-Failure "plugin archive entry uses backslashes: $($entry.FullName)"
+                    continue
+                }
+                $stream = $entry.Open()
+                try { $seen[$entry.FullName] = Get-StreamHash -Stream $stream }
+                finally { $stream.Dispose() }
+            }
+
+            # Claude Desktop rejects an archive that has no manifest at its root, naming this exact
+            # path in the error, so the check names it too.
+            if (-not $seen.ContainsKey('.claude-plugin/plugin.json')) {
+                Add-Failure 'plugin archive has no .claude-plugin/plugin.json at its root - Claude Desktop will reject it'
+            }
+
+            foreach ($key in $packed.Keys) {
+                if (-not $seen.ContainsKey($key)) {
+                    Add-Failure "plugin archive is stale, missing $key - rebuild it"
+                }
+                elseif ($seen[$key] -ne $packed[$key]) {
+                    Add-Failure "plugin archive is stale, content differs for $key - rebuild it"
+                }
+            }
+            foreach ($key in $seen.Keys) {
+                if (-not $packed.ContainsKey($key)) {
+                    Add-Failure "plugin archive carries a file no longer in source: $key - rebuild it"
+                }
+            }
+        }
+        finally { $zip.Dispose() }
+    }
+}
 
 # The README asserts the skill count in four places. Each is checked against the folder count, and
 # an assertion that has been reworded away is a warning rather than a silent gap.

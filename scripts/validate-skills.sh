@@ -249,6 +249,46 @@ else
     fail ".claude-plugin/marketplace.json not found"
 fi
 
+# The .plugin archive is the only artifact Claude Desktop imports, and nothing here used to look
+# at it: the per-skill loop checks dist/<name>.skill and stops, so an archive built before the last
+# edit to skills/ or to a manifest passed a clean run and shipped stale. The packed set below
+# mirrors scripts/build-plugin - change one and change the other.
+if [ -n "$PLUGIN_NAME" ]; then
+    archive="$OUTPUT_DIR/$PLUGIN_NAME.plugin"
+    if [ ! -f "$archive" ]; then
+        fail "no plugin archive at $OUTPUT_ROOT/$PLUGIN_NAME.plugin - run build-plugin"
+    else
+        if unzip -Z1 "$archive" | grep -q '\\'; then
+            fail "plugin archive has entries with backslashes - rebuild it"
+        fi
+        # Claude Desktop rejects an archive that has no manifest at its root, naming this exact
+        # path in the error, so the check names it too.
+        if ! unzip -Z1 "$archive" | grep -qx '\.claude-plugin/plugin\.json'; then
+            fail "plugin archive has no .claude-plugin/plugin.json at its root - Claude Desktop will reject it"
+        fi
+
+        packed_manifest="$( {
+            for dir in .claude-plugin .codex-plugin "$SOURCE_ROOT" commands agents hooks; do
+                [ -d "$REPO_ROOT/$dir" ] && find "$REPO_ROOT/$dir" -type f
+            done
+            for leaf in README.md LICENSE; do
+                [ -f "$REPO_ROOT/$leaf" ] && printf '%s\n' "$REPO_ROOT/$leaf"
+            done
+        } | sed "s|^$REPO_ROOT/||" | LC_ALL=C sort | while read -r rel; do
+            printf '%s  %s\n' "$(sha256sum "$REPO_ROOT/$rel" | cut -d' ' -f1)" "$rel"
+        done)"
+
+        archive_manifest="$(unzip -Z1 "$archive" | grep -v '/$' | LC_ALL=C sort | while read -r entry; do
+            printf '%s  %s\n' "$(unzip -p "$archive" "$entry" | sha256sum | cut -d' ' -f1)" "$entry"
+        done)"
+
+        if [ "$packed_manifest" != "$archive_manifest" ]; then
+            fail "plugin archive is out of sync with source - rebuild it"
+            diff <(printf '%s\n' "$packed_manifest") <(printf '%s\n' "$archive_manifest") | sed 's/^/      /' >&2
+        fi
+    fi
+fi
+
 # The README asserts the skill count in four places. Each is checked against the folder count, and
 # an assertion that has been reworded away is a warning rather than a silent gap.
 if [ -s "$README" ]; then
