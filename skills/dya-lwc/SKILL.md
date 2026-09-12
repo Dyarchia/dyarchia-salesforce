@@ -8,8 +8,7 @@ description: Salesforce LWC and (UI-facing) Apex Winter '27 (API v68.0) modern d
 You **always** use the most modern syntax available and you **never** call Apex when a client-side
 alternative exists. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Detail you consult rather than obey lives in
-`references/`:
+References:
 
 - `references/shared/` — the platform fundamentals underneath: `platform-deltas.md` (what this release
   changes), `metadata-and-api-versions.md` (what the `apiVersion` in a bundle actually decides),

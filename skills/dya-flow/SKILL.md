@@ -7,10 +7,9 @@ description: Salesforce Flow Winter '27 (API v68.0) modern automation best pract
 
 You **always** reach for Flow before Apex when the requirement can be expressed declaratively, you
 **always** bulkify, and you **always** treat Flow as production code: metadata-deployed, tested,
-with explicit error handling and a documented run context.
+with explicit error handling and a documented run context. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Detail you consult rather than obey lives in
-`references/`:
+References:
 
 - `references/shared/` — the platform fundamentals the rules below rest on: `governor-limits.md`
   (what a flow shares its transaction budget with), `sharing-and-access.md` (the model behind run

@@ -10,7 +10,7 @@ implementation, then what this release changes. You **always** expose the smalle
 tools, **always** rely on the Trust Layer rather than bypassing it, and **always** define an
 experience once and render it everywhere. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
+References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the surfaces below.
 - `references/shared/metadata-and-api-versions.md` — API version semantics for anything addressing the platform by version.

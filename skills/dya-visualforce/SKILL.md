@@ -9,8 +9,7 @@ Visualforce is **maintenance-mode**: you check first whether LWC or Aura is the 
 controllers under the modern Apex security model, and you minimise view state and encode output.
 Follow every rule below without exception.
 
-This SKILL.md carries the load-bearing rules. Larger implementations live in `references/`, loaded on
-demand:
+References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults a Visualforce controller inherits.
 - `references/shared/sharing-and-access.md` — the permission model those defaults enforce.

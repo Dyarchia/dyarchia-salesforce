@@ -9,6 +9,7 @@ This skill is **conceptual**: the complete mental model of "who can do what" and
 so the right design choice becomes obvious. It is the skill other skills route to — `dya-apex`,
 `dya-flow`, `dya-lwc`, `dya-integration-inbound-apex` and `dya-agentforce` all enforce this model
 without owning it. Authentication is a different concern and belongs to `dya-integration-auth`.
+Follow every rule below.
 
 References:
 

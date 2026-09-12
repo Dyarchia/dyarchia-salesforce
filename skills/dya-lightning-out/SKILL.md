@@ -7,9 +7,9 @@ description: Salesforce Lightning Out 2.0 Winter '27 (API v68.0) — embedding L
 
 Lightning Out 2.0 renders **Lightning Web Components inside a non-Salesforce web page** — your own
 site, another app. It runs on the **LWR runtime**, so everything in `dya-lwr` applies; for the
-components themselves, `dya-lwc`.
+components themselves, `dya-lwc`. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
+References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
 - `references/shared/sharing-and-access.md` — what the brokered session identity is actually allowed

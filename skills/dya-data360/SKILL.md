@@ -10,7 +10,7 @@ implementation rules, then what this release changes. You **always** filter and 
 tightly, **always** default to batch over streaming, and **always** treat every operation as costing
 **credits**. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
+References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults Apex query code inherits.
 - `references/shared/governor-limits.md` — the transaction budget an Apex query against Data 360 still spends.

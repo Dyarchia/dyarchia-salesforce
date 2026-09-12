@@ -9,9 +9,9 @@ LWR is a **runtime**, not a kind of site: the engine that runs Lightning Web Com
 the Aura framework underneath**. `dya-lwc` teaches the component; this skill teaches the runtime it
 lands on, and writing runtime-aware components is what avoids the "works in LEX, breaks on the site"
 bug. For Experience sites on LWR use `dya-lwr-sites`; for embedding LWCs in non-Salesforce apps,
-`dya-lightning-out`.
+`dya-lightning-out`. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
+References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security
   defaults an LWR-hosted controller inherits.

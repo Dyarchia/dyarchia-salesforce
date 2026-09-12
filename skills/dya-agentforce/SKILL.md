@@ -10,7 +10,7 @@ implementation rules, then what this release changes. You **always** keep action
 bulkified, **always** ground answers in trusted data, and **always** enforce security through the
 Trust Layer. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Larger reference implementations live in `references/`:
+References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an Apex action inherits.
 - `references/shared/sharing-and-access.md` — the permission model an agent's run-as identity is bound by. **Read this before designing a customer-facing agent.**

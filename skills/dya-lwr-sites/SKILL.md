@@ -7,9 +7,9 @@ description: Salesforce Experience Cloud LWR sites Winter '27 (API v68.0) — bu
 
 This skill covers **public and authenticated sites on the Lightning Web Runtime**, the modern
 LWC-native site type, as opposed to legacy Aura template sites. For how components behave on the LWR
-runtime use `dya-lwr`; for the components themselves, `dya-lwc`.
+runtime use `dya-lwr`; for the components themselves, `dya-lwc`. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
+References:
 
 - `references/shared/sharing-and-access.md` — the guest user and the access model a public site
   runs under. **Read this before hardening anything.**

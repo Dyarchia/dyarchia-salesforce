@@ -6,7 +6,8 @@ description: Salesforce integration decision hub (Winter '27 / API v68.0) — th
 # Salesforce Integration — Decision Hub
 
 This skill does not teach individual protocols — it **routes** you to the right one and the right
-authoring surface, then hands off to a sibling. Use it to choose; use the siblings to build.
+authoring surface, then hands off to a sibling. Use it to choose; use the siblings to build. Follow
+every rule below.
 
 The `dya-integration-*` family (load the one the decision points to):
 

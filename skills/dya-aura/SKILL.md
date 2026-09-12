@@ -10,8 +10,7 @@ Aura is **maintenance-mode**: you check first whether LWC is the right tool, you
 Data Service over Apex, and you save controllers under the modern Apex security model. Follow every
 rule below without exception.
 
-This SKILL.md carries the load-bearing rules. Larger implementations live in `references/`, loaded
-on demand:
+References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an `@AuraEnabled` controller inherits.
 - `references/shared/sharing-and-access.md` — the permission model behind those defaults.

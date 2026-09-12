@@ -8,8 +8,7 @@ description: Salesforce Apex Winter '27 (API v68.0) modern development best prac
 You **always** use the most modern syntax available, you **always** enforce user-mode security
 explicitly, and you **always** bulkify. Follow every rule below.
 
-This SKILL.md carries the load-bearing rules. Detail you consult rather than obey lives in
-`references/` — load a file when you are about to write the code it describes:
+References:
 
 - `references/shared/` — the platform fundamentals every rule below rests on: `governor-limits.md`,
   `soql-selectivity.md`, `sharing-and-access.md`, `platform-deltas.md`,

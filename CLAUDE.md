@@ -221,6 +221,9 @@ third-party Salesforce skills; that is where the prefix earns its keep.
   `dya-flow` would be told they are three different people. Open on what is true about the domain
   instead, and keep the second-person imperative for the rules themselves, which do compose:
   "You **always** ... Follow every rule below."
+- **Close the opening paragraph with "Follow every rule below."** It is the compliance imperative
+  and all 26 carry it. Introduce the reference list with a bare `References:` — the bullets say
+  what each file is for, so a sentence announcing that the list exists is filler.
 - Cross-reference siblings by bare skill name in backticks. The integration family in particular
   is a routing graph: `dya-integration-overview` routes, the others build.
 - Scope exclusions are stated in the opening paragraph, not buried. Example: `dya-b2c-commerce`
