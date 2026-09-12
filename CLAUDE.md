@@ -1,7 +1,8 @@
 # dyarchia-salesforce
 
 The Salesforce domain plugin of the Dyarchia umbrella: a library of agent skills targeting
-Winter '27 / API v68.0, packaged as a Claude Code plugin, a Claude Desktop `.plugin` archive, and portable `.skill` bundles.
+Winter '27 / API v68.0, published as a Claude Code plugin and marketplace, and readable as-is by any
+host that implements Agent Skills.
 
 This repo ships **content**, not software. There is no application and no runtime — only the
 `SKILL.md` files, the manifests that let hosts install them, and the packaging scripts.
@@ -75,8 +76,7 @@ dyarchia-salesforce/
 │       └── references/            # loaded on demand, never at invocation time
 │           └── shared/            # GENERATED copies of references-shared/, committed
 ├── references-shared/             # the canon: platform fundamentals, written once
-├── dist/                          # 26 .skill bundles + 1 .plugin archive, committed
-├── scripts/                       # packaging, shared-reference sync, validation
+├── scripts/                       # shared-reference sync and validation
 └── docs/                          # local working notes, untracked
 ```
 
@@ -84,13 +84,13 @@ dyarchia-salesforce/
 full. Nothing inside it is part of the contract; `CONTRIBUTING.md` is.
 
 `commands/` holds slash commands. **The validator does not walk it** — it only walks `skills/` — so a
-command is not counted as a skill, needs no Platform Context heading and gets no `.skill` bundle.
+command is not counted as a skill and needs no Platform Context heading.
 That is the reason a meta-command like `/dya-sf-skills` lives there rather than under `skills/`:
 it is not a Salesforce domain playbook and must not inflate the skill count.
 
 Not present yet, reserved by convention: `agents/`, `hooks/`, and `mcp/` for MCP servers written
-here. Third-party MCP servers are not vendored and not declared. `build-plugin` already packs all
-three, so adding one ships it without touching the packer.
+here. Third-party MCP servers are not vendored and not declared. Hosts discover all three from the
+repository root, so adding one ships it without touching any script.
 
 `sources/` may exist locally: read-only clones of third-party repos kept as raw material. It is
 gitignored, never installed, never published. Do not glob or grep across it by accident — it is
@@ -98,39 +98,30 @@ large.
 
 ## Commands
 
-There is no test runner, no linter and no CI. Four scripts, each with a PowerShell and a bash twin,
-are the entire tooling surface. The order matters: **sync, then build, then validate** — building
-before syncing bundles a stale copy, and the validator catches it. Both `.ps1` files declare `#Requires -Version 7.0`.
+There is no test runner, no linter and no CI. Two scripts, each with a PowerShell and a bash twin,
+are the entire tooling surface. The order matters: **sync, then validate** — the validator compares
+each synced copy against its canon, so validating before syncing reports the edit you just made as
+drift. Both `.ps1` files declare `#Requires -Version 7.0`.
 
 ```bash
 scripts/sync-shared-refs.sh            # materialise references-shared/ into each skill
-scripts/build-skill.sh                 # rebuild every bundle
-scripts/build-skill.sh dya-apex        # rebuild one; accepts several names
-scripts/build-plugin.sh                # one .plugin archive of the whole library
 scripts/validate-skills.sh             # the gate; must exit 0
 ```
 
 ```powershell
 pwsh -NoProfile -File scripts/sync-shared-refs.ps1
-pwsh -NoProfile -File scripts/build-skill.ps1 dya-apex
-pwsh -NoProfile -File scripts/build-plugin.ps1
 pwsh -NoProfile -File scripts/validate-skills.ps1
 ```
 
-- Called with no arguments, either builder rebuilds every folder under `skills/`.
-- Roots are overridable: `-SourceRoot` / `-OutputRoot` parameters in PowerShell,
-  `SOURCE_ROOT` / `OUTPUT_ROOT` environment variables in bash. Defaults are `skills` and `dist`.
-  Both are joined onto the repo root, so they must be **relative**; an absolute path produces a
-  nonsense concatenated path and the run dies.
-- The bash builder shells out to `zip` and exits 1 when it is not on PATH; the PowerShell one uses
-  `System.IO.Compression` and needs nothing external. On a stock Windows box `zip` is usually
-  absent while `unzip` is present — meaning the bash builder will not run but the bash validator
-  will. Use the PowerShell builder there.
+- The source root is overridable: a `-SourceRoot` parameter in PowerShell, a `SOURCE_ROOT`
+  environment variable in bash, defaulting to `skills`. It is joined onto the repo root, so it must
+  be **relative**; an absolute path produces a nonsense concatenated path and the run dies.
+- The bash validator needs `sha256sum` on PATH and exits 1 without it.
 
 ### What the validator enforces
 
 `validate-skills` is the closest thing this repo has to a test suite. It walks every folder under
-`skills/`, compares each against its committed bundle, and cross-checks the README.
+`skills/`, checks it against the contract, and cross-checks the README and the manifests.
 
 Hard failures — exit 1:
 
@@ -143,10 +134,6 @@ no name key, or name differs from the folder name      exact string match
 no description key                                     presence
 description lacks the invocation clause                literal substring match
 skill name appears nowhere in README.md                full-text scan - a failure, not a warning
-no bundle at dist/<name>.skill                         presence
-bundle entry contains a backslash                      per ZIP entry
-bundle entry not rooted at <name>/                     per ZIP entry
-bundle stale: file missing, content differs, orphaned  SHA-256, compared in both directions
 ```
 
 Warnings — still exit 0:
@@ -172,10 +159,8 @@ a references/ file is never cited from SKILL.md         substring, per file
 a declared shared fragment is missing or edited         SHA-256 against references-shared/
 a synced file is not declared in shared-refs.txt        set comparison
 a skill cites `dya-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
-a stated skill count disagrees with skills/             6 sites: 4 in README, both plugin manifests
+a stated skill count disagrees with skills/             5 sites: 3 in README, both plugin manifests
 the Claude and Codex manifests disagree                 name, version, and the skills/ path
-the .plugin archive is stale or missing                 SHA-256 over the packed set, both ways
-the .plugin archive has no root plugin.json             entry presence - Desktop rejects it
 ```
 
 **README is the single source of truth for the platform version.** The catalogue line
@@ -267,8 +252,8 @@ skills without relearning the layout.
 
 `Winter '27 / API v68.0` is a repo-wide invariant, not a per-skill detail. It is asserted in all 26
 Platform Context sections, in the README badge, and in the descriptions inside `plugin.json` and
-`marketplace.json`. A version bump is therefore a coordinated sweep across every source file plus a
-full rebuild of `dist/` — never a single-skill edit.
+`marketplace.json`. A version bump is therefore a coordinated sweep across every source file — never
+a single-skill edit.
 
 The plugin `version` field is duplicated across `.claude-plugin/plugin.json` and
 `.claude-plugin/marketplace.json` (`0.3.0` in both). `validate-skills` now checks that they agree,
@@ -332,57 +317,12 @@ The prescriptive procedure lives in `CONTRIBUTING.md`. Follow it rather than imp
 version:
 
 1. Author or edit `skills/dya-<name>/SKILL.md`.
-2. Rebuild the bundle: `scripts/build-skill.ps1 dya-<name>` (or the `.sh` twin).
+2. Sync if you touched a shared fragment: `scripts/sync-shared-refs.ps1` (or the `.sh` twin).
 3. Validate: `scripts/validate-skills.ps1` (or the `.sh` twin). It must exit 0.
 4. Update the README catalogue and the CHANGELOG in the same commit.
 
-Source and bundle drift is the failure mode this repo is most exposed to. `validate-skills`
-exists to catch it; run it before every commit that touches `skills/`.
-
-## Bundle packaging
-
-Two archive shapes ship from `dist/`, and they exist for different hosts. Do not try to make one
-serve both.
-
-```text
-artifact                        root entry            consumed by
-------------------------------  --------------------  ---------------------------
-dya-<name>.skill                <name>/               one skill, uploaded by hand
-dyarchia-salesforce.plugin      .claude-plugin/       the whole library, Claude Desktop
-```
-
-**Claude Desktop imports the `.plugin`, never a `.skill`.** It accepts only `.zip` and `.plugin`
-extensions and requires a `.claude-plugin/plugin.json` at the archive root, or a `SKILL.md` at the
-root. A `.skill` bundle has neither — it is rooted at `<name>/` and carries no manifest — so it is
-rejected with *"The archive must contain a .claude-plugin/plugin.json manifest, or a top-level
-SKILL.md"*. Renaming the extension does not fix it; the shape is wrong, not the label.
-
-`scripts/build-plugin` packs `.claude-plugin/`, `.codex-plugin/`, `skills/`, `commands/`,
-`agents/`, `hooks/`, `README.md` and `LICENSE`. It deliberately omits `references-shared/` (each
-skill already carries its synced copies), `scripts/`, `dist/` and `docs/`. **`validate-skills`
-checks the archive against that same set**, by SHA-256 in both directions and for the root
-`.claude-plugin/plugin.json` Claude Desktop demands, so a stale archive is a hard failure rather
-than a silent ship. The packed set is written out twice — once in the packer, once in the
-validator — and they agree only because someone keeps them agreeing: change one, change the other.
-
-A `.skill` file is a ZIP whose top-level entry is the skill folder — unzipping yields
-`dya-apex/SKILL.md`, never a nested `skills/dya-apex/SKILL.md`.
-
-ZIP entry names must use forward slashes. PowerShell's `Compress-Archive` writes backslashes and
-strict parsers reject the result; `scripts/build-skill.ps1` uses `System.IO.Compression.ZipArchive`
-with explicit forward-slash entry names for that reason. Do not replace it with `Compress-Archive`.
-
-Both scripts take `SourceRoot` and `OutputRoot` overrides; the defaults are `skills` and `dist`.
-
-Bundles are committed, so the build must be **reproducible**: both scripts emit entries in sorted
-order and stamp every one with a fixed 1980-01-01 timestamp. Without that, a ZIP writer records the
-current time and a rebuild produces different bytes from byte-identical sources — which dirties all
-26 binaries in the diff and buries whatever actually changed. If you touch the builders, keep that
-property and verify it by building the same skill twice and comparing hashes.
-
-Do not assume the PowerShell and bash builders emit identical bytes; they use different ZIP
-implementations. Each is deterministic with respect to itself. Pick one and regenerate the whole
-`dist/` with it rather than mixing them commit to commit.
+Drift between what a document asserts and what the tree holds is the failure mode this repo is most
+exposed to. `validate-skills` exists to catch it; run it before every commit that touches `skills/`.
 
 ## Commit conventions
 
@@ -391,12 +331,12 @@ Conventional Commits, scoped by area:
 ```text
 feat(skills): add dya-<name> skill
 fix(skills): correct the callout-after-DML rule in dya-integration-outbound
-fix(repo): use forward slashes in .skill ZIP entry paths
-docs(repo): correct .skill bundle structure in packaging instructions
+fix(repo): pin the Codex manifest skills path to the source root
+docs(repo): state the shared-reference sync order in CONTRIBUTING
 ```
 
-One skill per commit when adding. Bundle regeneration travels in the same commit as the source
-change that caused it.
+One skill per commit when adding. A shared-reference sync travels in the same commit as the canon
+edit that caused it.
 
 ## Out of scope
 

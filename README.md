@@ -103,9 +103,8 @@ graph LR
     Root --> Contract["CLAUDE.md · CONTRIBUTING.md<br/>contributor contract"]
     Root --> SK["skills/<br/>26 skill folders"]
     Root --> Shared["references-shared/<br/>platform primer canon"]
-    Root --> Dist["dist/<br/>26 .skill bundles + 1 .plugin"]
     Root --> Cmds["commands/<br/>/dya-sf-skills"]
-    Root --> Scripts["scripts/<br/>build · sync · validate"]
+    Root --> Scripts["scripts/<br/>sync · validate"]
 
     SK --> Skill["dya-&lt;name&gt;/"]
     Skill --> SM["SKILL.md"]
@@ -121,12 +120,12 @@ graph LR
     class Root root
     class SK,Skill,Shared domainFolder
     class SM,Refs,SharedRefs skillFolder
-    class Plugin,Meta,Contract,Dist,Scripts,Cmds meta
+    class Plugin,Meta,Contract,Scripts,Cmds meta
 ```
 
-Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand. Repo-level files never get bundled into the installable skill.
+Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand.
 
-`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill lists the fragments it needs in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. The copies are committed so every bundle stays self-contained; the canon is what you edit.
+`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill lists the fragments it needs in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. The copies are committed so every skill folder stays self-contained; the canon is what you edit.
 
 `agents/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
 
@@ -150,22 +149,6 @@ Skills are discovered from `skills/` automatically. No MCP servers are declared 
 
 ---
 
-## Install in Claude Desktop
-
-Claude Desktop imports a **plugin archive**, not a skill bundle. Download [`dist/dyarchia-salesforce.plugin`](dist) and import it — one file, all 26 skills.
-
-It accepts only `.zip` and `.plugin` extensions, and the archive must carry a `.claude-plugin/plugin.json` at its root. The per-skill `.skill` bundles satisfy neither: they are rooted at `<skill-name>/` and carry no manifest, so importing one fails with *"The archive must contain a .claude-plugin/plugin.json manifest, or a top-level SKILL.md"*. Renaming a `.skill` to `.zip` does not help — use the `.plugin`.
-
-```bash
-pwsh -NoProfile -File scripts/build-plugin.ps1
-```
-
-```bash
-scripts/build-plugin.sh
-```
-
----
-
 ## Install on other agents
 
 The skills themselves are not Claude-specific. Each is a folder with a `SKILL.md` carrying `name` and `description` in YAML frontmatter — the [Agent Skills](https://agentskills.io) shape that several vendors now read. Only the manifests differ, and both live at the repository root:
@@ -183,55 +166,7 @@ skills/             the content, shared by both
 
 The two manifests duplicate the plugin name, version and description, so `scripts/validate-skills` checks them against each other and fails when they drift.
 
-Gemini has no equivalent plugin-and-skill surface at the time of writing; use the `.skill` bundles or paste what you need.
-
----
-
-## Install as a `.skill` bundle
-
-For assistants that take skill archives rather than Claude Code plugins.
-
-A `.skill` file is a ZIP archive of the skill folder with the extension renamed. The **skill folder itself must be the archive's top-level entry** — unzipping has to yield `dya-lwc/SKILL.md`, never a double-nested path like `skills/dya-lwc/SKILL.md`.
-
-**Pre-built bundles for every skill live in [`dist/`](dist).** Download the `.skill` you need and upload it to whichever assistant supports the format — no zipping required on your side.
-
-```mermaid
-flowchart LR
-  A[Download<br/>.skill] --> B[Upload in<br/>your assistant]
-
-  classDef step fill:#5B5BD6,stroke:#3B3B8F,color:#fff,stroke-width:2px
-  class A,B step
-```
-
-> The bundles are regenerated alongside every change to the source skill folder and committed to the repo.
-
-### Rebuilding a bundle
-
-Use the packaging scripts. They root the archive at the skill folder and force forward-slash entry names, which the plain `Compress-Archive` cmdlet does not — it writes Windows backslashes that strict parsers (Claude Desktop's skill import) reject with *"Zip file contains path with invalid characters"*.
-
-**macOS, Linux, WSL, Git Bash:**
-
-```bash
-scripts/build-skill.sh dya-apex
-```
-
-**PowerShell 7+ (Windows):**
-
-```powershell
-pwsh -NoProfile -File scripts/build-skill.ps1 dya-apex
-```
-
-Omit the skill name to rebuild every bundle. Then verify that sources, bundles and this catalogue all agree:
-
-```bash
-scripts/validate-skills.sh
-```
-
-```powershell
-pwsh -NoProfile -File scripts/validate-skills.ps1
-```
-
-The validator checks frontmatter, the explicit-invocation clause, ZIP entry naming, per-file content hashes between each bundle and its source, and README coverage. It exits non-zero on any mismatch.
+Gemini has no equivalent plugin-and-skill surface at the time of writing; copy the skill folders or paste what you need.
 
 ---
 
@@ -288,7 +223,7 @@ Shared fundamentals are never copy-pasted between skills. Edit the canon under `
 
 The full contract lives in [`CLAUDE.md`](CLAUDE.md), and the step-by-step procedure for adding, editing, splitting or removing a skill lives in [`CONTRIBUTING.md`](CONTRIBUTING.md). Both are versioned: read them before your first change rather than inferring the conventions from the diff.
 
-A source edit is only half the change. Rebuild that skill's bundle with `scripts/build-skill`, then run `scripts/validate-skills`. Beyond comparing every bundle against its source file by file, it checks that every skill's Platform Context declares the platform version this README states, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, and that every synced fragment still matches its canon. It must exit 0 before any commit that touches `skills/`.
+A source edit is only half the change. Run `scripts/validate-skills` before you commit it. The validator checks that every skill's Platform Context declares the platform version this README states, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, that every synced fragment still matches its canon, and that every backticked cross-reference between skills resolves. It must exit 0 before any commit that touches `skills/`.
 
 ---
 

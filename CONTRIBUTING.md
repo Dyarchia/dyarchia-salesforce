@@ -1,7 +1,7 @@
 # Contributing to dyarchia-salesforce
 
-This is a published skill library. People download the `.skill` bundles under `dist/` and install
-them into their own assistants, so a broken frontmatter key or a stale bundle ships to real users.
+This is a published skill library. People install it as a plugin or read `skills/` straight from a
+clone, so a broken frontmatter key or a catalogue that lies reaches real users on their next pull.
 Every procedure on this page ends the same way: `scripts/validate-skills` exits 0. Nothing is
 finished before it does.
 
@@ -10,25 +10,26 @@ inferable from a diff.
 
 ## The artifacts that must agree
 
-Every skill exists twice: as a source folder under `skills/dya-<name>/`, and as a committed bundle
-at `dist/dya-<name>.skill`. **Drift between the two is this repository's defining failure mode.**
-The validator compares them file by file, by content hash. Never edit a bundle by hand — regenerate
-it from source.
+A skill is a folder under `skills/dya-<name>/` and nothing else is generated from it. What drifts
+here is prose: the README catalogue, the skill count, the platform version and the handoffs between
+skills all assert things about a tree that changes under them. **That drift is this repository's
+defining failure mode**, and `validate-skills` exists to catch every kind of it a script can read.
 
-A third generated artifact follows the same discipline. Platform fundamentals — governor limits, the
+One generated artifact does exist. Platform fundamentals — governor limits, the
 access model, SOQL selectivity, API version semantics, the org and deployment model, the release
 deltas — live exactly once, in `references-shared/` at the repository root. A skill declares the
 fragments it needs in `skills/dya-<name>/shared-refs.txt`, one name per line, and
 `scripts/sync-shared-refs` copies them into `skills/dya-<name>/references/shared/`. Those copies are
-committed, so every bundle stays self-contained and the builder needs no special case.
+committed, so a clone carries everything a skill needs with no build step.
 
 **Never edit a file under `references/shared/`.** Edit the canon and re-sync. The validator hashes
 every copy against its canon and fails on any difference. A fact that belongs to more than one skill
 belongs in the canon rather than pasted into each body — that duplication is what turned the last
 platform version bump into a sweep across 267 occurrences in 58 files.
 
-The plugin path (`.claude-plugin/plugin.json`) serves Claude Code straight from `skills/` and needs
-no build step. The bundles exist for every other assistant.
+Every host reads `skills/` directly: `.claude-plugin/plugin.json` serves Claude Code,
+`.codex-plugin/plugin.json` serves Codex, and Grok and Mistral read the tree as it sits. There is no
+build step and no packaged artifact to keep in sync.
 
 ## Branches and pull requests
 
@@ -76,42 +77,33 @@ git remote set-head origin -a
 5. Move occasional-consultation material into `references/`. `SKILL.md` carries only what must be
    true on every invocation; the ceiling is 20480 bytes.
 6. Declare any shared fragments in `skills/dya-<name>/shared-refs.txt`, cite each one by filename
-   from `SKILL.md` — an uncited reference is a validation error — then sync and build:
+   from `SKILL.md` — an uncited reference is a validation error — then sync:
 
    ```bash
    scripts/sync-shared-refs.sh dya-<name>
-   scripts/build-skill.sh dya-<name>
-   scripts/build-plugin.sh
    ```
 
    ```powershell
    pwsh -NoProfile -File scripts/sync-shared-refs.ps1 dya-<name>
-   pwsh -NoProfile -File scripts/build-skill.ps1 dya-<name>
-   pwsh -NoProfile -File scripts/build-plugin.ps1
    ```
 
-   The order is always **sync, then build, then validate**. Building first bundles a stale copy.
-
-   `build-plugin` rebuilds `dist/dyarchia-salesforce.plugin`, the single archive Claude Desktop
-   imports. The validator compares it against the packed set by SHA-256, so skipping this step
-   after a change to `skills/`, `commands/` or a manifest fails the gate instead of shipping stale.
+   The order is always **sync, then validate**. Validating first reports the canon edit you just
+   made as drift in every skill that declares the fragment.
 7. Add the skill to the README catalogue and to the layout diagram, and move the skill count
-   everywhere it is asserted. The validator checks six of those sites and **fails** on any that
-   disagree with the number of folders under `skills/` — the README catalogue line, both boxes of
-   its layout diagram, the install line, and the description of **both** `.claude-plugin/plugin.json`
-   and `.codex-plugin/plugin.json`. It cannot check the prose in `CLAUDE.md` and this file, so update
-   those two by hand.
+   everywhere it is asserted. The validator checks five of those sites and **fails** on any that
+   disagree with the number of folders under `skills/` — the README catalogue line, the `skills/`
+   box of its layout diagram, the install line, and the description of **both**
+   `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`. It cannot check the prose in
+   `CLAUDE.md` and this file, so update those two by hand.
 8. Add a CHANGELOG entry under `## [Unreleased]` → `### Added`.
 9. Run the validator. It must exit 0.
-10. Commit as `feat(skills): add dya-<name> skill`, source and bundle together, on a branch cut from
-    `develop`.
+10. Commit as `feat(skills): add dya-<name> skill`, on a branch cut from `develop`.
 
 ## Editing an existing skill
 
 1. Edit only the source under `skills/dya-<name>/` — and never a file under `references/shared/`,
    which is generated. A shared fact is edited in `references-shared/` and re-synced everywhere.
-2. Sync, then rebuild that skill's bundle, as in step 6 above. A source edit without a rebuild is
-   exactly the drift the validator exists to catch.
+2. If the edit touched a shared fragment, edit the canon and re-sync, as in step 6 above.
 3. Add a CHANGELOG entry under `### Changed`, describing what a consumer would notice rather than
    which lines moved.
 4. Run the validator. It must exit 0.
@@ -128,11 +120,11 @@ that is consulted rather than obeyed.
    moving — the point of the split is that the detail survives at full fidelity, just deferred.
 3. Leave a one-line pointer in `SKILL.md` where the section stood, naming the reference file and
    when to open it. An orphaned reference file is worse than an inline section.
-4. Rebuild the bundle, update the CHANGELOG, run the validator.
+4. Update the CHANGELOG and run the validator.
 
 ## Removing a skill
 
-1. Delete the source folder under `skills/` and its bundle under `dist/`.
+1. Delete the source folder under `skills/`.
 2. Remove every mention from the README, including the layout diagram.
 3. Remove or amend its CHANGELOG entries only while unreleased; released history stays.
 4. Repair the handoffs. Run the validator: it **fails** on every backticked `dya-<name>` that no
@@ -156,7 +148,7 @@ Check                                    Meaning of a failure
 --------------------------------------   ------------------------------------------------
 SKILL.md present                         Folder is not a skill
 Frontmatter parses                       YAML block missing or malformed
-name matches folder                      Bundle installs under the wrong identity
+name matches folder                      The host loads the skill under the wrong identity
 description present                      The assistant cannot route to the skill
 Explicit-invocation clause present       The skill will pollute unrelated sessions
 Listed in the README catalogue           Catalogue drift, the published index lies
@@ -170,10 +162,6 @@ Cross-referenced skills exist            A handoff points at a skill that is gon
 Stated skill counts match skills/        The catalogue lies about how much is in the box
 Shared fragments match their canon       Someone edited a generated copy
 Synced files are all declared            sync-shared-refs was not re-run
-Bundle exists                            Nothing to download
-Entries rooted at <name>/                Unzips to the wrong path
-Entries use forward slashes              Strict parsers reject the archive
-Bundle content matches source            Consumers download stale instructions
 SKILL.md under 20480 bytes               Warning only, invocation cost is high
 ```
 
@@ -192,17 +180,15 @@ Conventional Commits, scoped by area:
 ```text
 feat(skills): add dya-<name> skill
 fix(skills): correct the callout-after-DML rule in dya-integration-outbound
-fix(repo): use forward slashes in .skill ZIP entry paths
-docs(repo): correct .skill bundle structure in packaging instructions
+fix(repo): pin the Codex manifest skills path to the source root
+docs(repo): state the shared-reference sync order in CONTRIBUTING
 ```
 
-One skill per commit when adding. A bundle regeneration travels in the same commit as the source
-change that caused it.
+One skill per commit when adding. A shared-reference sync travels in the same commit as the canon
+edit that caused it.
 
 ## Anti-patterns
 
-- Editing a `.skill` bundle directly, or hand-zipping with `Compress-Archive`. It writes backslash
-  entry names that strict importers reject. Use the scripts.
 - Editing a file under `references/shared/`. It is generated; the next sync overwrites it and the
   validator fails before then. Edit `references-shared/`.
 - Restating a platform fundamental in a skill body because it is "only one line". That is exactly
@@ -212,4 +198,5 @@ change that caused it.
 - Adding a skill without the reverse cross-references. The router silently stops finding it.
 - Adding to the README catalogue but not the layout diagram, or the reverse. The validator only
   proves the name appears somewhere in the file; the diagram is on you.
-- Deferring a bundle rebuild "to the next commit". That is precisely how the two artifacts diverge.
+- Deferring a README or CHANGELOG update "to the next commit". That is precisely how the published
+  catalogue starts lying about what is in the box.

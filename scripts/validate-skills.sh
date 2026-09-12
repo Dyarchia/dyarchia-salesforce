@@ -2,11 +2,9 @@
 set -uo pipefail
 
 SOURCE_ROOT="${SOURCE_ROOT:-skills}"
-OUTPUT_ROOT="${OUTPUT_ROOT:-dist}"
 SKILL_MD_WARN_BYTES="${SKILL_MD_WARN_BYTES:-20480}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE_DIR="$REPO_ROOT/$SOURCE_ROOT"
-OUTPUT_DIR="$REPO_ROOT/$OUTPUT_ROOT"
 README="$REPO_ROOT/README.md"
 SHARED_DIR="$REPO_ROOT/references-shared"
 PLUGIN_MANIFEST="$REPO_ROOT/.claude-plugin/plugin.json"
@@ -27,12 +25,10 @@ warnings=0
 fail() { echo "FAIL  $*" >&2; errors=$((errors + 1)); }
 warn() { echo "WARN  $*" >&2; warnings=$((warnings + 1)); }
 
-for tool in unzip sha256sum; do
-    if ! command -v "$tool" >/dev/null 2>&1; then
-        echo "error: '$tool' is required and not on PATH" >&2
-        exit 1
-    fi
-done
+if ! command -v sha256sum >/dev/null 2>&1; then
+    echo "error: 'sha256sum' is required and not on PATH" >&2
+    exit 1
+fi
 
 if [ ! -d "$SOURCE_DIR" ]; then
     echo "FAIL  source root not found: $SOURCE_DIR" >&2
@@ -163,32 +159,6 @@ for name in "${skills[@]}"; do
     if [ -s "$README" ] && ! grep -qE "^- \*\*\`$name\`\*\*[[:space:]]*$" "$README"; then
         fail "$name : not listed in the README.md catalogue"
     fi
-
-    bundle="$OUTPUT_DIR/$name.skill"
-    if [ ! -f "$bundle" ]; then
-        fail "$name : no bundle at $OUTPUT_ROOT/$name.skill"
-        continue
-    fi
-
-    if unzip -Z1 "$bundle" | grep -q '\\'; then
-        fail "$name : bundle has entries with backslashes - rebuild it"
-    fi
-    if unzip -Z1 "$bundle" | grep -qv "^$name/"; then
-        fail "$name : bundle has entries not rooted at '$name/' - rebuild it"
-    fi
-
-    src_manifest="$(cd "$src" && find . -type f | sed "s|^\./|$name/|" | sort | while read -r rel; do
-        printf '%s  %s\n' "$(sha256sum "$src/${rel#"$name/"}" | cut -d' ' -f1)" "$rel"
-    done)"
-
-    zip_manifest="$(unzip -Z1 "$bundle" | grep -v '/$' | sort | while read -r entry; do
-        printf '%s  %s\n' "$(unzip -p "$bundle" "$entry" | sha256sum | cut -d' ' -f1)" "$entry"
-    done)"
-
-    if [ "$src_manifest" != "$zip_manifest" ]; then
-        fail "$name : bundle is out of sync with source - rebuild it"
-        diff <(printf '%s\n' "$src_manifest") <(printf '%s\n' "$zip_manifest") | sed 's/^/      /' >&2
-    fi
 done
 
 # Every manifest repeats the platform version and the skill count in its description. Both have to
@@ -249,47 +219,8 @@ else
     fail ".claude-plugin/marketplace.json not found"
 fi
 
-# The .plugin archive is the only artifact Claude Desktop imports, and nothing here used to look
-# at it: the per-skill loop checks dist/<name>.skill and stops, so an archive built before the last
-# edit to skills/ or to a manifest passed a clean run and shipped stale. The packed set below
-# mirrors scripts/build-plugin - change one and change the other.
-if [ -n "$PLUGIN_NAME" ]; then
-    archive="$OUTPUT_DIR/$PLUGIN_NAME.plugin"
-    if [ ! -f "$archive" ]; then
-        fail "no plugin archive at $OUTPUT_ROOT/$PLUGIN_NAME.plugin - run build-plugin"
-    else
-        if unzip -Z1 "$archive" | grep -q '\\'; then
-            fail "plugin archive has entries with backslashes - rebuild it"
-        fi
-        # Claude Desktop rejects an archive that has no manifest at its root, naming this exact
-        # path in the error, so the check names it too.
-        if ! unzip -Z1 "$archive" | grep -qx '\.claude-plugin/plugin\.json'; then
-            fail "plugin archive has no .claude-plugin/plugin.json at its root - Claude Desktop will reject it"
-        fi
 
-        packed_manifest="$( {
-            for dir in .claude-plugin .codex-plugin "$SOURCE_ROOT" commands agents hooks; do
-                [ -d "$REPO_ROOT/$dir" ] && find "$REPO_ROOT/$dir" -type f
-            done
-            for leaf in README.md LICENSE; do
-                [ -f "$REPO_ROOT/$leaf" ] && printf '%s\n' "$REPO_ROOT/$leaf"
-            done
-        } | sed "s|^$REPO_ROOT/||" | LC_ALL=C sort | while read -r rel; do
-            printf '%s  %s\n' "$(sha256sum "$REPO_ROOT/$rel" | cut -d' ' -f1)" "$rel"
-        done)"
-
-        archive_manifest="$(unzip -Z1 "$archive" | grep -v '/$' | LC_ALL=C sort | while read -r entry; do
-            printf '%s  %s\n' "$(unzip -p "$archive" "$entry" | sha256sum | cut -d' ' -f1)" "$entry"
-        done)"
-
-        if [ "$packed_manifest" != "$archive_manifest" ]; then
-            fail "plugin archive is out of sync with source - rebuild it"
-            diff <(printf '%s\n' "$packed_manifest") <(printf '%s\n' "$archive_manifest") | sed 's/^/      /' >&2
-        fi
-    fi
-fi
-
-# The README asserts the skill count in four places. Each is checked against the folder count, and
+# The README asserts the skill count in three places. Each is checked against the folder count, and
 # an assertion that has been reworded away is a warning rather than a silent gap.
 if [ -s "$README" ]; then
     check_readme_count() {
@@ -302,7 +233,6 @@ if [ -s "$README" ]; then
     }
     check_readme_count '^\([0-9]\{1,\}\) skills, all targeting.*$'      'catalogue line'
     check_readme_count '.*skills\/<br\/>\([0-9]\{1,\}\) skill folders.*$' 'layout diagram, skills/'
-    check_readme_count '.*dist\/<br\/>\([0-9]\{1,\}\) \.skill bundles.*$' 'layout diagram, dist/'
     check_readme_count '.*all \([0-9]\{1,\}\) skills install in one step.*$' 'install line'
 fi
 
