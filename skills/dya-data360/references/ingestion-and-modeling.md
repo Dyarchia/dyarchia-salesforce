@@ -2,6 +2,11 @@
 
 Full implementations referenced from SKILL.md §3, §4, §6, §7. Load this when bringing data into Data 360, modeling it, or wiring activation/automation. Every stage consumes credits; the cost guidance here is as load-bearing as the mechanics.
 
+Credit multipliers are stated once, in SKILL.md §8, and never repeated here. They come from Salesforce's published rate cards, which are versioned and now tiered — verify the current one rather than quoting a number from memory:
+
+- Customer Data Cloud Rate Card (PDF): <https://www.salesforce.com/en-us/wp-content/uploads/sites/4/documents/platform/data-cloud-platform-services-rate-sheet.pdf>
+- Data Services Billable Usage Types for Data 360: <https://help.salesforce.com/s/articleView?id=data.c360_a_data_usage_types.htm&language=en_US&type=5>
+
 ## Getting Data In
 
 | Method | When | Cost note |
@@ -36,7 +41,7 @@ Use the bulk pattern for large periodic loads; reserve the streaming pattern for
 
 Identity resolution merges DLO/DMO records describing the same entity into a **Unified DMO** (unified profile) using match + reconciliation rules.
 
-- It is the **single largest credit consumer** — roughly 50× external ingestion and thousands of times a batch calculated insight. ~1,000,000 credits per run over 10M source profiles.
+- It is the **single largest credit consumer** by three to four orders of magnitude over a query, and it bills on **rows processed, not rows ingested**. Multipliers and their source: SKILL.md §8.
 - Run **incrementally**, scheduled to actual data change — never continuously.
 - Align downstream recompute (CIs, segments) to IR's real incremental behaviour; don't recompute the world on every trickle of new data.
 
@@ -44,7 +49,7 @@ Identity resolution merges DLO/DMO records describing the same entity into a **U
 
 Metrics computed over modeled data (dimensions + measures): lifetime value, engagement scores, RFM.
 
-- **Batch by default.** A streaming CI can cost ~50× a batch CI for output that's only consumed daily. Processing 1B records/yr ≈ 15,000 credits batch vs ~800,000 streaming.
+- **Batch by default.** A streaming CI costs multiples of a batch CI for output consumed daily. Multipliers: SKILL.md §8.
 - Create/manage via the Connect API; CIs created through the API need a developer name ending in `__cio`.
 - Use as grounding inputs for Agentforce and as segment criteria.
 

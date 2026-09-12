@@ -105,16 +105,18 @@ decisions rather than performance decisions.
 | Method | Use | Cost posture |
 |---|---|---|
 | **Connectors** (Salesforce CRM, S3, marketing, 3rd-party) | Standard sources | Batch by default |
-| **Ingestion API** | Push from external systems (streaming or bulk) | Streaming ~2.5× batch |
+| **Ingestion API** | Push from external systems (streaming or bulk) | Streaming costs multiples of batch (§8) |
 | **Zero-copy federation** (EDLO) | Query a warehouse in place, no ingestion | Avoids ingestion cost; query cost applies |
 | **Data Custom Code (Python SDK)** | Custom transforms run inside Data 360 | Author locally, deploy to a sandbox, monitor through a code-extensions DLO |
 
 Rules:
 - **Define an explicit schema** for every ingestion pipeline. Data 360 requires it for structural
   integrity.
-- **Default to batch ingestion.** Streaming costs roughly 2.5× batch — about 5,000 against 2,000
-  credits per million rows — so use it only where sub-15-minute latency genuinely changes the
-  business outcome.
+- **Ingest through a Salesforce-native connector wherever one exists.** Sales, Service, Marketing
+  and Commerce Cloud data is **included at zero credits**; an external pipeline for the same data
+  is the most expensive mistake available here.
+- **Default to batch.** Streaming costs multiples of batch on every revision of the rate card
+  (§8), so use it only where sub-15-minute latency genuinely changes the business outcome.
 - **Prefer zero-copy** where the source is a supported warehouse and no physical copy is needed: it
   skips ingestion cost entirely and queries in place.
 
@@ -131,8 +133,9 @@ Rules:
 - Configure **key qualifier fields** on DLO fields used in joins. Without them, joins return null and
   both performance and cost suffer.
 - **Identity resolution** unifies records into a single profile, and it is the **single most
-  expensive operation in Data 360** — roughly 50× external ingestion and thousands of times a batch
-  calculated insight. One IR run over 10M source profiles can burn ~1,000,000 credits.
+  expensive operation in Data 360** by three to four orders of magnitude over a query (§8). It
+  bills on **rows processed, not rows ingested**, and the processed count is almost always the
+  larger of the two.
   - Run IR **incrementally**, on a schedule aligned to real data change, never continuously.
   - Align downstream schedules — CIs, segments — to IR's actual incremental behaviour rather than
     recomputing everything on every trickle of new data.
@@ -215,17 +218,34 @@ recomputation in scheduled batch.
 
 ## 8. Cost & Governance — Credits Are a First-Class Concern
 
-Unlike core CRM, **almost every Data 360 operation consumes credits.** Internalise the relative
-costs:
+Almost every Data 360 operation consumes credits, and the ordering is what drives design:
 
-| Operation | Relative cost (orientation) |
-|---|---|
-| Calculated Insight (batch) | cheapest |
-| Query (per million rows scanned) | ~2 credits/M rows — but unfiltered scans multiply fast |
-| External batch ingestion | ~2,000 credits/M rows |
-| Streaming ingestion | ~5,000 credits/M rows (~2.5× batch) |
-| Streaming Calculated Insight | up to ~50× batch CI |
-| **Identity Resolution** | the single largest consumer — ~1,000,000 credits per 10M-profile run |
+| Operation | Rate card, July 2025 | Flex Credits card, 2026 (base tier) |
+|---|---|---|
+| Ingestion through a **Salesforce-native connector** | **0 — included** | **0 — included** |
+| Data queries | 2 / M rows | 3 / M rows |
+| Calculated Insight, batch | 15 / M rows | — |
+| Segmentation | — | 50 / M rows |
+| External ingestion / data prep | 2,000 / M rows | 40 / M rows |
+| Calculated Insight, streaming | 800 / M rows | — |
+| Streaming pipeline | 5,000 / M rows | 3,500 / M rows |
+| **Identity resolution** (*Profile Unification*) | **100,000 / M rows** | **75,000 / M rows** |
+
+**The card is versioned and now tiered, so read the current one before quoting a number.** The Flex
+Credits card adds four volume tiers that reset monthly and take the multiplier to 80%, 40% and 20%
+of base past 300k, 1.5M and 12.5M credits — a high-volume org's marginal cost is a fifth of the
+headline rate. Both cards come from Salesforce's *Customer Data Cloud Rate Card*; the usage types
+are defined in Salesforce Help under *Data Services Billable Usage Types for Data 360*.
+
+Four things survive every revision, and they are what you actually design against:
+
+- **Native-connector ingestion is free.** Paying an external pipeline to carry what a standard
+  connector already brings in is the most expensive mistake on this page.
+- **Identity resolution dwarfs everything else**, and bills on **rows processed, not rows
+  ingested**. Feeding it un-deduplicated source data is how a credit pool disappears.
+- **Streaming costs multiples of batch**, on every card, for both ingestion and calculated insights.
+- **Queries are the cheapest line on the card**, which is why an unfiltered scan is a volume problem
+  rather than a rate problem — and why it still costs real money at 100M rows.
 
 Governance rules:
 - **Batch by default.** Use streaming only where business value degrades within 15 minutes.

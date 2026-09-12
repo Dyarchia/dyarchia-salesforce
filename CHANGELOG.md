@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **The Data 360 credit figures are sourced, corrected and no longer stated twice.** They had been carried as unbacked for months. They were not invented: all five match Salesforce's **Customer Data Cloud Rate Card** exactly — 2 credits per million rows queried, 2,000 and 5,000 per million ingested batch and streaming, 15 against 800 for batch versus streaming calculated insights (the 53× behind "up to ~50×"), and 100,000 per million rows for Profile Unification, which is the 1,000,000 per 10M-profile run the skill quoted. What nobody had checked was the date on the card: **July 2025**, one generation behind. The 2026 Flex Credits card restructures the multipliers (unification 75,000, prep 40, streaming pipeline 3,500, queries 3, segmentation 50) and adds four monthly-resetting volume tiers that take the rate to 80%, 40% and 20% of base. §8 now carries both cards side by side with their dates, and says plainly that the card is versioned and tiered so a number is read from the current one rather than quoted from here.
+
+  Reading the card surfaced **the largest omission in the section**: ingestion through a Salesforce-native connector — Sales, Service, Marketing, Commerce — is **included at zero credits**. Paying an external pipeline to carry data a standard connector already brings in was the most expensive mistake available, and the skill did not mention it. It is now the first row of the table and the first governance rule.
+
+  Two corrections came with it. Identity resolution bills on **rows processed, not rows ingested**, and the processed count is almost always the larger; and `references/ingestion-and-modeling.md` was restating the same multipliers in its own words, so it now points at §8 and carries the two source URLs instead. One place for the numbers, one place to update when the card moves again.
+
 ## [0.5.1] - 2026-09-12
 
 ### Changed
