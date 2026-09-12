@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **`dya-field-service` and `dya-agentforce` cut to a spartan register.** Both sat against the 20480-byte ceiling with 127 and 1907 bytes of headroom, which meant the next real fact either forced a split into `references/` or did not land at all. The criterion was blunt: anything sayable in one sentence instead of three goes, and anything no reader acts on goes entirely. What that removed was meta about the document's own ordering ("this skill builds the mental model first, then the implementation rules"), enumerations that restated the frontmatter description or the section headings beneath them, a five-verb definition of what an agent does immediately above the numbered loop that says the same thing, platitudes ("an agent is only as good as the context it reasons over"), and pointers to a reference file the list above had already routed to. **-6.7% and -6.3%, with headroom now 1488 and 3083 bytes.** A token-level check confirms **zero fact tokens lost in either file**: every identifier, version, date and number survives, and only prose went.
+
 ## [0.5.0] - 2026-09-12
 
 ### Added

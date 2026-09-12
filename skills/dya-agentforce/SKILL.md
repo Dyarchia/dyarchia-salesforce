@@ -5,10 +5,8 @@ description: Salesforce Agentforce Winter '27 (API v68.0) — from zero to exper
 
 # Salesforce Agentforce — From Zero to Expert
 
-The reader may be **new to Agentforce**, so this skill builds the mental model first, then the
-implementation rules, then what this release changes. You **always** keep actions deterministic and
-bulkified, **always** ground answers in trusted data, and **always** enforce security through the
-Trust Layer. Follow every rule below.
+You **always** keep actions deterministic and bulkified, **always** ground answers in trusted data,
+and **always** enforce security through the Trust Layer. Follow every rule below.
 
 References:
 
@@ -23,9 +21,8 @@ References:
 - `references/prompt-templates.md` — calling a template from code, batch generation with `AiJobRun`, moving templates between orgs.
 - `references/lifecycle-and-api.md` — the Agent API with real endpoints and payloads, invoking agents from Apex/Flow, `agent preview`, testing and evaluations.
 
-Load a reference when building that exact thing. Agentforce actions are Apex and Flow: for deep Apex
-rules load `dya-apex`, for the data layer that grounds agents `dya-data360`, and for exposing agents
-across surfaces `dya-headless360`.
+Agentforce actions are Apex and Flow: deep Apex rules are `dya-apex`, the data layer that grounds
+agents is `dya-data360`, and exposing agents across surfaces is `dya-headless360`.
 
 ---
 
@@ -52,12 +49,10 @@ build:
 
 ## 1. Foundations — What Agentforce Is and How It Reasons
 
-Agentforce builds **autonomous AI agents**: software that understands a request in natural language,
-**reasons** about what to do, **plans** a sequence of steps, **acts** by calling real business logic
-and **responds**, all grounded in your Salesforce data.
+An agent understands a request in natural language and acts on it, grounded in your Salesforce data.
 
-The brain is the **Atlas Reasoning Engine**. It runs no fixed decision tree; on every request it
-reasons from the descriptions you wrote:
+The brain is the **Atlas Reasoning Engine**: no fixed decision tree, reasoning on every request from
+the descriptions you wrote.
 
 1. **Intent classification** — Atlas reads the user's message and picks the most relevant
    **subagent**.
@@ -100,8 +95,8 @@ program; treat them as carefully as code.
 
 ## 3. Designing Actions — Choose the Right Type
 
-Actions are how the agent *does* things. Pick the least-code option that fits, and write a crisp
-label and description so Atlas can match intent.
+Pick the least-code option that fits, and write a crisp label and description so Atlas can match
+intent.
 
 | Need | Action type | Code? |
 |---|---|---|
@@ -120,34 +115,27 @@ one giant one.
 
 ## 4. Apex Actions — Best Practices
 
-An Apex action is an `@InvocableMethod`, and its labels and descriptions are read by Atlas, so they
-are part of the contract.
-
-The full class skeleton — request and result wrappers, `@InvocableVariable` labelling, the bulk-in
-bulk-out signature: `references/apex-actions.md`.
+An `@InvocableMethod` whose labels and descriptions Atlas reads, so they are part of the contract.
+Class skeleton, wrappers and the bulk-in bulk-out signature: `references/apex-actions.md`.
 
 Absolute rules:
 
-- **Bulkify anyway.** An agent invokes an action **once per turn, in its own transaction**, so the
-  agent itself will not hand you 200 records. Write for the batch regardless, because the same
-  `@InvocableMethod` is routinely reused from a Flow — and **Flow always passes a `List`**, often the
-  whole 200-record trigger batch. Take `List<Request>`, return `List<Result>`: the cost is nothing,
-  and the alternative is a governor limit the first time an admin wires it into a record-triggered
-  flow. See `dya-flow`.
+- **Bulkify anyway.** An agent invokes an action **once per turn, in its own transaction**, so it
+  will never hand you 200 records — but the same `@InvocableMethod` gets reused from a Flow, and
+  **Flow always passes a `List`**, often the whole 200-record trigger batch. Take `List<Request>`,
+  return `List<Result>`. See `dya-flow`.
 - **One input and output wrapper class** with `@InvocableVariable`s; primitives or DTOs, never a raw
   `SObject` you do not control.
 - **`with sharing` + `WITH USER_MODE`** — the defaults from API 67.0, but state them.
   `WITH SECURITY_ENFORCED` no longer compiles.
-- **Descriptions are prompts.** Write a clear `label` and `description` on the method and every
-  variable, and keep them in sync with the action config in Agent Builder.
-- **Handle errors gracefully, for the agent.** Return a structured result with a success flag and a
-  human-readable message the agent can relay; a thrown exception gives it something it cannot explain
-  to a user. This is the **opposite** of what a Flow-facing action wants, where throwing is how the
-  fault message reaches a Fault Path. When one method serves both callers, return the structured
-  result and let the Flow branch on it. Log failures durably through Platform Events (`dya-apex`).
-- Keep actions **deterministic**. They exist precisely so the LLM does not improvise critical logic.
-
-> Full skeletons, error patterns and the action-type deep dive: `references/apex-actions.md`.
+- **Descriptions are prompts.** A clear `label` and `description` on the method and every variable,
+  kept in sync with the action config in Agent Builder.
+- **Errors: structured, not thrown.** Return a success flag and a human-readable message the agent
+  can relay; a thrown exception gives it something it cannot explain to a user. This is the
+  **opposite** of a Flow-facing action, where throwing is how the fault message reaches a Fault
+  Path, so a method serving both returns the result and lets the Flow branch on it. Log failures
+  durably through Platform Events (`dya-apex`).
+- Keep actions **deterministic**. They exist so the LLM does not improvise critical logic.
 
 ---
 
@@ -175,8 +163,8 @@ routing after `->`; leave the conversational parts to `|`. Guard every subagent 
 
 ## 6. Grounding & Prompt Templates
 
-An agent is only as good as the context it reasons over. **Grounding** injects trusted data into the
-prompt, which is what makes answers accurate and explainable and what reduces hallucination.
+**Grounding** injects trusted data into the prompt, which is what makes answers accurate and
+explainable.
 
 - **Prompt Templates** — reusable, parameterised prompts that merge record data and call the LLM, for
   summaries, drafts and classifications. Reach them from Agent Script with a `prompt://` target.
@@ -193,7 +181,7 @@ auditable.
 
 ## 7. Invoking Agents Headlessly
 
-Agents are not only chat windows:
+Two ways in:
 
 - **Agent API** (REST) — start a session, send messages with context, receive structured responses,
   with **no logged-in user**. For server-side and customer-facing integrations.
@@ -208,7 +196,7 @@ Endpoints, payloads, the `bypassUser` identity switch and the `sequenceId` count
 
 ## 8. Testing & Evaluation — Non-Negotiable Before Launch
 
-A non-deterministic system is tested at scale, never by eyeballing one chat.
+Test at scale; one chat proves nothing.
 
 - **Testing Center** (UI) — simulate scenarios with initial state and context variables.
 - **Testing API** (REST) — batch-test many utterances; automate before activating.
@@ -224,12 +212,12 @@ Test subagent classification, action selection and grounding accuracy separately
 
 ## 9. Observability
 
-Once live, instrument it. **Agent Platform Tracing** writes a **span** per action execution into
-**Data 360 DMOs**, queryable via SOQL and nested by parent. Reading them needs the Data Cloud Data
-Access permission set. Query `ssot__AiAgentSession__dlm`, `ssot__AiAgentInteraction__dlm` and
+**Agent Platform Tracing** writes a **span** per action execution into **Data 360 DMOs**, queryable
+via SOQL and nested by parent. Reading them needs the Data Cloud Data Access permission set. Query
+`ssot__AiAgentSession__dlm`, `ssot__AiAgentInteraction__dlm` and
 `ssot__AiAgentInteractionStep__dlm`, plus `GenAIGatewayRequest__dlm` and `GenAIGeneration__dlm` for
-prompts, tokens and model. `ssot__TelemetryTraceSpan__dlm` needs separate provisioning and its key on
-steps is often empty — do not start there. `__dlm` marks a Data Model Object; see `dya-data360`.
+prompts, tokens and model. `ssot__TelemetryTraceSpan__dlm` needs separate provisioning and its key
+on steps is often empty — do not start there. `__dlm` marks a Data Model Object; see `dya-data360`.
 **Session Tracing** and the Observability dashboards surface routing errors, slow actions and
 ungrounded answers.
 
@@ -252,9 +240,8 @@ ungrounded answers.
 
 ## 11. Multi-Agent Orchestration (GA)
 
-For complex domains, deploy **specialist subagents** coordinated by an **orchestrator** agent. The
-orchestrator inspects each registered subagent's description and actions and routes to the best fit —
-it *reasons* from descriptions rather than following a hard-coded map.
+An **orchestrator** agent routes to **specialist subagents** by reading their descriptions and
+actions — reasoning, not a hard-coded map.
 
 - **Agent and subagent descriptions become routing logic.** Make them precise and non-overlapping.
 - Keep subagents focused on one domain; overlapping scopes cause mis-routing, the seam problem.
