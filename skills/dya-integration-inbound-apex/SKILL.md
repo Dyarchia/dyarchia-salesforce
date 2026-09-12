@@ -5,7 +5,10 @@ description: Salesforce custom inbound endpoints (Winter '27 / API v68.0) — ex
 
 # Salesforce Custom Inbound Endpoints (Apex)
 
-You are an expert at exposing custom inbound endpoints on Salesforce. Use this when the standard APIs (`dya-integration-inbound-apis`) can't express the contract — you need bespoke payloads, transactional units of work, or business logic at the boundary. Authentication is in `dya-integration-auth`; deep Apex rules in `dya-apex`. Follow every rule below.
+You are an expert at exposing custom inbound endpoints on Salesforce. Author one only when the
+standard APIs (`dya-integration-inbound-apis`) cannot express the contract: bespoke payloads,
+transactional units of work, or logic at the boundary. Authentication is `dya-integration-auth`;
+deep Apex rules are `dya-apex`. Follow every rule below.
 
 References:
 
@@ -14,39 +17,38 @@ References:
 - `references/shared/metadata-and-api-versions.md` — what version retirement does and does not touch.
 - `references/apex-rest-service.md` — the full `@RestResource` service across all HTTP verbs, request and response handling, error contracts, and a worked transactional endpoint.
 
-Locking down the guest profile, and choosing the integration user's permission set, belong to
+Locking down the guest profile and choosing the integration user's permission set belong to
 `dya-permissions`.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 adds nothing to Apex REST itself. What it changes around it is authentication: the OAuth
-**username-password flow is retired, enforced 20 February 2027**, so any caller reaching your
-endpoint with `grant_type=password` stops working on that date. Inventory your callers now. See
-`dya-integration-auth`.
+Winter '27 adds nothing to Apex REST. It changes what reaches it: the OAuth **username-password flow
+is retired, enforced 20 February 2027**, so every caller arriving with `grant_type=password` stops
+working that day. Inventory them now — `dya-integration-auth`.
 
-Standing facts, and the one that catches people:
+Four standing facts, the third of which catches people:
 
-- **`@RestResource` is GA and recommended, and it is not deprecated.** Version retirement targets
-  the version number in *standard endpoint URLs* and the SOAP `login()` method. It **explicitly excludes** custom Apex REST and SOAP web services, Apex
-  classes, triggers and Visualforce. Full status in
+- **`@RestResource` is GA, recommended and not deprecated.** Version retirement targets the version
+  number in *standard endpoint URLs* and the SOAP `login()` method, and **explicitly excludes**
+  custom Apex REST and SOAP web services, Apex classes, triggers and Visualforce. Full status in
   `references/shared/metadata-and-api-versions.md`.
-- **Apex SOAP web services (`webservice`) are supported but legacy** — prefer Apex REST for anything
-  new. That is a style recommendation, not a retirement, and it is unrelated to the SOAP `login()`
-  retirement, which is about authentication.
+- **Apex SOAP web services (`webservice`) are legacy but supported.** Prefer Apex REST for anything
+  new. That is style, not retirement, and unrelated to the SOAP `login()` retirement, which is
+  authentication.
 - **The API 67.0 security defaults hit boundary classes hardest.** An `@RestResource` class compiled
   at 67.0 or above with no sharing keyword defaults to `with sharing`, and its SOQL and DML default
-  to `USER_MODE`. An endpoint that historically relied on system-mode access starts returning fewer
-  rows or throwing — silently, in the case of the query. Declare sharing and access level explicitly
-  and audit **before** raising the version. `WITH SECURITY_ENFORCED` no longer compiles.
-- **HTTPS is mandatory** for every inbound endpoint.
+  to `USER_MODE`. An endpoint that relied on system-mode access starts returning fewer rows or
+  throwing — silently, in the query's case. Declare sharing and access level explicitly, and audit
+  **before** raising the version. `WITH SECURITY_ENFORCED` no longer compiles.
+- **HTTPS is mandatory** on every inbound endpoint.
 
 ---
 
 ## 1. The Distinction That Causes Confusion — `@RestResource` vs `@InvocableMethod`
 
-These are different annotations for different jobs. Do not conflate them:
+Different annotations, different jobs. Do not conflate them.
 
 | | `@RestResource` | `@InvocableMethod` |
 |---|---|---|
@@ -55,19 +57,25 @@ These are different annotations for different jobs. Do not conflate them:
 | Caller | An external system over HTTP | A Flow, an agent action, or automation |
 | Inbound integration? | **Yes** — this is the inbound endpoint | No — it's an action building block |
 
-So: **agents do not "enter" via `@RestResource`.** Agent capabilities are built with `@InvocableMethod` (see `dya-agentforce`). You *can* expose an existing Apex REST class as an agent action by generating an OpenAPI document, but that is a secondary path, not how `@RestResource` itself works. When the requirement is "an external system calls a custom HTTP endpoint," that's `@RestResource`.
+**Agents do not enter through `@RestResource`.** Agent capabilities are built with
+`@InvocableMethod` (`dya-agentforce`). An existing Apex REST class can be surfaced as an agent
+action through a generated OpenAPI document, but that is a secondary path. An external system
+calling a custom HTTP endpoint is `@RestResource`.
 
 ---
 
 ## 2. When to Build a Custom Endpoint at All
 
-Reach for Apex REST only when the standard APIs can't do it. Stop at the first that fits:
+Stop at the first that fits.
 
-1. **Standard REST / Composite / Bulk** (`dya-integration-inbound-apis`) — plain CRUD/query, multi-op, or bulk. **Default.**
-2. **Apex REST (`@RestResource`)** — bespoke contract: custom request/response shapes, a transactional unit of work spanning multiple objects, validation/business logic at the boundary, or a payload the standard API can't express.
-3. **Apex SOAP (`webservice`)** — only when a consumer specifically mandates SOAP/WSDL and REST is not an option (legacy).
+1. **Standard REST / Composite / Bulk** (`dya-integration-inbound-apis`) — plain CRUD/query,
+   multi-op, or bulk. **Default.**
+2. **Apex REST (`@RestResource`)** — bespoke contract: custom request/response shapes, a
+   transactional unit of work across objects, validation at the boundary, or a payload the
+   standard API cannot express.
+3. **Apex SOAP (`webservice`)** — only when a consumer mandates SOAP/WSDL and REST is not an option.
 
-If you're just doing CRUD, don't write an endpoint — use the standard API.
+Plain CRUD never justifies an endpoint.
 
 ---
 
@@ -95,23 +103,30 @@ global with sharing class OrderApi {
 ```
 
 Rules:
-- The class is `global`; methods are `global static` and annotated `@HttpGet/@HttpPost/@HttpPut/@HttpPatch/@HttpDelete` (one of each per class).
-- Declare sharing explicitly (`with sharing` unless justified); query `WITH USER_MODE`, DML with `AccessLevel.USER_MODE`.
-- Use `RestContext.request` / `RestContext.response` for headers, URI, status codes, and raw bodies.
-- Bulkify and bound everything — a boundary endpoint can be called hard; assume volume and concurrency.
-- Return a **stable, versioned response contract** with clear error shapes; never leak raw stack traces. Catch and translate to an error DTO + appropriate HTTP status.
+- The class is `global`; methods are `global static` and annotated
+  `@HttpGet/@HttpPost/@HttpPut/@HttpPatch/@HttpDelete`, one of each per class.
+- Declare sharing explicitly — `with sharing` unless justified — query `WITH USER_MODE`, and run DML
+  with `AccessLevel.USER_MODE`.
+- Read headers, URI, status codes and raw bodies from `RestContext.request` / `RestContext.response`.
+- Bulkify and bound everything: a boundary endpoint gets called hard.
+- Return a **stable, versioned response contract**. Catch and translate to an error DTO plus the
+  right HTTP status; a leaked stack trace is information disclosure.
 
-Full multi-verb service, error contract, and transactional pattern: `references/apex-rest-service.md`.
+Full multi-verb service, error contract and transactional pattern: `references/apex-rest-service.md`.
 
 ---
 
 ## 4. Sites & Experience Cloud as Integration Surfaces
 
-Public **Salesforce Sites** and **Experience Cloud** sites can host guest-accessible Apex REST endpoints — useful as lightweight inbound webhook receivers or public APIs without a full OAuth handshake.
+Public **Salesforce Sites** and **Experience Cloud** sites host guest-accessible Apex REST endpoints
+— webhook receivers or public APIs with no OAuth handshake.
 
-- The endpoint runs as the **guest user**: no role, a deliberately weak class of sharing rules, and whatever the guest profile grants. Under user-mode defaults from API 67.0 that profile now governs what the code can see and do, so scoping it is a functional requirement rather than hardening advice. See `dya-permissions`.
-- Validate and sanitise every input; treat all guest traffic as hostile.
-- Prefer authenticated OAuth access (`dya-integration-auth`) over guest endpoints whenever the caller can authenticate.
+- The endpoint runs as the **guest user**: no role, a deliberately weak class of sharing rules, and
+  whatever the guest profile grants. Under the API 67.0 user-mode defaults that profile governs what
+  the code can see and do, so scoping it is a functional requirement, not hardening advice.
+  `dya-permissions`.
+- Validate and sanitise every input. Treat all guest traffic as hostile.
+- Prefer authenticated OAuth (`dya-integration-auth`) whenever the caller can authenticate.
 
 ---
 

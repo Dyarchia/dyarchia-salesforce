@@ -5,7 +5,9 @@ description: Salesforce standard inbound APIs (Winter '27 / API v68.0) — how e
 
 # Salesforce Inbound Standard APIs
 
-You are an expert on Salesforce's standard, platform-provided APIs that external systems call to read and write data. This skill covers the **out-of-the-box** APIs — for custom endpoints you author, see `dya-integration-inbound-apex`; for authentication, `dya-integration-auth`. Follow every rule below.
+You are an expert on the standard APIs external systems call to read and write Salesforce data.
+Custom endpoints you author are `dya-integration-inbound-apex`; authentication is
+`dya-integration-auth`. Follow every rule below.
 
 References:
 
@@ -35,11 +37,10 @@ Standing facts:
   `/services/data/vXX.X/`. Dates and status live in `references/shared/metadata-and-api-versions.md`
   and nowhere else — do not restate them.
 - **SOAP `login()` retires 1 June 2027** for API 31.0–64.0, a year before the versions themselves.
-  SOAP API accepts a JWT OAuth access token in the session header, so there is no reason to keep it.
-- **GraphQL mutations are GA** and can reference any field returned by an earlier operation in the
-  same request, not just the record id — so a parent and child can be created and linked in one round
-  trip.
-- **Connect REST API** draws on the per-org 24-hour Platform API limit pool, except Chatter-touching
+  SOAP accepts a JWT OAuth access token in the session header, so nothing justifies keeping it.
+- **GraphQL mutations are GA** and can reference any field an earlier operation returned, not just
+  the record id, so a parent and child are created and linked in one round trip.
+- **Connect REST API** draws on the per-org 24-hour Platform API pool, except Chatter-touching
   requests. HTTPS is mandatory.
 
 ---
@@ -58,13 +59,15 @@ Standing facts:
 | Deploy/retrieve org configuration | **Metadata API** |
 | Fine-grained metadata, IDE-style live edits | **Tooling API** |
 
-Default to **REST** for general-purpose access, **Bulk 2.0** past 10k records, **Composite** to cut round trips, **GraphQL** when payload shape/efficiency matters.
+Default to **REST**; **Bulk 2.0** past 10k records; **Composite** to cut round trips; **GraphQL**
+when payload shape matters.
 
 ---
 
 ## 2. REST API
 
-The primary HTTP/JSON data API at `/services/data/vXX.X/`. Covers single-record CRUD, SOQL/SOSL query, search, describe, and limits.
+The primary HTTP/JSON data API at `/services/data/vXX.X/`: single-record CRUD, SOQL/SOSL query,
+search, describe, limits.
 
 ```
 GET    /services/data/v68.0/sobjects/Account/{id}
@@ -75,7 +78,8 @@ GET    /services/data/v68.0/query/?q=SELECT+Id,Name+FROM+Account+WHERE+...
 
 - **Upsert by external id** for idempotency: `PATCH /sobjects/Account/External_Id__c/{value}`.
 - Page query results via `nextRecordsUrl`.
-- Each call counts against the daily API allocation — collapse chatty access with the composite family (§3) or Bulk (§4).
+- Every call spends daily API allocation. Collapse chatty access with the composite family below or
+  Bulk (§4).
 
 ### The composite family — choose by shape
 
@@ -87,28 +91,32 @@ GET    /services/data/v68.0/query/?q=SELECT+Id,Name+FROM+Account+WHERE+...
 | **sObject Collections** | 200 records | optional | no | same-shape bulk-ish CRUD |
 | **sObject Tree** | 200 records, 5 levels | all-or-nothing | n/a | nested parent-child insert |
 
-Governor limits (SOQL, DML, CPU) apply **cumulatively** across all subrequests in a composite call. Full patterns in `references/rest-and-composite.md`.
+Governor limits — SOQL, DML, CPU — apply **cumulatively** across every subrequest of a composite
+call. Full patterns in `references/rest-and-composite.md`.
 
 ---
 
 ## 3. SOAP API
 
-XML/SOAP data API for strongly-typed or legacy consumers.
+The XML/SOAP data API, for strongly-typed or legacy consumers.
 
-- **Enterprise WSDL** — strongly typed to *your* org's schema; regenerate after metadata changes. Best for a single-org tightly-integrated client.
-- **Partner WSDL** — generic/loosely typed; for multi-org tools and ISVs.
-- **Auth:** use OAuth (SOAP now accepts a JWT access token in the session header). **`login()` retires Summer '27** — never build new integrations on it.
-- Prefer REST for new work unless a consumer specifically requires WSDL/SOAP.
+- **Enterprise WSDL** — typed to *your* org's schema; regenerate after every metadata change. For a
+  single-org, tightly-integrated client.
+- **Partner WSDL** — generic and loosely typed, for multi-org tools and ISVs.
+- **Authenticate with OAuth.** SOAP accepts a JWT access token in the session header, and
+  **`login()` retires Summer '27** — never build a new integration on it.
+- Prefer REST for new work unless a consumer requires WSDL/SOAP.
 
 ---
 
 ## 4. Bulk API 2.0
 
-Asynchronous, CSV-based, for large volumes. Job lifecycle: **create job → upload CSV → mark complete → poll status → get results**. Processes in 10k-record chunks on a separate async limit pool.
+Asynchronous, CSV-based, for large volumes. Lifecycle: **create job → upload CSV → mark complete →
+poll status → get results**, processed in 10k-record chunks on a separate async limit pool.
 
-- Use past **10,000 records**; for initial loads, migrations, nightly extracts.
+- Use it past **10,000 records**: initial loads, migrations, nightly extracts.
 - ~**15,000 batches / 24 h** shared with Bulk 1.0; **150 MB** per uploaded file.
-- Bulk query for large extracts. Prefer 2.0 over 1.0 for all new work.
+- Bulk query handles large extracts. Prefer 2.0 over 1.0 for all new work.
 
 Full lifecycle in `references/bulk-and-graphql.md`.
 
@@ -116,20 +124,27 @@ Full lifecycle in `references/bulk-and-graphql.md`.
 
 ## 5. GraphQL API
 
-Graph-shaped queries and mutations; runs over UI API, so respects FLS/layout rules and supports UI-API objects.
+Graph-shaped queries and mutations. It runs over UI API, so it respects FLS and layout rules and
+covers UI-API objects.
 
-- **Queries GA**; **mutations GA** (create/update/delete) for UI-API-supported objects.
-- Mutations can reference any field from an earlier operation in the same request (`@{ref...}`), so you can create a parent and child and link them in one round trip.
-- Use when the client wants exactly the fields it needs (mobile, bandwidth-sensitive) or multi-object reads in one call. Child-relationship creation in a single mutation is not supported.
+- **Queries GA; mutations GA** — create, update and delete on UI-API-supported objects.
+- A mutation can reference any field from an earlier operation in the same request (`@{ref...}`), so
+  a parent and child are created and linked in one round trip.
+- Use it when the client wants exactly the fields it needs — mobile, bandwidth-sensitive — or reads
+  several objects at once. Child-relationship creation in a single mutation is not supported.
 
 ---
 
 ## 6. Connect, UI, Metadata, Tooling
 
-- **Connect REST API** — Chatter feeds, Experience Cloud, and many product APIs (Commerce, Revenue, etc.). Now on the per-org/24 h limit pool (except Chatter).
-- **UI API** — returns records + metadata + layout together; powers Lightning Data Service. Use for custom UIs that must honour layouts/FLS without re-deriving metadata.
-- **Metadata API** — deploy/retrieve metadata as zipped XML; the basis for SFDX/DevOps Center. Coarse-grained; use for releases.
-- **Tooling API** — fine-grained, per-component metadata (compile a class, run anonymous Apex); used by IDEs/Workbench. Use for live, surgical edits.
+- **Connect REST API** — Chatter feeds, Experience Cloud and many product APIs (Commerce, Revenue).
+  On the per-org 24 h pool, except Chatter.
+- **UI API** — returns records, metadata and layout together, and powers Lightning Data Service. For
+  custom UIs that must honour layouts and FLS without re-deriving metadata.
+- **Metadata API** — deploys and retrieves metadata as zipped XML; the basis for SFDX and DevOps
+  Center. Coarse-grained, for releases.
+- **Tooling API** — fine-grained and per-component: compile a class, run anonymous Apex. Used by
+  IDEs and Workbench for live, surgical edits.
 
 ---
 

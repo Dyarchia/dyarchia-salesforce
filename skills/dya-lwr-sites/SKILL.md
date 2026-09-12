@@ -5,10 +5,10 @@ description: Salesforce Experience Cloud LWR sites Winter '27 (API v68.0) — bu
 
 # Salesforce Experience Cloud — LWR Sites
 
-You are a Salesforce Experience Cloud expert. This skill covers building **public and
-authenticated sites on the Lightning Web Runtime (LWR)** — the modern, LWC-native site type
-(vs legacy Aura template sites). For how components behave on the LWR runtime, use
-`dya-lwr`; for the components themselves, use `dya-lwc`.
+You are a Salesforce Experience Cloud expert. This skill covers **public and authenticated sites on
+the Lightning Web Runtime**, the modern LWC-native site type, as opposed to legacy Aura template
+sites. For how components behave on the LWR runtime use `dya-lwr`; for the components themselves,
+`dya-lwc`.
 
 This SKILL.md carries the load-bearing rules. Larger material lives in `references/`:
 
@@ -28,39 +28,39 @@ Designing the guest profile and its sharing rules is `dya-permissions`.
 
 **LWR sites are GA and the recommended site type for new builds.** Hold these:
 
-- **LWR sites are LWC-native** — HTML/CSS/JS through Lightning Web Components, focused on
-  performance and developer control. Legacy **Aura template sites** still exist and are not
-  this skill; do not migrate one blindly (it is a rebuild).
-- **Enhanced vs non-enhanced LWR sites matter.** Enhanced LWR sites (enhanced workspace,
+- **LWR sites are LWC-native** — HTML/CSS/JS through Lightning Web Components, built for
+  performance and developer control. Legacy **Aura template sites** still exist and are not this
+  skill. Never migrate one blindly: it is a rebuild.
+- **Enhanced vs non-enhanced LWR sites matter.** Enhanced sites (enhanced workspace,
   `DigitalExperienceBundle`) are the forward path and unlock **partial deployment**,
-  **expression-based visibility and variations**, a **component-specific Style tab** for custom
-  CSS, and **site content search**. CMS collections from enhanced workspaces display **only** in
-  enhanced LWR sites; non-enhanced LWR sites can show only object list views in the Grid.
-- **LWR sites run Lightning Web Security**, with their **own LWS instance** independent of the
-  org setting, and strict CSP.
-**Winter '27 changes two things that matter here.**
+  **expression-based visibility and variations**, a **component-specific Style tab** for custom CSS,
+  and **site content search**. CMS collections from enhanced workspaces display **only** in enhanced
+  LWR sites; a non-enhanced site shows only object list views in the Grid.
+- **LWR sites run Lightning Web Security**, with their **own LWS instance** independent of the org
+  setting, and strict CSP.
 
-- **Embedded reports and dashboards come to LWR sites (Beta)** — charts and tables with
-  conditional formatting and inline record editing, previously available only on Aura template
-  sites. This removes one of the last genuine reasons to stay on Aura, so it is worth raising
-  whenever someone justifies an Aura site by reporting. Beta: not production, and not a
-  commitment you can plan a delivery around yet.
-- **Experience Delivery (Beta) is discontinued**, with **auto-migration on republish through
-  October 2026**. If a site is on it, republishing is the migration — but confirm what the site
-  looks like afterwards rather than assuming the migration is transparent.
+Winter '27 changes two things here:
+
+- **Embedded reports and dashboards come to LWR sites (Beta)** — charts and tables with conditional
+  formatting and inline record editing, previously Aura-template-only. That removes one of the last
+  genuine reasons to stay on Aura, so raise it whenever someone justifies an Aura site by reporting.
+  Beta: not production, and not a delivery you can plan around yet.
+- **Experience Delivery (Beta) is discontinued**, with **auto-migration on republish through October
+  2026**. Republishing is the migration, but confirm what the site looks like afterwards rather than
+  assuming it was transparent.
 
 Standing facts:
 
-- Malware scanning for Salesforce Files is GA; files up to **10 GB** upload to Aura or LWR
-  sites; AI-assisted Self-Service components are available; users on public email services can
-  send email from a site; Chatter can be enabled in new orgs for Aura and LWR sites.
+- Malware scanning for Salesforce Files is GA; files up to **10 GB** upload to Aura or LWR sites;
+  AI-assisted Self-Service components are available; users on public email services can send email
+  from a site; Chatter can be enabled in new orgs for Aura and LWR sites.
 - **UI Bundles now cover React and Angular and package as 2GP** (managed or unlocked, namespace
   supported, AppExchange-distributable). A framework-hosted site is a thin `appContainer` over the
   bundle. It is Hyperforce-only and needs the Dev Hub packaging toggle; confirm the availability
   status for the target org before planning production on it. See `dya-lwr` §8.
 
-Sites deploy as metadata (`DigitalExperienceBundle`, `Network`, `CustomSite`,
-`DigitalExperienceConfig`); never hand-edit in production.
+Sites deploy as metadata — `DigitalExperienceBundle`, `Network`, `CustomSite`,
+`DigitalExperienceConfig` — never hand-edited in production.
 
 ---
 
@@ -76,51 +76,50 @@ Existing Aura template site                   Stays Aura — migration is a rebu
 React or Angular SPA hosted on Salesforce     UI Bundle (Hyperforce only; packages as 2GP)
 ```
 
-Pick **enhanced LWR** for new builds unless there is a reason not to. Aura-to-LWR is a
-**rebuild** (components, theme, navigation), not a setting.
+Pick **enhanced LWR** for new builds unless there is a reason not to. Aura-to-LWR is a **rebuild** of
+components, theme and navigation, not a setting.
 
 ---
 
 ## 2. Build with Standard Components + the Grid
 
-Compose the page from the **Standard Components for LWR Templates** first; only drop to custom
-LWC when the standard set cannot do it.
+Compose the page from the **Standard Components for LWR Templates** first, and drop to custom LWC
+only where the standard set cannot do it.
 
-- **Grid** — shows collections / list views: pick a **data source, layout, and pagination**.
-  In an **enhanced** site the data source can be an object list view **or** a CMS collection
-  (from an enhanced workspace); in a **non-enhanced** site, **only** object list views.
-- Custom LWCs on the site run on the **LWR runtime** — all of `dya-lwr` applies (module
-  and base-component availability, LWR navigation, design for the guest). Do not assume a
-  component tested only in Lightning Experience works here.
+- **Grid** — displays collections and list views: pick a **data source, layout and pagination**. In
+  an **enhanced** site the data source is an object list view **or** a CMS collection from an
+  enhanced workspace; in a **non-enhanced** site, **only** object list views.
+- Custom LWCs on the site run on the **LWR runtime**, so all of `dya-lwr` applies: module and
+  base-component availability, LWR navigation, designing for the guest. A component tested only in
+  Lightning Experience is not known to work here.
 
 ---
 
 ## 3. Use the Enhanced-Site Capabilities
 
-On enhanced LWR sites, prefer the platform features over hand-rolled equivalents:
+On enhanced LWR sites, take the platform feature over the hand-rolled equivalent:
 
-- **Expression-based visibility & variations** — show/hide and vary components by audience or
-  data condition declaratively, instead of forking components.
-- **Component-specific Style tab** — scope custom CSS to a component rather than dumping global
-  CSS.
-- **Site content search** — built-in; do not build a custom search where this fits.
+- **Expression-based visibility & variations** — show, hide and vary components by audience or data
+  condition declaratively, instead of forking components.
+- **Component-specific Style tab** — scope custom CSS to a component rather than dumping global CSS.
+- **Site content search** — built in; do not build a custom search where this fits.
 - **Partial deployment** — deploy only what changed in the `DigitalExperienceBundle`.
 
 ---
 
 ## 4. Guest User — Harden It First
 
-A public LWR site is browsed by the **guest user**: unauthenticated, **read-only**, **cannot
-own records**. Misconfigured guest access is the #1 Experience Cloud security incident.
+A public LWR site is browsed by the **guest user**: unauthenticated, **read-only**, **cannot own
+records**. Misconfigured guest access is the #1 Experience Cloud security incident.
 
-- Before activating, **audit the guest user profile**: grant the **minimum** object/field read
-  access the site needs, nothing more.
-- Expose specific records via **guest user sharing rules** — never relax org-wide defaults for
+- **Audit the guest user profile before activating**: the **minimum** object and field read access
+  the site needs, nothing more.
+- Expose specific records through **guest user sharing rules**. Never relax org-wide defaults for
   the public.
-- The guest cannot own records; route any "create" through an Apex service in a controlled
-  context (record assigned to a real owner) or behind an authenticated step.
-- Every guest-facing component must render a clean **empty / access-denied** state (enforced
-  component-side in `dya-lwr`).
+- The guest cannot own records, so route any "create" through an Apex service in a controlled
+  context that assigns a real owner, or behind an authenticated step.
+- Every guest-facing component renders a clean **empty / access-denied** state, enforced
+  component-side in `dya-lwr`.
 
 > Full guest-user hardening procedure: see `references/guest-and-seo.md`.
 
@@ -130,11 +129,11 @@ own records**. Misconfigured guest access is the #1 Experience Cloud security in
 
 Unlike Lightning Experience, a public LWR site must be crawlable:
 
-- **SEO-friendly URL slugs** (GA) — replace record Ids in URLs for Accounts, Contacts, and
-  custom objects.
-- **Do not hand-write a custom sitemap** — the platform generates `sitemap.xml`; the guest
-  profile's read access scopes what it contains (least-privilege and SEO coverage are linked).
-- Maintain `robots.txt` with the paths to all sitemaps for the domain.
+- **SEO-friendly URL slugs** (GA) replace record Ids in URLs for Accounts, Contacts and custom
+  objects.
+- **Never hand-write a custom sitemap.** The platform generates `sitemap.xml`, and the guest
+  profile's read access scopes what it contains — least-privilege and SEO coverage are linked.
+- Maintain `robots.txt` with the paths to every sitemap for the domain.
 - Keep pages lean (`dya-lwr` §7); Core Web Vitals affect ranking.
 
 > Full SEO setup: see `references/guest-and-seo.md`.
@@ -143,20 +142,20 @@ Unlike Lightning Experience, a public LWR site must be crawlable:
 
 ## 6. Security — CSP and LWS
 
-- The site runs its **own LWS instance**; verify behaviour in the site, not in LEX.
-- Register every external endpoint as a **CSP Trusted Site**; load third-party scripts as
-  **static resources**, not from arbitrary URLs.
-- Lock down head markup, CSP directives, and trusted URLs before go-live — public sites are
-  attack surface.
+- The site runs its **own LWS instance**. Verify behaviour in the site, not in LEX.
+- Register every external endpoint as a **CSP Trusted Site**, and load third-party scripts as
+  **static resources** rather than from arbitrary URLs.
+- Lock down head markup, CSP directives and trusted URLs before go-live. A public site is attack
+  surface.
 
 ---
 
 ## 7. Deployment
 
-LWR sites are metadata: `DigitalExperienceBundle` (enhanced), plus `Network`, `CustomSite`,
-`DigitalExperienceConfig`. Source-track them and deploy through CI/CD; on enhanced sites use
-**partial deployment** for incremental changes; validate against a sandbox. Activating or
-editing a production site by hand is an incident waiting to happen.
+LWR sites are metadata: `DigitalExperienceBundle` (enhanced), plus `Network`, `CustomSite` and
+`DigitalExperienceConfig`. Source-track them, deploy through CI/CD, use **partial deployment** for
+incremental changes on enhanced sites, and validate against a sandbox. Activating or editing a
+production site by hand is an incident waiting to happen.
 
 Two things to internalise before the first deploy:
 
