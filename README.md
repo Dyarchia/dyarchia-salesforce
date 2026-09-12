@@ -197,38 +197,9 @@ After copying, restart the agent and verify the skill appears under its loaded-s
 
 ---
 
-## Contributing to this repo
+## Contributing
 
-### Branches
-
-Work flows in one direction: **feature → `develop` → `master`**.
-
-- **Branch from `develop`.** It is the working branch and always carries the current state.
-- **Open the pull request against `develop`.** GitHub proposes `master` because that is the
-  repository's default branch, so the base has to be changed by hand on every pull request.
-- **`master` is the published branch.** Publishing is a fast-forward of `develop` onto it
-  (`git push origin develop:master`), never a merge — a merge commit on `master` never flows back,
-  so the two branches drift apart by one commit per release. Nothing lands on `master` directly.
-- **Every pull request needs the owner's review.** `.github/CODEOWNERS` assigns the whole tree, and
-  both branches are protected.
-
-If a clone or worktree predates a change of default branch, its `refs/remotes/origin/HEAD` is stale
-and `git checkout` on the bare default gives you the wrong branch. Fix the ref rather than working
-around it:
-
-```bash
-git remote set-head origin -a
-```
-
-### Skills
-
-Every skill is a folder under `skills/` holding a `SKILL.md` and, optionally, a `references/` subfolder for material consulted on demand rather than obeyed on every invocation. The frontmatter carries two keys: `name`, identical to the folder name, and `description`, which ends with the explicit-invocation clause that keeps the skill from auto-triggering.
-
-Shared fundamentals are never copy-pasted between skills. Edit the canon under `references-shared/`, list the fragment in the skill's `shared-refs.txt`, and run `scripts/sync-shared-refs`; editing a synced copy directly is a validation error.
-
-The full contract lives in [`CLAUDE.md`](CLAUDE.md), and the step-by-step procedure for adding, editing, splitting or removing a skill lives in [`CONTRIBUTING.md`](CONTRIBUTING.md). Both are versioned: read them before your first change rather than inferring the conventions from the diff.
-
-A source edit is only half the change. Run `scripts/validate-skills` before you commit it. The validator checks that every skill's Platform Context declares the platform version this README states — bar the two exempt skills named above —, that `plugin.json` and `marketplace.json` agree on the plugin version, that no `references/` file is left uncited, that every synced fragment still matches its canon, and that every backticked cross-reference between skills resolves. It must exit 0 before any commit that touches `skills/`.
+[`CONTRIBUTING.md`](CONTRIBUTING.md) is the procedure for adding, editing, splitting or removing a skill. [`CLAUDE.md`](CLAUDE.md) is the contract behind it: frontmatter rules, body conventions, the branch model and every check the validator enforces. Both are versioned on every branch — read them before your first change rather than inferring the conventions from a diff.
 
 ---
 
