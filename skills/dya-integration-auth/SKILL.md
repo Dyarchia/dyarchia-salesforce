@@ -64,10 +64,9 @@ OUTBOUND  Salesforce authenticates OUT to an external system
           → Named Credential (the endpoint) + External Credential (the authentication)
 ```
 
-Never hard-code a secret in either direction. Inbound identity lives in an **External Client App**;
-outbound credentials live in **External Credentials**, encrypted and principal-scoped. Both exist so
-that secrets are absent from code *and* from metadata — a secret in a `.cls` file is a secret in
-version control.
+Never hard-code a secret in either direction. Inbound identity lives in an **External Client App**,
+outbound credentials in **External Credentials**, encrypted and principal-scoped. Both exist to keep
+secrets out of code *and* metadata: a secret in a `.cls` file is a secret in version control.
 
 ## 2. Inbound — Choosing the OAuth Flow
 
@@ -80,7 +79,7 @@ version control.
 | **Device** | Input-constrained devices | Kiosks, IoT |
 | **Username-Password** | Nothing | Retired, enforced 20 February 2027, and already blocked in new orgs and by every ECA |
 
-Default to **JWT Bearer** for backend integrations and **web server plus PKCE** for user-facing apps.
+Default to **JWT Bearer** for backend integrations, **web server plus PKCE** for user-facing apps.
 
 > Full setup for each: `references/oauth-and-eca.md`.
 
@@ -93,31 +92,39 @@ Default to **JWT Bearer** for backend integrations and **web server plus PKCE** 
 | Security posture | **Closed by default**; blocks legacy password flows outright | Historically open by default |
 | Secret rotation | Staged Credentials API — rotate with no downtime | Manual, with a gap |
 
-Build new integration identities as ECAs. Keep existing Connected Apps running, but migrate when you
-touch one — and **inventory everything using username-password or SOAP `login()` now**, because both
-have dates attached.
+Build new integration identities as ECAs. Keep existing Connected Apps running but migrate when you
+touch one, and **inventory everything using username-password or SOAP `login()` now** — both have
+dates attached.
 
 ## 4. Inbound — Other Mechanisms
 
-- **Session-based** — for a caller already in session, such as Visualforce or Aura calling Apex REST. A harvested session id is not a long-lived API credential and must never be treated as one.
-- **Mutual TLS** — certificate-based transport authentication where the counterparty requires it. Configured for inbound traffic in Setup.
-- **"Any API Auth"** — the user permission gating SOAP `login()` eligibility, enforced by default in new orgs.
-- **Guest access** — an unauthenticated endpoint on a Site or Experience Cloud page runs as the guest user. Lock that profile down; see `dya-integration-inbound-apex` and `dya-permissions`.
+- **Session-based** — for a caller already in session, such as Visualforce or Aura calling Apex
+  REST. A harvested session id is not a long-lived API credential and is never treated as one.
+- **Mutual TLS** — certificate-based transport authentication where the counterparty requires it,
+  configured for inbound traffic in Setup.
+- **"Any API Auth"** — the user permission gating SOAP `login()` eligibility, enforced by default in
+  new orgs.
+- **Guest access** — an unauthenticated endpoint on a Site or Experience Cloud page runs as the guest
+  user. Lock that profile down: `dya-integration-inbound-apex`, `dya-permissions`.
 
 ## 5. Outbound — Named Credentials and External Credentials
 
-The only correct way to authenticate an outbound callout. Two pieces of metadata:
+The only correct way to authenticate an outbound callout, in two pieces of metadata:
 
-- **Named Credential** — the **endpoint**: base URL, which External Credential to use, callout options.
-- **External Credential** — the **authentication**: protocol plus **principals**. Tokens are stored encrypted in `UserExternalCredential`.
+- **Named Credential** — the **endpoint**: base URL, which External Credential to use, and callout
+  options.
+- **External Credential** — the **authentication**: protocol plus **principals**. Tokens are stored
+  encrypted in `UserExternalCredential`.
 
 Reference it from Apex or Flow as `callout:My_Named_Credential/path`. No secret in code, no Remote
 Site Setting.
 
 **Principal types** decide whose identity the external system sees:
 
-- **Named Principal** — one shared identity for every user. The usual choice for a system integration.
-- **Per-User Principal** — each user authenticates individually, mapped through a permission set. Use it when the external system must know *which* user acted, for its own audit or authorisation.
+- **Named Principal** — one shared identity for every user, the usual choice for a system
+  integration.
+- **Per-User Principal** — each user authenticates individually, mapped through a permission set. Use
+  it when the external system must know *which* user acted, for its own audit or authorisation.
 
 **Protocols**: OAuth 2.0 (browser flow, web server, client credentials with a secret, client
 credentials with a JWT assertion), JWT, **AWS Signature v4**, Basic (legacy), and Custom (a header

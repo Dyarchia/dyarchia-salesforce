@@ -145,7 +145,9 @@ the platform is a buffet, and a server is the plate curated for one persona. A t
 how the model decides to call it — write descriptions like the routing logic they are, with the same
 discipline as Agentforce action descriptions.
 
-> Standard versus custom servers, the backing-type requirements, and the External Client App callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and security: `references/mcp-servers.md`.
+> Standard versus custom servers, the backing-type requirements, and the External Client App
+> callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and security:
+> `references/mcp-servers.md`.
 > Vibes itself — Plan Mode, Rules, permission modes: `references/agentic-dev-tooling.md`.
 
 ---

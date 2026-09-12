@@ -82,10 +82,15 @@ exception, and it works only within that group.
 
 ### What they grant
 
-- **Object permissions (CRUD)** — Create, Read, Edit, Delete, plus View All and Modify All per object.
-- **Field-Level Security** — Read and Edit per field. A field hidden by FLS is invisible *everywhere*: UI, API, reports, and user-mode SOQL.
-- **System and user permissions** — org-wide capabilities: Manage Users, API Enabled, Author Apex, Run Flows, View Setup Audit Trail.
-- **Everything else that travels in a permission set** — app and tab visibility, Apex class and Visualforce page access, custom permissions, connected and external app access, record type access.
+- **Object permissions (CRUD)** — Create, Read, Edit, Delete, plus View All and Modify All per
+  object.
+- **Field-Level Security** — Read and Edit per field. A field hidden by FLS is invisible
+  *everywhere*: UI, API, reports and user-mode SOQL.
+- **System and user permissions** — org-wide capabilities: Manage Users, API Enabled, Author
+  Apex, Run Flows, View Setup Audit Trail.
+- **Everything else that travels in a permission set** — app and tab visibility, Apex class and
+  Visualforce page access, custom permissions, connected and external app access, record type
+  access.
 
 ### Record types
 
@@ -163,10 +168,14 @@ relying on an over-broad profile.
 
 ## 5. How Access Is Enforced in Code
 
-- **`WITH USER_MODE` / `AccessLevel.USER_MODE`** enforce CRUD, FLS and sharing for the running user, and are the Apex default from API 67.0.
-- **`with sharing`** enforces record sharing on a class, **`without sharing`** ignores it, **`inherited sharing`** follows the caller. From 67.0 an omitted keyword defaults to `with sharing`.
+- **`WITH USER_MODE` / `AccessLevel.USER_MODE`** enforce CRUD, FLS and sharing for the running
+  user, and are the Apex default from API 67.0.
+- **`with sharing`** enforces record sharing on a class, **`without sharing`** ignores it, and
+  **`inherited sharing`** follows the caller. From 67.0 an omitted keyword defaults to
+  `with sharing`.
 - **Triggers run in system mode always** — they see every record and field regardless of the user.
-- **Flow** has its own three run contexts, and the record-triggered default bypasses object and field permissions. See `dya-flow`.
+- **Flow** has its own three run contexts, and the record-triggered default bypasses object and
+  field permissions. See `dya-flow`.
 
 A too-narrow permission set or OWD therefore makes user-mode code return fewer rows or throw.
 Widening permissions to clear the error also exposes that data in reports, list views and the API.

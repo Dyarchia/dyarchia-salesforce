@@ -119,7 +119,8 @@ Where a *partial* result is acceptable — typically an `@AuraEnabled` method se
 differing FLS — `Security.stripInaccessible(AccessType.READABLE, records)` removes the fields the
 user cannot see instead of throwing.
 
-> The model behind all of this — profiles, permission sets, OWD, sharing rules: `references/shared/sharing-and-access.md`. Design questions belong to `dya-permissions`.
+> The model behind all of this — profiles, permission sets, OWD, sharing rules:
+> `references/shared/sharing-and-access.md`. Design questions belong to `dya-permissions`.
 
 ## 4. SOQL
 
@@ -223,7 +224,8 @@ Custom Setting beats a Custom Metadata Type: hierarchy resolution (org → profi
 what a per-user bypass needs, and `__mdt` cannot express it. It is a circuit breaker, not a recursion
 guard — keep the framework's recursion handling regardless.
 
-> The setting's shape and field naming, `TriggerBypass`, entry-point wiring, and the form for a non-framework trigger: `references/trigger-framework.md`.
+> The setting's shape and field naming, `TriggerBypass`, entry-point wiring, and the form for a
+> non-framework trigger: `references/trigger-framework.md`.
 
 ### Absolute rules
 
@@ -242,19 +244,24 @@ Stop at the first option that fits.
 1. **Queueable** — the default. Accepts complex types, chainable, monitored, supports Finalizers.
 2. **Queueable + Transaction Finalizer** — when post-job logic must run whatever happens: retry, logging, callout-after-DML.
 3. **Apex Cursors + Queueable chain** — large volumes needing flexible or bidirectional chunking. Bounded by 10 `fetch()` per transaction.
-4. **Batch Apex** — very large volumes, recurring scheduled jobs, or when you need parallel chunk execution. Still the right answer for those; it is not legacy.
+4. **Batch Apex** — very large volumes, recurring scheduled jobs, or parallel chunk execution.
+   Still the right answer for those; it is not legacy.
 5. **Schedulable** — only to trigger work on a Cron schedule. Its `execute` enqueues a Queueable; business logic never lives there.
 6. **`@future`** — avoid in new code. No return value, no chaining, no monitoring, no Finalizers.
 
-> Full implementations and the Mixed-DML pattern (setup and non-setup objects cannot be committed in one transaction): `references/async-patterns.md`.
+> Full implementations and the Mixed-DML pattern (setup and non-setup objects cannot be committed
+> in one transaction): `references/async-patterns.md`.
 
 ## 8. Testing
 
 - `@TestSetup` for shared data; each test method gets a fresh rolled-back copy.
-- **Test in bulk.** Every bulk-callable class needs a test with 200+ records — that is what the platform will send, and a one-record test proves nothing about limits.
+- **Test in bulk.** Every bulk-callable class needs a test with 200+ records: that is what the
+  platform will send, and a one-record test proves nothing about limits.
 - Wrap the act in `Test.startTest()` / `Test.stopTest()`: fresh limits, and async work is forced to complete.
-- Never make a real callout: `Test.setMock(HttpCalloutMock.class, …)`. Use the Stub API (`Test.createStub`) for unit tests with mocked selectors.
-- Centralise record creation in an `@IsTest` `TestDataFactory`. Never `@IsTest(SeeAllData=true)`, never a hard-coded Id — query by `DeveloperName` or `Name`.
+- Never make a real callout: `Test.setMock(HttpCalloutMock.class, …)`. Use the Stub API
+  (`Test.createStub`) for unit tests with mocked selectors.
+- Centralise record creation in an `@IsTest` `TestDataFactory`. Never `@IsTest(SeeAllData=true)`,
+  never a hard-coded Id — query by `DeveloperName` or `Name`.
 - Run security-sensitive tests under `System.runAs(nonAdminUser)`. Testing only as an admin proves nothing about user mode.
 - Assert a meaningful business outcome, with a message. Coverage without assertions is worthless.
 
@@ -324,7 +331,8 @@ The `@AuraEnabled` contract: `cacheable=true` for reads (enables the Lightning D
 forbids DML, must be `static`); no `cacheable` for writes; primitive or DTO parameters, never raw
 `SObject`; always throw `AuraHandledException` on failure.
 
-> SOLID applied to this layering, with Stub-API injection: `references/solid-principles.md`. Apply SOLID before reaching for a named design pattern.
+> SOLID applied to this layering, with Stub-API injection: `references/solid-principles.md`.
+> Apply SOLID before reaching for a named design pattern.
 
 ## 13. Decision Matrix — Is This Even Apex?
 
