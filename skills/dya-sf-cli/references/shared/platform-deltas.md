@@ -76,15 +76,15 @@ These break running integrations rather than merely deprecating a pattern.
   flow, and an org that does not see the Release Update is already unaffected. Migrate to the client
   credentials flow (smallest change: one designated integration user, no password stored) or JWT
   bearer (a signed certificate, and the better answer for anything high value). See
-  `dya-integration-auth`.
+  `dya-sf-integration-auth`.
 - **Profile filtering is enforced.** A user without one of the bypass permissions (View All Profiles,
   Customize Application, Manage Users and five others) can no longer see other users' profile names;
-  queries return empty rather than erroring. See `dya-permissions`.
+  queries return empty rather than erroring. See `dya-sf-permissions`.
 - **SOAP `login()` requires the "Any API Auth" user permission**, and is on its way out entirely for
-  API 31.0–64.0. See `dya-integration-auth`.
+  API 31.0–64.0. See `dya-sf-integration-auth`.
 - **View Setup Audit Trail** becomes a standalone permission instead of riding on a broader one.
 - **Experience Delivery (Beta) is discontinued**, with auto-migration on republish through October
-  2026. See `dya-lwr-sites`.
+  2026. See `dya-sf-lwr-sites`.
 
 No retirement date has been announced for Aura or Visualforce. Both remain supported; both are in
 maintenance mode, which is a reason to build new work in LWC, not a deadline.

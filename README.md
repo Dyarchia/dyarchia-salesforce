@@ -18,79 +18,79 @@ That makes them undiscoverable on purpose, so the plugin ships **`/dya-sf-skills
 
 26 skills, all targeting **Winter '27 / API v68.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
 
-Two skills are deliberately exempt from that version and say so in their own Platform Context: **`dya-b2c-commerce`**, which is the Demandware-lineage platform and has no Salesforce core API version at all, and **`dya-sf-cli`**, which tracks the CLI's own weekly cadence rather than the platform release. The validator allowlists both.
+Two skills are deliberately exempt from that version and say so in their own Platform Context: **`dya-sf-b2c-commerce`**, which is the Demandware-lineage platform and has no Salesforce core API version at all, and **`dya-sf-cli`**, which tracks the CLI's own weekly cadence rather than the platform release. The validator allowlists both.
 
 ### Core development
 
-- **`dya-apex`**
+- **`dya-sf-apex`**
   Syntax, security, SOQL/DML, triggers, async, testing, observability, SOLID.
-- **`dya-lwc`**
+- **`dya-sf-lwc`**
   Template syntax, LDS, GraphQL, `@lwc/state`, dev tooling, Jest.
-- **`dya-flow`**
+- **`dya-sf-flow`**
   Flow types, bulkification, screen reactivity, security, Apex integration, callouts, testing.
 
 ### Maintenance-mode UI
 
-- **`dya-aura`**
+- **`dya-sf-aura`**
   When (not) to use Aura, events, server/LDS, LWC interop.
-- **`dya-visualforce`**
+- **`dya-sf-visualforce`**
   Controller patterns, view state, JavaScript Remoting, PDF/email rendering.
 
 ### Runtime and sites
 
-- **`dya-lwr`**
+- **`dya-sf-lwr`**
   Lightning Web Runtime — component portability, navigation, LWS/CSP, guest context.
-- **`dya-lwr-sites`**
+- **`dya-sf-lwr-sites`**
   Experience Cloud LWR sites — enhanced sites, Grid/CMS, guest hardening, SEO.
-- **`dya-lightning-out`**
+- **`dya-sf-lightning-out`**
   Lightning Out 2.0 — embedding LWCs in non-Salesforce apps.
 
 ### AI and data
 
-- **`dya-agentforce`**
+- **`dya-sf-agentforce`**
   Agent anatomy (Topics/Instructions/Actions), Agent Script, Apex/Flow/Prompt actions, Data 360 grounding, Agent API, evals, Trust Layer.
-- **`dya-data360`**
+- **`dya-sf-data360`**
   Data 360 (Data Cloud) — ingest→DLO→DMO→identity→insights→activation, zero-copy, SOQL on DMOs, Query/Connect API, segments, credit governance.
-- **`dya-headless360`**
+- **`dya-sf-headless360`**
   API/MCP/CLI surfaces, MCP server taxonomy, custom MCP tools, Experience Layer (HXL/AXL), headless DevOps.
 
 ### Product and industry clouds
 
-- **`dya-b2b-commerce`**
+- **`dya-sf-b2b-commerce`**
   B2B/D2C Commerce on core — CartExtension framework, endpoint extensions, `ConnectApi.CommerceCart`, buyer groups.
-- **`dya-b2c-commerce`**
+- **`dya-sf-b2c-commerce`**
   B2C Commerce (Demandware lineage) — `dw.*` Script API, SFRA cartridges, Composable Storefront, SCAPI/SLAS.
-- **`dya-field-service`**
+- **`dya-sf-field-service`**
   FSL Apex namespace, scheduling and booking patterns, Scheduler REST, ServiceAppointment lifecycle, mobile extensibility.
-- **`dya-omni-channel`**
+- **`dya-sf-omni-channel`**
   Service Cloud routing — the work-item-to-agent chain, presence and capacity, skills-based routing, the `routeWork` Agentforce seam.
-- **`dya-omnistudio`**
+- **`dya-sf-omnistudio`**
   OmniScripts, FlexCards, Integration Procedures, DataRaptors, Apex Remote Actions.
-- **`dya-revenue-cloud`**
+- **`dya-sf-revenue-cloud`**
   Revenue Cloud Advanced / RLM — Product Catalog, Salesforce Pricing, Transaction Management, Asset Lifecycle, Billing.
 
 ### Platform model and tooling
 
-- **`dya-permissions`**
+- **`dya-sf-permissions`**
   Profiles, permission sets and groups, OWD and sharing, restriction/scoping rules, FLS, Apex user mode.
 - **`dya-sf-cli`**
   `sf` command catalog — auth, deploy/retrieve, scratch orgs, Apex/data, Agentforce DX, packaging.
 
 ### Integration family
 
-- **`dya-integration-overview`**
+- **`dya-sf-integration-overview`**
   Decision hub — the six patterns, sync vs async, idempotency/retry, master decision matrix, authoring-surface map.
-- **`dya-integration-inbound-apis`**
+- **`dya-sf-integration-inbound-apis`**
   REST/composite, SOAP, Bulk API 2.0, GraphQL, Connect/UI/Metadata/Tooling; choosing, batching, limits.
-- **`dya-integration-inbound-apex`**
+- **`dya-sf-integration-inbound-apex`**
   Apex REST (`@RestResource`), Apex SOAP (legacy), Sites/Experience Cloud as integration surfaces, guest-user security.
-- **`dya-integration-outbound`**
+- **`dya-sf-integration-outbound`**
   Apex HTTP callouts and limits, async patterns, callout-after-DML, Flow HTTP Callout, External Services, Salesforce Connect.
-- **`dya-integration-events`**
+- **`dya-sf-integration-events`**
   Platform Events, Change Data Capture, Pub/Sub API (gRPC), publish/subscribe from Apex and Flow, replay/retention, webhooks.
-- **`dya-integration-auth`**
+- **`dya-sf-integration-auth`**
   Inbound OAuth 2.0 flows, External Client Apps vs Connected Apps, JWT/mTLS, outbound Named/External Credentials.
-- **`dya-integration-connectors-mcp`**
+- **`dya-sf-integration-connectors-mcp`**
   MuleSoft (Anypoint / for Flow), Heroku/AppLink, ISV connectors, Data 360 as integration, Hosted MCP / Agent API.
 
 ---
@@ -108,7 +108,7 @@ graph LR
     Root --> Cmds["commands/<br/>/dya-sf-skills"]
     Root --> Scripts["scripts/<br/>sync · validate"]
 
-    SK --> Skill["dya-&lt;name&gt;/"]
+    SK --> Skill["dya-sf-&lt;name&gt;/"]
     Skill --> SM["SKILL.md"]
     Skill --> Refs["references/"]
     Refs --> SharedRefs["shared/<br/>synced copies"]
@@ -127,7 +127,7 @@ graph LR
 
 Each skill folder contains its `SKILL.md` (the load-bearing instructions) plus a `references/` subfolder with verbatim implementations and large code examples that the agent loads on demand.
 
-`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill that needs any lists them in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. A skill the canon does not apply to carries no such file — `dya-b2c-commerce` is the one today, because nothing on that platform is Salesforce core. The copies are committed so every skill folder stays self-contained; the canon is what you edit.
+`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill that needs any lists them in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. A skill the canon does not apply to carries no such file — `dya-sf-b2c-commerce` is the one today, because nothing on that platform is Salesforce core. The copies are committed so every skill folder stays self-contained; the canon is what you edit.
 
 `agents/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
 

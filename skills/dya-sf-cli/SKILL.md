@@ -40,7 +40,7 @@ What the Winter '27 platform release changes for CLI work:
 - **`AiAgentDefinition` and `AiAgentDefinitionVersion` are metadata types at API 68.0** (GA), so
   agents deploy and retrieve like any other source. **Both orgs must be on 68.0.**
 - **A Salesforce plugin for Claude Code** (GA) detects a DX project and supplies org context through
-  hosted MCP servers, installed from the Claude Plugin Marketplace. See `dya-headless360`.
+  hosted MCP servers, installed from the Claude Plugin Marketplace. See `dya-sf-headless360`.
 - **DevOps Center MCP** (GA) brings the same programmatic access into a CI/CD pipeline.
 
 ---

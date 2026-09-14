@@ -126,5 +126,5 @@ sf community publish --name "My Site" --target-org <a>
 ## Notes
 
 - Use `sf apex run test ... --code-coverage` to gate deploys on coverage; production deploys require ≥75% org-wide.
-- `sf agent preview` is the primary local loop for testing Agentforce agents (see `dya-agentforce`).
+- `sf agent preview` is the primary local loop for testing Agentforce agents (see `dya-sf-agentforce`).
 - Add `--json` to anything for structured automation output.

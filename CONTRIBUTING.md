@@ -24,10 +24,10 @@ Work flows one way: **feature → `develop` → `master`**.
 
 1. **Confirm the gap is real.** A skill enters the library on a recurring need from actual project
    work, not because a topic exists. Growing `references/` in a sibling beats a thin new skill.
-2. **Create `skills/dya-<name>/SKILL.md`** with the two frontmatter keys: `name`, identical to the
+2. **Create `skills/dya-sf-<name>/SKILL.md`** with the two frontmatter keys: `name`, identical to the
    folder name, and `description` stating domain, version and surface, then closing on the
    invocation clause verbatim: *Load only when the user explicitly invokes this skill by name
-   (`dya-<name>`); do NOT auto-trigger on generic `<domain>` questions.*
+   (`dya-sf-<name>`); do NOT auto-trigger on generic `<domain>` questions.*
 3. **Write the body** to the conventions in `CLAUDE.md`: scope and its **explicit exclusions**
    first, then the numbered rules. Say what the skill is not — the commerce and integration families
    route on those boundaries. Never open by assigning an identity.
@@ -39,11 +39,11 @@ Work flows one way: **feature → `develop` → `master`**.
    the canon edit you just made is reported as drift in every skill that declares it:
 
    ```bash
-   scripts/sync-shared-refs.sh dya-<name>
+   scripts/sync-shared-refs.sh dya-sf-<name>
    ```
 
    ```powershell
-   pwsh -NoProfile -File scripts/sync-shared-refs.ps1 dya-<name>
+   pwsh -NoProfile -File scripts/sync-shared-refs.ps1 dya-sf-<name>
    ```
 
 7. **Move the skill count everywhere it is asserted.** The validator checks five sites and fails on
@@ -51,7 +51,7 @@ Work flows one way: **feature → `develop` → `master`**.
    file is not one of them, so update those two by hand.
 8. **Add the skill to the README catalogue and its layout diagram**, then a CHANGELOG entry under
    `## [Unreleased]` → `### Added`.
-9. **Validate, then commit** as `feat(skills): add dya-<name> skill`, on a branch cut from `develop`.
+9. **Validate, then commit** as `feat(skills): add dya-sf-<name> skill`, on a branch cut from `develop`.
 
 ## Editing, splitting, removing
 
@@ -84,8 +84,8 @@ and zero warnings** — treat a new warning as work for the same commit, not as 
 Conventional Commits, scoped by area:
 
 ```text
-feat(skills): add dya-<name> skill
-fix(skills): correct the callout-after-DML rule in dya-integration-outbound
+feat(skills): add dya-sf-<name> skill
+fix(skills): correct the callout-after-DML rule in dya-sf-integration-outbound
 docs(repo): state the shared-reference sync order in CONTRIBUTING
 ```
 

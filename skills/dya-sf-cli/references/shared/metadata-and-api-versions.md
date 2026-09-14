@@ -53,7 +53,7 @@ version. What breaks is an external caller addressing a retired `/services/data/
 SOAP `login()` is a separate, narrower retirement on an earlier clock: for API 31.0–64.0 it is
 retired on **1 June 2027** (Summer '27), and it is already unavailable at 65.0 and above. It also
 requires the **Any API Auth** user permission, enforced by default in new orgs. Do not conflate the
-two dates — `login()` goes a year before the versions themselves. See `dya-integration-auth`.
+two dates — `login()` goes a year before the versions themselves. See `dya-sf-integration-auth`.
 
 ## Targets
 

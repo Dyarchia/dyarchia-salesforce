@@ -13,11 +13,11 @@ CODEX_MANIFEST="$REPO_ROOT/.codex-plugin/plugin.json"
 
 INVOCATION_CLAUSE='Load only when the user explicitly invokes this skill by name'
 # README names that are deliberately dya-prefixed without a folder under skills/.
-NON_SKILL_TOKENS=" dya-sf-skills "
+NON_SKILL_TOKENS=" dya-sf-skills dya-sf- "
 
 # Skills whose domain has no Salesforce core API version: B2C Commerce is Demandware
 # lineage, the CLI versions on its own cadence. They are exempt from the platform check.
-VERSION_NEUTRAL_SKILLS=" dya-b2c-commerce dya-sf-cli "
+VERSION_NEUTRAL_SKILLS=" dya-sf-b2c-commerce dya-sf-cli "
 
 errors=0
 warnings=0

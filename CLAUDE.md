@@ -70,7 +70,7 @@ dyarchia-salesforce/
 ├── README.md                      # public catalogue and install instructions
 ├── CHANGELOG.md                   # Keep a Changelog format
 ├── skills/
-│   └── dya-<name>/
+│   └── dya-sf-<name>/
 │       ├── SKILL.md               # load-bearing instructions
 │       ├── shared-refs.txt        # which shared fragments this skill needs
 │       └── references/            # loaded on demand, never at invocation time
@@ -143,7 +143,7 @@ condition                                            threshold
 ---------------------------------------------------  --------------------
 SKILL.md over the size ceiling                       20480 bytes
 SKILL.md over the ceiling with no references/        20480 bytes
-README names a dya-* token that is not a folder      allowlist-filtered
+README names a dya-sf-* token that is not a folder      allowlist-filtered
 ```
 
 Additional hard failures added alongside the shared-reference canon:
@@ -158,7 +158,7 @@ plugin.json and marketplace.json versions disagree      exact
 a references/ file is never cited from SKILL.md         substring, per file
 a declared shared fragment is missing or edited         SHA-256 against references-shared/
 a synced file is not declared in shared-refs.txt        set comparison
-a skill cites `dya-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
+a skill cites `dya-sf-<name>` that is not a folder         backticked tokens, per .md, shared/ excluded
 a stated skill count disagrees with skills/             5 sites: 3 in README, both plugin manifests
 the Claude and Codex manifests disagree                 name, version, and the skills/ path
 ```
@@ -168,7 +168,7 @@ the Claude and Codex manifests disagree                 name, version, and the s
 heading and the plugin description are checked against it. A version bump therefore either lands
 everywhere or fails — it cannot land one skill at a time.
 
-`$versionNeutralSkills` / `VERSION_NEUTRAL_SKILLS` exempts `dya-b2c-commerce` (Demandware lineage,
+`$versionNeutralSkills` / `VERSION_NEUTRAL_SKILLS` exempts `dya-sf-b2c-commerce` (Demandware lineage,
 no core API version) and `dya-sf-cli` (versions on the CLI's own weekly cadence). Like
 `$nonSkillTokens`, it is hardcoded in **both** scripts.
 
@@ -176,15 +176,16 @@ The invocation clause is matched as the literal substring `Load only when the us
 invokes this skill by name`. Reword it and the skill fails validation.
 
 The allowlist behind that second warning is hardcoded in both scripts — `$nonSkillTokens` in the
-PowerShell version, `NON_SKILL_TOKENS` in the bash one — and is empty today. It exists for a
-`dya-`-prefixed name the README mentions on purpose without a matching folder under `skills/`; add
-any such name to **both** scripts, or the scan flags it. The same allowlist covers the
-cross-reference check below.
+PowerShell version, `NON_SKILL_TOKENS` in the bash one — and holds two entries: `dya-sf-skills`, the
+catalogue command, and the bare prefix `dya-sf-`, which the README's layout diagram states as
+`dya-sf-&lt;name&gt;/` and the token scan reads as a name. It exists for a `dya-sf-`-prefixed name the
+README mentions on purpose without a matching folder under `skills/`; add any such name to **both**
+scripts, or the scan flags it. The same allowlist covers the cross-reference check below.
 
 **The routing graph is validated.** Skills hand off to each other by naming a sibling in backticks,
 and that graph is the reason a reader can start anywhere. A rename used to break every prose mention
 of the old name silently, so the validator now scans every `.md` under a skill — `references/shared/`
-excluded, since it is generated — and **fails** on a backticked `dya-<name>` with no matching folder.
+excluded, since it is generated — and **fails** on a backticked `dya-sf-<name>` with no matching folder.
 It reads the graph that already exists in the prose rather than asking for it a second time in
 frontmatter, so adding a handoff costs nothing beyond writing the sentence. When you rename or remove
 a skill, the validator tells you which files still point at the old name.
@@ -195,9 +196,9 @@ Every `SKILL.md` opens with YAML frontmatter carrying exactly two keys:
 
 ```yaml
 ---
-name: dya-<name>
+name: dya-sf-<name>
 description: <domain and version> — <what it covers, comma-separated>. Load only when the user
-  explicitly invokes this skill by name (`dya-<name>`); do NOT auto-trigger on generic
+  explicitly invokes this skill by name (`dya-sf-<name>`); do NOT auto-trigger on generic
   <domain> questions.
 ---
 ```
@@ -210,23 +211,26 @@ Three invariants, all load-bearing:
 - The description enumerates the actual surface covered, so the router can pick between siblings
   without loading them.
 
-The `dya-` prefix stays on skill names even though the repo no longer repeats it. Skill names
+The `dya-sf-` prefix stays on skill names even though the repo no longer repeats it. Skill names
 live in a global namespace inside the assistant, alongside `sf-apex`, `salesforce-skills` and other
-third-party Salesforce skills; that is where the prefix earns its keep.
+third-party Salesforce skills; that is where the prefix earns its keep. The `sf` segment carries the
+domain, so a sibling domain repo under the same org names its own skills `dya-<domain>-<name>` and
+the two sets cannot collide in that namespace. **`dya-sf-cli` is not an exception to the scheme** —
+it was named before the sweep and already matched it, and the string parses correctly either way.
 
 ## Skill body conventions
 
 - **Never assign an identity.** No skill opens with "You are an expert X": the `#` heading already
-  names the domain, and these skills compose — a reader loading `dya-apex`, `dya-lwc` and
-  `dya-flow` would be told they are three different people. Open on what is true about the domain
+  names the domain, and these skills compose — a reader loading `dya-sf-apex`, `dya-sf-lwc` and
+  `dya-sf-flow` would be told they are three different people. Open on what is true about the domain
   instead, and keep the second-person imperative for the rules themselves, which do compose:
   "You **always** ... Follow every rule below."
 - **Close the opening paragraph with "Follow every rule below."** It is the compliance imperative
   and all 26 carry it. Introduce the reference list with a bare `References:` — the bullets say
   what each file is for, so a sentence announcing that the list exists is filler.
 - Cross-reference siblings by bare skill name in backticks. The integration family in particular
-  is a routing graph: `dya-integration-overview` routes, the others build.
-- Scope exclusions are stated in the opening paragraph, not buried. Example: `dya-b2c-commerce`
+  is a routing graph: `dya-sf-integration-overview` routes, the others build.
+- Scope exclusions are stated in the opening paragraph, not buried. Example: `dya-sf-b2c-commerce`
   declares up front that there is no Apex, LWC or SOQL on that platform.
 - `SKILL.md` holds what must be true on every invocation. Anything consulted occasionally —
   full code listings, command catalogues, per-vendor detail — belongs in `references/`.
@@ -323,7 +327,7 @@ places to update by hand.
 The prescriptive procedure lives in `CONTRIBUTING.md`. Follow it rather than improvising. The short
 version:
 
-1. Author or edit `skills/dya-<name>/SKILL.md`.
+1. Author or edit `skills/dya-sf-<name>/SKILL.md`.
 2. Sync if you touched a shared fragment: `scripts/sync-shared-refs.ps1` (or the `.sh` twin).
 3. Validate: `scripts/validate-skills.ps1` (or the `.sh` twin). It must exit 0.
 4. Update the README catalogue and the CHANGELOG in the same commit.
@@ -336,8 +340,8 @@ exposed to. `validate-skills` exists to catch it; run it before every commit tha
 Conventional Commits, scoped by area:
 
 ```text
-feat(skills): add dya-<name> skill
-fix(skills): correct the callout-after-DML rule in dya-integration-outbound
+feat(skills): add dya-sf-<name> skill
+fix(skills): correct the callout-after-DML rule in dya-sf-integration-outbound
 fix(repo): pin the Codex manifest skills path to the source root
 docs(repo): state the shared-reference sync order in CONTRIBUTING
 ```
