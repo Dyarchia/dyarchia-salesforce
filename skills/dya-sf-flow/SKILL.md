@@ -197,8 +197,8 @@ Every element that can fail — Get/Create/Update/Delete Records, Apex Actions, 
 Subflows — gets a Fault Path. A flow without them is a production incident waiting to happen.
 
 1. Connect the Fault edge to an Assignment capturing `{!$Flow.FaultMessage}`.
-2. Route it to a screen (in a screen flow), or to a logging subflow that publishes a platform event
-   into a log object (see `dya-sf-apex`), or — last resort — to a notification.
+2. Route it to a screen (in a screen flow), to the org's own error-handling subflow where one
+   exists, or — last resort — to a notification. Do not create a logging object to hold the fault.
 
 Where one error-handling subflow serves every fault path, collapse them with the chevron on the Fault
 edge to keep the canvas readable. The **Element Error Rate** column in the Automation app list view

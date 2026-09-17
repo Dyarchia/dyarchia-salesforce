@@ -18,7 +18,7 @@ References:
 - `references/trigger-framework.md` — `ITrigger`, `TriggerFactory`, handler, recursion guard, `TriggerBypass`.
 - `references/async-patterns.md` — Queueable, Finalizer, Cursor chain, Mixed-DML.
 - `references/testing-patterns.md` — skeletons, Stub API wiring, `RunRelevantTests` semantics.
-- `references/observability-patterns.md` — `Log__e`, `Logger`, subscriber trigger.
+- `references/observability-patterns.md` — native observability; never build a logger.
 - `references/performance-and-caching.md` — Platform Cache, Custom Metadata, DataWeave, ApexGuru, heap.
 - `references/static-analysis.md` — Code Analyzer: the seven engines, selectors, and the flags that fail silently.
 - `references/solid-principles.md` — SOLID applied to Apex, with Stub-API injection.
@@ -307,14 +307,16 @@ discipline — project only the fields you use, iterate rather than materialise.
 
 ## 11. Observability
 
-Production logging goes through **Platform Events**, not debug logs. They publish outside the calling
-transaction, so a log survives a rollback — the only way to guarantee a record of an uncaught
-exception in synchronous Apex. `System.debug` is a non-production tool; when you use it, pass a level.
+**Never create a logging object, a logging platform event, or a `Logger` that writes to either.** An
+invented `Log__c` is a deploy failure where it does not exist and one more unused object where it
+does. If the org runs a logging framework, find it and call it; if it has none, say so — standing one
+up is the owner's call.
 
-Monitor `AsyncApexJob` for Queueable and Batch failures. `System.purgeOldAsyncJobs(Integer)` bounds
-how many records a call deletes, so old jobs can be purged incrementally.
+`System.debug` is a development tool; pass a level. Uncaught exceptions already send an **Apex
+exception email**, the floor most orgs have and do not read. `AsyncApexJob` carries async health in
+`ExtendedStatus`; `System.purgeOldAsyncJobs(Integer)` bounds how many records a call deletes.
 
-> `Log__e` definition, `Logger` class, subscriber trigger persisting to `Application_Log__c`: `references/observability-patterns.md`.
+> Trace flags, exception email metadata, `AsyncApexJob`, Finalizers: `references/observability-patterns.md`.
 
 ## 12. Class Design
 
@@ -363,7 +365,7 @@ express the requirement.
 | Ignoring `SaveResult[]` when `allOrNone = false` | Inspect every result and log the failures |
 | Logic in the trigger file, or several triggers per object | One trigger, one handler, one line of delegation |
 | `@future` for new async work | Queueable, plus a Finalizer where needed |
-| `System.debug` as production observability | Platform Events into a log object |
+| Creating a `Log__c` or `Logger` for observability | Apex exception email, or the org's own framework |
 | A Beta or Developer Preview feature in production code | The GA path; the preview belongs in a scratch org |
 | Apex where configuration, Flow or LDS would do | The declarative tool — see §13 |
 
@@ -373,4 +375,4 @@ express the requirement.
 2. **Bulkify everything.** Assume 200 records, test with 200+, and know the limits in `references/shared/governor-limits.md` that make it mandatory.
 3. **Triggers: one per object, zero logic in the file, behind a per-object kill-switch.** Tony Scott by default on greenfield; in an existing org, conform to what is already there — ask first.
 4. **Async means Queueable plus a Finalizer**; Cursors for flexible chunking, Batch Apex for very large or parallel work. `@future` is the only legacy one.
-5. **Observability is native.** Platform Events for logs that survive a rollback, a custom log object for persistence, Finalizers for the async failure path.
+5. **Never invent observability.** Apex exception emails, `AsyncApexJob` and Finalizers are already there; if the org has no logging framework, report it rather than building one.

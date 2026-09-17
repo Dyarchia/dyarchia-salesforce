@@ -71,7 +71,7 @@ global with sharing class OrderApi {
             return new ResponseDto(true, ord.Id, 'Created');
 
         } catch (Exception e) {
-            // Log durably (Platform Event → log object); never leak the stack trace
+            // Report through the org's own logging framework if it has one; never leak the stack trace
             RestContext.response.statusCode = 500;
             return new ResponseDto(false, null, 'Could not process the order.');
         }

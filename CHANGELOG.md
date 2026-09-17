@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **No skill tells an agent to build a logging object any more.** `dya-sf-apex` shipped a full Platform Event plus `Application_Log__c` logging framework — a `Log__e` definition, a `Logger` class, a subscriber trigger and a retention job — and `dya-sf-flow`, `dya-sf-integration-inbound-apex` and `dya-sf-integration-outbound` routed their error paths into it. **None of those objects exist in any org by default**, so an agent following the guidance either wrote code that fails to deploy against a name that is not there, or created custom objects nobody asked for in an org it cannot see. §11 now opens on the prohibition — never create a logging object, a logging platform event, or a `Logger` that writes to either — and gives the two legitimate paths instead: find and call the framework the org already has, or report that it has none, because standing one up is an architectural decision with storage, retention and DPO consequences that belongs to the org owner. `references/observability-patterns.md` is rewritten around what is always present and needs no custom metadata: trace flags and why a debug log is not production forensics (capped, and the truncated tail is the part you needed), the **Apex exception email** that every org already receives and most do not read — with the `ApexEmailNotification` metadata so it travels with the repository — `AsyncApexJob.ExtendedStatus` for async health, `System.purgeOldAsyncJobs`, the Transaction Finalizer failure path, and Event Monitoring and Scale Center as the licensed tier to recommend before anyone hand-builds a logger. `SKILL.md` lands at 20469 bytes, 11 under the ceiling.
+
 ## [0.6.0] - 2026-09-14
 
 ### Changed

@@ -94,7 +94,7 @@ public class SyncBatch implements Database.Batchable<SObject>, Database.AllowsCa
 
 - Make the remote operation **idempotent** (send a client-generated request id) so retries don't double-charge/double-create.
 - Retry only **429/5xx**; back off (exponential where possible); cap attempts.
-- Persist failures durably (Platform Event → log object) for reconciliation; never swallow a `CalloutException` silently.
+- Record failures for reconciliation through whatever the org already uses — never swallow a `CalloutException` silently, and never stand up a logging object to catch it.
 
 ## Anti-Patterns
 
