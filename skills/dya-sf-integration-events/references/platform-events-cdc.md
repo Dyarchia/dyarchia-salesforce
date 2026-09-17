@@ -24,7 +24,7 @@ for (Database.SaveResult sr : results) {
 | Behaviour | Fires when | Use |
 |---|---|---|
 | **Publish After Commit** | Only if the transaction commits | Most business events (don't notify on a rollback) |
-| **Publish Immediately** | At call time, even if the transaction later rolls back | Logging/telemetry that must survive a rollback |
+| **Publish Immediately** | At call time, even if the transaction later rolls back | Telemetry that must survive a rollback |
 
 ### Subscribe options
 

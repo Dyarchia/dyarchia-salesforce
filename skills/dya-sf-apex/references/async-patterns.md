@@ -25,7 +25,7 @@ System.enqueueJob(new AccountEnricher(ids));
 
 ## Queueable + Transaction Finalizer
 
-Use a Finalizer when code must run **whether the Queueable succeeds or fails** — retry logic, alerting, callout-after-DML, guaranteed logging.
+Use a Finalizer when code must run **whether the Queueable succeeds or fails** — retry logic, alerting, callout-after-DML, guaranteed error reporting.
 
 ```java
 public with sharing class EnrichmentFinalizer implements Finalizer {
@@ -37,7 +37,7 @@ public with sharing class EnrichmentFinalizer implements Finalizer {
 
     public void execute(FinalizerContext ctx) {
         if (ctx.getResult() == ParentJobResult.UNHANDLED_EXCEPTION) {
-            Logger.error('Enrichment failed', ctx.getException());
+            System.debug(LoggingLevel.ERROR, 'Enrichment failed: ' + ctx.getException());
             // Callouts ARE allowed here, even after the parent's DML
             ExternalAlertService.notifyOps(ctx.getAsyncApexJobId());
         }

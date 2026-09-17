@@ -115,8 +115,8 @@ user-facing, answer-now dependencies.
   with Composite or Bulk; never call out inside a loop. Full budget in
   `references/shared/governor-limits.md`.
 - **Error handling and retry.** Platform Events give 72 hours of replay; Outbound Messages retry
-  automatically; Apex callouts need explicit retry and backoff. Log failures durably — a failure
-  visible only in a debug log is a failure nobody will see.
+  automatically; Apex callouts need explicit retry and backoff. Make failures visible through what
+  the org already has — one seen only in a debug log is one nobody will see.
 - **Security.** OAuth over passwords; External Client Apps over Connected Apps; Named and External
   Credentials over hard-coded secrets and Remote Site Settings; HTTPS always; a purpose-built
   least-privilege integration user, whose own object and field access now governs what its code reads.
@@ -182,7 +182,7 @@ An LWC **cannot** call arbitrary Salesforce APIs from JavaScript — only Lightn
 | Polling for changes | CDC or Platform Events over Pub/Sub |
 | `fetch()` to an external API from LWC with a secret in JavaScript | An Apex proxy — secrets stay server-side |
 | Assuming system-mode access in an integration class at 67.0 or above | Audit sharing and user mode before raising the version |
-| A failure logged only to the debug log | Durable logging the operations team can actually see |
+| A failure visible only in the debug log | Surfaced where the operations team already looks |
 
 ## Summary — The Five Commandments
 
@@ -190,4 +190,4 @@ An LWC **cannot** call arbitrary Salesforce APIs from JavaScript — only Lightn
 2. **Async by default.** Reserve synchronous request-reply for answer-now, user-facing dependencies.
 3. **Route, then build.** This hub chooses; the siblings implement.
 4. **Identity is its own concern** — External Client Apps, OAuth, Named and External Credentials. Never a hard-coded secret, never a password flow.
-5. **Design for failure and scale** — idempotency, retry with backoff, bulkification, durable logging, and user-mode awareness on every path.
+5. **Design for failure and scale** — idempotency, retry with backoff, bulkification, visible failures, and user-mode awareness on every path.

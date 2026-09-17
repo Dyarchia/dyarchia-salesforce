@@ -114,7 +114,7 @@ All trigger logic lives here. The handler has the sharing declaration, encapsula
 public with sharing class AccountHandler implements ITrigger {
 
     private Set<Id> m_inUseIds = new Set<Id>();
-    private List<Audit__c> m_audits = new List<Audit__c>();
+    private List<Task> m_followUps = new List<Task>();
 
     public void bulkBefore() {
         if (Trigger.isDelete) {
@@ -132,7 +132,7 @@ public with sharing class AccountHandler implements ITrigger {
         if (m_inUseIds.contains(acc.Id)) {
             so.addError('You cannot delete an Account that is in use.');
         } else {
-            m_audits.add(new Audit__c(Description__c = 'Deleted: ' + acc.Name));
+            m_followUps.add(new Task(Subject = 'Account deleted: ' + acc.Name));
         }
     }
 
@@ -142,8 +142,8 @@ public with sharing class AccountHandler implements ITrigger {
 
     public void andFinally() {
         // single DML pass for everything accumulated during the iteration
-        if (!m_audits.isEmpty()) {
-            Database.insert(m_audits, AccessLevel.SYSTEM_MODE); // audit log: justified
+        if (!m_followUps.isEmpty()) {
+            Database.insert(m_followUps, AccessLevel.USER_MODE);
         }
     }
 }

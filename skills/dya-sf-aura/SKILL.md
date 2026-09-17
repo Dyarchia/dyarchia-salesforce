@@ -303,13 +303,13 @@ Aura inside LWC is not supported.
 - **`@AuraEnabled`**: `with sharing`, CRUD/FLS through `WITH USER_MODE`, and
   `Security.stripInaccessible` for variable-FLS reads. See `dya-sf-apex` §3.
 - **Never return a raw exception to the client.** Throw `AuraHandledException` with a clean message
-  and log the real cause through Platform Events (`dya-sf-apex` §11).
+  and report the real cause through whatever the org already uses (`dya-sf-apex` §11).
 - **Handle `INCOMPLETE`** — offline or lost connection — as well as `ERROR`.
 
 ```java
-// ✅ — clean message to the client, real cause logged server-side
+// ✅ — clean message to the client, real cause kept server-side
 catch (Exception e) {
-    Logger.error('AccountController.updateRating', e);
+    System.debug(LoggingLevel.ERROR, 'updateRating failed: ' + e);
     throw new AuraHandledException('Could not update the account. Please retry.');
 }
 ```

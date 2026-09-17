@@ -271,7 +271,7 @@ control through a pipeline: validate against a sandbox, then deploy.
 | Hardcoded URL or API key | Named Credential, always |
 | A callout on a record-triggered flow's synchronous path | Asynchronous Path |
 | Not branching on `statusCode` after an HTTP Callout | Decision on the status code — the action does not throw |
-| An element with no connected Fault Path | Fault Path into a logging subflow |
+| An element with no connected Fault Path | Fault Path into the org's error-handling subflow |
 | `System Context without Sharing` with no stated reason | User context, or system-with-sharing; justify in the description |
 | A wizard where every step is a screen with a Next button | Reactive components on fewer screens |
 | A custom LWC for what a standard component does | Check the component library first |

@@ -107,7 +107,7 @@ After the action:
    - `>= 400 AND < 500` → client error path (log and surface to user)
    - `>= 500` → server error path (log, retry, or fail gracefully)
    - else → unknown status path
-2. **Fault Path** — handles platform-level failures (network unreachable, Named Credential misconfigured). Connect the action's Fault Path to a logging element.
+2. **Fault Path** — handles platform-level failures (network unreachable, Named Credential misconfigured). Connect the action's Fault Path to an error-handling element.
 
 Both paths must exist. The status-code decision handles HTTP-level errors; the Fault Path handles platform-level errors. Skipping either creates silent failures in production.
 
@@ -155,7 +155,7 @@ Define the integration once; reuse it across the stack.
 | API key inline in a custom header value | `{!$Credential.<NCName>.<paramName>}` referencing a Named Credential parameter |
 | HTTP Callout on a record-triggered flow's main path | Move to Asynchronous Path |
 | No Decision element after the action checking `statusCode` | Always branch on status; never assume success |
-| No Fault Path on the action | Always connect to a logging element |
+| No Fault Path on the action | Always connect to an error-handling element |
 | Writing Apex to do a callout that has no custom marshalling | Use Flow HTTP Callout — no Apex needed |
 | Building the callout per record inside a flow loop | Build the request once, invoke once per logical operation |
-| Logging callout errors only via `System.debug` | Route through Platform Event logger (see `dya-sf-apex` §11) |
+| A callout error that reaches nobody | Surface it where the org already looks (see `dya-sf-apex` §11) |

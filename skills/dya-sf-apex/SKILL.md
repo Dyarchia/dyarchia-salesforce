@@ -285,7 +285,7 @@ Log and rethrow; never swallow:
 try {
     return parse(http.send(req));
 } catch (CalloutException e) {
-    Logger.error('Pricing engine callout failed', e);
+    System.debug(LoggingLevel.ERROR, 'Pricing callout: ' + e);
     throw new PricingEngineUnreachableException('Pricing unavailable', e);
 }
 

@@ -68,7 +68,7 @@ public with sharing class CreateCaseAction {
             } else {
                 res.success = false;
                 res.message = 'Could not create the case: ' + srs[i].getErrors()[0].getMessage();
-                // Logger.error(...) via Platform Events — see dya-sf-apex §11
+                // Report through the org's own error handling — see dya-sf-apex §11
             }
             results.add(res);
         }
@@ -83,7 +83,7 @@ public with sharing class CreateCaseAction {
 - **Wrapper classes** for input and output, each field an `@InvocableVariable` with a `label` and `description`. Mark truly required inputs `required=true`.
 - **Descriptions feed Atlas.** The method `label`/`description` and each variable `description` are how the engine matches intent and fills parameters. Keep them synced with the Agent Builder action config.
 - **Security:** `with sharing`, `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML. `WITH SECURITY_ENFORCED` does not compile at API 67.
-- **No raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; log the real cause via Platform Events. A thrown exception gives the agent nothing useful to say.
+- **No raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; keep the real cause server-side. A thrown exception gives the agent nothing useful to say.
 - **Determinism:** put the business rule in code. The action exists so the LLM does not have to reason about it.
 - **Idempotency:** where the agent might retry, make the action safe to call twice (e.g. upsert by external id).
 

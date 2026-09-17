@@ -203,7 +203,7 @@ If the action must accept any SObject (e.g., a logging utility), use `List<SObje
 public static void logChange(List<SObject> records) {
     // SObject API works generically; cast inside if you need typed access
     for (SObject so : records) {
-        Logger.info('Changed: ' + so.getSObjectType() + ' ' + so.Id);
+        System.debug(LoggingLevel.INFO, 'Changed: ' + so.getSObjectType() + ' ' + so.Id);
     }
 }
 ```

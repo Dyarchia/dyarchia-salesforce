@@ -135,4 +135,4 @@ Remote Objects enforce the running user's CRUD/FLS automatically (they go throug
 | `@RemoteAction` without `WITH USER_MODE` / sharing | Declare `with sharing`, query `WITH USER_MODE` |
 | Non-bulk DML inside `@RemoteAction` | Bulk `Database.*` with `AccessLevel.USER_MODE` |
 | `escape: false` on untrusted response strings | Keep `escape: true` |
-| Returning raw exceptions to the browser | Catch, log via Platform Events, return a clean DTO |
+| Returning raw exceptions to the browser | Catch, keep the cause server-side, return a clean DTO |
