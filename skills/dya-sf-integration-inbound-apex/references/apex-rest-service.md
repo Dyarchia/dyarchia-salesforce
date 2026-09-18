@@ -132,7 +132,7 @@ global static void webhook() {
 | SOQL/DML in a loop in the handler | Bulk before/after the loop |
 | Blind insert on a retried POST | Upsert by external id |
 | `WITH SECURITY_ENFORCED` | `WITH USER_MODE` |
- No sharing keyword | Explicit `with sharing` |
+| No sharing keyword | Explicit `with sharing` |
 | Returning the exception/stack trace | Sanitised error DTO + status code |
 | Unversioned URL/contract | `/v1/...` and versioned DTOs |
 | Trusting a webhook body without verifying | Verify signature from the raw body + header |
