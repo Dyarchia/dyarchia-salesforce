@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-overview
-description: Salesforce integration decision hub (Winter '27 / API v68.0) — the router and decision framework for the dya-integration-* family. The six integration patterns, sync vs async, idempotency/retry/governor concerns, the master "I need X with Y in manner Z" decision matrix, the authoring-surface map (Apex/Flow/LWC/no-code), and the API-version-retirement facts. Load only when the user explicitly invokes this skill by name (`dya-sf-integration-overview`); do NOT auto-trigger on generic integration questions.
+description: Salesforce integration decision hub (Winter '27 / API v68.0) — the router and decision framework for the dya-sf-integration-* family. The six integration patterns, sync vs async, idempotency/retry/governor concerns, the master "I need X with Y in manner Z" decision matrix, the authoring-surface map (Apex/Flow/LWC/no-code), and the API-version-retirement facts. Load only when the user explicitly invokes this skill by name (`dya-sf-integration-overview`); do NOT auto-trigger on generic integration questions.
 ---
 
 # Salesforce Integration — Decision Hub
@@ -9,7 +9,7 @@ This skill does not teach individual protocols — it **routes** you to the righ
 authoring surface, then hands off to a sibling. Use it to choose; use the siblings to build. Follow
 every rule below.
 
-The `dya-integration-*` family (load the one the decision points to):
+The `dya-sf-integration-*` family (load the one the decision points to):
 
 - `dya-sf-integration-inbound-apis` — the standard APIs external systems call: REST and composite, SOAP, Bulk 2.0, GraphQL, Connect/UI/Metadata/Tooling.
 - `dya-sf-integration-inbound-apex` — custom endpoints you expose: Apex REST (`@RestResource`), Apex SOAP, Sites and Experience Cloud.
