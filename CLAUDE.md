@@ -50,7 +50,7 @@ artifacts they exist to prevent is this repo's defining failure mode. Like every
 they are written in English.
 
 Untracked by design: `.claude/` in full (the per-machine agent workspace — local settings,
-repo-local skills, worktrees), `docs/TODO.md` and `docs/dyarchia-legio.md` (private working notes).
+repo-local skills, worktrees), plus `docs/` and `.docs/` in full (private working notes).
 Those are genuinely internal — they record what someone is thinking about, not how the library
 works. Anything a contributor must know belongs in this file or in `CONTRIBUTING.md`, never under
 `.claude/`.

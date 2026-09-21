@@ -46,7 +46,5 @@ $RECYCLE.BIN/
 *.tmp
 
 # Working scratch — local notes, superseded design drafts
-claude_structure.png
-docs/dyarchia-legio.md
-docs/TODO.md
+docs/
 .docs/
