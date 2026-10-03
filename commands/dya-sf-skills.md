@@ -6,9 +6,8 @@ allowed-tools: Read, Glob
 
 Print the catalogue of `dya-sf-` Salesforce skills available in this session.
 
-These skills load **only when invoked by name** — they never auto-trigger. That is deliberate, and
-it means nobody discovers them by asking a Salesforce question. This command is how someone finds
-out what is on the shelf.
+These skills load on their own only before an edit inside their scope, so a reader who is asking
+rather than editing never sees them. This command is how someone finds out what is on the shelf.
 
 ## What to print
 
@@ -26,15 +25,15 @@ Runtime and sites       lwr · lwr-sites · lightning-out
 AI and data             agentforce · data360 · headless360
 Product and industry    b2b-commerce · b2c-commerce · field-service ·
                         omni-channel · omnistudio · revenue-cloud
-Platform and tooling    permissions · sf-cli
+Platform and tooling    permissions · cli
 Integration family      integration-overview · integration-inbound-apis ·
                         integration-inbound-apex · integration-outbound ·
                         integration-events · integration-auth ·
                         integration-connectors-mcp
 ```
 
-Do not print the invocation clause that ends every description — it is identical in all of them and
-adds nothing to a catalogue. Print the part that says what the skill covers.
+Do not print the `Applies to` list or the trigger clause that ends every description — they say
+when the skill loads, not what it covers. Print the part that says what the skill covers.
 
 ## Arguments
 

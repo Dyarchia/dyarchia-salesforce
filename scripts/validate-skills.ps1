@@ -18,7 +18,7 @@ $script:warnings = [System.Collections.Generic.List[string]]::new()
 function Add-Failure { param([string] $Message) $script:errors.Add($Message) }
 function Add-Warning { param([string] $Message) $script:warnings.Add($Message) }
 
-$invocationClause = 'Load only when the user explicitly invokes this skill by name'
+$invocationClause = 'Load before creating or editing anything in this scope'
 # README names that are deliberately dya-prefixed without a folder under skills/.
 $nonSkillTokens = @('dya-sf-skills', 'dya-sf-')
 

@@ -1,6 +1,6 @@
 ---
 name: dya-sf-omnistudio
-description: Salesforce OmniStudio developer surface (Winter '27 / API v68.0) — the programmatic side, with real contracts and compilable Apex. OmniScripts, FlexCards, Integration Procedures, DataRaptors/Data Mappers, and Apex Remote Actions (the Callable vs VlocityOpenInterface2 contract), OmniStudio Standard vs Managed Package, and invoking IPs from Apex/LWC via IntegrationProcedureService. Load only when the user explicitly invokes this skill by name (`dya-sf-omnistudio`); do NOT auto-trigger on generic OmniStudio, Vlocity, or Salesforce questions.
+description: Salesforce OmniStudio developer surface (Winter '27 / API v68.0) — the programmatic side, with real contracts and compilable Apex. OmniScripts, FlexCards, Integration Procedures, DataRaptors/Data Mappers, and Apex Remote Actions (the Callable vs VlocityOpenInterface2 contract), OmniStudio Standard vs Managed Package, and invoking IPs from Apex/LWC via IntegrationProcedureService. Applies to OmniScripts, FlexCards, Integration Procedures, Data Mappers and DataRaptors, Callable or VlocityOpenInterface2 Apex, IntegrationProcedureService calls. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-omnistudio`).
 ---
 
 # Salesforce OmniStudio — Developer Surface

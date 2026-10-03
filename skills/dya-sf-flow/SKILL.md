@@ -1,6 +1,6 @@
 ---
 name: dya-sf-flow
-description: Salesforce Flow Winter '27 (API v68.0) modern automation best practices — flow types, bulkification, screen reactivity, run context and security, the Apex invocable bridge, HTTP callouts, fault paths, AI-assisted authoring, testing. Load only when the user explicitly invokes this skill by name (`dya-sf-flow`); do NOT auto-trigger on generic Flow, automation, or Process-Builder-related questions.
+description: Salesforce Flow Winter '27 (API v68.0) modern automation best practices — flow types, bulkification, screen reactivity, run context and security, the Apex invocable bridge, HTTP callouts, fault paths, AI-assisted authoring, testing. Applies to *.flow-meta.xml files, invocable Apex called from Flow, Flow tests. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-flow`).
 ---
 
 # Salesforce Flow — Modern Automation

@@ -1,6 +1,6 @@
 ---
 name: dya-sf-omni-channel
-description: Salesforce Omni-Channel and Service Cloud routing (Winter '27 / API v68.0) — the routing chain from work item to agent (ServiceChannel, queues, QueueRoutingConfig, PendingServiceRouting, AgentWork), presence and capacity, skills-based routing, the routeWork Flow action as the Agentforce-to-human handoff, supervisor configuration, and the metadata and Tooling API surfaces behind all of it. Load only when the user explicitly invokes this skill by name (`dya-sf-omni-channel`); do NOT auto-trigger on generic Service Cloud, routing or queue questions.
+description: Salesforce Omni-Channel and Service Cloud routing (Winter '27 / API v68.0) — the routing chain from work item to agent (ServiceChannel, queues, QueueRoutingConfig, PendingServiceRouting, AgentWork), presence and capacity, skills-based routing, the routeWork Flow action as the Agentforce-to-human handoff, supervisor configuration, and the metadata and Tooling API surfaces behind all of it. Applies to ServiceChannel, QueueRoutingConfig, PresenceUserConfig and ServicePresenceStatus metadata, PendingServiceRouting and AgentWork code, routeWork Flow actions. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-omni-channel`).
 ---
 
 # Salesforce Omni-Channel

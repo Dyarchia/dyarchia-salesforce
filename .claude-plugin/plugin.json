@@ -1,7 +1,7 @@
 {
   "name": "dyarchia-salesforce",
   "version": "0.6.1",
-  "description": "Salesforce agent skills — 26 domain playbooks targeting Winter '27 / API v68.0. Every skill loads only on explicit invocation by name.",
+  "description": "Salesforce agent skills — 26 domain playbooks targeting Winter '27 / API v68.0. Each skill loads before any edit inside its scope, or on invocation by name.",
   "author": {
     "name": "Dyarchia"
   },

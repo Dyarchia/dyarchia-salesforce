@@ -1,6 +1,6 @@
 ---
 name: dya-sf-cli
-description: Salesforce CLI command catalog (sf, Winter '27 / API v68.0 era) — the reference an agent uses to know exactly what to execute. The `sf` command model and topics, authentication, metadata deploy/retrieve, scratch orgs/sandboxes, Apex/data/sobject, Agentforce DX, packaging, and flag conventions. Load only when the user explicitly invokes this skill by name (`dya-sf-cli`); do NOT auto-trigger on generic CLI or terminal questions.
+description: Salesforce CLI command catalog (sf, Winter '27 / API v68.0 era) — the reference an agent uses to know exactly what to execute. The `sf` command model and topics, authentication, metadata deploy/retrieve, scratch orgs/sandboxes, Apex/data/sobject, Agentforce DX, packaging, and flag conventions. Applies to running or scripting any sf command (deploy, retrieve, org, data, apex, agent, package), sfdx-project.json, CI scripts that call sf. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-cli`).
 ---
 
 # Salesforce CLI — Command Catalog

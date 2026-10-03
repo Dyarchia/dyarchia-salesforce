@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-overview
-description: Salesforce integration decision hub (Winter '27 / API v68.0) — the router and decision framework for the dya-sf-integration-* family. The six integration patterns, sync vs async, idempotency/retry/governor concerns, the master "I need X with Y in manner Z" decision matrix, the authoring-surface map (Apex/Flow/LWC/no-code), and the API-version-retirement facts. Load only when the user explicitly invokes this skill by name (`dya-sf-integration-overview`); do NOT auto-trigger on generic integration questions.
+description: Salesforce integration decision hub (Winter '27 / API v68.0) — the router and decision framework for the dya-sf-integration-* family. The six integration patterns, sync vs async, idempotency/retry/governor concerns, the master "I need X with Y in manner Z" decision matrix, the authoring-surface map (Apex/Flow/LWC/no-code), and the API-version-retirement facts. Applies to designing a new integration or changing the pattern an existing one uses. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-overview`).
 ---
 
 # Salesforce Integration — Decision Hub

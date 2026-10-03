@@ -8,9 +8,9 @@
 
 Agent skills are reusable instruction packs that customise how an AI coding agent approaches specific domains. They are becoming a cross-vendor standard for AI assistants, so the contents of this repo should be portable in spirit even where the loading mechanics differ.
 
-Every skill loads **only on explicit invocation by name** — none auto-trigger on generic Salesforce questions.
+Every skill loads **before the agent creates or edits anything in its scope** — `dya-sf-apex` before an Apex class or trigger is touched, `dya-sf-flow` before a flow, and so on — or when invoked by name. A plain Salesforce question that changes no code loads nothing.
 
-That makes them undiscoverable on purpose, so the plugin ships **`/dya-sf-skills`**: run it to print the catalogue with what each skill covers, then invoke the one you want by name. Add a word to filter — `/dya-sf-skills integration`.
+To see what is on the shelf, run **`/dya-sf-skills`**: it prints the catalogue with what each skill covers. Add a word to filter — `/dya-sf-skills integration`.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: dya-sf-apex
-description: Salesforce Apex Winter '27 (API v68.0) modern development best practices — syntax, security and user mode, SOQL/DML, triggers, async, testing, performance, observability, class design. Load only when the user explicitly invokes this skill by name (`dya-sf-apex`); do NOT auto-trigger on generic Apex, Salesforce, or trigger-related questions.
+description: Salesforce Apex Winter '27 (API v68.0) modern development best practices — syntax, security and user mode, SOQL/DML, triggers, async, testing, performance, observability, class design. Applies to *.cls, *.trigger, anonymous Apex. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-apex`).
 ---
 
 # Salesforce Apex Modern Development
@@ -276,7 +276,7 @@ tests with a broader test level.
 ## 9. Error Handling
 
 Declare a custom exception per domain — `InvoiceGenerationException`, not `Exception`. It lets a
-caller catch what it can actually handle.
+caller catch what it can handle.
 
 Log and rethrow; never swallow:
 

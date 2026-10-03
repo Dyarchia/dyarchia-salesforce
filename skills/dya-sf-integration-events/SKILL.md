@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-events
-description: Salesforce event-driven integration (Winter '27 / API v68.0) — Platform Events, Change Data Capture (CDC), and the Pub/Sub API (gRPC) as the strategic streaming interface; publish/subscribe from Apex and Flow; replay/retention and delivery semantics; legacy PushTopic/Generic/Streaming API status; and webhook patterns. Load only when the user explicitly invokes this skill by name (`dya-sf-integration-events`); do NOT auto-trigger on generic event or integration questions.
+description: Salesforce event-driven integration (Winter '27 / API v68.0) — Platform Events, Change Data Capture (CDC), and the Pub/Sub API (gRPC) as the strategic streaming interface; publish/subscribe from Apex and Flow; replay/retention and delivery semantics; legacy PushTopic/Generic/Streaming API status; and webhook patterns. Applies to platform event objects (__e), Change Data Capture selections, event triggers, EventBus.publish calls, Pub/Sub API clients, event-triggered Flows. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-events`).
 ---
 
 # Salesforce Event-Driven Integration

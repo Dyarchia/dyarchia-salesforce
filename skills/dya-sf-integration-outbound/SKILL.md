@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-outbound
-description: Salesforce outbound integration (Winter '27 / API v68.0) — Salesforce calling external systems. Apex HTTP callouts and limits, async callout patterns (Queueable/future/Continuation), the callout-after-DML rule, Flow HTTP Callout, External Services, Outbound Messages (legacy), Salesforce Connect/External Objects, and calling external APIs from LWC (Apex proxy vs fetch/CSP). Load only when the user explicitly invokes this skill by name (`dya-sf-integration-outbound`); do NOT auto-trigger on generic callout or integration questions.
+description: Salesforce outbound integration (Winter '27 / API v68.0) — Salesforce calling external systems. Apex HTTP callouts and limits, async callout patterns (Queueable/future/Continuation), the callout-after-DML rule, Flow HTTP Callout, External Services, Outbound Messages (legacy), Salesforce Connect/External Objects, and calling external APIs from LWC (Apex proxy vs fetch/CSP). Applies to HttpRequest callouts and HttpCalloutMock tests, Continuation, Flow HTTP Callout, External Services, Outbound Messages, External Objects, Remote Site and CSP Trusted Site settings. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-outbound`).
 ---
 
 # Salesforce Outbound Integration

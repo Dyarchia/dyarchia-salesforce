@@ -1,6 +1,6 @@
 ---
 name: dya-sf-aura
-description: Salesforce Aura Components Winter '27 (API v68.0) modern development best practices — when (not) to use Aura, lightning-namespace base components, LDS data access without Apex, server-side controllers, component vs application events, aura:method, attributes and expressions, lifecycle, LWC interop, Lightning Message Service, security and downloads. Load only when the user explicitly invokes this skill by name (`dya-sf-aura`); do NOT auto-trigger on generic Aura, Lightning, or Salesforce component questions.
+description: Salesforce Aura Components Winter '27 (API v68.0) modern development best practices — when (not) to use Aura, lightning-namespace base components, LDS data access without Apex, server-side controllers, component vs application events, aura:method, attributes and expressions, lifecycle, LWC interop, Lightning Message Service, security and downloads. Applies to aura/ bundles (.cmp, .app, .evt, controller, helper and renderer JS) and the Apex controllers behind them. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-aura`).
 ---
 
 # Salesforce Aura Components — Modern Development

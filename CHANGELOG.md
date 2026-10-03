@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Skills load before an edit in their scope, not only when invoked by name.** The old contract kept twenty-six playbooks out of unrelated sessions, but it also meant an agent wrote Apex without the Apex rules in context unless someone remembered to ask for them. Every description now carries an `Applies to` list of the concrete files and metadata that put an edit in scope (`*.cls` and `*.trigger` for `dya-sf-apex`, `*.flow-meta.xml` for `dya-sf-flow`, permission sets and sharing rules for `dya-sf-permissions`) and closes on a new trigger clause: *Load before creating or editing anything in this scope, or when the user invokes this skill by name.* A question that changes no code still loads nothing, and an edit that crosses scopes, such as an Apex class making a callout, loads every skill it touches. Both validator twins match the new clause. `/dya-sf-skills` stays as the catalogue, and its `Platform and tooling` group now names `cli`, not the nonexistent `sf-cli`.
+
 ## [0.6.1] - 2026-09-18
 
 ### Changed

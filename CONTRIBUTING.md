@@ -25,9 +25,10 @@ Work flows one way: **feature → `develop` → `master`**.
 1. **Confirm the gap is real.** A skill enters the library on a recurring need from actual project
    work, not because a topic exists. Growing `references/` in a sibling beats a thin new skill.
 2. **Create `skills/dya-sf-<name>/SKILL.md`** with the two frontmatter keys: `name`, identical to the
-   folder name, and `description` stating domain, version and surface, then closing on the
-   invocation clause verbatim: *Load only when the user explicitly invokes this skill by name
-   (`dya-sf-<name>`); do NOT auto-trigger on generic `<domain>` questions.*
+   folder name, and `description` stating domain, version and surface, then the files and metadata
+   that put an edit in scope, then closing on the trigger clause verbatim: *Applies to `<files and
+   metadata>`. Load before creating or editing anything in this scope, or when the user invokes this
+   skill by name (`dya-sf-<name>`).*
 3. **Write the body** to the conventions in `CLAUDE.md`: scope and its **explicit exclusions**
    first, then the numbered rules. Say what the skill is not — the commerce and integration families
    route on those boundaries. Never open by assigning an identity.

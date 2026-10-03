@@ -1,6 +1,6 @@
 ---
 name: dya-sf-permissions
-description: Salesforce permissions & sharing model (Winter '27 / API v68.0) — the conceptual reference so an agent knows the access model end to end. Profiles, permission sets, permission set groups and muting, the "who sees what" sharing model (OWD, role hierarchy, sharing rules, manual/Apex sharing, teams), restriction and scoping rules, field-level security, record types, guest access, and how it all interacts with Apex user mode. Load only when the user explicitly invokes this skill by name (`dya-sf-permissions`); do NOT auto-trigger on generic permission or security questions.
+description: Salesforce permissions & sharing model (Winter '27 / API v68.0) — the conceptual reference so an agent knows the access model end to end. Profiles, permission sets, permission set groups and muting, the "who sees what" sharing model (OWD, role hierarchy, sharing rules, manual/Apex sharing, teams), restriction and scoping rules, field-level security, record types, guest access, and how it all interacts with Apex user mode. Applies to permission sets, permission set groups, profiles, sharing rules, sharing settings, field-level security, record types, Apex sharing and user-mode access code. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-permissions`).
 ---
 
 # Salesforce Permissions & Sharing Model

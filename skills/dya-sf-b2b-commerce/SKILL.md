@@ -1,6 +1,6 @@
 ---
 name: dya-sf-b2b-commerce
-description: Salesforce B2B (and D2C) Commerce on Core developer surface (Winter '27 / API v68.0) — the programmatic side, built on the Salesforce platform with LWC + Apex. The CartExtension framework (CartCalculate orchestrator + Pricing/Promotions/Inventory/Shipping/Tax calculators), ConnectApi.BaseEndpointExtension endpoint extensions, the ConnectApi.CommerceCart Apex API, buyer groups/entitlements, and Storefront/LWR. Not CloudCraze, not B2C Commerce. Load only when the user explicitly invokes this skill by name (`dya-sf-b2b-commerce`); do NOT auto-trigger on generic commerce or Salesforce questions.
+description: Salesforce B2B (and D2C) Commerce on Core developer surface (Winter '27 / API v68.0) — the programmatic side, built on the Salesforce platform with LWC + Apex. The CartExtension framework (CartCalculate orchestrator + Pricing/Promotions/Inventory/Shipping/Tax calculators), ConnectApi.BaseEndpointExtension endpoint extensions, the ConnectApi.CommerceCart Apex API, buyer groups/entitlements, and Storefront/LWR. Not CloudCraze, not B2C Commerce. Applies to CartExtension calculators, endpoint extensions, ConnectApi.CommerceCart code, buyer group and entitlement setup, B2B or D2C storefront components. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-b2b-commerce`).
 ---
 
 # Salesforce B2B Commerce (on Core) — Developer Surface

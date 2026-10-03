@@ -1,6 +1,6 @@
 ---
 name: dya-sf-data360
-description: Salesforce Data 360 (formerly Data Cloud) Winter '27 (API v68.0) — from zero to expert. What Data 360 is and the ingest→DLO→DMO→identity→insights→activation pipeline; key objects (DLO, DMO, UDLO, EDLO, CI, segments, data graphs, dataspaces); getting data in (Ingestion API, connectors, zero-copy); modeling and identity resolution; querying (SOQL on DMOs in Apex, Query API SQL, Connect API); calculated insights and segments; data actions and automation; credit/cost governance; grounding for Agentforce and RAG. Load only when the user explicitly invokes this skill by name (`dya-sf-data360`); do NOT auto-trigger on generic Data Cloud, data, or Salesforce questions.
+description: Salesforce Data 360 (formerly Data Cloud) Winter '27 (API v68.0) — from zero to expert. What Data 360 is and the ingest→DLO→DMO→identity→insights→activation pipeline; key objects (DLO, DMO, UDLO, EDLO, CI, segments, data graphs, dataspaces); getting data in (Ingestion API, connectors, zero-copy); modeling and identity resolution; querying (SOQL on DMOs in Apex, Query API SQL, Connect API); calculated insights and segments; data actions and automation; credit/cost governance; grounding for Agentforce and RAG. Applies to data streams, DLO and DMO mappings, identity rulesets, calculated insights, segments, data actions, Ingestion or Query API clients, Apex and SOQL over DMOs. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-data360`).
 ---
 
 # Salesforce Data 360 — From Zero to Expert

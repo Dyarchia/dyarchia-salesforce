@@ -11,7 +11,7 @@ PLUGIN_MANIFEST="$REPO_ROOT/.claude-plugin/plugin.json"
 MARKETPLACE_MANIFEST="$REPO_ROOT/.claude-plugin/marketplace.json"
 CODEX_MANIFEST="$REPO_ROOT/.codex-plugin/plugin.json"
 
-INVOCATION_CLAUSE='Load only when the user explicitly invokes this skill by name'
+INVOCATION_CLAUSE='Load before creating or editing anything in this scope'
 # README names that are deliberately dya-prefixed without a folder under skills/.
 NON_SKILL_TOKENS=" dya-sf-skills dya-sf- "
 

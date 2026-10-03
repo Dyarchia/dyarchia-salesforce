@@ -1,6 +1,6 @@
 ---
 name: dya-sf-visualforce
-description: Salesforce Visualforce Winter '27 (API v68.0) modern development best practices — when (not) to use VF, MVC and controller design, view state, security and output encoding, JavaScript Remoting, SLDS theming, Lightning Message Service interop, PDF/email rendering. Load only when the user explicitly invokes this skill by name (`dya-sf-visualforce`); do NOT auto-trigger on generic Visualforce, Apex, or Salesforce UI questions.
+description: Salesforce Visualforce Winter '27 (API v68.0) modern development best practices — when (not) to use VF, MVC and controller design, view state, security and output encoding, JavaScript Remoting, SLDS theming, Lightning Message Service interop, PDF/email rendering. Applies to *.page and Visualforce *.component files, their controllers and extensions, Visualforce PDF and email templates. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-visualforce`).
 ---
 
 # Salesforce Visualforce — Modern Development

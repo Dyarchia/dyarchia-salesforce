@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-inbound-apis
-description: Salesforce standard inbound APIs (Winter '27 / API v68.0) — how external systems read/write Salesforce data. REST API and the composite family, SOAP (enterprise vs partner), Bulk API 2.0, GraphQL, and the Connect/UI/Metadata/Tooling APIs; choosing among them, batching, and limits. Load only when the user explicitly invokes this skill by name (`dya-sf-integration-inbound-apis`); do NOT auto-trigger on generic API or integration questions.
+description: Salesforce standard inbound APIs (Winter '27 / API v68.0) — how external systems read/write Salesforce data. REST API and the composite family, SOAP (enterprise vs partner), Bulk API 2.0, GraphQL, and the Connect/UI/Metadata/Tooling APIs; choosing among them, batching, and limits. Applies to external clients of the REST, composite, SOAP, Bulk 2.0, GraphQL, Metadata or Tooling APIs, and scripts that load or read Salesforce data through them. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-inbound-apis`).
 ---
 
 # Salesforce Inbound Standard APIs

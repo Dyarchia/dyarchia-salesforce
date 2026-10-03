@@ -132,7 +132,7 @@ SKILL.md absent                                        per skill folder
 no YAML frontmatter block                              the leading ---...--- must parse
 no name key, or name differs from the folder name      exact string match
 no description key                                     presence
-description lacks the invocation clause                literal substring match
+description lacks the trigger clause                   literal substring match
 skill name appears nowhere in README.md                full-text scan - a failure, not a warning
 ```
 
@@ -172,8 +172,8 @@ everywhere or fails — it cannot land one skill at a time.
 no core API version) and `dya-sf-cli` (versions on the CLI's own weekly cadence). Like
 `$nonSkillTokens`, it is hardcoded in **both** scripts.
 
-The invocation clause is matched as the literal substring `Load only when the user explicitly
-invokes this skill by name`. Reword it and the skill fails validation.
+The trigger clause is matched as the literal substring `Load before creating or editing anything in
+this scope`. Reword it and the skill fails validation.
 
 The allowlist behind that second warning is hardcoded in both scripts — `$nonSkillTokens` in the
 PowerShell version, `NON_SKILL_TOKENS` in the bash one — and holds two entries: `dya-sf-skills`, the
@@ -197,17 +197,20 @@ Every `SKILL.md` opens with YAML frontmatter carrying exactly two keys:
 ```yaml
 ---
 name: dya-sf-<name>
-description: <domain and version> — <what it covers, comma-separated>. Load only when the user
-  explicitly invokes this skill by name (`dya-sf-<name>`); do NOT auto-trigger on generic
-  <domain> questions.
+description: <domain and version> — <what it covers, comma-separated>. Applies to <the files and
+  metadata that put an edit in scope>. Load before creating or editing anything in this scope, or
+  when the user invokes this skill by name (`dya-sf-<name>`).
 ---
 ```
 
 Three invariants, all load-bearing:
 
 - `name` matches the containing folder name, exactly.
-- The description ends with the explicit-invocation clause. These are reference playbooks, not
-  ambient context — auto-triggering them on generic questions poisons unrelated sessions.
+- The description ends with the trigger clause, preceded by an `Applies to` list of concrete files
+  and metadata types. The skill loads before any edit inside its scope, so the rules are in context
+  when the code is written rather than when someone remembers to ask; a question that changes no
+  code loads nothing. Name file extensions and metadata types, not topics: the list is what the
+  router matches an edit against, and an edit that crosses scopes loads every skill it touches.
 - The description enumerates the actual surface covered, so the router can pick between siblings
   without loading them.
 
@@ -363,10 +366,8 @@ edit that caused it.
 Implemented: the plugin, marketplace and Codex manifests, `skills/`, `commands/`, the packaging and
 validation scripts.
 
-`commands/` holds one entry, `/dya-sf-skills`, and it exists because of a consequence of the
-frontmatter contract. Skills that load **only on explicit invocation** are undiscoverable by
-definition: asking a Salesforce question never surfaces them, so a reader who does not already know
-the catalogue never finds it. The command prints that catalogue. It reads the descriptions already in
+`commands/` holds one entry, `/dya-sf-skills`. Skills load on their own only before an edit in
+their scope, so a reader who is asking rather than editing never sees them. The command prints that catalogue. It reads the descriptions already in
 context rather than the filesystem, so it cannot drift from what is installed.
 
 **Not implemented:** `agents/`, `hooks/` and `mcp/`. Nothing depends on them; they are additive
