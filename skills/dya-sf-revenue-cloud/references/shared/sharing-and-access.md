@@ -26,9 +26,9 @@ A user needs a "yes" to both questions to act on a record.
 - View All / Modify All
 - Granted by profile plus permission sets
 
-The most common bug satisfies one axis but not the other. "The record is shared with them but they
-cannot edit it" is missing object or field permissions. "They have Edit on the object but see no
-rows" is missing sharing.
+Check both axes; the most common bug satisfies one but not the other. "The record is shared with
+them but they cannot edit it" is missing object or field permissions. "They have Edit on the object
+but see no rows" is missing sharing.
 
 ## Where permissions come from
 
@@ -42,7 +42,7 @@ permission sets; keep the profile minimal.
 
 ## System mode versus user mode
 
-Whether Apex enforces or bypasses permissions is the most important thing to get right in code.
+Get this right first in any code: whether Apex enforces or bypasses permissions.
 
 | Context | Access mode | Sharing enforced? |
 |---|---|---|
@@ -53,7 +53,7 @@ Whether Apex enforces or bypasses permissions is the most important thing to get
 | Flow (default) | System mode with sharing, unless set to user context | Depends on the setting |
 
 From API 67.0 a class with no `with sharing` / `without sharing` keyword defaults to `with sharing`.
-Write the keyword anyway, so a reader does not need the version to know the behaviour.
+Write the keyword anyway; a reader then does not need the version to know the behaviour.
 
 ```apex
 public with sharing class AccountService {
@@ -65,7 +65,8 @@ public with sharing class AccountService {
 ```
 
 `WITH SECURITY_ENFORCED` was removed at 67.0 and no longer compiles. Where a partial result is
-acceptable, `Security.stripInaccessible` removes fields the user cannot see instead of throwing.
+acceptable, use `Security.stripInaccessible`; it removes fields the user cannot see instead of
+throwing.
 
 ## Record types
 

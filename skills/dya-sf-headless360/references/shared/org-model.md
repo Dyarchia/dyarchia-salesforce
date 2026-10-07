@@ -20,8 +20,8 @@ and it moves between orgs as metadata.
 | Scratch org | A disposable org built from a config file and a source push | Up to 30 days |
 | Developer Edition | A free permanent org for learning and packaging | Indefinitely |
 
-Sandboxes get the next release **ahead of production** during preview windows; a new API version is
-tested there before it reaches live users.
+Sandboxes get the next release **ahead of production** during preview windows. Test a new API
+version there before it reaches live users.
 
 ## Metadata and the source tree
 
@@ -51,8 +51,8 @@ sf apex run test --target-org myorg --code-coverage                 # run tests
 ```
 
 Deploying to **production** runs Apex tests and requires **75% aggregate Apex code coverage**, with
-every trigger covered by at least one line. Sandboxes do not enforce that gate, so coverage
-problems surface late. Declarative Flow tests do **not** count toward this percentage.
+every trigger covered by at least one line. Sandboxes do not enforce that gate; coverage problems
+surface late. Declarative Flow tests do **not** count toward this percentage.
 
 Certain metadata types deploy only between two orgs on **the same API version**; Agentforce agent
 definitions in 68.0 are the current example.
@@ -62,10 +62,10 @@ definitions in 68.0 are the current example.
 - **Unlocked packages**: versioned bundles of your own metadata, the modern way to modularise an org.
 - **Managed packages**: what ISVs publish on AppExchange. Their internals are hidden, their components carry a
   **namespace prefix** (`acme__Field__c`), and you cannot edit them.
-- **Change sets**: the point-and-click path between related orgs. Slow, unversioned, no diff. Fine
-  for a one-off, wrong as a delivery process.
+- **Change sets**: the point-and-click path between related orgs. Slow, unversioned, no diff. Use
+  them for a one-off, never as a delivery process.
 
-In a subscriber org, code addresses a packaged field with its **namespace** prefix. Winter '27 adds
+In a subscriber org, address a packaged field with its **namespace** prefix. Winter '27 adds
 `explicitNamespace` on `Database.QueryOptions` so a subscriber's own field of the same name cannot
 shadow the packaged one.
 

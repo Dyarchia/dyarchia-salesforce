@@ -6,8 +6,8 @@ allowed-tools: Read, Glob
 
 Print the catalogue of `dya-sf-` Salesforce skills available in this session.
 
-These skills load on their own only before an edit in their scope, so a reader who is asking
-rather than editing never sees them.
+These skills load on their own only before an edit in their scope; a reader who is asking rather
+than editing never sees them.
 
 ## What to print
 
@@ -49,5 +49,5 @@ Close with one line on how to invoke a skill, naming a real example from the lis
 placeholder. Say that `dya-sf-integration-overview` is the entry point for choosing an integration
 pattern, since it routes between its siblings.
 
-Keep it scannable. This is a menu, not documentation: no preamble, no explanation of what agent
-skills are, and no offer of further work unless the user asks.
+Keep it scannable: a menu, not documentation. Print no preamble, no explanation of what agent skills
+are, and no offer of further work unless the user asks.
