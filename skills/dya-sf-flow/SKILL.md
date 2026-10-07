@@ -35,6 +35,14 @@ Save new flows at `<apiVersion>68.0</apiVersion>` in the `.flow-meta.xml`.
 
 > Every feature the release adds, plus earlier changes now standard: `references/release-notes.md`.
 
+## Summary — The Five Commandments
+
+1. **Flow first, Apex second** — build declaratively whenever Flow can express the requirement; it is equally bulkified when used correctly.
+2. **Bulkify by structure** — no data element inside a Loop; collections in, collections out; tune batch size only when you measure a real limit.
+3. **Fault Paths are mandatory** — every fallible element gets one, routed somewhere durable.
+4. **Named Credentials always** — no raw URLs, no inline secrets.
+5. **Test every flow, though no gate forces you** — Flow Tests earn no Apex coverage and block no deployment, and production is unforgiving.
+
 ---
 
 ## 1. Absolute Rule — When Flow Is the Right Tool
@@ -266,11 +274,3 @@ control through a pipeline: validate against a sandbox, then deploy.
 | A custom Apex input type with no no-arg constructor | Add a public no-argument constructor |
 | A free-text action input whose values are a fixed set | Picklist values via `InvocableActionExtension` |
 | Applying an AI "Fix Issue" without review | Verify in Debug before reactivating |
-
-## Summary — The Five Commandments
-
-1. **Flow first, Apex second** — build declaratively whenever Flow can express the requirement; it is equally bulkified when used correctly.
-2. **Bulkify by structure** — no data element inside a Loop; collections in, collections out; tune batch size only when you measure a real limit.
-3. **Fault Paths are mandatory** — every fallible element gets one, routed somewhere durable.
-4. **Named Credentials always** — no raw URLs, no inline secrets.
-5. **Test every flow, though no gate forces you** — Flow Tests earn no Apex coverage and block no deployment, and production is unforgiving.

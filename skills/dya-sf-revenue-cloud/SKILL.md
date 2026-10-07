@@ -41,6 +41,14 @@ still apply.
   permission set licences**: without them the APIs are absent rather than failing informatively. See
   `dya-sf-permissions`.
 
+## Summary — The Five Commandments
+
+1. **Treat RCA as the API-first CPQ successor** — a re-implementation with a new data model; never port legacy CPQ logic.
+2. **Use the same extension shape in every domain** — Connect REST (external), invocable actions (Flow/Agentforce), Apex (on-platform), Metadata API (deploy), platform events (react).
+3. **Configure pricing, then hook** — Pricing Procedures + Decision/Lookup Tables + Context Service; **Apex Hooks** for the inexpressible (not Quote Calculator Plugins).
+4. **Place transactions via Place Quote / Place Sales Transaction** — never raw DML; use `PlaceQuoteRLMApexProcessor` in Apex.
+5. **After rule changes, refresh** — Decision Table Refresh Action + PCM index deploy; build on core with `with sharing` + `WITH USER_MODE` and the Revenue Cloud PSLs.
+
 ---
 
 ## 1. The Domains (the map)
@@ -165,13 +173,3 @@ from an existing quote. Full Apex, endpoints and actions: `references/transactio
 | Bypassing Qualification Rules in code | Configure eligibility in Product Discovery |
 | `WITH SECURITY_ENFORCED` in RCA Apex | `WITH USER_MODE` |
 | Hand-rolling invoice/credit math | Billing ConnectApi / invocable actions |
-
----
-
-## Summary — The Five Commandments
-
-1. **Treat RCA as the API-first CPQ successor** — a re-implementation with a new data model; never port legacy CPQ logic.
-2. **Use the same extension shape in every domain** — Connect REST (external), invocable actions (Flow/Agentforce), Apex (on-platform), Metadata API (deploy), platform events (react).
-3. **Configure pricing, then hook** — Pricing Procedures + Decision/Lookup Tables + Context Service; **Apex Hooks** for the inexpressible (not Quote Calculator Plugins).
-4. **Place transactions via Place Quote / Place Sales Transaction** — never raw DML; use `PlaceQuoteRLMApexProcessor` in Apex.
-5. **After rule changes, refresh** — Decision Table Refresh Action + PCM index deploy; build on core with `with sharing` + `WITH USER_MODE` and the Revenue Cloud PSLs.

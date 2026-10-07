@@ -37,6 +37,17 @@ often need embedding. See `dya-sf-lwc`.
 - **Salesforce Multi-Framework (UI Bundles) now covers React *and* Angular, and packages as 2GP** —
   managed or unlocked, namespace supported, distributable on AppExchange. Hyperforce only. See §8.
 
+## Summary — The Five Commandments
+
+1. **Decide the runtime first** — decide LEX (Aura) vs LWR vs Lightning Out before writing; they are not
+   interchangeable.
+2. **Assume no Aura underneath** — verify module and base-component availability against LWR; do not
+   assume LEX services exist.
+3. **Treat navigation and security as different** — `lightning/navigation` is a narrower client-side router
+   on LWR; LWS (not Locker) with strict CSP, and `data:` URIs are blocked.
+4. **Design for the guest** — read-only, no ownership, empty/denied is a normal state.
+5. **Default to LWC; use a UI Bundle when the app ships to other orgs** — Multi-Framework packages as 2GP, but it is Hyperforce-only and adds a build step LWC does not have.
+
 ---
 
 ## 1. Know Your Target Runtime
@@ -192,16 +203,3 @@ lower-risk choice for a UI that will only ever live in one org.
 | Reaching for a UI Bundle without checking Hyperforce and the Dev Hub packaging toggle | Verify both first — `sf package create` returns `NOT_FOUND` until the toggle is on |
 | Pulling heavy libraries into a guest-facing page | Keep bundles lean; lazy-load |
 | API version below 68.0 on new components | `<apiVersion>68.0</apiVersion>` in the `*-meta.xml` |
-
----
-
-## Summary — The Five Commandments
-
-1. **Decide the runtime first** — decide LEX (Aura) vs LWR vs Lightning Out before writing; they are not
-   interchangeable.
-2. **Assume no Aura underneath** — verify module and base-component availability against LWR; do not
-   assume LEX services exist.
-3. **Treat navigation and security as different** — `lightning/navigation` is a narrower client-side router
-   on LWR; LWS (not Locker) with strict CSP, and `data:` URIs are blocked.
-4. **Design for the guest** — read-only, no ownership, empty/denied is a normal state.
-5. **Default to LWC; use a UI Bundle when the app ships to other orgs** — Multi-Framework packages as 2GP, but it is Hyperforce-only and adds a build step LWC does not have.

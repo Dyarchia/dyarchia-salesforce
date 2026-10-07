@@ -36,6 +36,14 @@ References:
 - **The server-side language is JavaScript** on the Rhino-based Script API — not Node.js, not
   Apex.
 
+## Summary — The Five Commandments
+
+1. **Treat it as not Salesforce core** — server-side JavaScript, `dw.*` Script API, cartridges, ISML, SCAPI; no Apex/LWC/SOQL.
+2. **Use SCAPI only for new work; OCAPI is deprecated (Apr 2026)** — SLAS is the mandatory gatekeeper; use each refresh token once.
+3. **Extend by layering, not forking** — cartridge-path overrides, `server.append`, and hooks; never touch the base cartridge.
+4. **Use the real endpoint shape** — `{shortCode}.api.commercecloud.salesforce.com/{family}/{api}/{version}/organizations/{org}/{resource}?siteId=`; `v1` except Shopper Baskets (`v1/v2`).
+5. **Keep secrets server-side, cache deliberately, personalize with Shopper Context** — private SLAS clients on a BFF; chunk jobs ≤1,000 objects/transaction.
+
 ---
 
 ## 1. Choose the Architecture
@@ -226,13 +234,3 @@ response-modifying hooks, it preserves object-level caching.
 | Business logic in ISML templates | Logic in controllers/Script API; ISML renders |
 | Row-by-row job over a huge feed | Chunk-oriented step; ≤1,000 objects per transaction |
 | Relying on hook execution order | Order is not guaranteed; only the last hook returns a value |
-
----
-
-## Summary — The Five Commandments
-
-1. **Treat it as not Salesforce core** — server-side JavaScript, `dw.*` Script API, cartridges, ISML, SCAPI; no Apex/LWC/SOQL.
-2. **Use SCAPI only for new work; OCAPI is deprecated (Apr 2026)** — SLAS is the mandatory gatekeeper; use each refresh token once.
-3. **Extend by layering, not forking** — cartridge-path overrides, `server.append`, and hooks; never touch the base cartridge.
-4. **Use the real endpoint shape** — `{shortCode}.api.commercecloud.salesforce.com/{family}/{api}/{version}/organizations/{org}/{resource}?siteId=`; `v1` except Shopper Baskets (`v1/v2`).
-5. **Keep secrets server-side, cache deliberately, personalize with Shopper Context** — private SLAS clients on a BFF; chunk jobs ≤1,000 objects/transaction.

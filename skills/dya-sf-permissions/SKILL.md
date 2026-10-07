@@ -40,6 +40,14 @@ read and write — not just the UI. See `references/shared/platform-deltas.md` a
 needed the profile name; broad visibility is the fallback. Profile filtering's bypass permissions are
 View All Profiles, Customize Application, Manage Users and five others.
 
+## Summary — The Five Commandments
+
+1. **Keep the two questions separate** — what they can *do* (CRUD, FLS, permissions) versus which records they can *see* (sharing).
+2. **Build access additively** — minimal profile, capability through permission sets and groups, removal only through muting.
+3. **Widen sharing from a restrictive OWD** — hierarchy, rules, manual and Apex sharing, teams, implicit grants; only restriction rules narrow.
+4. **Enforce the model in code** — `with sharing` plus `WITH USER_MODE`; triggers are the system-mode exception.
+5. **Apply least privilege: fix the model, never the symptom.** Widening access to clear an error exposes the same data in reports and the API.
+
 ---
 
 ## 1. Two Independent Questions
@@ -208,11 +216,3 @@ views and the API.
 | Listing a required field in `fieldPermissions` | Required fields cannot carry FLS; omit them or the deploy fails |
 | `ProbabilisticEncryption` on a field you filter or sort | A deterministic scheme, accepting the weaker guarantee knowingly |
 | Assigning a permission set before its licence | If the set has a `LicenseId`, the `PermissionSetLicenseAssign` goes first |
-
-## Summary — The Five Commandments
-
-1. **Keep the two questions separate** — what they can *do* (CRUD, FLS, permissions) versus which records they can *see* (sharing).
-2. **Build access additively** — minimal profile, capability through permission sets and groups, removal only through muting.
-3. **Widen sharing from a restrictive OWD** — hierarchy, rules, manual and Apex sharing, teams, implicit grants; only restriction rules narrow.
-4. **Enforce the model in code** — `with sharing` plus `WITH USER_MODE`; triggers are the system-mode exception.
-5. **Apply least privilege: fix the model, never the symptom.** Widening access to clear an error exposes the same data in reports and the API.

@@ -41,6 +41,14 @@ asynchronous, which matters when a scheduling call holds a large candidate set.
 - **Mobile** extensibility is **LWC Offline** on the `lightning__FieldServiceMobile` target. Apex
   writes, callouts, triggers and validation rules do **not** run offline.
 
+## Summary — The Five Commandments
+
+1. **scope-1 + DML-before-callout** — batch with scope 1, set the arrival window (DML) then schedule (callout) in separate steps.
+2. **Signatures are real and order matters** — `schedule(policyId, appointmentId)`, `GetSlots(saId, policyId, oh, tz, sortBy, exact)`; widen `DueDate` for more slots.
+3. **Heavy work is async; optimize 1–7 days** — Queueable/Batch with `AllowsCallouts`; chain Optimization Requests for longer horizons.
+4. **External booking via Salesforce Scheduler REST** — candidates/slots, persist the SA only on slot selection.
+5. **User mode plus a managed package means verify** — explicit `with sharing` + `WITH USER_MODE`, confirm `FSL` members in a sandbox; mobile is offline-first.
+
 ---
 
 ## 1. The Two Programmatic Layers
@@ -307,13 +315,3 @@ package version**. Re-verify whenever that version differs from the tested one.
 | Optimizing a 21-day window every run | Optimize 1–7 days; chain for longer |
 | Assuming Apex writes/triggers run offline on mobile | Offline-first; reconcile on sync |
 | Guessing `FSL` member names | Verify in a sandbox (§8) |
-
----
-
-## Summary — The Five Commandments
-
-1. **scope-1 + DML-before-callout** — batch with scope 1, set the arrival window (DML) then schedule (callout) in separate steps.
-2. **Signatures are real and order matters** — `schedule(policyId, appointmentId)`, `GetSlots(saId, policyId, oh, tz, sortBy, exact)`; widen `DueDate` for more slots.
-3. **Heavy work is async; optimize 1–7 days** — Queueable/Batch with `AllowsCallouts`; chain Optimization Requests for longer horizons.
-4. **External booking via Salesforce Scheduler REST** — candidates/slots, persist the SA only on slot selection.
-5. **User mode plus a managed package means verify** — explicit `with sharing` + `WITH USER_MODE`, confirm `FSL` members in a sandbox; mobile is offline-first.

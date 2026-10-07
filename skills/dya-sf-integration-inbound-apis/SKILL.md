@@ -41,6 +41,14 @@ Who the integration user may be, and what its permissions let the call see, belo
 - **Connect REST API** draws on the per-org 24-hour Platform API pool, except Chatter-touching
   requests. HTTPS is mandatory.
 
+## Summary — The Five Commandments
+
+1. **Default to REST; use Bulk past 10k, Composite to cut round trips, GraphQL for field-precise/graph access.**
+2. **Pick the composite resource by shape** — dependent (Composite/Graph), independent (Batch), same-shape (Collections), nested insert (Tree); governor limits are cumulative.
+3. **Use SOAP only for WSDL/legacy consumers**, and never on `login()` — OAuth + ECA.
+4. **Make every write path idempotent** with upsert on external id.
+5. **Target a current API version** — 68.0 for new work, 41.0 as the absolute floor — pinned explicitly, never `/latest`, and authenticated with OAuth. See `dya-sf-integration-auth`.
+
 ---
 
 ## 1. Pick the API
@@ -176,13 +184,3 @@ UI-API objects.
 | Pinning a production integration to `/latest` | An explicit version you upgrade deliberately |
 | Assuming an integration user sees everything | Its own object and field access governs the call — see `dya-sf-permissions` |
 | Over-fetching whole sObjects when a few fields suffice | GraphQL field selection |
-
----
-
-## Summary — The Five Commandments
-
-1. **Default to REST; use Bulk past 10k, Composite to cut round trips, GraphQL for field-precise/graph access.**
-2. **Pick the composite resource by shape** — dependent (Composite/Graph), independent (Batch), same-shape (Collections), nested insert (Tree); governor limits are cumulative.
-3. **Use SOAP only for WSDL/legacy consumers**, and never on `login()` — OAuth + ECA.
-4. **Make every write path idempotent** with upsert on external id.
-5. **Target a current API version** — 68.0 for new work, 41.0 as the absolute floor — pinned explicitly, never `/latest`, and authenticated with OAuth. See `dya-sf-integration-auth`.

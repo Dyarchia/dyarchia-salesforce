@@ -35,6 +35,14 @@ Standing facts:
 - **Salesforce-to-Salesforce** ended support in Summer '26 and stops functioning in Spring '27 —
   migrate to MuleSoft, Data Cloud One, or the Cross-Org adapter.
 
+## Summary — The Five Commandments
+
+1. **Don't hand-code past one integration** — connectors/MuleSoft once it's multi-system or needs orchestration.
+2. **Use MuleSoft for Flow for prebuilt SaaS**, Anypoint for real orchestration/transformation/API management.
+3. **Move no data when none needs moving** — Data 360 zero-copy for analytics/grounding.
+4. **Use MCP as the agentic integration surface** — custom servers expose your Apex actions/Flows/Named Queries; curate, describe, and run as a least-privilege user.
+5. **Mind the retirements** — Salesforce Functions gone (→ Heroku/AppLink), Salesforce-to-Salesforce ending (→ Cross-Org/MuleSoft/Data Cloud One).
+
 ---
 
 ## 1. The First Question — Should You Code This At All?
@@ -154,13 +162,3 @@ MCP and HXL internals: `dya-sf-headless360`.
 | Assuming MCP bypasses security | It runs as the user with CRUD/FLS/sharing |
 | Rewriting an action as a separate MCP tool | Reuse the `@InvocableMethod` as both |
 | Rebuilding an external capability inside the org for an agent | Connect its MCP server through a governed connection |
-
----
-
-## Summary — The Five Commandments
-
-1. **Don't hand-code past one integration** — connectors/MuleSoft once it's multi-system or needs orchestration.
-2. **Use MuleSoft for Flow for prebuilt SaaS**, Anypoint for real orchestration/transformation/API management.
-3. **Move no data when none needs moving** — Data 360 zero-copy for analytics/grounding.
-4. **Use MCP as the agentic integration surface** — custom servers expose your Apex actions/Flows/Named Queries; curate, describe, and run as a least-privilege user.
-5. **Mind the retirements** — Salesforce Functions gone (→ Heroku/AppLink), Salesforce-to-Salesforce ending (→ Cross-Org/MuleSoft/Data Cloud One).

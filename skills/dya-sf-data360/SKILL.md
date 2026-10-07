@@ -43,6 +43,14 @@ the Data 360 release notes too.
 > Headless DevOps for Data 360, Data Custom Code and the rest of the release surface:
 > `references/release-notes.md`.
 
+## Summary — The Five Commandments
+
+1. **Know the pipeline** — ingest → DLO → map → DMO → identity resolution → insights/segments/activation; Data 360 is the unified source of truth, not your CRM DB.
+2. **Let credits govern design** — batch by default, identity resolution incrementally, every query filtered and limited; a design review is a cost review.
+3. **Model to the Customer 360 standard** — map to standard DMOs, configure key qualifiers, avoid join-heavy models.
+4. **Query by where the logic lives** — SOQL on `__dlm` from Apex, Query API SQL for analytics, Connect API for apps, Data Graph for fast profiles; always `WHERE`/`LIMIT`/`DATASPACE`.
+5. **Ground the AI in Data 360** — structured profiles + CIs and unstructured vector search make Agentforce accurate, fresh, and auditable.
+
 ---
 
 ## 1. Foundations — What Data 360 Is
@@ -281,13 +289,3 @@ accurate, explainable, fresh, governed and auditable.
 | Streaming calculated insights for daily-consumed output | Batch CI |
 | Fine-tuning a model for fresh facts | Ground via Data 360 (fresh, governed) |
 | `WITH SECURITY_ENFORCED` in query Apex | `WITH USER_MODE` (removed in API 67+) |
-
----
-
-## Summary — The Five Commandments
-
-1. **Know the pipeline** — ingest → DLO → map → DMO → identity resolution → insights/segments/activation; Data 360 is the unified source of truth, not your CRM DB.
-2. **Let credits govern design** — batch by default, identity resolution incrementally, every query filtered and limited; a design review is a cost review.
-3. **Model to the Customer 360 standard** — map to standard DMOs, configure key qualifiers, avoid join-heavy models.
-4. **Query by where the logic lives** — SOQL on `__dlm` from Apex, Query API SQL for analytics, Connect API for apps, Data Graph for fast profiles; always `WHERE`/`LIMIT`/`DATASPACE`.
-5. **Ground the AI in Data 360** — structured profiles + CIs and unstructured vector search make Agentforce accurate, fresh, and auditable.

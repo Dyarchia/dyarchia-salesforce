@@ -35,6 +35,19 @@ the routing flow.
 The `AiAgentDefinition` / `AiAgentDefinitionVersion` metadata types that carry an agent at 68.0 are
 `dya-sf-agentforce`'s territory; Omni-Channel only needs the agent's Id to route to it.
 
+## Summary — The Five Commandments
+
+1. **Learn the chain and diagnose along it** — channel, queue, routing config, pending routing,
+   agent work. Every "it is not routing" question is a position on that list.
+2. **Deploy `enableOmniChannel` first.** Nothing else deploys until it is on, and the error does not
+   say so.
+3. **Use `routeWork` as the seam with Agentforce, in both directions.** Escalating to a human and
+   delegating to an agent are the same action with a different target.
+4. **Set the capacity budget on the user and the cost on the channel.** Do not look for the total on
+   `ServiceChannel`.
+5. **Configure it as metadata, in order.** The read paths are asymmetric and several element names
+   changed at v66 — check `references/omni-gotchas.md` before assuming a field exists.
+
 ---
 
 ## 1. The Routing Chain
@@ -173,18 +186,3 @@ matching nobody available waits rather than routing to a competent generalist.
 | Adding required skills to improve quality | Each one shrinks the eligible pool; an unmatched item waits instead of routing |
 | Invoking a Draft or Obsolete flow through the Actions API | 404. Activate it first |
 | Debugging `enableOmniAutoLoginPrompt` | It deploys and round-trips but does not drive the UI |
-
----
-
-## Summary — The Five Commandments
-
-1. **Learn the chain and diagnose along it** — channel, queue, routing config, pending routing,
-   agent work. Every "it is not routing" question is a position on that list.
-2. **Deploy `enableOmniChannel` first.** Nothing else deploys until it is on, and the error does not
-   say so.
-3. **Use `routeWork` as the seam with Agentforce, in both directions.** Escalating to a human and
-   delegating to an agent are the same action with a different target.
-4. **Set the capacity budget on the user and the cost on the channel.** Do not look for the total on
-   `ServiceChannel`.
-5. **Configure it as metadata, in order.** The read paths are asymmetric and several element names
-   changed at v66 — check `references/omni-gotchas.md` before assuming a field exists.

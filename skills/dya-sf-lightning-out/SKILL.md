@@ -35,6 +35,17 @@ Winter '27 changes nothing in Lightning Out. The OAuth username-password flow re
 20 February 2027) does not touch the `singleaccess` exchange; see `dya-sf-integration-auth` if the
 host application authenticates any other way.
 
+## Summary — The Five Commandments
+
+1. **Use Lightning Out 2.0, not 1.0** — LWR-native, GA; closed-shadow-DOM iframe isolation.
+2. **Register the app, then embed** — `app-id` + host script from the App Manager; three
+   attributes on `lightning-out-application`.
+3. **Broker the auth** — token -> `/services/oauth2/singleaccess` -> runtime `frontdoor-url`; no
+   secrets in host JS; CORS-allowlist the host.
+4. **Wire the lifecycle events** — `lo.application.*` / `lo.component.*`; never assume success.
+5. **Build for LWR underneath** — apply every `dya-sf-lwr` constraint; keep a small serialisable
+   contract across the iframe, validated both ways.
+
 ---
 
 ## 1. When to Use Lightning Out (and When Not)
@@ -172,16 +183,3 @@ types will not resolve, and the session may be a limited identity. `dya-sf-lwr` 
 | Using LEX `PageReference` types in the embed | No nav context off-platform; apply LWR rules |
 | Assuming full LEX module/base-component availability | It is LWR — apply `dya-sf-lwr` constraints |
 | Using Lightning Out when you only need data | Call a Salesforce API; no embedded UI |
-
----
-
-## Summary — The Five Commandments
-
-1. **Use Lightning Out 2.0, not 1.0** — LWR-native, GA; closed-shadow-DOM iframe isolation.
-2. **Register the app, then embed** — `app-id` + host script from the App Manager; three
-   attributes on `lightning-out-application`.
-3. **Broker the auth** — token -> `/services/oauth2/singleaccess` -> runtime `frontdoor-url`; no
-   secrets in host JS; CORS-allowlist the host.
-4. **Wire the lifecycle events** — `lo.application.*` / `lo.component.*`; never assume success.
-5. **Build for LWR underneath** — apply every `dya-sf-lwr` constraint; keep a small serialisable
-   contract across the iframe, validated both ways.

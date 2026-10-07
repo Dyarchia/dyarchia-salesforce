@@ -56,6 +56,14 @@ Winter '27 additions:
 Beta and Developer Preview features are **not available in production orgs**; code that defaults to
 one does not deploy.
 
+## Summary — The Five Commandments
+
+1. **Make security explicit.** `with sharing` and `USER_MODE` written out, every time; system mode only with a comment saying why.
+2. **Bulkify everything.** Assume 200 records, test with 200+, and know the limits in `references/shared/governor-limits.md` that make it mandatory.
+3. **Write one trigger per object, zero logic in the file, behind a per-object kill-switch.** Tony Scott by default on greenfield; in an existing org, conform to what is already there — ask first.
+4. **Default async to Queueable plus a Finalizer**; Cursors for flexible chunking, Batch Apex for very large or parallel work. Avoid `@future`, the only legacy one.
+5. **Never invent observability.** Apex exception emails, `AsyncApexJob` and Finalizers are already there; if the org has no logging framework, report it rather than building one.
+
 ---
 
 ## 1. Class Structure
@@ -363,11 +371,3 @@ Write Apex only when the declarative surface cannot express the requirement.
 | Creating a `Log__c` or `Logger` for observability | Apex exception email, or the org's own framework |
 | A Beta or Developer Preview feature in production code | The GA path; the preview belongs in a scratch org |
 | Apex where configuration, Flow or LDS would do | The declarative tool — see §13 |
-
-## Summary — The Five Commandments
-
-1. **Make security explicit.** `with sharing` and `USER_MODE` written out, every time; system mode only with a comment saying why.
-2. **Bulkify everything.** Assume 200 records, test with 200+, and know the limits in `references/shared/governor-limits.md` that make it mandatory.
-3. **Write one trigger per object, zero logic in the file, behind a per-object kill-switch.** Tony Scott by default on greenfield; in an existing org, conform to what is already there — ask first.
-4. **Default async to Queueable plus a Finalizer**; Cursors for flexible chunking, Batch Apex for very large or parallel work. Avoid `@future`, the only legacy one.
-5. **Never invent observability.** Apex exception emails, `AsyncApexJob` and Finalizers are already there; if the org has no logging framework, report it rather than building one.

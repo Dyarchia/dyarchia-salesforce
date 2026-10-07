@@ -45,6 +45,14 @@ semantics; see `references/shared/metadata-and-api-versions.md`.
 
 > What the release adds, and the GA behaviour each section builds on: `references/release-notes.md`.
 
+## Summary — The Five Commandments
+
+1. **Avoid Apex.** LDS adapters, GraphQL and the standard component library cover most needs — and LDS shares a cache an Apex controller bypasses.
+2. **Use modern template syntax only** — `lwc:if`, `lwc:on`, `lwc:spread`, `lwc:external`, and template expressions (GA at `apiVersion` 66.0 and above).
+3. **Default to GraphQL v2 for queries and mutations** — never the deprecated v1 adapter.
+4. **Use `@lwc/state` for same-page shared reactive state.** Keep Lightning Message Service for crossing the DOM, pages, apps or technologies.
+5. **Treat `@AuraEnabled` Apex as code, not glue** — explicit `with sharing` and `USER_MODE`, DTOs rather than raw SObjects, `AuraHandledException` on failure, and the real logic in a service class.
+
 ---
 
 ## 1. Absolute Rule — Avoid Apex When Alternatives Exist
@@ -319,11 +327,3 @@ preview (`sf lightning dev component`) runs a component without deploying, insid
 | `WITH SECURITY_ENFORCED` in an `@AuraEnabled` class | `WITH USER_MODE` — the old form does not compile |
 | Manual JavaScript open/close for a simple accordion | Grouped `<details name>` |
 | A Developer Preview feature in production code | The GA path |
-
-## Summary — The Five Commandments
-
-1. **Avoid Apex.** LDS adapters, GraphQL and the standard component library cover most needs — and LDS shares a cache an Apex controller bypasses.
-2. **Use modern template syntax only** — `lwc:if`, `lwc:on`, `lwc:spread`, `lwc:external`, and template expressions (GA at `apiVersion` 66.0 and above).
-3. **Default to GraphQL v2 for queries and mutations** — never the deprecated v1 adapter.
-4. **Use `@lwc/state` for same-page shared reactive state.** Keep Lightning Message Service for crossing the DOM, pages, apps or technologies.
-5. **Treat `@AuraEnabled` Apex as code, not glue** — explicit `with sharing` and `USER_MODE`, DTOs rather than raw SObjects, `AuraHandledException` on failure, and the real logic in a service class.

@@ -37,6 +37,14 @@ Standing facts:
   `Database.AllowsCallouts` on every async callout class: the marker interface permits the callout
   at all, and omitting it fails at run time, not compile time.
 
+## Summary — The Five Commandments
+
+1. **Choose code or no-code, sync or async** — Flow HTTP Callout for simple owned APIs, Apex for complex/async, Salesforce Connect for live reads, Platform Events for fire-and-forget.
+2. **Always use Named/External Credentials** — no hard-coded secrets, no Remote Site Settings, HTTPS only.
+3. **Respect the callout-after-DML rule** — callout-first or move it into a Queueable.
+4. **Know the numbers** — 100 callouts/transaction, 120 s cumulative, 6/12 MB; budget and go async when tight.
+5. **From LWC, proxy through Apex** — keep secrets server-side; `fetch()` only with CSP + CORS and never with credentials.
+
 ---
 
 ## 1. Decision — Code or No-Code, Sync or Async
@@ -195,13 +203,3 @@ See `dya-sf-lwc`.
 | Ignoring the 120 s cumulative timeout | Budget callouts; move heavy work async |
 | An async callout class without `Database.AllowsCallouts` | Declare it — the failure is at run time, not compile time |
 | Assuming a bigger heap means a bigger callout payload | The payload limit is separate and unchanged at 6/12 MB |
-
----
-
-## Summary — The Five Commandments
-
-1. **Choose code or no-code, sync or async** — Flow HTTP Callout for simple owned APIs, Apex for complex/async, Salesforce Connect for live reads, Platform Events for fire-and-forget.
-2. **Always use Named/External Credentials** — no hard-coded secrets, no Remote Site Settings, HTTPS only.
-3. **Respect the callout-after-DML rule** — callout-first or move it into a Queueable.
-4. **Know the numbers** — 100 callouts/transaction, 120 s cumulative, 6/12 MB; budget and go async when tight.
-5. **From LWC, proxy through Apex** — keep secrets server-side; `fetch()` only with CSP + CORS and never with credentials.

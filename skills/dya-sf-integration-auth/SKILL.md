@@ -52,6 +52,14 @@ Standing context:
   `refresh_token` scopes — see `dya-sf-integration-connectors-mcp`.
 - HTTPS is mandatory everywhere.
 
+## Summary — The Five Commandments
+
+1. **Use External Client Apps plus OAuth inbound, and Named and External Credentials outbound.** Never keep secrets in code or metadata.
+2. **Default to JWT Bearer for backends**, and web server plus PKCE for user-facing apps. Username-password is retired — enforced 20 February 2027 — and SOAP `login()` follows in Summer '27.
+3. **Choose ECAs over Connected Apps** — closed by default, packageable, and rotatable without downtime.
+4. **Apply least privilege everywhere.** Use purpose-built integration users and principals; from API 67.0 their own object and field access governs what the code can read.
+5. **Pick the principal type on purpose** — Named Principal for a shared system identity, Per-User when the external system must know who acted.
+
 ---
 
 ## 1. Two Directions, One Discipline
@@ -157,11 +165,3 @@ built from a formula).
 | Editing a secret by hand and accepting the downtime | Staged Credentials API rotation |
 | Assuming an integration user escapes user-mode enforcement | From API 67.0 their object and field access governs what the code can read |
 | Waiting for an enforcement date to find out what breaks | Test in a sandbox with the blocking setting on |
-
-## Summary — The Five Commandments
-
-1. **Use External Client Apps plus OAuth inbound, and Named and External Credentials outbound.** Never keep secrets in code or metadata.
-2. **Default to JWT Bearer for backends**, and web server plus PKCE for user-facing apps. Username-password is retired — enforced 20 February 2027 — and SOAP `login()` follows in Summer '27.
-3. **Choose ECAs over Connected Apps** — closed by default, packageable, and rotatable without downtime.
-4. **Apply least privilege everywhere.** Use purpose-built integration users and principals; from API 67.0 their own object and field access governs what the code can read.
-5. **Pick the principal type on purpose** — Named Principal for a shared system identity, Per-User when the external system must know who acted.

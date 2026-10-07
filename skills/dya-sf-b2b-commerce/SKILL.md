@@ -43,6 +43,14 @@ release notes.
   CRUD and FLS alone. A product the user can access stays unviewable in commerce when no entitlement
   applies.
 
+## Summary — The Five Commandments
+
+1. **Build on core with LWC + Apex + `ConnectApi` + `CartExtension`** — reuse `dya-sf-apex`/`lwc`. Not CloudCraze, not B2C.
+2. **Keep the two extension surfaces apart** — Cart Calculate (`CartExtension` calculators + orchestrator) for pricing-side math; `ConnectApi.BaseEndpointExtension` for endpoint I/O.
+3. **Override the calculator's `calculate(CartCalculateCalculatorRequest)`** — orchestrator decides *which* run; calculators do the work; the orchestrator's `priceCart`/`taxCart`/etc. dispatch methods can't be overridden.
+4. **Run cart ops through `ConnectApi.CommerceCart`** — never raw DML; treat "can't view product" as an **entitlement** gap, not FLS: it almost always is.
+5. **Write calculators for the buyer path** — bulk-safe, one aggregated callout via Named Credential, resilient, `with sharing` + `WITH USER_MODE`; register via `RegisteredExternalService`.
+
 ---
 
 ## 1. The Stack — What You Build With
@@ -166,13 +174,3 @@ context.
 | `WITH SECURITY_ENFORCED` in commerce Apex | `WITH USER_MODE` (removed from API 67.0) |
 | Secrets in storefront LWC JS | Server-side Apex/Named Credentials |
 | Over-broad guest/buyer profiles | Least-privilege (`dya-sf-permissions`) |
-
----
-
-## Summary — The Five Commandments
-
-1. **Build on core with LWC + Apex + `ConnectApi` + `CartExtension`** — reuse `dya-sf-apex`/`lwc`. Not CloudCraze, not B2C.
-2. **Keep the two extension surfaces apart** — Cart Calculate (`CartExtension` calculators + orchestrator) for pricing-side math; `ConnectApi.BaseEndpointExtension` for endpoint I/O.
-3. **Override the calculator's `calculate(CartCalculateCalculatorRequest)`** — orchestrator decides *which* run; calculators do the work; the orchestrator's `priceCart`/`taxCart`/etc. dispatch methods can't be overridden.
-4. **Run cart ops through `ConnectApi.CommerceCart`** — never raw DML; treat "can't view product" as an **entitlement** gap, not FLS: it almost always is.
-5. **Write calculators for the buyer path** — bulk-safe, one aggregated callout via Named Credential, resilient, `with sharing` + `WITH USER_MODE`; register via `RegisteredExternalService`.

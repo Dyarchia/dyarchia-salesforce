@@ -43,6 +43,14 @@ Three things decide whether a project can use Headless 360:
 > Per-feature release additions, the addressable-surface numbers, and the Vibes naming lineage that
 > hides older documentation: `references/release-notes.md`.
 
+## Summary — The Five Commandments
+
+1. **Pick the surface by need** — API for control, MCP for agent-discoverable capabilities, CLI for automation/DevOps; all three are one platform and enforce the same trust layer.
+2. **Use Headless 360 to distribute, Agentforce to reason, Data 360 to feed** — Headless 360 is the access/render layer over both, not a replacement for either.
+3. **Build the capability once, expose it everywhere** — the same `@InvocableMethod` is an Agentforce action *and* an MCP tool; the same Lightning Type renders across every channel.
+4. **Curate and describe tools like code** — least-privilege, well-described MCP toolsets; descriptions are how models route.
+5. **Rely on the security model on every surface** — sharing, FLS, Trust Layer, token-scoped OAuth and Named Credentials apply on API, MCP, and CLI alike.
+
 ---
 
 ## 1. Foundations — What Headless 360 Is
@@ -260,13 +268,3 @@ Headless 360 changes the surface, **not** the security model:
 | HXL for a Lightning-only screen | Plain LWC/Aura |
 | Rewriting an action as a separate MCP tool | Reuse the `@InvocableMethod` as both an agent action and an MCP tool |
 | Clicking deploys for Data 360 logic | CLI + DevOps data kits (headless, repeatable) |
-
----
-
-## Summary — The Five Commandments
-
-1. **Pick the surface by need** — API for control, MCP for agent-discoverable capabilities, CLI for automation/DevOps; all three are one platform and enforce the same trust layer.
-2. **Use Headless 360 to distribute, Agentforce to reason, Data 360 to feed** — Headless 360 is the access/render layer over both, not a replacement for either.
-3. **Build the capability once, expose it everywhere** — the same `@InvocableMethod` is an Agentforce action *and* an MCP tool; the same Lightning Type renders across every channel.
-4. **Curate and describe tools like code** — least-privilege, well-described MCP toolsets; descriptions are how models route.
-5. **Rely on the security model on every surface** — sharing, FLS, Trust Layer, token-scoped OAuth and Named Credentials apply on API, MCP, and CLI alike.

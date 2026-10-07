@@ -43,6 +43,14 @@ Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
 > improvements, Data 360 SQL from Apex, and the standing facts about Atlas 3.0, Agent Script and
 > Agentforce DX: `references/release-notes.md`.
 
+## Summary — The Five Commandments
+
+1. **Write descriptions as the program** — Atlas routes by reading subagent and action descriptions; write them like code.
+2. **Enforce determinism where it matters** — use Agent Script and Apex actions for business-critical logic; let the LLM handle only the fuzzy, conversational parts.
+3. **Ground everything** — use Data 360 / retrievers / MCP for trusted, permission-aware context; prefer grounding over fine-tuning.
+4. **Build actions as Apex citizens** — bulkified, `with sharing`, `WITH USER_MODE`, structured errors; narrow and single-purpose.
+5. **Test, evaluate, observe, and trust** — run batch tests + Custom Scoring Evals before launch and Session Tracing after; keep the Einstein Trust Layer and least-privilege profiles on every path.
+
 ---
 
 ## 1. Foundations — What Agentforce Is and How It Reasons
@@ -281,13 +289,3 @@ actions — reasoning, not a hard-coded map.
 | Overlapping subagent scopes | Focused, non-overlapping subagents |
 | Fine-tuning for fresh enterprise facts | Ground via Data 360 (fresh, permission-aware) |
 | Treating user input as trusted | Tight subagent scope + Apex input validation (prompt-injection guard) |
-
----
-
-## Summary — The Five Commandments
-
-1. **Write descriptions as the program** — Atlas routes by reading subagent and action descriptions; write them like code.
-2. **Enforce determinism where it matters** — use Agent Script and Apex actions for business-critical logic; let the LLM handle only the fuzzy, conversational parts.
-3. **Ground everything** — use Data 360 / retrievers / MCP for trusted, permission-aware context; prefer grounding over fine-tuning.
-4. **Build actions as Apex citizens** — bulkified, `with sharing`, `WITH USER_MODE`, structured errors; narrow and single-purpose.
-5. **Test, evaluate, observe, and trust** — run batch tests + Custom Scoring Evals before launch and Session Tracing after; keep the Einstein Trust Layer and least-privilege profiles on every path.

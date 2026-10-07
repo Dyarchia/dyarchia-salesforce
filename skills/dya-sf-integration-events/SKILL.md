@@ -36,6 +36,14 @@ Standing facts:
   Platform Event Apex triggers run in **system mode**, like every trigger, so they see records the
   subscribing user could not.
 
+## Summary — The Five Commandments
+
+1. **Use CDC for "react to changes," Platform Events for "publish a fact"** — and the Pub/Sub API as the one external interface for both.
+2. **Choose Pub/Sub over legacy** — PushTopic, Generic Streaming, and CometD are legacy; never build new on them.
+3. **Make every consumer idempotent; delivery is at-least-once** — dedupe every consumer; design for replays.
+4. **Mind 72 h retention** — track replay ids and reconcile beyond the window.
+5. **Compose webhooks from events** — Platform Event → Pub/Sub for durable multi-consumer; Flow HTTP Callout for the simple single target.
+
 ---
 
 ## 1. The Three Event Types — Choose
@@ -184,13 +192,3 @@ Outbound paths: `dya-sf-integration-outbound`.
 | Publish-immediately when you needed commit semantics | Choose Publish After Commit deliberately |
 | Synchronous callout where an event fits | Publish a Platform Event (fire-and-forget) |
 | One callout per record instead of an event | Publish events; let subscribers fan out |
-
----
-
-## Summary — The Five Commandments
-
-1. **Use CDC for "react to changes," Platform Events for "publish a fact"** — and the Pub/Sub API as the one external interface for both.
-2. **Choose Pub/Sub over legacy** — PushTopic, Generic Streaming, and CometD are legacy; never build new on them.
-3. **Make every consumer idempotent; delivery is at-least-once** — dedupe every consumer; design for replays.
-4. **Mind 72 h retention** — track replay ids and reconcile beyond the window.
-5. **Compose webhooks from events** — Platform Event → Pub/Sub for durable multi-consumer; Flow HTTP Callout for the simple single target.

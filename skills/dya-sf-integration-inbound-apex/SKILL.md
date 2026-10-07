@@ -37,6 +37,14 @@ that day. Inventory them now — `dya-sf-integration-auth`.
   Audit **before** raising the version. `WITH SECURITY_ENFORCED` no longer compiles.
 - **Serve every inbound endpoint over HTTPS**; it is mandatory.
 
+## Summary — The Five Commandments
+
+1. **Use the standard API first** — author an endpoint only when the contract needs it.
+2. **Use `@RestResource`, GA and recommended, for custom REST**; `@InvocableMethod` is a *different thing* (Flow/agent actions), and Apex SOAP is legacy.
+3. **Treat boundary classes as security-critical** — explicit `with sharing` and `USER_MODE`, audited before you raise the version, never `WITH SECURITY_ENFORCED`.
+4. **Keep contracts stable and errors clean** — versioned DTOs, proper HTTP status codes, never raw stack traces.
+5. **Treat guest/Site endpoints as hostile** — minimal profile, validate everything, prefer authenticated OAuth.
+
 ---
 
 ## 1. `@RestResource` vs `@InvocableMethod`
@@ -144,13 +152,3 @@ webhook receivers or public APIs with no OAuth handshake.
 | Broad guest profile on a Site endpoint | Least-privilege guest profile; validate all input |
 | Non-bulkified boundary logic | Bulkify; assume volume and concurrency |
 | Unversioned response contract | Stable, explicitly versioned contract |
-
----
-
-## Summary — The Five Commandments
-
-1. **Use the standard API first** — author an endpoint only when the contract needs it.
-2. **Use `@RestResource`, GA and recommended, for custom REST**; `@InvocableMethod` is a *different thing* (Flow/agent actions), and Apex SOAP is legacy.
-3. **Treat boundary classes as security-critical** — explicit `with sharing` and `USER_MODE`, audited before you raise the version, never `WITH SECURITY_ENFORCED`.
-4. **Keep contracts stable and errors clean** — versioned DTOs, proper HTTP status codes, never raw stack traces.
-5. **Treat guest/Site endpoints as hostile** — minimal profile, validate everything, prefer authenticated OAuth.

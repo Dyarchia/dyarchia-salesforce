@@ -40,6 +40,14 @@ OmniStudio only through the platform changes below.
 - IPs and Data Mappers are invocable from **Apex**, **LWC**, **REST/Connect API** and OmniStudio
   components.
 
+## Summary — The Five Commandments
+
+1. **Separate presentation, logic, data and code** — OmniScript/FlexCard, Integration Procedure, Data Mapper, Apex Remote Action; each for its job.
+2. **Know your flavor** — Standard (`omnistudio` namespace, `Callable`) vs Managed Package (`vlocity_*`, `VlocityOpenInterface2`); the Apex contract differs.
+3. **Follow the Remote Action contract** — `global with sharing`, dispatch on `methodName`, read `input`/write `output`/read `options`, return `Boolean`, bulk-safe, `WITH USER_MODE`.
+4. **Configure first, code second** — IPs and Data Mappers over Apex; Apex is the escape hatch for the inexpressible.
+5. **Bundle into one server call and reuse it everywhere** — IPs bundle actions; invoke them from Apex (`IntegrationProcedureService.runIntegrationService`), LWC, and REST.
+
 ---
 
 ## 1. The Four Tools
@@ -217,13 +225,3 @@ failures are that key disagreeing between source and target, not a wrong artifac
 | Throwing raw exceptions to the runtime | Structured `error` in output + return `false` |
 | Per-element server calls | Bundle actions into one IP server call |
 | Heavy logic in OmniScript steps | Push to Integration Procedures (server-side) |
-
----
-
-## Summary — The Five Commandments
-
-1. **Separate presentation, logic, data and code** — OmniScript/FlexCard, Integration Procedure, Data Mapper, Apex Remote Action; each for its job.
-2. **Know your flavor** — Standard (`omnistudio` namespace, `Callable`) vs Managed Package (`vlocity_*`, `VlocityOpenInterface2`); the Apex contract differs.
-3. **Follow the Remote Action contract** — `global with sharing`, dispatch on `methodName`, read `input`/write `output`/read `options`, return `Boolean`, bulk-safe, `WITH USER_MODE`.
-4. **Configure first, code second** — IPs and Data Mappers over Apex; Apex is the escape hatch for the inexpressible.
-5. **Bundle into one server call and reuse it everywhere** — IPs bundle actions; invoke them from Apex (`IntegrationProcedureService.runIntegrationService`), LWC, and REST.

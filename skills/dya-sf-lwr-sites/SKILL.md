@@ -54,6 +54,18 @@ Standing facts:
   bundle. Hyperforce-only, and needs the Dev Hub packaging toggle; confirm availability for the
   target org before planning production on it. See `dya-sf-lwr` §8.
 
+## Summary — The Five Commandments
+
+1. **Enhanced LWR for new sites** — LWC-native, fast, SEO-capable; enhanced unlocks CMS
+   collections, expression visibility, scoped CSS, content search, partial deploy.
+2. **Standard components first, Grid for data** — custom LWC only when needed (then
+   `dya-sf-lwr`).
+3. **Harden the guest first** — least-privilege profile, guest sharing rules, read-only, no
+   ownership, clean empty state.
+4. **SEO is mandatory** — slugs (GA), platform sitemaps, `robots.txt`, lean pages.
+5. **Production means a pipeline** — deploy sites as metadata, never by hand, whether the UI is
+   LWC or a UI Bundle.
+
 ---
 
 ## 1. Choose the Right Site Type
@@ -183,17 +195,3 @@ on enhanced sites, and validate against a sandbox. Never activate or edit a prod
 | Flipping an Aura site to LWR as a setting | Plan a rebuild |
 | Planning a UI Bundle site without checking Hyperforce and the packaging toggle | Verify both first; LWC LWR site otherwise |
 | Editing/activating a production site by hand | Metadata + CI/CD; partial deployment |
-
----
-
-## Summary — The Five Commandments
-
-1. **Enhanced LWR for new sites** — LWC-native, fast, SEO-capable; enhanced unlocks CMS
-   collections, expression visibility, scoped CSS, content search, partial deploy.
-2. **Standard components first, Grid for data** — custom LWC only when needed (then
-   `dya-sf-lwr`).
-3. **Harden the guest first** — least-privilege profile, guest sharing rules, read-only, no
-   ownership, clean empty state.
-4. **SEO is mandatory** — slugs (GA), platform sitemaps, `robots.txt`, lean pages.
-5. **Production means a pipeline** — deploy sites as metadata, never by hand, whether the UI is
-   LWC or a UI Bundle.

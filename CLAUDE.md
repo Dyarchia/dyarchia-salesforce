@@ -248,7 +248,7 @@ matched it, and the string parses correctly either way.
   ("after every X, do Y"), not one-time steps. Never address a specific host (Claude, Codex) or its
   tools: any Agent Skills host reads these files.
 - Put the hard rules early. Some hosts keep only the start of a long skill after compaction (Claude
-  Code keeps the first 5,000 tokens).
+  Code keeps the first 5,000 tokens); the Five Commandments follow Platform Context for this reason.
 - `SKILL.md` size ceiling: 20480 bytes, about the 5,000 tokens and well under the 500 lines the
   Agent Skills spec recommends; `validate-skills` warns above it. Past that, split into
   `references/`. **All 26 skills are under the ceiling, so a clean tree validates with zero errors
@@ -266,13 +266,15 @@ Match it.
 
 - Open with `## Platform Context — Winter '27 / API v68.0`, stating the release's relevant changes
   and versioned defaults before any rule.
+- Follow it with `## Summary — The Five Commandments`, a numbered list of exactly five imperative
+  rules. It sits at the top, not the end, because a host that compacts its context may keep only
+  the start of a long skill.
 - Carry the rules in numbered `## N. Title` sections.
 - Express decision matrices as **markdown pipe tables**. This house convention for skill bodies
   overrides any general preference for ASCII tables in documentation.
 - Annotate code blocks inline with `✅` and `❌` on the lines they judge.
-- Close with a fixed pair: `## N. Anti-Patterns — NEVER Do These`, a two-column
-  anti-pattern-to-replacement table, then `## Summary — The Five Commandments`, a numbered list of
-  exactly five.
+- Close with `## N. Anti-Patterns — NEVER Do These`, a two-column anti-pattern-to-replacement
+  table.
 
 ## Platform version
 

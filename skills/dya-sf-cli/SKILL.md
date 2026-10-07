@@ -40,6 +40,14 @@ Winter '27 changes for CLI work:
   detects a DX project and supplies org context through hosted MCP servers. See `dya-sf-headless360`.
 - **DevOps Center MCP** (GA) brings the same programmatic access into a CI/CD pipeline.
 
+## Summary — The Five Commandments
+
+1. **Emit `sf` v2 syntax** — topic + command + kebab-case flags; never legacy `sfdx force:`.
+2. **Use `--json` for automation**, and human format only for interactive use.
+3. **Be explicit about the org** — aliases and `-o/--target-org`, especially in CI.
+4. **Validate before prod** — `deploy validate` → `deploy quick`.
+5. **Discover, do not guess** — `sf <topic> <command> --help`; the exhaustive lists are in `references/`.
+
 ---
 
 ## 1. The Command Model
@@ -181,13 +189,3 @@ Full catalog: `references/dev-and-agent.md`.
 | Hard-coding org usernames everywhere | Aliases + `sf config set target-org` |
 | Putting secrets inline in CI commands | `--flags-dir` / env vars / JWT key file |
 | Omitting `--target-org` in CI | Always pass `-o` explicitly in automation |
-
----
-
-## Summary — The Five Commandments
-
-1. **Emit `sf` v2 syntax** — topic + command + kebab-case flags; never legacy `sfdx force:`.
-2. **Use `--json` for automation**, and human format only for interactive use.
-3. **Be explicit about the org** — aliases and `-o/--target-org`, especially in CI.
-4. **Validate before prod** — `deploy validate` → `deploy quick`.
-5. **Discover, do not guess** — `sf <topic> <command> --help`; the exhaustive lists are in `references/`.

@@ -54,6 +54,14 @@ ingestion → `dya-sf-data360`; MCP and the experience layer → `dya-sf-headles
 - **Salesforce-to-Salesforce** ended support in Summer '26 and stops functioning in Spring '27 —
   migrate to MuleSoft, Data Cloud One, or the cross-org adapter.
 
+## Summary — The Five Commandments
+
+1. **Name the pattern first** — request-reply, fire-and-forget, batch sync, remote call-in, UI update, or data virtualization. The technology follows the pattern.
+2. **Async by default.** Reserve synchronous request-reply for answer-now, user-facing dependencies.
+3. **Route, then build.** This hub chooses; the siblings implement.
+4. **Identity is its own concern** — External Client Apps, OAuth, Named and External Credentials. Never a hard-coded secret, never a password flow.
+5. **Design for failure and scale** — idempotency, retry with backoff, bulkification, visible failures, and user-mode awareness on every path.
+
 ---
 
 ## 1. The Six Patterns
@@ -173,11 +181,3 @@ An LWC **cannot** call arbitrary Salesforce APIs from JavaScript — only Lightn
 | `fetch()` to an external API from LWC with a secret in JavaScript | An Apex proxy — secrets stay server-side |
 | Assuming system-mode access in an integration class at 67.0 or above | Audit sharing and user mode before raising the version |
 | A failure visible only in the debug log | Surfaced where the operations team already looks |
-
-## Summary — The Five Commandments
-
-1. **Name the pattern first** — request-reply, fire-and-forget, batch sync, remote call-in, UI update, or data virtualization. The technology follows the pattern.
-2. **Async by default.** Reserve synchronous request-reply for answer-now, user-facing dependencies.
-3. **Route, then build.** This hub chooses; the siblings implement.
-4. **Identity is its own concern** — External Client Apps, OAuth, Named and External Credentials. Never a hard-coded secret, never a password flow.
-5. **Design for failure and scale** — idempotency, retry with backoff, bulkification, visible failures, and user-mode awareness on every path.

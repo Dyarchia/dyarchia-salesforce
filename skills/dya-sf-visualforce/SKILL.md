@@ -39,6 +39,14 @@ a deadline; never imply an end date.
 - **Lightning Web Security blocks `data:` URIs** on `HTMLAnchorElement.href` in a VF page embedded in
   Lightning Experience. §8.
 
+## Summary — The Five Commandments
+
+1. **Ask "should this be VF at all?" first** — new Lightning UI is LWC then Aura; reserve Visualforce for PDF, email templates, Classic, iframes, and existing pages.
+2. **Controllers are Apex at API 67** — explicit `with sharing` + `WITH USER_MODE`; `WITH SECURITY_ENFORCED` no longer compiles; never query inside a getter.
+3. **Guard view state** — `transient` everything render-only, keep it under 135 KB, prefer remoting for data-heavy work.
+4. **Encode every non-HTML context and bind every query** — `JSINHTMLENCODE`/`URLENCODE` in scripts, bind variables in dynamic SOQL.
+5. **Stay native and interoperable** — SLDS via `lightningStylesheets`/`<apex:slds/>`, LMS (`sforce.one.*`) to talk to Aura/LWC, `blob:` (not `data:`) for downloads.
+
 ---
 
 ## 1. The First Question — Should This Be Visualforce At All?
@@ -375,13 +383,3 @@ content resource.
 | SLDS pulled into a `renderAs="pdf"` page | Plain HTML/CSS in PDF pages |
 | Business logic in the page markup | Controller/extension + Service class |
 | API version below 68.0 on new pages and controllers | `<apiVersion>68.0</apiVersion>` in the `*-meta.xml` |
-
----
-
-## Summary — The Five Commandments
-
-1. **Ask "should this be VF at all?" first** — new Lightning UI is LWC then Aura; reserve Visualforce for PDF, email templates, Classic, iframes, and existing pages.
-2. **Controllers are Apex at API 67** — explicit `with sharing` + `WITH USER_MODE`; `WITH SECURITY_ENFORCED` no longer compiles; never query inside a getter.
-3. **Guard view state** — `transient` everything render-only, keep it under 135 KB, prefer remoting for data-heavy work.
-4. **Encode every non-HTML context and bind every query** — `JSINHTMLENCODE`/`URLENCODE` in scripts, bind variables in dynamic SOQL.
-5. **Stay native and interoperable** — SLDS via `lightningStylesheets`/`<apex:slds/>`, LMS (`sforce.one.*`) to talk to Aura/LWC, `blob:` (not `data:`) for downloads.

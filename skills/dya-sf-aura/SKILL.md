@@ -39,6 +39,21 @@ a deadline. Do not imply one.
 The Voice Toolkit API adds voice-enabled component support, extended to Agentforce Contact Center —
 relevant only for telephony.
 
+## Summary — The Five Commandments
+
+1. **Ask "should this be Aura at all?" first** — new UI is LWC; reserve Aura for existing components
+   and the rare LWC gap, and wrap LWC in Aura, never the reverse.
+2. **`lightning` namespace only** — the `ui` namespace is unsupported; style with SLDS hooks, not
+   design tokens.
+3. **Lightning Data Service before Apex** — `lightning:recordForm` and `force:recordData` for record
+   work; `@AuraEnabled` only for genuine server logic, and then `with sharing` + `WITH USER_MODE` +
+   `AuraHandledException`.
+4. **Component events before application events** — `aura:method` parent→child, component events
+   child→parent, Lightning Message Service across trees and technologies, application events only as
+   a last resort.
+5. **Thin controllers, safe async, `blob:` downloads** — initialise in `init`, keep logic in the
+   helper, branch on all three action states, wrap re-rendering callbacks in `$A.getCallback`.
+
 ---
 
 ## 1. Aura or LWC
@@ -371,20 +386,3 @@ Give the `Blob` an explicit MIME type; LWS blocks an omitted one.
 | `data:` URI anchor download | `blob:` URL via `URL.createObjectURL` |
 | Trying to embed Aura inside LWC | Embed LWC inside Aura (the supported direction) |
 | API version below 68.0 on new bundles | `<apiVersion>68.0</apiVersion>` in the `*-meta.xml` |
-
----
-
-## Summary — The Five Commandments
-
-1. **Ask "should this be Aura at all?" first** — new UI is LWC; reserve Aura for existing components
-   and the rare LWC gap, and wrap LWC in Aura, never the reverse.
-2. **`lightning` namespace only** — the `ui` namespace is unsupported; style with SLDS hooks, not
-   design tokens.
-3. **Lightning Data Service before Apex** — `lightning:recordForm` and `force:recordData` for record
-   work; `@AuraEnabled` only for genuine server logic, and then `with sharing` + `WITH USER_MODE` +
-   `AuraHandledException`.
-4. **Component events before application events** — `aura:method` parent→child, component events
-   child→parent, Lightning Message Service across trees and technologies, application events only as
-   a last resort.
-5. **Thin controllers, safe async, `blob:` downloads** — initialise in `init`, keep logic in the
-   helper, branch on all three action states, wrap re-rendering callbacks in `$A.getCallback`.
