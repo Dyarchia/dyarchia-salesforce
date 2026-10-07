@@ -178,6 +178,16 @@ The skills are not Claude-specific. Each is a folder with a `SKILL.md` carrying 
 skills/             the content, shared by both
 ```
 
+The quickest route to any agent is the [`skills`](https://github.com/vercel-labs/skills) CLI, which reads `skills/` directly and supports Claude Code, Codex, Cursor, OpenCode and dozens more. It opens a picker for which skills, which agents, project or global scope, and symlink or copy:
+
+```bash
+npx skills add Dyarchia/dyarchia-salesforce
+```
+
+Add `--list` to see the catalogue without installing, `--skill <name>` to take one skill, `--agent <agent>` to pick a target, `-g` for user scope and `-y` to skip the prompts. Each skill carries its own copy of the shared references, so any subset installs complete.
+
+Per agent, without the CLI:
+
 - **Grok (xAI)** needs nothing. It reads Claude Code marketplaces, plugins, skills, MCP servers, agents, hooks and `CLAUDE.md` alongside its own `.grok/`; clone the repo or install it as a plugin.
 - **Codex / ChatGPT** reads `.codex-plugin/plugin.json`, which points at the same `skills/` tree. Add the folder to a local marketplace with `@plugin-creator`, then install it.
 - **Mistral Vibe** implements the Agent Skills standard and takes the skill folders directly.
