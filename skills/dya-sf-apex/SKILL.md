@@ -10,10 +10,9 @@ explicitly, and you **always** bulkify. Follow every rule below.
 
 References:
 
-- `references/shared/` — the platform fundamentals every rule rests on: `governor-limits.md`,
-  `soql-selectivity.md`, `sharing-and-access.md`, `platform-deltas.md`,
-  `metadata-and-api-versions.md`. **Start with the first if you do not know why bulkification is
-  mandatory — this skill's rules are unusable without it.**
+- `references/shared/` — platform fundamentals: `governor-limits.md`, `soql-selectivity.md`,
+  `sharing-and-access.md`, `platform-deltas.md`, `metadata-and-api-versions.md`. **Read the first if
+  you do not know why bulkification is mandatory.**
 - `references/modern-syntax.md` — every modern construct with the legacy form it replaces.
 - `references/trigger-framework.md` — `ITrigger`, `TriggerFactory`, handler, recursion guard, `TriggerBypass`.
 - `references/async-patterns.md` — Queueable, Finalizer, Cursor chain, Mixed-DML.
@@ -32,21 +31,21 @@ Platform Events as an integration surface → `dya-sf-integration-events`.
 
 ## Platform Context — Winter '27 / API v68.0
 
-Stamp new Apex at `<apiVersion>68.0</apiVersion>`. The version is per class, not per org — see
-`references/shared/metadata-and-api-versions.md` for the implications and retirement status.
+Stamp new Apex at `<apiVersion>68.0</apiVersion>`. The version is per class, not per org; implications and
+retirement status: `references/shared/metadata-and-api-versions.md`.
 
-**The security defaults this skill assumes turned on at API 67.0 and still hold**: SOQL, SOSL and DML
+**Security defaults since API 67.0**: SOQL, SOSL and DML
 default to `USER_MODE`; an omitted sharing keyword defaults to `with sharing`, and that default is
 contagious down an inheritance chain and into `@AuraEnabled` methods; `WITH SECURITY_ENFORCED` no
 longer compiles; a sharing keyword on a trigger no longer compiles. Full table in
 `references/shared/platform-deltas.md`. Existing classes keep their old behaviour until their version
 is raised, so make sharing explicit **before** you bump, never after.
 
-What Winter '27 adds to Apex:
+Winter '27 additions:
 
 | Change | Status | What it means for your code |
 |---|---|---|
-| Heap: 10 MB sync, 25 MB async | GA | Up from 6/12. An org setting can hold the old value during transition — do not assume the ceiling in code shipped to many orgs |
+| Heap: 10 MB sync, 25 MB async | GA | Up from 6/12. An org setting can keep the old value during transition; do not assume the ceiling in code shipped to many orgs |
 | Only invalid classes and triggers recompile on deploy | GA | Faster deploys in large orgs; no code change |
 | `explicitNamespace` on `Database.QueryOptions` | GA | In a managed package, stops a subscriber's same-named field shadowing yours |
 | Apex Symbol API (Tooling REST) | Beta | Compiler-grade type metadata for IDEs and AI tooling; not a runtime API |
@@ -54,8 +53,8 @@ What Winter '27 adds to Apex:
 | `FORMULA()` in a SOQL `WHERE` clause | Beta | API 68.0+, **sandbox / Developer Edition / scratch orgs only** |
 | Execute Data 360 SQL from Apex | GA | Query Data 360 alongside org data. See `dya-sf-data360` |
 
-Beta and Developer Preview features are **not available in production orgs**; proposing one as the
-default produces code that does not deploy.
+Beta and Developer Preview features are **not available in production orgs**; code that defaults to
+one does not deploy.
 
 ---
 
@@ -118,7 +117,7 @@ Where a *partial* result is acceptable — typically an `@AuraEnabled` method se
 differing FLS — `Security.stripInaccessible(AccessType.READABLE, records)` removes fields the user
 cannot see instead of throwing.
 
-> The model behind all of this — profiles, permission sets, OWD, sharing rules:
+> The access model — profiles, permission sets, OWD, sharing rules:
 > `references/shared/sharing-and-access.md`. Design questions belong to `dya-sf-permissions`.
 
 ## 4. SOQL
@@ -176,8 +175,8 @@ level, and a structured `SaveResult[]` to act on.
 Database.SaveResult[] results = Database.insert(records, false, AccessLevel.USER_MODE);
 ```
 
-With `allOrNone = false`, walking `results` and logging every `getErrors()` entry against its record
-is mandatory — silent partial failure is what this API exists to expose.
+With `allOrNone = false`, walk `results` and log every `getErrors()` entry against its record;
+otherwise partial failure is silent.
 
 **Upsert on an external id for idempotency**, so a replayed message does not duplicate:
 
@@ -197,7 +196,7 @@ methods, post-processing in `andFinally`.
 
 On **brownfield** orgs — already standardised on Kevin O'Hara, fflib, Trigger Actions or a
 hand-rolled handler — do not impose it. **Ask which framework the org uses and conform.** Org-wide
-consistency beats a better framework bolted onto another.
+consistency beats a better framework.
 
 ```apex
 // The trigger file - one line, no logic, no sharing keyword.
@@ -209,8 +208,7 @@ trigger AccountTrigger on Account (
 }
 ```
 
-Triggers always run in **system mode**, on every API version; a sharing keyword on a trigger is a
-compile error from 67.0. Put the sharing keyword on the handler class; if trigger-driven DML must
+Triggers always run in **system mode**, on every API version. Put the sharing keyword on the handler class; if trigger-driven DML must
 enforce user-level security, pass `AccessLevel.USER_MODE` explicitly to the `Database.*` call.
 
 ### The per-object kill-switch
@@ -219,8 +217,8 @@ Every trigger must be silenceable without a deployment, **per object** — an in
 user may need to skip the Account trigger while the Case trigger keeps running.
 
 Model it as one **Hierarchy** Custom Setting resolved at trigger entry — the one case where a Custom
-Setting beats a Custom Metadata Type: hierarchy resolution (org → profile → user) is exactly what a
-per-user bypass needs, and `__mdt` cannot express it. It is a circuit breaker, not a recursion guard;
+Setting beats a Custom Metadata Type: a per-user bypass needs hierarchy resolution (org → profile →
+user), which `__mdt` cannot express. It is a circuit breaker, not a recursion guard;
 keep the framework's recursion handling regardless.
 
 > The setting's shape and field naming, `TriggerBypass`, entry-point wiring, and the form for a
@@ -297,10 +295,10 @@ sends an internal stack trace to the browser.
 
 ## 10. Performance
 
-Assume 200 records and test with 200+. Beyond that, the levers: Platform Cache for hot reference
+Assume 200 records. Beyond that, the levers: Platform Cache for hot reference
 data, Custom Metadata Types for configuration (`getInstance` costs no SOQL), DataWeave for structured
 payload transformation, ApexGuru for finding real hotspots from runtime profiling, and heap
-discipline — project only the fields you use, iterate rather than materialise.
+discipline — project only the fields you use.
 
 > Cache partitions and their setup prerequisite, DataWeave, ApexGuru edition gating, heap rules: `references/performance-and-caching.md`.
 
@@ -312,7 +310,7 @@ does. If the org runs a logging framework, find it and call it; if it has none, 
 up is the owner's call.
 
 `System.debug` is a development tool; pass a level. Uncaught exceptions already send an **Apex
-exception email**, the floor most orgs have and do not read. `AsyncApexJob` carries async health in
+exception email**. `AsyncApexJob` carries async health in
 `ExtendedStatus`; `System.purgeOldAsyncJobs(Integer)` bounds how many records a call deletes.
 
 > Trace flags, exception email metadata, `AsyncApexJob`, Finalizers: `references/observability-patterns.md`.
@@ -329,15 +327,14 @@ This layering makes the code mockable through the Stub API.
 
 The `@AuraEnabled` contract: `cacheable=true` for reads (enables the Lightning Data Service cache,
 forbids DML, must be `static`); no `cacheable` for writes; primitive or DTO parameters, never raw
-`SObject`; always throw `AuraHandledException` on failure.
+`SObject`.
 
 > SOLID applied to this layering, with Stub-API injection: `references/solid-principles.md`.
 > Apply SOLID before reaching for a named design pattern.
 
 ## 13. Decision Matrix — Is This Even Apex?
 
-The best Apex is the Apex you did not write: reach for it only when the declarative surface cannot
-express the requirement.
+Write Apex only when the declarative surface cannot express the requirement.
 
 | Need | Solution | Apex? |
 |---|---|---|

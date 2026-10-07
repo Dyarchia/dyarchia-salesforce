@@ -1,6 +1,6 @@
 # Async Apex — Reference Implementations
 
-Full implementations of the async patterns from SKILL.md §7 (and the Apex Cursor pattern from §4). Load when writing new async code or refactoring legacy Batch / `@future` code.
+Full implementations of the async patterns in SKILL.md §7 and the Apex Cursor pattern in §4.
 
 ## Queueable — The Default
 
@@ -65,7 +65,7 @@ public with sharing class AccountEnricher implements Queueable {
 
 ## Apex Cursors + Queueable Chain
 
-For up to roughly 5 million records with flexible, bidirectional, serialisable iteration. Cleaner than Batch Apex for variable chunk sizes or non-linear traversal.
+For up to roughly 5 million records needing flexible, bidirectional, serialisable iteration.
 
 ```java
 public with sharing class LargeDataProcessor implements Queueable {
@@ -93,15 +93,12 @@ public with sharing class LargeDataProcessor implements Queueable {
 
 ### Cursor limits
 
-- Max 50M rows per cursor.
-- **Max 10 `fetch()` calls per transaction** — the binding constraint, not the row total.
-- Max 10,000 cursors per day.
-- Max 100M rows per day aggregate.
+- **10 `fetch()` calls per transaction** is the binding constraint, not the row total.
 - Track usage with `Limits.getApexCursorRows()` and `Limits.getApexCursors()`.
 
-### Cursors vs Batch Apex — the honest trade-off
+### Cursors vs Batch Apex
 
-The "50M rows" headline is real, but the 10-fetches-per-transaction ceiling means processing 50M records by chaining a Queueable across many execution contexts (one fetch per execution, ten contexts of work, then the next chain link). Up to ~5M, Cursors + Queueable is cleaner: flexible chunk sizes, bidirectional traversal, serialisable state across transactions. Above 5M — especially recurring jobs — Batch Apex is usually simpler: its `start/execute/finish` lifecycle handles chunking, retry and scope management, and the platform parallelises chunks (cursors do not). Pick by workload, not hype.
+The 10-fetches-per-transaction ceiling means processing 50M records by chaining a Queueable across many execution contexts (one fetch per execution, ten contexts of work, then the next chain link). Up to ~5M, Cursors + Queueable is cleaner: flexible chunk sizes, bidirectional traversal, serialisable state across transactions. Above 5M — especially recurring jobs — Batch Apex is usually simpler: its `start/execute/finish` lifecycle handles chunking, retry and scope management, and the platform parallelises chunks (cursors do not).
 
 ## Mixed DML — Setup vs Non-Setup Objects
 

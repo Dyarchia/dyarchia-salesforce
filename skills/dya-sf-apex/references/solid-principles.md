@@ -1,16 +1,10 @@
 # SOLID Principles in Apex
 
-Salesforce developers routinely skip SOLID — a trigger or a "quick" service class always
-looks too small to bother. It is not. The main skill's Service / Selector / Domain layering
-**is** SOLID applied; this reference makes the mapping explicit and shows each principle's
-concrete failure mode, in Winter '27 / API v68.0 syntax.
+The Service / Selector / Domain layering in SKILL.md **is** SOLID applied. Each principle below
+shows its concrete failure mode, in Winter '27 / API v68.0 syntax.
 
-Two numbers for applying SRP: **500 lines is the practical maximum for a class**, and a method
-past roughly **40 lines** wants a helper extracted. Neither is a platform limit — they are where the
-principles below stop being followable in practice.
-
-Apply SOLID **first**, named patterns second. Most Salesforce "architecture" problems are a missing
-SRP split or a hard-wired dependency, not a missing design pattern.
+SRP thresholds: **500 lines is the practical maximum for a class**, and a method past roughly
+**40 lines** wants a helper extracted. Neither is a platform limit.
 
 ---
 
@@ -97,8 +91,7 @@ public with sharing class DiscountEngine {
 }
 ```
 
-A new tier is a new `IDiscountRule` class plus one registration; the dispatch logic stays
-closed. With the Trigger Actions Framework the same idea is one `TriggerAction` class per
+With the Trigger Actions Framework the same idea is one `TriggerAction` class per
 behaviour.
 
 ---
@@ -163,8 +156,6 @@ public interface IAccountWriter { void persist(List<Account> accts); }
 public interface ICrmSync       { void syncToCrm(List<Account> accts); }
 ```
 
-A read-only consumer depends on `IAccountReader` alone, and its Stub API stub stays tiny.
-
 ---
 
 ## D — Dependency Inversion Principle
@@ -214,8 +205,6 @@ IOpportunitySelector stub = (IOpportunitySelector) Test.createStub(
 );
 Assert.areEqual(300, new OpportunityService(stub).pipelineTotal('001...'));
 ```
-
-The same Stub API wiring as the main skill (§8) — DIP is the principle that earns it.
 
 ---
 

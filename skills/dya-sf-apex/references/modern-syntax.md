@@ -1,8 +1,6 @@
 # Modern Apex Syntax — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-apex` for the exact form of a modern construct when writing or refactoring code.
-Each current idiom is shown with the older equivalent it replaces, so you can recognise what to
-change.
+Each modern construct beside the legacy form it replaces.
 
 ## Safe navigation and null coalescing
 
@@ -21,8 +19,7 @@ only when the left is `null` — not when it is empty or zero.
 
 ## `switch on` instead of `if/else` chains
 
-Use when branching on more than two discrete values of one variable. It is exhaustive over enums
-and reads as a table rather than a ladder.
+Use when branching on more than two discrete values of one variable. It is exhaustive over enums.
 
 ```apex
 switch on Trigger.operationType {
@@ -72,8 +69,6 @@ Your order was dispatched on ${dispatchDate}.
 String message = 'Hello ' + contact.FirstName + ',\nYour order was dispatched on ' + order.ShipDate__c + '.';
 ```
 
-Combined with multiline literals this removes almost every legitimate use of `+` on strings.
-
 ## Assertions
 
 ```apex
@@ -102,7 +97,7 @@ String objectName = 'Account';
 ```
 
 String literals for object and field names are invisible to the compiler and to "where is this
-used" tooling. Schema references break the build the moment the metadata changes — what you want.
+used" tooling. Schema references break the build when the metadata changes.
 
 ## Collection initialisers
 

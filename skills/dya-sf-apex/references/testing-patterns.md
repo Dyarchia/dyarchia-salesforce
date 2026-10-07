@@ -1,12 +1,6 @@
 # Apex Testing Patterns
 
-Companion to §8 of `SKILL.md`: the rules live there, the working shapes here.
-
 ## `@TestSetup` + Bulk Test Skeleton
-
-`@TestSetup` data is created once and given to each test method as a fresh rollback copy. Every
-bulk-callable class needs at least one 200+ record test — a one-record test proves nothing about
-governor behaviour.
 
 ```java
 @IsTest
@@ -37,13 +31,11 @@ private class AccountHandlerTest {
 }
 ```
 
-`Test.startTest()` / `Test.stopTest()` wraps the act, not the arrange: it resets governor limits for
-the code under test and forces queued async work to complete before the assertions.
+`Test.startTest()` / `Test.stopTest()` wraps the act, not the arrange.
 
 ## Stub API — Unit Test Isolation
 
-The Service / Selector layering exists so the selector can be replaced at test time; with a stub,
-the test exercises business logic with zero SOQL and zero DML.
+With the selector stubbed, the test exercises business logic with zero SOQL and zero DML.
 
 ```java
 IOpportunitySelector stub = (IOpportunitySelector) Test.createStub(
@@ -56,7 +48,7 @@ Assert.areEqual(300, new OpportunityService(stub).pipelineTotal('001...'));
 ```
 
 The stub provider class implements `System.StubProvider` and returns canned values from
-`handleMethodCall`. Inject the selector through the service constructor — a service that news up
+`handleMethodCall`. Inject the selector through the service constructor — a service that instantiates
 its own selector cannot be stubbed.
 
 ## `RunRelevantTests` Annotations (Beta, API v66+)
@@ -72,13 +64,11 @@ Both take effect only with:
 sf project deploy start --test-level RunRelevantTests
 ```
 
-Until GA, verify production-critical tests under a broader test level. `RunRelevantTests` is a
-speed optimisation for feature branches, not the gate in front of production.
+`RunRelevantTests` is a speed optimisation for feature branches, not the gate in front of production.
 
 ## Raising a class from 66.0 to 67.0 or above
 
-The version stamp is where the security defaults change, so a bump is a testing exercise, not a
-metadata edit. In this order:
+A bump changes the security defaults, so it is a testing exercise, not a metadata edit. In order:
 
 1. Replace `WITH SECURITY_ENFORCED` with `WITH USER_MODE`, or `Security.stripInaccessible` where
    partial results are acceptable.
@@ -89,19 +79,14 @@ metadata edit. In this order:
 4. **Grant the required CRUD and FLS to the test users or permission sets**, then re-run the
    affected tests as a non-administrator.
 
-Step 4 gets skipped, which is why the failures look mysterious. `System.runAs` alone is not enough:
+`System.runAs` alone is not enough:
 its user must carry a **permission set granting the object and field access the code needs**, or
 every user-mode query throws. A test that passes as an administrator and fails under `runAs` usually
 reports a missing permission set, not a bug.
 
 Triage a failure by checking the failing SOQL or DML's stack trace for a CRUD/FLS access error.
-Where user mode is intended, fix the permission set; where system mode is genuinely correct, make it
+Where user mode is intended, fix the permission set; where system mode is correct, make it
 explicit and say why.
-
-## Coverage
-
-75% is the deployment threshold, not the quality bar. Target 100% of meaningful branches. Coverage
-without assertions is worthless: it raises the number and catches no regression.
 
 ## Integration tests with real callouts (Developer Preview, Winter '27)
 
@@ -109,14 +94,11 @@ without assertions is worthless: it raises the number and catches no regression.
 is for contract verification against a sandbox endpoint — proving your request shape and parsing
 survive the actual service — not ordinary unit testing.
 
-Constraints:
-
 - **Developer Preview.** Not available in production orgs, and not a substitute for the mocked tests
   that gate a deployment. Keep full `HttpCalloutMock` coverage alongside it.
 - **Asynchronous only**, and only one such test runs at a time.
-- **No automatic rollback.** Unlike a normal `@IsTest` method, it does not roll its data back: you
-  create, you clean up, and a failure midway leaves records behind.
-- The endpoint must be reachable and stable; a test that fails when someone else's sandbox is down
-  is one the team will start ignoring.
+- **No automatic rollback.** The test must clean up what it creates; a failure midway leaves
+  records behind.
+- The endpoint must be reachable and stable, or the team learns to ignore the test.
 
 Treat it as a scheduled contract check, not as part of the deployment gate.

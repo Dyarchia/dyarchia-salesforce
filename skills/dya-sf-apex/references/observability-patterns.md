@@ -1,29 +1,21 @@
 # Observability — Native Tools Only
 
-What the platform gives you for free, referenced from SKILL.md §11. Load when diagnosing a
-production failure, deciding how an async job reports failure, or when asked to build a logging
-layer.
-
 ## The rule that comes first
 
-**Do not create a logging object, a logging platform event, or a `Logger` class that writes to
-either.** You cannot see the target org from here: a `Log__c` or `Log__e` in a deployment fails to
-deploy where it does not exist, and is one more unused custom object where it does. Neither is
-observability.
-
-Two legitimate paths, in order:
+The ban in SKILL.md §11 covers `Log__e` as well as `Log__c`: you cannot see the target org from
+here. Two legitimate paths, in order:
 
 1. **The org already has a logging framework.** Find it before writing anything — search the org's
    Apex for a `Logger`, `LogService` or similar entry point, or retrieve the object list for a
    log-shaped custom object. Call it, and match its level vocabulary rather than inventing your own.
-2. **The org has nothing.** Say so. Standing up a logging framework is an architectural decision with
-   storage, retention and DPO consequences — the org owner's call, not a side effect of your task.
+2. **The org has nothing.** Say so. Standing up a logging framework has storage, retention and DPO
+   consequences — the org owner's call, not a side effect of your task.
 
 Everything below needs no custom metadata.
 
 ## Debug logs
 
-`System.debug` is a development tool. Pass an explicit level so the line can be filtered:
+Pass a level to `System.debug` so the line can be filtered:
 
 ```java
 System.debug(LoggingLevel.ERROR, 'Callout failed for account ' + accountId);
@@ -32,10 +24,10 @@ System.debug(LoggingLevel.ERROR, 'Callout failed for account ' + accountId);
 Why debug logs are unsuitable as the production record:
 
 - They only exist while a **trace flag** is active on the user, class or trigger.
-- A single log is **capped**, and past the cap the body is truncated — the tail you needed gets cut.
+- A single log is **capped**, and past the cap the body is truncated.
 - They expire. They are for reproducing a known failure, not for discovering one after the fact.
 
-Set levels per category on the trace flag rather than raising everything to FINEST: a log drowning in
+Set levels per category on the trace flag rather than raising everything to FINEST: a log full of
 `WORKFLOW` and `VALIDATION` entries hits the size cap before it reaches your Apex.
 
 ## Uncaught exceptions
@@ -53,8 +45,7 @@ Recipients are set in Setup under Apex Exception Email, or declaratively with th
 </ApexEmailNotification>
 ```
 
-This is the floor of production error visibility; most orgs that believe they have "no logging"
-already have it and are not reading it.
+Most orgs that believe they have no logging already have this.
 
 ## Async job health
 
@@ -70,11 +61,10 @@ List<AsyncApexJob> failed = [
 ];
 ```
 
-`ExtendedStatus` carries the first error, usually enough to classify the failure without any logging
-layer. A report on this object filtered to `Failed` is a free dashboard component.
+`ExtendedStatus` carries the first error, usually enough to classify the failure. A report on this object filtered to `Failed` is a free dashboard component.
 
-`System.purgeOldAsyncJobs(Integer)` bounds how many records one call deletes, so a scheduled job can
-purge incrementally instead of hitting limits on a single sweep:
+A scheduled job can purge incrementally with `System.purgeOldAsyncJobs(Integer)` instead of hitting
+limits in one sweep:
 
 ```java
 System.purgeOldAsyncJobs(10000);
@@ -98,15 +88,14 @@ public void execute(FinalizerContext ctx) {
 }
 ```
 
-A Finalizer can also re-enqueue once — the retry path for a transient failure, and often what the
-caller wanted rather than a log line.
+A Finalizer can also re-enqueue once: the retry path for a transient failure.
 
 ## The licensed tier
 
-Where an org has paid for it, the real answer to "what happened in production" is not Apex at all:
+Where the org licenses them, these answer "what happened in production" without Apex:
 
 - **Event Monitoring** — login, API, Apex execution and report events as downloadable log files.
 - **Scale Center** and **ApexGuru Insights** — runtime profiling and hotspots, gated by edition. See
   `references/performance-and-caching.md`.
 
-Recommend these before proposing that anyone build a logging framework by hand.
+Recommend these before proposing a hand-built logging framework.

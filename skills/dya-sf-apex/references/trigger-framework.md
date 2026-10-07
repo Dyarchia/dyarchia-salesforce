@@ -1,12 +1,12 @@
 # Trigger Framework — Tony Scott (2013), Modernised
 
-Verbatim reference implementation of the trigger pattern this codebase enforces. Load when writing, refactoring or extending a trigger or the framework.
+Verbatim reference implementation of the trigger pattern this codebase enforces.
 
-The original 2013 pattern used `Trigger.isBefore && Trigger.isInsert` cascades. We keep Scott's interface and factory as designed but dispatch on the modern `Trigger.operationType` enum — the same evolution Scott accepted from Steve Cox in 2013 when `Type` replaced strings.
+The original 2013 pattern used `Trigger.isBefore && Trigger.isInsert` cascades. We keep Scott's interface and factory but dispatch on the modern `Trigger.operationType` enum — the same evolution Scott accepted from Steve Cox in 2013 when `Type` replaced strings.
 
 ## Notes on alternatives
 
-Kevin O'Hara's `TriggerHandler` (abstract virtual class with `beforeInsert/afterUpdate` etc., plus runtime bypass by name) and `fflib_SObjectDomain` from Apex Enterprise Patterns are also legitimate, actively-maintained options; any one beats no framework. The non-negotiable is *picking one and applying it everywhere*; Tony Scott is imposed here for consistency with the rest of this codebase. If you adopt another, do so org-wide — never mix.
+Kevin O'Hara's `TriggerHandler` (abstract virtual class with `beforeInsert/afterUpdate` etc., plus runtime bypass by name) and `fflib_SObjectDomain` from Apex Enterprise Patterns are also legitimate, maintained options; any one beats none. Tony Scott is imposed here for consistency with the rest of this codebase. Whichever you adopt, apply it org-wide — never mix.
 
 ## The `ITrigger` Interface
 
@@ -95,8 +95,6 @@ public with sharing class TriggerFactory {
 
 ## The Trigger File
 
-One line, no logic. Declaring `with sharing` / `without sharing` / `inherited sharing` on a trigger is a compile error in API 67+. Triggers always run in `SYSTEM_MODE`; the sharing declaration lives on the handler class.
-
 ```java
 trigger AccountTrigger on Account (
     before insert, before update, before delete,
@@ -107,8 +105,6 @@ trigger AccountTrigger on Account (
 ```
 
 ## The Handler — Skeleton
-
-All trigger logic lives here: the sharing declaration, bulk caching in `bulkBefore`/`bulkAfter`, per-record work in the iterative methods, and accumulated DML in `andFinally`.
 
 ```java
 public with sharing class AccountHandler implements ITrigger {
@@ -151,7 +147,7 @@ public with sharing class AccountHandler implements ITrigger {
 
 ## Recursion Guard
 
-For triggers that may re-fire themselves via DML, use a static guard:
+For a trigger that can re-fire itself through DML, use a static guard:
 
 ```java
 public with sharing class AccountHandler implements ITrigger {
@@ -189,8 +185,8 @@ public with sharing class TriggerBypass {
 }
 ```
 
-Bake the check once into the framework entry point — it resolves the object from the trigger
-context, so every framework trigger inherits its own per-object switch and stays a single line:
+Put the check once in the framework entry point; it resolves the object from the trigger context,
+so every framework trigger gets its own per-object switch and stays one line:
 
 ```java
 public static void createAndExecuteHandler(Type handlerType) {
@@ -202,8 +198,8 @@ public static void createAndExecuteHandler(Type handlerType) {
 }
 ```
 
-For a trigger that does **not** use the framework (brownfield, legacy), name its object explicitly
-as the first statement:
+For a trigger that does **not** use the framework (brownfield, legacy), name its object in the
+first statement:
 
 ```java
 trigger LegacyContactTrigger on Contact (before insert, after update) {
@@ -214,15 +210,5 @@ trigger LegacyContactTrigger on Contact (before insert, after update) {
 }
 ```
 
-The kill-switch is a circuit-breaker, not a recursion guard — keep the recursion handling
-regardless. Disabling an object's trigger org-wide is a footgun: prefer Profile or User scope, and
-re-enable the moment the bulk operation completes.
-
-## Handler Rules
-
-- One trigger per object. Order of execution between triggers is undefined.
-- No logic in the trigger file. One line: `TriggerFactory.createAndExecuteHandler(XxxHandler.class);`.
-- No SOQL or DML in the iterative `beforeX`/`afterX` methods. Cache in `bulkBefore`/`bulkAfter`, DML in `andFinally`.
-- Field-value validation goes in the `after` methods (other before-triggers or workflows can still modify the values).
-- Delegate all SOQL to a Gateway/Selector class — no SOQL inside the handler itself.
-- For callouts caused by DML, enqueue ONE Queueable in `andFinally` with the full batch (never a `@future` per iteration).
+Avoid disabling an object's trigger org-wide: prefer Profile or User scope, and re-enable as soon
+as the bulk operation completes.

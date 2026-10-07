@@ -1,8 +1,5 @@
 # Platform Cache, DataWeave and Profiling — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-apex` before caching data, transforming a structured payload, or chasing a
-performance problem. Consulted rather than obeyed: none of this applies on every invocation.
-
 ## Platform Cache
 
 Caching trades a SOQL query for a lookup that costs no governor limit. It is **best-effort storage** —
@@ -14,10 +11,9 @@ handle a miss.
 | Org Cache | Every user in the org | Currency rates, configuration tables, reference data | 48 h (default 24 h) |
 | Session Cache | One user's session | Auth tokens, user preferences, wizard state | 8 h |
 
-**A partition must exist before any of this compiles usefully.** Create it under Setup › Platform
-Cache and allocate capacity to it; the `local.` prefix is the namespace of an unmanaged org. `Cache.Org.getPartition`
-on a missing partition throws `Cache.Org.OrgCacheException` at runtime — a fresh org has no
-partitions and no allocation.
+**A partition must exist first.** Create it under Setup › Platform Cache and allocate capacity; the
+`local.` prefix is the namespace of an unmanaged org. `Cache.Org.getPartition` on a missing partition
+throws `Cache.Org.OrgCacheException` at runtime — a fresh org has no partitions and no allocation.
 
 ```apex
 public with sharing class FxRateService {
@@ -35,23 +31,19 @@ public with sharing class FxRateService {
 }
 ```
 
-Rules:
-
 - Individual items are capped at **100 KB**. Cache one collection rather than a hundred small keys.
-- A cache miss is normal, not exceptional. Code that assumes a hit fails intermittently in production
-  and never in a test.
+- Code that assumes a cache hit fails intermittently in production and never in a test.
 - Do not cache user-specific data in the Org partition; it is shared across every user.
 - Session Cache is empty for guest users and for any API-only integration user.
 
 ## Configuration data: Custom Metadata over Custom Settings
 
-`MyConfig__mdt.getInstance('Name')` reads from the platform cache and costs **no SOQL query**, and
-the records deploy and package like any other metadata — so Custom Metadata Types are the default
-home for configuration.
+`MyConfig__mdt.getInstance('Name')` reads from the platform cache with **no SOQL query**, and the
+records deploy and package like other metadata, so Custom Metadata Types are the default for
+configuration.
 
-Custom Settings remain correct for one thing Custom Metadata cannot express: **hierarchy resolution**,
-where a value is set at org level and overridden per profile or per user. The trigger kill-switch in
-`references/trigger-framework.md` is exactly that case.
+Custom Settings are correct only for **hierarchy resolution** — a value set at org level and
+overridden per profile or user — as in the trigger kill-switch (`references/trigger-framework.md`).
 
 ## DataWeave in Apex
 
@@ -67,12 +59,12 @@ List<Contact> contacts = (List<Contact>) result.getValueAsList();
 - `createScript` is CPU-expensive. Create the script once and reuse it for every row in the
   transaction.
 - Chunk inputs above roughly 1 MB — a single large payload hits heap before CPU.
-- Test with realistic volumes. DataWeave CPU cost is not negligible and does not show up at 10 rows.
+- Test with realistic volumes; DataWeave CPU cost does not show at 10 rows.
 
 ## ApexGuru
 
-Scale Center › ApexGuru Insights profiles actual runtime behaviour in the org and surfaces hotspots
-that static analysis cannot see, plus duplicate and near-duplicate code detection. It integrates with
+Scale Center › ApexGuru Insights profiles runtime behaviour in the org, surfaces hotspots static
+analysis cannot see, and detects duplicate and near-duplicate code. It integrates with
 VS Code, Cursor and Agentforce Vibes through Code Analyzer.
 
 Check the edition before recommending it: available on Performance and Unlimited, and on
@@ -82,9 +74,7 @@ Review the insights at least quarterly, not only when something is already slow.
 
 ## Heap discipline
 
-- Iterate a query directly (`for (Account[] batch : [SELECT …])`) instead of materialising the whole
-  result into a `List`. The for-loop chunks at 200 records and keeps heap flat.
-- Project only the fields you use. Every extra field is heap on every row.
+- Every extra projected field is heap on every row.
 - `clear()` large collections once done with them inside a long transaction.
 - Past roughly 50,000 rows, stop fitting it in one transaction: Apex Cursors or Batch Apex.
 
