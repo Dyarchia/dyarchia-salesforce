@@ -10,9 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Every skill, reference, shared fragment and root document says the same in fewer words.** Three passes cut commentary, lead-ins, restatements and reference passages that only repeated their `SKILL.md`; a final audit against `develop` restored every fact a pass had dropped. Skill text fell from 117,549 to 97,948 words (−17%). Skeleton, frontmatter, citations and handoffs are unchanged.
+- **Skill bodies are imperative and host-neutral.** Rules lead with the verb and come before their reason; a kept reason is a clause ("Do X; Y throws otherwise"). The Five Commandments are imperative throughout. The `dya-sf-lwr-sites` and `dya-sf-lightning-out` decision tables are pipe tables, per the skeleton.
+- **Descriptions are one portable format**: `Salesforce <domain> (Winter '27, API v68.0) — <surface>. Applies to <files and metadata>. Load before creating or editing anything in this scope.`, 255–461 characters (was 346–830). Hosts trim long descriptions from their skill listing, which cuts the `Applies to` list the trigger depends on. The "or when the user invokes this skill by name" tail is gone: every host invokes by name without it.
+- `validate-skills` (both twins) enforces the Agent Skills spec: name format and length, description at most 1024 characters with a warning above 500, and no unquoted `: ` or ` #` in a description.
 
 ### Fixed
 
+- **Six skills had frontmatter strict YAML rejects**, an unquoted `: ` in the description: `dya-sf-integration-inbound-apex`, `dya-sf-lightning-out`, `dya-sf-lwr`, `dya-sf-lwr-sites`, `dya-sf-omnistudio`, `dya-sf-permissions`. Claude Code loads such a skill with no description, so it never loads on its own; claude.ai upload and the Skills API refuse it. Three were broken on `develop` already.
+- The below-the-floor `grep` in `metadata-and-api-versions.md` matched only 10.0–39.0; it now matches 1.0–40.0.
+- `CLAUDE.md` claimed hosts ignore unknown frontmatter keys (claude.ai upload, the Skills API and `package_skill.py` reject any key outside the spec's six), that the repo ships an `.agents/skills/` symlink (it does not), and a plugin version of `0.3.0`.
 - `dya-sf-flow` §7 forbade a callout after *committed* DML; the rule is *uncommitted* DML.
 - Four stale section pointers: `http-callout-patterns.md` (§7), `jest-testing.md` (§10), `guest-and-seo.md` (§4–§5), and a "below" in `trigger-framework.md` that pointed above.
 - Four citations of shared fragments the skill never synced, in `dya-sf-headless360`, `dya-sf-agentforce` and `dya-sf-data360`, are removed.
