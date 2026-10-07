@@ -1,7 +1,7 @@
 # LWR vs Lightning Experience — Runtime Differences & Porting Checklist
 
-Load when porting an LWC from Lightning Experience to an LWR target
-(Experience site or Lightning Out) or writing one for both.
+Load when porting an LWC from Lightning Experience to an LWR target (Experience site or Lightning
+Out) or writing one for both.
 
 ## The two runtimes at a glance
 

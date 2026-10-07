@@ -61,7 +61,7 @@ Do NOT use LMS for:
 - Local component state (a plain property).
 - Single parent → child data flow (`@api` properties).
 - Child → parent notification (a bubbling `CustomEvent`).
-- Salesforce record data LDS or GraphQL already updates .
+- Salesforce record data that LDS or GraphQL already updates.
 
 LMS publishes across the whole application context; overusing it makes data flow hard to trace.
 

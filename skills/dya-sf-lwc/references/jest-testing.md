@@ -108,7 +108,7 @@ describe('c-hello-world', () => {
 
 ### The async-render rule
 
-`await flushPromises()` (equivalently `await Promise.resolve()`) between act and assert. A returned `.then()` chain also works, but `async/await` is the project default. For chained updates (promise → state → render), await once per microtask boundary.
+Always `await flushPromises()` (equivalently `await Promise.resolve()`) between act and assert. A returned `.then()` chain also works, but `async/await` is the project default. For chained updates (promise → state → render), await once per microtask boundary.
 
 ## Querying & Interacting With the Shadow DOM
 

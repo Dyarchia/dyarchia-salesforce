@@ -31,8 +31,8 @@ JSON.stringify(mySet);               // ❌ produces nothing useful
 this.dispatchEvent(new CustomEvent('x', { detail: myMap }));   // ❌
 ```
 
-**A `Map` or `Set` passed through `@wire`, `@track`, an event
-payload, or into a child component does not survive.** Convert to a plain object or array at the
+**A `Map` or `Set` passed through `@wire`, `@track`, an event payload, or into a child component
+does not survive.** Convert to a plain object or array at the
 boundary and rebuild on the other side.
 
 ## `lws-017` — mutating objects the component does not own
@@ -67,8 +67,9 @@ constructed dynamically* — in `href`, `src`, `action`, `window.location`, `win
 
 The rule targets **untrusted URLs**, not every scheme it lists. The catalogue flags `data:`,
 `blob:`, `tel:` and `mailto:` for review, and `lws-019` sanctions `URL.createObjectURL` for safe MIME
-types, so a `blob:` URL your own code minted for an `<a download>` is not caught. When a URL comes from a record field, a parameter or
-anything a user can influence, validate the scheme before assigning it.
+types, so a `blob:` URL your own code minted for an `<a download>` is not caught. When a URL comes
+from a record field, a parameter or anything a user can influence, validate the scheme before
+assigning it.
 
 ## `lws-023` — iframes
 

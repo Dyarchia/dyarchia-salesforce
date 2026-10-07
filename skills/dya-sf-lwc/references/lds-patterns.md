@@ -136,7 +136,8 @@ import { notifyRecordUpdateAvailable } from 'lightning/uiRecordApi';
 await notifyRecordUpdateAvailable([{ recordId: this.recordId }]);
 ```
 
-Every component bound to the record then re-renders.
+Call it after Apex or a callout changes a record; every component bound to that record then
+re-renders.
 
 ## Refreshing a wired Apex method — a different mechanism
 
@@ -186,8 +187,8 @@ showError(error) {
 ```
 
 LDS, GraphQL (`errors`, plural) and `AuraHandledException` each return a different error shape.
-`reduceErrors` from the standard `ldsUtils` community utility normalises all three. A hand-rolled formatter
-usually handles only the shape you tested.
+`reduceErrors` from the standard `ldsUtils` community utility normalises all three. A hand-rolled
+formatter usually handles only the shape you tested.
 
 ## Anti-Patterns
 

@@ -137,9 +137,9 @@ fires again, so the component renders empty.
 Import fields from `@salesforce/schema/...`, not `'Account.Name'`: a renamed field then breaks the
 build instead of failing silently in production.
 
-**Refreshing after a write.** When Apex or a callout
-changed the record, call `notifyRecordUpdateAvailable([{ recordId }])` so the LDS cache re-fetches;
-`getRecordNotifyChange` is deprecated. When the component reads through a **wired Apex** method, that
+**Refreshing after a write.** When Apex or a callout changed the record, call
+`notifyRecordUpdateAvailable([{ recordId }])` so the LDS cache re-fetches; `getRecordNotifyChange` is
+deprecated. When the component reads through a **wired Apex** method, that
 notification does nothing — the wire is not LDS. Use `refreshApex(this.wiredResult)` from
 `@salesforce/apex`, keeping the raw wire result (`@wire(m) wired(result) { this.wiredResult = result; }`)
 instead of destructuring `{ data, error }`. *Imperative* Apex has no wire to refresh: call it again.
@@ -163,8 +163,8 @@ returns `errors` — plural.
 
 **`@lwc/state`** is for shared **reactive** state between components on the same page. A state manager
 moves the data and its logic into a reusable, testable module, so siblings coordinate without lifting
-state to a common parent or drilling props. Built-in **Lightning State
-Managers** wrap LDS for record-backed state, so most cases need no hand-written manager.
+state to a common parent or drilling props. Built-in **Lightning State Managers** wrap LDS for
+record-backed state, so most cases need no hand-written manager.
 
 **Lightning Message Service** is pub/sub over a Lightning Message Channel, for relationships that
 cross the DOM, pages, apps or technologies — LWC talking to Aura or Visualforce, or a utility-bar
@@ -181,7 +181,8 @@ component broadcasting application-wide. Subscribe in `connectedCallback` and **
 | Across the DOM, pages or apps | Lightning Message Service |
 | LWC talking to Aura or Visualforce | Lightning Message Service |
 
-Use a state manager only when the relationship is lateral, not merely awkward.
+For directly related components, `@api` properties and events stay correct and simplest. Use a state
+manager only when the relationship is lateral, not merely awkward.
 
 > Manager patterns, channel definition, scope options, Aura and Visualforce interop: `references/state-management.md`.
 

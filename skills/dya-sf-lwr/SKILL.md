@@ -7,9 +7,8 @@ description: Salesforce Lightning Web Runtime (LWR) Winter '27 (API v68.0) — b
 
 LWR is a **runtime**, not a kind of site: the engine that runs Lightning Web Components **without
 the Aura framework underneath**. `dya-sf-lwc` teaches the component; this skill teaches the runtime it
-lands on. For Experience
-sites on LWR use `dya-sf-lwr-sites`; for embedding LWCs in non-Salesforce apps,
-`dya-sf-lightning-out`. Follow every rule below.
+lands on. For Experience sites on LWR use `dya-sf-lwr-sites`; for embedding LWCs in non-Salesforce
+apps, `dya-sf-lightning-out`. Follow every rule below.
 
 References:
 
@@ -133,7 +132,8 @@ Site-level guest hardening: `dya-sf-lwr-sites`.
 
 - Mind bundle size, lazy-load heavy work, and keep large libraries out of a guest-facing page.
 - Let LDS and GraphQL own data and caching rather than hand-rolling fetch-and-store.
-- Public LWR pages are measured on real-world load and Core Web Vitals.
+- Public LWR pages are measured on real-world load and Core Web Vitals. Treat performance as a
+  requirement.
 
 ---
 
@@ -150,7 +150,7 @@ AppExchange path), unlocked namespaced, and unlocked org-dependent. IP protectio
 unlocked one. Installed bundles render from `*.salesforce.app`, isolated from core UI, so two
 same-named bundles from different packages coexist.
 
-It requires **Hyperforce only**, English as the org's default language, and the Dev Hub
+It requires **Hyperforce**, English as the org's default language, and the Dev Hub
 toggle *Enable Unlocked Packages and Second-Generation Managed Packages* — until it is on,
 `sf package create` returns `NOT_FOUND`. Build `dist/` before packaging or deploying, or the app
 installs and renders blank. Setup › Security › **Multi-Framework Domains** disables a provisioned
