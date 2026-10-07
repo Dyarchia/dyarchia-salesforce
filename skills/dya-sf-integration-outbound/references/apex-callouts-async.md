@@ -1,6 +1,6 @@
 # Apex Callouts & Async Patterns — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-outbound` for the callout mechanics, the callout-after-DML rule, and async callout patterns. The canonical async framework (Queueable, Finalizers) lives in `dya-sf-apex`; this is the integration-specific slice. Examples use Named Credentials (`callout:`) — see `dya-sf-integration-auth`.
+Load from `dya-sf-integration-outbound`. The canonical async framework (Queueable, Finalizers) lives in `dya-sf-apex`.
 
 ## Synchronous Callout
 
@@ -35,17 +35,12 @@ public with sharing class PaymentGateway {
 }
 ```
 
-Limits (per transaction): **100 callouts**; **timeout 1–120000 ms** per callout and **120 s cumulative**; **6 MB sync / 12 MB async** payload. Classify responses: 2xx success, 4xx permanent (don't retry), 429/5xx retryable.
-
 ## The Callout-After-DML Rule
 
-No callout once the transaction has uncommitted DML. Resolve in this order:
+- A Queueable fits "save record, then notify external".
+- Continuation fits long-running calls; a Finalizer fits guaranteed post-work.
 
-1. **Reorder** — do the callout before the DML.
-2. **Queueable** — commit DML, then enqueue a Queueable that calls out in its own transaction (preferred for "save record, then notify external").
-3. **Continuation / Finalizer** — for long-running or guaranteed-post-work cases.
-
-## Queueable Callout (the default async pattern)
+## Queueable Callout
 
 ```apex
 public with sharing class NotifyExternalQueueable implements Queueable, Database.AllowsCallouts {
@@ -70,11 +65,11 @@ public with sharing class NotifyExternalQueueable implements Queueable, Database
 System.enqueueJob(new NotifyExternalQueueable(idSet));
 ```
 
-Rules: implement `Database.AllowsCallouts`; **aggregate** — one callout for the whole batch, never per record; guard re-enqueue chains; for guaranteed post-callout logic add a Transaction Finalizer (`dya-sf-apex`).
+For guaranteed post-callout logic, add a Transaction Finalizer (`dya-sf-apex`).
 
-## Continuation (long-running, sync-feeling)
+## Continuation
 
-For a slow external call whose result returns to the user without holding a synchronous thread. Up to **3 parallel** callouts, **120 s** max. Common in Visualforce/Aura controllers and long LWC-driven operations.
+Returns a slow call's result to the user without holding a synchronous thread; **120 s** max. Common in Visualforce/Aura controllers and long LWC-driven operations.
 
 ## Batch Callout
 
@@ -100,11 +95,6 @@ public class SyncBatch implements Database.Batchable<SObject>, Database.AllowsCa
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Callout per record in a loop | Aggregate into one batched callout |
-| Callout with uncommitted DML | Queueable after DML / callout-first |
-| `@future(callout=true)` for new work | Queueable + `Database.AllowsCallouts` |
-| Hard-coded URL/secret | Named Credential `callout:` |
 | Retrying 4xx | Retry only 429/5xx with backoff |
 | Infinite Queueable re-enqueue on failure | Cap attempts; dead-letter |
 | Swallowing `CalloutException` | Log durably + signal retry/reconcile |
-| Ignoring the 120 s cumulative budget | Split work across async jobs |

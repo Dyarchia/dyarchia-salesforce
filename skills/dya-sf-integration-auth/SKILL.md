@@ -23,9 +23,6 @@ patterns is `dya-sf-integration-overview`.
 
 ## Platform Context — Winter '27 / API v68.0
 
-Two **dated** retirements dominate authentication this release — an integration that works today
-stops working on a specific day.
-
 | Change | When | What breaks |
 |---|---|---|
 | **OAuth 2.0 username-password flow retired for connected apps** | Release Update in Winter '27, **enforced 20 February 2027** | Anything posting `grant_type=password` with a username, password and security token stops receiving a token — on that date, not at the release upgrade |
@@ -36,14 +33,12 @@ If an org does not see the username-password Release Update in Setup, the flow i
 there. New orgs block it by default.
 
 **Migrating off username-password.** The **client credentials flow** is the smaller change: the
-external client app runs as one designated integration user and no password is stored. **JWT
-bearer** uses a signed certificate instead of a shared secret — the better answer for anything high
-value. The **web server flow with PKCE** fits when a real human authorises. Never migrate to another
-password-carrying scheme.
+external client app runs as one designated integration user and stores no password. **JWT bearer**
+uses a signed certificate instead of a shared secret — better for anything high value. Use the **web
+server flow with PKCE** when a human authorises. Never migrate to another password-carrying scheme.
 
 **Update Instanced URLs in API Traffic** is testable now: Setup › My Domain › Redirections ›
-*Block API traffic that uses an incorrect instanced URL*. Turn it on in a sandbox and see what
-breaks before the date.
+*Block API traffic that uses an incorrect instanced URL*. Turn it on in a sandbox before the date.
 
 Standing context: **External Client Apps are the default** for inbound integration identity; new
 Connected App creation has been disabled by default since Spring '26. **Named Credentials plus
@@ -63,9 +58,8 @@ OUTBOUND  Salesforce authenticates OUT to an external system
           → Named Credential (the endpoint) + External Credential (the authentication)
 ```
 
-Never hard-code a secret in either direction. Inbound identity lives in an **External Client App**,
-outbound credentials in **External Credentials**, encrypted and principal-scoped. Both keep secrets
-out of code *and* metadata: a secret in a `.cls` file is a secret in version control.
+Never hard-code a secret in code *or* metadata, in either direction: a secret in a `.cls` file is a
+secret in version control.
 
 ## 2. Inbound — Choosing the OAuth Flow
 
@@ -78,8 +72,6 @@ out of code *and* metadata: a secret in a `.cls` file is a secret in version con
 | **Device** | Input-constrained devices | Kiosks, IoT |
 | **Username-Password** | Nothing | Retired, enforced 20 February 2027, and already blocked in new orgs and by every ECA |
 
-Default to **JWT Bearer** for backend integrations, **web server plus PKCE** for user-facing apps.
-
 > Full setup for each: `references/oauth-and-eca.md`.
 
 ## 3. Inbound — External Client Apps vs Connected Apps
@@ -91,9 +83,8 @@ Default to **JWT Bearer** for backend integrations, **web server plus PKCE** for
 | Security posture | **Closed by default**; blocks legacy password flows outright | Historically open by default |
 | Secret rotation | Staged Credentials API — rotate with no downtime | Manual, with a gap |
 
-Build new integration identities as ECAs. Keep existing Connected Apps running but migrate one when
-you touch it, and **inventory everything using username-password or SOAP `login()` now** — both have
-dates attached.
+Keep existing Connected Apps running, but migrate one when you touch it. **Inventory everything using
+username-password or SOAP `login()` now.**
 
 ## 4. Inbound — Other Mechanisms
 
@@ -101,14 +92,12 @@ dates attached.
   REST. A harvested session id is never a long-lived API credential.
 - **Mutual TLS** — certificate-based transport authentication where the counterparty requires it,
   configured for inbound traffic in Setup.
-- **"Any API Auth"** — the user permission gating SOAP `login()` eligibility, enforced by default in
-  new orgs.
 - **Guest access** — an unauthenticated endpoint on a Site or Experience Cloud page runs as the guest
   user. Lock that profile down: `dya-sf-integration-inbound-apex`, `dya-sf-permissions`.
 
 ## 5. Outbound — Named Credentials and External Credentials
 
-The only correct way to authenticate an outbound callout, in two pieces of metadata:
+Authenticate every outbound callout with two pieces of metadata:
 
 - **Named Credential** — the **endpoint**: base URL, which External Credential to use, and callout
   options.

@@ -1,6 +1,6 @@
 # Named Credentials & External Credentials — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-auth` for outbound authentication. The modern, mandatory model for any Salesforce-initiated callout — it replaces hard-coded endpoints/secrets and Remote Site Settings.
+Load from `dya-sf-integration-auth` for outbound authentication.
 
 ## The Two-Part Model
 
@@ -8,8 +8,6 @@ Load from `dya-sf-integration-auth` for outbound authentication. The modern, man
 |---|---|---|
 | **Named Credential** | Base URL + which External Credential + callout options (HTTP headers, allow formulas, generate auth header) | *Where* do I call? |
 | **External Credential** | Auth protocol + **Principals** (+ custom headers via formula) | *How* do I authenticate? |
-
-Runtime tokens are stored encrypted in **`UserExternalCredential`**. Reference the whole thing in code/Flow as `callout:Named_Credential_Name/path`.
 
 ```apex
 HttpRequest req = new HttpRequest();
@@ -20,11 +18,6 @@ HttpResponse res = new Http().send(req);
 ```
 
 ## Principal Types
-
-| Principal | Identity | Use |
-|---|---|---|
-| **Named Principal** | One shared identity for all users | System-to-system integration (most common) |
-| **Per-User Principal** | Each user authenticates individually; mapped via a permission set | When the external system must attribute actions to a specific user |
 
 A user or integration user may use a Principal once assigned the **permission set** that references the External Credential Principal.
 
@@ -55,15 +48,14 @@ External Credentials support **custom headers** computed with formulas (e.g. an 
 
 ## Why Not Remote Site Settings / Hard-Coding
 
-- Remote Site Settings only allowlist a URL — no auth, secrets, or rotation. Named Credentials supersede them; a `callout:` endpoint needs no RSS.
+- Remote Site Settings only allowlist a URL — no auth, secrets, or rotation.
 - Hard-coded tokens leak in code, version control, and logs, and can't be rotated centrally.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Hard-coded endpoint + Remote Site Setting | Named Credential (`callout:`) |
-| Secret/token in Apex or custom setting | External Credential (encrypted, principal-scoped) |
+| Secret/token in a custom setting | External Credential (encrypted, principal-scoped) |
 | Setting the `Authorization` header by hand | Let the Named/External Credential inject it |
 | Legacy Named Credential (pre-External-Credential) | Migrate to Named + External Credential |
 | One Named Principal where attribution matters | Per-User Principal |

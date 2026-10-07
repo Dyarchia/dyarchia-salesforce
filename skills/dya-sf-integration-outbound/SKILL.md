@@ -23,25 +23,19 @@ Lightning Web Security and CSP in `dya-sf-lwc`; what the calling user is allowed
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 changes the budget a callout runs inside: **Apex heap rises to 10 MB synchronous and
-25 MB asynchronous**. That affects how much response you can hold, not the size of a single callout
-payload — a separate, unchanged limit. See `references/shared/governor-limits.md`.
+In Winter '27 **Apex heap rises to 10 MB synchronous and 25 MB asynchronous**. That affects how much
+response you can hold, not the callout payload limit, which is separate and unchanged. See
+`references/shared/governor-limits.md`.
 
-Standing facts that govern every outbound call:
+Standing facts:
 
 - **Named Credentials plus External Credentials are the only correct mechanism.** They replace
   hard-coded endpoints, secrets and Remote Site Settings. Reference them as
   `callout:My_Named_Credential/path`. Detail in `dya-sf-integration-auth`.
 - **HTTPS is mandatory.** No supported path calls an `http://` endpoint.
-- **Flow HTTP Callout is GA** for GET, POST, PUT, PATCH and DELETE — genuine no-code outbound built
-  on External Services. It auto-handles only 2xx.
 - **From API 67.0 a callout class defaults to `with sharing` and `USER_MODE`.** An async callout
   class must still declare `Database.AllowsCallouts`: the marker interface permits the callout at
   all, and omitting it fails at run time, not compile time.
-- **Salesforce Connect** with the OData 4.01 adapter removes the legacy 20,000-callouts-per-hour cap
-  and supports incremental syncs and external change data capture.
-- **Lightning Web Security blocks `data:` URIs** in the browser, so client-generated downloads use
-  `URL.createObjectURL(blob)`.
 
 ---
 
@@ -58,9 +52,6 @@ Does Salesforce need the answer right now to continue?
 ├─ Read external data live, don't store it ........... Salesforce Connect (External Objects)
 └─ Push from a button/screen in the UI ............... LWC → Apex proxy → callout
 ```
-
-Prefer **no-code (Flow HTTP Callout)** for simple, well-described REST APIs an admin can own;
-**Apex** for complex logic, async, retry or large payloads.
 
 ---
 
@@ -80,17 +71,15 @@ if (res.getStatusCode() == 200) { /* parse */ } else { /* handle/log/retry */ }
 Hard limits, per Apex transaction:
 - **100 callouts** maximum.
 - **Timeout 1 ms–120,000 ms (120 s)** per callout, and **120 s cumulative** across all of them.
-- Callout request or response payload **6 MB synchronous / 12 MB asynchronous** — its own limit;
-  the Winter '27 heap increase does not raise it.
-- The "10" seen elsewhere is a *different* limit — concurrent synchronous requests running longer
-  than 5 seconds — not the per-transaction maximum.
+- Callout request or response payload **6 MB synchronous / 12 MB asynchronous**.
+- The limit of 10 concurrent synchronous requests running longer than 5 seconds is *different*, not
+  the per-transaction maximum.
 
 ### The callout-after-DML rule
 A callout **cannot** run while uncommitted DML sits in the transaction: "You have uncommitted work
 pending". In order of preference:
 1. **Callout first, DML after**, where the order allows.
-2. **Move the callout into a Queueable** — recommended — so it runs in a fresh transaction after the
-   DML commits.
+2. **Move the callout into a Queueable**, so it runs in a fresh transaction after the DML commits.
 3. Continuation or Transaction Finalizer, for specific cases.
 
 Full async callout patterns: `references/apex-callouts-async.md`.
@@ -106,8 +95,7 @@ Full async callout patterns: `references/apex-callouts-async.md`.
 | **Batch** | Callout per chunk over large data | `Database.Batchable, Database.AllowsCallouts` (≤100 callouts/execute) |
 | **`@future(callout=true)`** | Legacy fire-and-forget | avoid in new code |
 
-Default to **Queueable** for new async callouts; reserve `@future` for legacy. The canonical async
-framework is in `dya-sf-apex`.
+The canonical async framework is in `dya-sf-apex`.
 
 ---
 
@@ -146,8 +134,7 @@ automatic retry: ack within 24 h, extendable to 7 days.
 
 ## 7. Salesforce Connect / External Objects (Data Virtualization)
 
-Surface external data as **External Objects** without copying it. Every read makes a real-time
-callout on access.
+Surface external data as **External Objects** without copying it.
 
 - **Adapters:** OData 2.0 and 4.0 — the 4.01 adapter removes the 20,000-callouts-per-hour cap and
   supports external change data capture — **Cross-Org** over REST, and the **Apex Custom Adapter**
@@ -167,8 +154,8 @@ The browser cannot call arbitrary Salesforce APIs from JS — only LDS and `ligh
    through a Named Credential. Secrets stay server-side, no CORS is needed, and Apex governance is
    reused.
 2. **Direct `fetch()`** — only where the third party explicitly supports browser calls. It requires a
-   **CSP Trusted Site** (`connect-src`) **and** the third party's CORS allowlisting, and it would
-   expose any credential. Never put credentials in JS.
+   **CSP Trusted Site** (`connect-src`) **and** the third party's CORS allowlisting. Never put
+   credentials in JS.
 
 Under **LWS** `data:` URIs are blocked; build client-side downloads with `URL.createObjectURL(blob)`.
 See `dya-sf-lwc`.

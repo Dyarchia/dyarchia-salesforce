@@ -5,10 +5,9 @@ description: Salesforce Revenue Cloud Advanced / Revenue Lifecycle Management (R
 
 # Salesforce Revenue Cloud Advanced (RCA / RLM) — Developer Surface
 
-**Scope:** the **API-first successor to legacy Salesforce CPQ** — Revenue Lifecycle Management
-(RLM), branded Revenue Cloud Advanced and, since Dreamforce 2025, "Agentforce Revenue Management".
-**Legacy Salesforce CPQ — End-of-Sale, the managed-package Quote Calculator Plugin world — is out of
-scope.** Builds on `dya-sf-apex` and `dya-sf-lwc`. Source of truth: the **Revenue Lifecycle
+**Scope:** Revenue Lifecycle Management (RLM), the **API-first successor to legacy Salesforce
+CPQ**. **Legacy Salesforce CPQ — End-of-Sale, the managed-package Quote Calculator Plugin world — is
+out of scope.** Builds on `dya-sf-apex` and `dya-sf-lwc`. Source of truth: the **Revenue Lifecycle
 Management Developer Guide, Version 68.0 (Winter '27)**. Follow every rule below.
 
 References:
@@ -22,10 +21,10 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
-**The product is now called Agentforce Revenue Management.** Winter '27 completes a three-release
-rename, and features split across the Growth, Advanced and Billing tiers — check the org's tier
-before promising a capability. The **programmatic surface is unchanged**: the Connect business APIs,
-invocable actions, Apex hooks and metadata types below still apply.
+Winter '27 completes a three-release rename, and features split across the Growth, Advanced and
+Billing tiers — check the org's tier before promising a capability. The **programmatic surface is
+unchanged**: the Connect business APIs, invocable actions, Apex hooks and metadata types below still
+apply.
 
 - RCA is **API-first and on-core**. Every domain exposes **Connect REST business APIs, standard
   invocable actions, built-in Apex classes and namespaces, Metadata API types and platform events**.
@@ -33,14 +32,10 @@ invocable actions, Apex hooks and metadata types below still apply.
 - Pricing and configuration run on shared **Salesforce Industries** infrastructure: the **Business
   Rules Engine** (Pricing Procedures, **Decision Tables**, **Lookup Tables**, Expression Sets) and
   the **Context Service** (Context Definitions and Mappings).
-- **Apex Hooks for Pricing Procedures** (Summer '25) are the supported extension point for custom
-  pricing logic. §3.
-- **Naming churn, met in every document and org:** RLM (Spring '24) → Revenue Cloud
-  (Dreamforce '24) → **Agentforce Revenue Management** (Dreamforce '25, current). The developer
-  guide is still titled *Revenue Lifecycle Management Developer Guide*, and objects and namespaces
-  carry the older names. Treat all as one product; use the current name in new work.
+- **Naming:** RLM (Spring '24) → Revenue Cloud (Dreamforce '24) → **Agentforce Revenue
+  Management** (Dreamforce '25, current). The developer guide is still titled *Revenue Lifecycle
+  Management Developer Guide*, and objects and namespaces carry the older names. Treat all as one product; use the current name in new work.
 - **Migration:** RCA is a **re-implementation, not an upgrade** from legacy CPQ — a new data model.
-  Never port Quote Calculator Plugin logic.
 - **From API 67.0 custom Apex defaults to `with sharing` and `USER_MODE`**, and
   `WITH SECURITY_ENFORCED` no longer compiles — use `WITH USER_MODE`. Assign the **Revenue Cloud
   permission set licences**: without them the APIs are absent rather than failing informatively. See
@@ -64,7 +59,7 @@ invocable actions, Apex hooks and metadata types below still apply.
 
 ## 2. The Extension Model — Same Shape Everywhere
 
-Every domain offers the **same programmatic surfaces**. Pick by where the logic runs:
+Pick by where the logic runs:
 
 | Surface | Use |
 |---|---|
@@ -74,14 +69,14 @@ Every domain offers the **same programmatic surfaces**. Pick by where the logic 
 | **Metadata API types** | Source-control/deploy domain config (procedures, catalogs, settings) |
 | **Platform events** | React to lifecycle changes (e.g. billing) |
 
-Never hand-roll DML against RCA objects where a business API or invocable action exists — those
+Never hand-roll DML against RCA objects where a business API or invocable action exists; those
 enforce the engine's pricing, configuration, qualification and tax rules.
 
 ---
 
 ## 3. Salesforce Pricing — Configure, Then Hook
 
-Pricing is **configured** on the Business Rules Engine, not coded:
+Pricing is **configured**, not coded:
 
 - **Pricing Procedures** (Pricing Procedure Builder) — the visual successor to Industries'
   Calculation Procedures and Pricing Plan Steps: ordered pricing elements computing the net price and
@@ -89,12 +84,10 @@ Pricing is **configured** on the Business Rules Engine, not coded:
 - **Decision Tables / Lookup Tables** — drive tiered and volume discounts and rule lookups; Pricing
   Procedures read from internal lookup tables.
 - **Context Service** — **Context Definitions and Mappings** assemble the runtime data a procedure
-  consumes, and write results back.
+  consumes and write results back.
 - **Apex Hooks for Pricing Procedures** (Summer '25) — inject Apex for logic the declarative tools
   cannot express, or to pass attribute values. The **supported** custom-pricing extension point, not
   a Quote Calculator Plugin.
-
-Invoke pricing programmatically:
 
 ```
 # Connect REST — run a pricing action with context + procedure + waterfall
@@ -122,8 +115,8 @@ POST /services/data/v68.0/connect/commerce/sales-transactions/actions/place   # 
 ```
 
 In Apex, **`PlaceQuoteRLMApexProcessor`** and the wider PlaceQuote Apex surface process quote
-placement; standard **invocable actions** serve Flow and Agentforce — for example creating an order
-from an existing quote. Full Apex, endpoints and actions: `references/transaction-billing-apis.md`.
+placement; standard **invocable actions** serve Flow and Agentforce, such as creating an order
+from a quote. Full Apex, endpoints and actions: `references/transaction-billing-apis.md`.
 
 ---
 

@@ -1,21 +1,19 @@
 # Revenue Cloud Advanced — Pricing, Catalog & Configuration (Winter '27 / API v68.0)
 
-Load from `dya-sf-revenue-cloud`. Salesforce Pricing on the Business Rules Engine, Product Catalog Management, and Product Configurator — endpoints and actions. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request bodies against the guide for your version.
+Load from `dya-sf-revenue-cloud`. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request bodies against the guide for your version.
 
 ## Salesforce Pricing — the model
 
-- **Pricing Procedures** (Pricing Procedure Builder): the visual, declarative successor to Industries EPC **Calculation Procedures / Pricing Plan Steps / custom Pricing Plan Step Apex** — ordered pricing elements producing the price waterfall.
-- **Decision Tables** + **Lookup Tables**: Pricing Procedures read internal lookup tables for list prices, tiers, and rule outputs (input rule variables → matched row → output rule variables).
-- **Context Service**: **Context Definitions** (nodes + attributes + context tags) and **Mappings** assemble the Salesforce data a procedure needs at runtime and write results back. Setup → **Context Service → Context Definitions**.
+- **Pricing Procedures** succeed Industries EPC **Calculation Procedures / Pricing Plan Steps / custom Pricing Plan Step Apex**.
+- **Decision Tables** + **Lookup Tables** hold list prices, tiers and rule outputs (input rule variables → matched row → output rule variables).
+- **Context Definitions** consist of nodes, attributes and context tags. Setup → **Context Service → Context Definitions**.
 - **Expression Sets**: reusable decision/calculation logic invoked by procedures.
 
-## Apex Hooks for Pricing Procedures (Summer '25 — the supported custom-pricing extension)
+## Apex Hooks for Pricing Procedures (Summer '25)
 
-Inject Apex into a Pricing Procedure when declarative elements can't express the logic, or to pass attribute values into/out of the procedure. The **modern replacement** for legacy CPQ custom price logic: implement the pricing Apex hook interface and register it in the procedure. (Confirm the exact hook interface/class name in the current developer guide; it surfaces as a pricing-procedure element.)
+Implement the pricing Apex hook interface and register it in the procedure, where it surfaces as a pricing-procedure element. Confirm the exact interface or class name in the current developer guide.
 
 ## Invoking Pricing programmatically
-
-**Run Salesforce Pricing Action** (Flow or Apex) — supply context instance Ids, pricing procedure name, and discovery procedure:
 
 ```
 # Connect REST — Run Salesforce Pricing / Price Context
@@ -24,11 +22,11 @@ POST /services/data/v68.0/connect/pricing/price-context   # Price Context resour
 ```
 
 - **Standard Pricing Actions** ship for Quote, Order, Contract, Case, Opportunity; **Custom Pricing Actions** work on any object via the Lightning component.
-- Invoke via **Flow** (create pricing actions, supply context instance Ids + procedure names) or **Apex** (Pricing Connect API / invocable).
+- Invoke from **Flow** (create pricing actions) or **Apex** (Pricing Connect API or invocable).
 
-## Keeping rules fresh (don't skip this)
+## Keeping rules fresh
 
-Pricing Procedures read from internal lookup/decision tables and the PCM search index — **refresh after rule/data changes**:
+Pricing Procedures also read the PCM search index:
 
 ```
 # Rebuild the PCM index programmatically (Snapshot v62.0+, Deploy v63.0+)
@@ -37,7 +35,7 @@ GET  /services/data/v68.0/connect/pcm/snapshots/<ID>/index # poll status
 GET  /services/data/v68.0/connect/pcm/snapshots/<ID>/index/errors
 ```
 
-- **Decision Table Refresh Action** — built-in **invocable** (Record-Triggered Flow, Scheduled Flow, or Apex; no HTTP callout); refreshes one or many active tables asynchronously when the rule object/custom metadata changes.
+- **Decision Table Refresh Action** — call from a Record-Triggered Flow, Scheduled Flow or Apex; it refreshes one or many active tables asynchronously when the rule object or custom metadata changes.
 - **INCREMENTAL** for day-to-day; **FULL** for large/structural changes. The existing index keeps serving during a rebuild.
 - From Setup (clicks): **Salesforce Pricing Setup → Sync Pricing Data → Sync**.
 
@@ -59,22 +57,18 @@ public class PcmIndexRebuild implements Queueable, Database.AllowsCallouts {
 
 ## Product Catalog Management (PCM)
 
-- **Products** + **Attributes** + **Product Classifications** (categorize/inherit attributes) + **Catalogs/Categories**.
-- **Configurable** vs **static** vs **bundle** products; the **Structure** tab builds bundles; **cardinality** sets min/max components.
-- **Product Selling Models** — one-time, term-defined, evergreen.
+- **Product Classifications** categorize products and let them inherit attributes; **Catalogs/Categories** group them.
+- Products are **configurable**, **static** or **bundle**.
 - Semantics resemble Industries CPQ EPC but differ — verify per the RLM guide.
 
 ## Product Configurator Business APIs
 
-Configure/validate a configurable product at runtime (component selection, attributes, cardinality, rules) for guided selling and headless configuration. Exposed as **Connect REST business APIs** and **standard invocable actions** (Product Configurator). Surface in custom LWC via the APIs / `@AuraEnabled` Apex.
+Runtime configuration covers component selection, attributes, cardinality and rules. Exposed as **Connect REST business APIs** and **standard invocable actions** (Product Configurator).
 
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Pricing math in Apex | Pricing Procedures + Decision/Lookup Tables; Apex Hook for the rest |
 | Legacy Pricing Plan Step Apex mindset | Pricing Procedure Builder (declarative) + Apex Hooks |
-| Not refreshing tables / rebuilding index | Decision Table Refresh Action + PCM index deploy |
-| Ignoring Context mappings | Map the context the procedure needs |
 | FULL rebuild for every small change | INCREMENTAL for day-to-day |
 | Assuming PCM == Industries EPC | Verify semantics in the RLM guide |
