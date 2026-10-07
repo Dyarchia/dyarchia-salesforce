@@ -1,10 +1,10 @@
 # Data 360 Query & Access — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §5. Load when reading Data 360 data programmatically. Three methods; choose by where the logic runs. Every method consumes Data Services credits, so query hygiene is mandatory.
+Detail for SKILL.md §5. Three methods; choose by where the logic runs.
 
 ## Method 1 — SOQL on DMOs From Apex
 
-Best when the logic is on-platform (an Agentforce Apex action, platform-event subscriber, controller). DMO API names end in `__dlm`; DLOs in `__dll`.
+Best when the logic is on-platform (an Agentforce Apex action, platform-event subscriber, controller).
 
 ```java
 public with sharing class LoyaltyService {
@@ -26,7 +26,7 @@ Notes and limits:
 - Static SOQL on DMOs is a supported alternative to dynamic SOQL / ConnectApi.
 - `Database.QueryLocator` and SOQL FOR loops are supported in API 61.0+; below that only the first ~201 records return.
 - Batch Apex via `QueryLocator` is **blocked** against DMOs — use `Iterable`.
-- **DLO queries require a `DATASPACE` clause** at the very end; without it the query returns zero rows:
+- **DLO queries end with a `DATASPACE` clause**:
   ```
   SELECT ... FROM MyRaw__dll WHERE ... DATASPACE default
   ```
@@ -34,7 +34,7 @@ Notes and limits:
 
 ## Method 2 — Query API (Data 360 SQL)
 
-Best for analytical SQL: cross-object joins, aggregates, windowing. Uses Connect REST endpoints (and Apex). Asynchronous + synchronous responses; paginate and reuse the cached result.
+Best for analytical SQL: cross-object joins, aggregates, windowing, through Connect REST endpoints (and Apex).
 
 ```sql
 -- ANSI SQL against modeled data. Fictional API names — replace with yours.
@@ -54,9 +54,7 @@ Execution pattern:
 3. Re-read those results for **24 hours without extra consumption** — `getSqlQueryRows` is faster and cheaper than re-running `createSqlQuery`.
 
 Performance/cost rules:
-- Filter early with `WHERE`; never `SELECT *`.
 - Use the DMO's primary index (or a secondary index) in the predicate.
-- Include **key qualifier fields** in joins — null key qualifiers silently degrade the join.
 - Handle both async and sync responses in your client.
 
 ## Method 3 — Connect API in Apex (`ConnectApi`)
@@ -69,8 +67,6 @@ ConnectApi.CdpQueryInput query = new ConnectApi.CdpQueryInput();
 query.sql = 'SELECT Id__c FROM UnifiedssotIndividualMain__dlm LIMIT 50';
 ConnectApi.CdpQueryOutputV2 result = ConnectApi.CdpQuery.queryANSISql(query);
 ```
-
-Manage CIs/segments/identity rulesets programmatically with Connect REST API (off-platform) or `ConnectApi` (on-platform); use the Query API for raw analytical SQL and SOQL for simple on-platform reads.
 
 ## Choosing — Decision Table
 
@@ -87,11 +83,5 @@ Manage CIs/segments/identity rulesets programmatically with Connect REST API (of
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Query with no `WHERE`/`LIMIT` | Always selective predicate + limit |
-| `SELECT *` | Project only needed columns |
-| DLO query without `DATASPACE` | Append the `DATASPACE` clause |
 | `Database.QueryLocator` Batch over a DMO | Use `Iterable` |
-| Re-running `createSqlQuery` for the same data | Page the 24h-cached result via `getSqlQueryRows` |
-| Joins without key qualifiers | Configure key qualifier fields |
-| `WITH SECURITY_ENFORCED` | `WITH USER_MODE` |
 | SOQL FOR loop fanning out billable queries | Bulk, bounded queries; mind consumption |

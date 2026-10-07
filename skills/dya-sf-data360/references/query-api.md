@@ -1,8 +1,6 @@
 # Querying Data 360 — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-data360` when you need to run a query rather than decide whether to. The four
-surfaces are not interchangeable; picking the wrong one is the most common reason Data 360
-integrations get rewritten.
+The four surfaces are not interchangeable; picking the wrong one forces a rewrite.
 
 ## Pick the surface
 
@@ -12,11 +10,10 @@ integrations get rewritten.
 | Writing Apex and want the REST shape | **`ConnectApi.CdpQuery`** | Mirrors the Connect REST endpoints one-for-one |
 | Integrating from outside, standard case | **Connect REST API** (`/services/data/vXX.X/ssot/query-sql`) | Comprehensive, and on the normal org URL |
 | Moving large result sets, or need schema introspection | **Data 360 REST API (Direct API)**, `/api/v3/query` | Chunked retrieval, metadata without rows, Apache Arrow |
-| Reading a handful of DMO records inside a trigger or action | **SOQL on `__dlm`** | Cheapest thing that works; see the skill body |
+| Reading a handful of DMO records inside a trigger or action | **SOQL on `__dlm`** | Cheapest thing that works |
 
-**In Apex, reach for the `sfsqlquery` namespace.** It gives `SqlStatement`, `SqlRowIterator`, `Row`,
-`QueryHandle` and `SqlQueueable` — a query lifecycle you can iterate and hand to an asynchronous job,
-instead of materialising a result set inside one synchronous transaction.
+The `sfsqlquery` namespace provides `SqlStatement`, `SqlRowIterator`, `Row`, `QueryHandle` and
+`SqlQueueable`.
 
 ## Connect REST API
 
@@ -33,7 +30,7 @@ Set two query parameters every time:
 
 - `dataspace=default` — the data space the query runs in.
 - `workloadName=...` — a description of the task or application, so Salesforce Support can find your
-  query when something goes wrong. Omitting it costs nothing until the day it costs a lot.
+  query when something goes wrong.
 
 **Parameterise rather than concatenate.** Pass a `sqlParameters` array in the body and reference
 placeholders in the SQL:
@@ -42,18 +39,16 @@ placeholders in the SQL:
 POST https://{instance}/services/data/vXX.X/ssot/query-sql?dataspace=default&workloadName=engagement-records
 ```
 
-with `:startDate` in the statement bound from `sqlParameters`. String-built SQL has the same injection
-problem here as everywhere else.
+with `:startDate` in the statement bound from `sqlParameters`. String-built SQL is injectable here too.
 
-**`result_scan` re-queries a cached result.** Pass a submit's `queryId` to `result_scan` in a later
-SQL statement, and the follow-up reads the cached output instead of re-scanning. Where scanning costs
-credits, this is not a micro-optimisation.
+**`result_scan` reads a cached result.** Pass a submit's `queryId` to `result_scan` in a later SQL
+statement to read the cached output instead of re-scanning.
 
 ## Data 360 REST API (Direct API), `/api/v3/query`
 
 **This one is not on your org URL.** It uses `dne_cdpInstanceUrl`, a separate instance URL obtained
-with the access token. Sending these calls to the org URL is a common early mistake, and the error
-will not point at the cause.
+with the access token. Sent to the org URL, these calls fail with an error that does not point at the
+cause.
 
 ```http
 POST   /api/v3/query                              # submit, ASYNC or ADAPTIVE mode
@@ -64,17 +59,17 @@ GET    /api/v3/query/{queryId}/metadata           # output schema, no rows
 DELETE /api/v3/query/{queryId}                    # cancel
 ```
 
-The submit returns the `queryId` in the **`x-hyperdb-status` response header**, not the body — read
-the header or you will conclude the call failed.
+The submit returns the `queryId` in the **`x-hyperdb-status` response header**, not the body; a
+client reading the body concludes the call failed.
 
 **Chunks over offsets for large results.** Offset pagination re-walks the result each time; chunked
 retrieval does not.
 
-**`/metadata` returns the output schema without rows** — column types without paying to scan data.
+**`/metadata` returns the output schema without rows**, so learning column types scans no data.
 
 **Apache Arrow** is supported on submit, rows, chunks and metadata. Set
 `Accept: application/vnd.apache.arrow.stream` and the response is a binary Arrow IPC stream instead of
-JSON — smaller payloads and far less deserialisation overhead for large result sets. Read it with
+JSON: smaller payloads and less deserialisation overhead for large result sets. Read it with
 PyArrow or the Arrow Java library.
 
 ## Apex
@@ -88,8 +83,7 @@ PyArrow or the Arrow Java library.
 ```
 
 Apex methods run in the **current user's session and permissions automatically** — no token to
-manage, and the user's access governs what comes back. That is a feature: the same user-mode
-enforcement described in `references/shared/sharing-and-access.md`.
+manage, and the user's access governs what comes back: the same user-mode enforcement described in `references/shared/sharing-and-access.md`.
 
 Prefer `sfsqlquery` for new work; `ConnectApi.CdpQuery` fits when you want the REST semantics mirrored
 exactly, for example when porting an existing integration inward.
@@ -107,7 +101,7 @@ retired with enforcement on 20 February 2027.
 
 ## Schema Introspection — Finding Out What Exists
 
-Before querying, list what the org has. Four read-only SSOT endpoints:
+Four read-only SSOT endpoints list what the org has:
 
 ```text
 GET /services/data/vXX.X/ssot/data-lake-objects
@@ -121,10 +115,9 @@ List responses are enveloped as `{ "dataLakeObjects": [...], "totalSize": n }` a
 `id`, `status`, `totalRecords` and `fields`. Id prefixes are **`1dl`** for a DLO and **`0dm`** for a
 DMO.
 
-This is the reliable way to resolve a **unified DMO's real name**, which identity resolution derives
-from the ruleset, so it is org-specific rather than guessable.
+Use them to resolve a **unified DMO's real, org-specific name** (SKILL.md §5).
 
-Every DLO also carries auto-injected system fields you did not define and will meet in a describe:
+Every DLO also carries auto-injected system fields you did not define:
 `DataSource__c`, `InternalOrganization__c`, and the `cdp_sys_*` and `KQ_*` families. They are
 platform bookkeeping, not ingestion mappings.
 

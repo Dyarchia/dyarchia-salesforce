@@ -1,10 +1,10 @@
 # Data Custom Code — Python Transforms Inside Data 360
 
-The escape hatch for transformation logic that Data Streams, formulas and Calculated Insights cannot
-express: real Python, running on Data 360 compute, reading and writing DLOs and DMOs directly.
+For transformation logic that Data Streams, formulas and Calculated Insights cannot express: Python
+on Data 360 compute, reading and writing DLOs and DMOs directly.
 
 Use it when the transform needs a library — statistical work, fuzzy matching, parsing a format
-nobody else supports — not merely because Python is more familiar than SQL. Anything expressible as
+nobody else supports — not because Python is more familiar than SQL. Anything expressible as
 a Calculated Insight is cheaper as one.
 
 ## Two shapes
@@ -21,11 +21,10 @@ sf plugins install @salesforce/plugin-data-code-extension
 pip install salesforce-data-customcode
 ```
 
-**Python 3.11 exactly.** Not 3.12, not 3.10. On this machine that means `py -3.11`; if 3.11 is not
-installed, install it for the SDK.
+**Python 3.11 exactly**, not 3.12 or 3.10. On this machine that means `py -3.11`; install 3.11 if it
+is missing.
 
-**Docker is required for `deploy`, not for `run`.** Local execution needs no container, so the
-iterate-locally loop is cheap; only packaging needs Docker running.
+**Docker is required for `deploy`, not for `run`**, so iterating locally needs no container.
 
 ## Commands
 
@@ -36,8 +35,8 @@ sf data-code-extension script run                       # local, against REAL Da
 sf data-code-extension script deploy --package-dir ./payload --cpu-size CPU_2XL
 ```
 
-**`--package-dir` must point at `./payload`, not the project root.** This is the most common deploy
-failure, and the error does not say so.
+**`--package-dir` must point at `./payload`, not the project root**; otherwise deploy fails with an
+error that does not say so.
 
 ## Project shape
 
@@ -61,8 +60,7 @@ my_transform/
 }
 ```
 
-`script scan` generates it by statically analysing the entrypoint; rerun it after changing which
-objects the code reads or writes rather than hand-editing the file and drifting.
+Rerun `script scan` after changing which objects the code reads or writes; do not hand-edit the file.
 
 ## The Python API
 
@@ -99,11 +97,10 @@ bands:
 > 10M               CPU_4XL
 ```
 
-The default is two steps up, so a small transform is over-provisioned unless you say otherwise — and
-Data 360 compute is credit-metered. See SKILL.md §8.
+The default is two steps up, so a small transform is over-provisioned unless sized down, and Data 360
+compute is credit-metered (SKILL.md §8).
 
-## The one that surprises people
+## Local runs hit real data
 
-**`script run` executes against real Data 360 data, not mocks.** There is no local fixture layer. A
-run that writes will write, so develop against a dataspace you are willing to dirty, and keep the
+**`script run` executes against real Data 360 data**; there is no local fixture layer. Develop against a dataspace you are willing to dirty, and keep the
 write call commented out until the transform's output looks right.

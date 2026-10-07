@@ -1,8 +1,6 @@
 # Ingestion API — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-data360` when pushing data into Data 360 from an external system. Two modes on one
-API; choosing between them is a cost decision before a latency decision — see the credit table in the
-skill body.
+Two modes on one API; choose between them on cost before latency (SKILL.md §8).
 
 ## Before any call
 
@@ -25,23 +23,19 @@ POST /api/v1/ingest/sources/ecomm/Order/
 ```
 
 Records in the body enter the pipeline continuously. A **test action** validates a payload against
-the schema without ingesting anything:
+the schema without ingesting:
 
 ```http
 POST /api/v1/ingest/sources/ecomm/Order/actions/test
 ```
 
-Use it while building. A schema mismatch discovered in production looks like data silently not
-arriving.
+Use it while building: in production, a schema mismatch looks like data silently not arriving.
 
-Deleting is a separate verb on the same source path, taking ids:
+Delete by id on the same source path:
 
 ```http
 DELETE /api/v1/ingest/sources/{sourceName}/{objectName}?ids=001xx000003DGb2AAG,003xx000004TmiQAAS
 ```
-
-**Streaming costs roughly 2.5× batch for the same rows.** Use it when sub-15-minute latency changes a
-business outcome, not because it feels more modern.
 
 ## Bulk ingestion — a job in four steps
 
@@ -82,8 +76,7 @@ PATCH /api/v1/ingest/jobs/{jobId}
 { "state": "UploadComplete" }
 ```
 
-Nothing processes until then. A job left `Open` is the usual explanation for "I uploaded the data and
-nothing arrived".
+Nothing processes until then; a job left `Open` looks like uploaded data that never arrived.
 
 ### 4. Poll to completion
 
@@ -107,8 +100,7 @@ can do with it afterwards. Changing it later means rebuilding the stream.
 | `Engagement` | A primary key **and an event time field** |
 | `Other` | A primary key |
 
-`Engagement` without a time field is the common mistake: the requirement only surfaces when the
-stream refuses to activate.
+An `Engagement` stream without a time field refuses to activate; the requirement surfaces only then.
 
 ### Field names change on the way in
 
@@ -129,8 +121,8 @@ instance looks like an authentication problem and is not.
 
 ### `202` means accepted, not queryable
 
-A `202` means the payload was handed off for processing. The rows are not yet validated or in the DLO.
-Validation failures surface later, in the **Problem Records** DLO family — so a pipeline that checks
+The rows are not yet validated or in the DLO. Validation failures surface later, in the **Problem
+Records** DLO family, so a pipeline that checks
 only the HTTP status reports success while dropping rows.
 
 ### Deleting a stream can delete its DLO
@@ -153,14 +145,10 @@ user** — not a malformed request. The activation equivalents are `CdpActivatio
 | Relative cost | ~2.5× batch per million rows | The cheaper baseline |
 | Fits | Event-shaped data where minutes matter | Backfills, nightly loads, migrations |
 
-If the data already lives in a supported warehouse, **do not ingest at all** — zero-copy federation
-queries it in place and skips ingestion cost. See the skill body.
-
 ## Anti-Patterns
 
 | Anti-Pattern | Correct approach |
 |---|---|
-| Streaming by default | Batch unless sub-15-minute latency changes the outcome — it costs ~2.5× |
 | `insert` as the bulk operation | `upsert`; ingestion is retryable and an insert run twice duplicates |
 | Discovering a schema mismatch in production | `POST .../actions/test` validates a payload without ingesting |
 | Leaving a bulk job `Open` | `PATCH` it to `UploadComplete` or nothing processes |

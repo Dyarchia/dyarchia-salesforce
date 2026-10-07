@@ -5,10 +5,8 @@ description: Salesforce Data 360 (formerly Data Cloud) Winter '27 (API v68.0) �
 
 # Salesforce Data 360 — From Zero to Expert
 
-The reader may be **new to Data 360**, so this skill builds the mental model first, then the
-implementation rules, then the release changes. You **always** filter and project queries tightly,
-**always** default to batch over streaming, and **always** treat every operation as costing
-**credits**. Follow every rule below.
+You **always** filter and project queries tightly, **always** default to batch over streaming, and
+**always** treat every operation as costing **credits**. Follow every rule below.
 
 References:
 
@@ -33,17 +31,14 @@ appears in older docs, in API names and in the `Data Cloud Data Access` permissi
 "Data 360" in new work.
 
 **Data 360 ships on its own monthly cadence**, not the three-times-a-year platform release. Winter '27
-changes are dated around October 2026, and a feature can appear between platform releases — check the
-Data 360 release notes rather than assuming the platform set is complete.
-
-Three facts gate the work:
+changes are dated around October 2026, and a feature can appear between platform releases, so check
+the Data 360 release notes too.
 
 - **Executing Data 360 SQL from Apex is GA**, so custom logic and Data 360 data live in one class
   instead of an integration between them. See `dya-sf-apex`.
 - **The Data 360 MCP Server is Developer Preview** — not production. See `dya-sf-headless360`.
 - **Apex and SOQL against DMOs run under the 67.0+ security defaults, and every query spends Data
-  Services credits.** Credits make an unfiltered query expensive, not merely slow — hence §8, and
-  why the selectivity rules here are not style advice.
+  Services credits.** Credits make an unfiltered query expensive, not merely slow (§8).
 
 > Headless DevOps for Data 360, Data Custom Code and the rest of the release surface:
 > `references/release-notes.md`.
@@ -53,8 +48,8 @@ Three facts gate the work:
 ## 1. Foundations — What Data 360 Is
 
 Data 360 is Salesforce's **data platform**: it ingests data from many systems, **unifies** it into a
-single customer view, and makes it usable for analytics, segmentation, automation and — crucially —
-**grounding AI agents**. It is the single-source-of-truth layer beneath the rest of the platform.
+single customer view, and makes it usable for analytics, segmentation, automation and
+**grounding AI agents**: the single-source-of-truth layer beneath the rest of the platform.
 
 ```
 Sources ──ingest──▶ DLO ──map──▶ DMO ──identity resolution──▶ Unified DMO
@@ -71,12 +66,11 @@ Sources ──ingest──▶ DLO ──map──▶ DMO ──identity resoluti
    Data Model**, with 300+ prebuilt object types.
 4. **Identity resolution** merges records describing the same person or company into a **Unified
    DMO**, the unified profile.
-5. On top you build **Calculated Insights** (metrics), **Segments** (audiences), **Data Actions**
+5. On top sit **Calculated Insights** (metrics), **Segments** (audiences), **Data Actions**
    (real-time triggers), activations, and **grounding** for Agentforce.
 
-**The key mental shift:** Data 360 is a separate analytical store, not your CRM database. Queries
-scan large volumes and **consume credits**, so architecture and query hygiene are cost decisions,
-not performance decisions.
+Data 360 is a separate analytical store, not your CRM database. Queries scan large volumes and **consume
+credits**, so architecture and query hygiene are cost decisions, not performance decisions.
 
 ---
 
@@ -86,7 +80,7 @@ not performance decisions.
 |---|---|
 | **DLO** (Data Lake Object, suffix `__dll`) | Raw ingested data, source schema preserved |
 | **DMO** (Data Model Object, suffix `__dlm`) | Mapped, standardised object in the Customer 360 model — the queryable "single source of truth" |
-| The two suffixes | `__dll` is raw, `__dlm` is modelled. Swapping them is the most common beginner error, and the query returns nothing useful |
+| The two suffixes | `__dll` is raw, `__dlm` is modelled. Swapping them returns nothing useful |
 | **UDLO** | Unstructured DLO — documents/images for AI/RAG |
 | **EDLO** | External DLO — metadata pointer to an external warehouse (Snowflake, Databricks, Redshift) for **zero-copy** federation |
 | **Unified Profile / Unified DMO** | Records merged by identity resolution |
@@ -108,42 +102,32 @@ not performance decisions.
 | **Data Custom Code (Python SDK)** | Custom transforms run inside Data 360 | Author locally, deploy to a sandbox, monitor through a code-extensions DLO |
 
 Rules:
-- **Define an explicit schema** for every ingestion pipeline. Data 360 requires it for structural
-  integrity.
+- **Define an explicit schema** for every ingestion pipeline; Data 360 requires it.
 - **Ingest through a Salesforce-native connector wherever one exists.** Sales, Service, Marketing
-  and Commerce Cloud data is **included at zero credits**; an external pipeline for the same data
-  is the most expensive mistake available here.
-- **Default to batch.** Streaming costs multiples of batch on every rate card revision (§8); use it
-  only where sub-15-minute latency genuinely changes the business outcome.
-- **Prefer zero-copy** where the source is a supported warehouse and no physical copy is needed: it
-  skips ingestion cost and queries in place.
-
-> Connector and schema prerequisites, streaming versus the bulk job lifecycle, the payload test
-> action: `references/ingestion-api.md`. Modelling, identity resolution and activation:
-> `references/ingestion-and-modeling.md`.
+  and Commerce Cloud data is **included at zero credits** (§8); never pay an external pipeline to
+  carry it.
+- **Default to batch** (§8); stream only where sub-15-minute latency changes the business outcome.
+- **Prefer zero-copy** where the source is a supported warehouse and no physical copy is needed.
 
 ---
 
 ## 4. Modeling & Identity Resolution
 
 - **Map** DLO fields onto standard DMOs from the Customer 360 model rather than inventing custom
-  shapes: consistency is what makes downstream joins and grounding work.
-- Configure **key qualifier fields** on DLO fields used in joins. Without them, joins return null and
-  both performance and cost suffer.
-- **Identity resolution** unifies records into a single profile and is the **most expensive
-  operation in Data 360**, by three to four orders of magnitude over a query (§8). It bills on
-  **rows processed, not rows ingested**, and the processed count is almost always larger.
+  shapes; consistency makes downstream joins and grounding work.
+- Configure **key qualifier fields** on DLO fields used in joins; without them, joins return null and
+  performance and cost suffer.
+- **Identity resolution** is the **most expensive operation in Data 360**, by three to four orders of
+  magnitude over a query (§8). It bills on **rows processed, not rows ingested**, and the processed count is almost always larger.
   - Run IR **incrementally**, on a schedule aligned to real data change, never continuously.
   - Align downstream schedules — CIs, segments — to IR's actual incremental behaviour rather than
     recomputing everything on every trickle of new data.
 
-A Data 360 architect gets identity resolution and the cost model right before anything else.
+Get identity resolution and the cost model right before anything else.
 
 ---
 
 ## 5. Querying — Choose the Right Method
-
-Pick the read method by where the logic lives.
 
 | Need | Method | Notes |
 |---|---|---|
@@ -166,23 +150,18 @@ List<UnifiedssotIndividualMain__dlm> people = [
 ```
 
 **Do not guess a unified DMO's name.** Identity resolution derives it from the ruleset, so it is
-org-specific — `UnifiedssotIndividualMain__dlm` above is one ruleset's output, not a platform
-constant, and a plausible-looking `UnifiedIndividual__dlm` will not compile. Read the real name off
-the ruleset in Setup, or list them with `GET /services/data/vXX.X/ssot/data-model-objects`.
+org-specific: `UnifiedssotIndividualMain__dlm` above is one ruleset's output, and a plausible-looking
+`UnifiedIndividual__dlm` will not compile. Read the real name off the ruleset in Setup, or list them with `GET /services/data/vXX.X/ssot/data-model-objects`.
 
 Hard rules for any Data 360 query, SOQL or SQL:
 - **Always a selective `WHERE` and a `LIMIT`.** An unfiltered scan of a 100M-row DMO can burn
   hundreds of credits in *one* query.
 - **Project only the columns you need** — never `SELECT *`.
-- **Querying DLOs requires the `DATASPACE` clause** at the end of the SOQL. Without it the query
+- **Querying DLOs requires the `DATASPACE` clause** at the end of the SOQL; without it the query
   returns **zero records**.
 - Preview on **sample data** before running exploratory queries at full scale.
 - For the Query API, **paginate** with `getSqlQueryRows` (offset and rowLimit); re-reading cached
   results within 24h costs nothing extra.
-
-> Choosing between the four surfaces, with endpoints, auth and the `dne_cdpInstanceUrl` trap:
-> `references/query-api.md`. Existing SOQL and Connect-in-Apex patterns:
-> `references/query-access.md`.
 
 ---
 
@@ -191,11 +170,10 @@ Hard rules for any Data 360 query, SOQL or SQL:
 - **Calculated Insights** (`__cio`) define metrics as dimensions plus measures over modeled data:
   lifetime value, engagement scores, RFM. **Run them in batch** unless sub-15-minute latency is
   essential: a streaming CI can cost ~50× batch for identical daily-consumed output.
-- **Segments** are filtered audiences for activation. Use aggregate and waterfall filtering
-  thoughtfully: a data model that forces complex joins raises segmentation and activation cost by
-  20–40%.
-- Build and manage both programmatically through the **Connect API**. A CI created via the API must
-  have a developer name ending in `__cio`.
+- **Segments** are filtered audiences for activation. Use aggregate and waterfall filtering; a data model
+  that forces complex joins raises segmentation and activation cost by 20–40%.
+- Build and manage both programmatically through the **Connect API**. A CI created through the API
+  needs a developer name ending in `__cio`.
 
 ---
 
@@ -214,7 +192,7 @@ scheduled batch.
 
 ## 8. Cost & Governance — Credits Are a First-Class Concern
 
-Almost every Data 360 operation consumes credits, and the ordering drives design:
+Almost every Data 360 operation consumes credits:
 
 | Operation | Rate card, July 2025 | Flex Credits card, 2026 (base tier) |
 |---|---|---|
@@ -233,25 +211,17 @@ of base past 300k, 1.5M and 12.5M credits — a high-volume org's marginal cost 
 headline rate. Both cards come from Salesforce's *Customer Data Cloud Rate Card*; the usage types
 are defined in Salesforce Help under *Data Services Billable Usage Types for Data 360*.
 
-Four things survive every revision, and they are what you design against:
+Four things hold on every card revision:
 
-- **Native-connector ingestion is free.** Paying an external pipeline to carry what a standard
-  connector already brings in is the most expensive mistake on this page.
-- **Identity resolution dwarfs everything else**, and bills on **rows processed, not rows
-  ingested**. Feeding it un-deduplicated source data is how a credit pool disappears.
-- **Streaming costs multiples of batch**, on every card, for both ingestion and calculated insights.
+- **Native-connector ingestion is free.**
+- **Identity resolution dwarfs everything else**; feeding it un-deduplicated source data drains the
+  credit pool.
+- **Streaming costs multiples of batch** for both ingestion and calculated insights.
 - **Queries are the cheapest line on the card**, so an unfiltered scan is a volume problem, not a
-  rate problem — and still costs real money at 100M rows.
+  rate problem.
 
-Governance rules:
-- **Batch by default.** Use streaming only where business value degrades within 15 minutes.
-- **Run identity resolution incrementally**, scheduled to real change.
-- **Every query gets a `WHERE` and a `LIMIT`**, previewed on samples, with review established for
-  exploratory queries on large DMOs.
-- **Design the data model to avoid complex joins** at segmentation and activation time.
-- **Cache and reuse** Query API results within the 24h window instead of re-running.
-
-A Data 360 design review is largely a credit-consumption review.
+Establish review for exploratory queries on large DMOs. A Data 360 design review is largely a
+credit-consumption review.
 
 ---
 
@@ -265,8 +235,8 @@ Data 360 makes Agentforce answers accurate and explainable:
   use **vector search** for RAG so agents can cite source content.
 - **Custom retrievers** — build domain-specific retrievers for the grounding step.
 
-Grounding keeps the agent's knowledge fresh, governed and auditable. Always prefer it to baking facts
-into a model.
+Prefer grounding to baking facts into a model: it keeps the agent's knowledge fresh, governed and
+auditable.
 
 ---
 

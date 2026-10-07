@@ -1,89 +1,45 @@
 # Data 360 Ingestion, Modeling & Activation — Reference (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §3, §4, §6, §7. Load when bringing data into Data 360, modeling it, or wiring activation/automation. Every stage consumes credits; the cost guidance is as load-bearing as the mechanics.
+Detail for SKILL.md §3, §4, §6, §7.
 
-Credit multipliers are stated once, in SKILL.md §8. They come from Salesforce's published rate cards, which are versioned and now tiered — verify the current one rather than quoting from memory:
+Credit multipliers are in SKILL.md §8. Their sources are versioned and now tiered, so verify the
+current one rather than quoting from memory:
 
 - Customer Data Cloud Rate Card (PDF): <https://www.salesforce.com/en-us/wp-content/uploads/sites/4/documents/platform/data-cloud-platform-services-rate-sheet.pdf>
 - Data Services Billable Usage Types for Data 360: <https://help.salesforce.com/s/articleView?id=data.c360_a_data_usage_types.htm&language=en_US&type=5>
 
-## Getting Data In
+## Ingestion API
 
-| Method | When | Cost note |
-|---|---|---|
-| **Connectors** (CRM, S3, marketing, 3rd-party) | Standard, supported sources | Batch by default |
-| **Ingestion API** | Push from a custom external system | Streaming (~5,000 cr/M rows) vs bulk/batch (~2,000 cr/M rows) |
-| **Zero-copy federation (EDLO)** | Source is a supported warehouse (Snowflake, Databricks, Redshift) and a physical copy isn't needed | No ingestion cost; query-in-place cost applies |
-| **Data Custom Code (Python SDK)** | Custom transform inside Data 360 | Author locally, deploy to sandbox, monitor via code-extensions DLO |
-
-Rules:
-- **Define an explicit schema** per ingestion pipeline — required for structural/semantic integrity.
-- **Batch by default.** Streaming is ~2.5× the cost; justify it only when sub-15-minute latency changes the outcome.
-- **Prefer zero-copy** when you can query the warehouse in place — it skips ingestion credits.
-
-## Ingestion API — Shape
-
-The Ingestion API pushes records into a DLO mapped to a connector:
-
-1. Create an **Ingestion API** data stream + connector with a defined schema (object + fields + primary key).
-2. POST records to the ingestion endpoint (bulk file job, or streaming events).
-3. Records land in the **DLO**; mapping projects them into the **DMO**.
-
-Use bulk for large periodic loads; reserve streaming for genuinely real-time signals.
+The full streaming and bulk lifecycle is in `references/ingestion-api.md`.
 
 ## Modeling — DLO → DMO
 
-- Map raw DLO fields onto **standard DMOs** from the Customer 360 Data Model (300+ prebuilt types: Individual, Account, Order, Engagement, …). Extend only when necessary.
-- Configure **key qualifier fields** on join keys. When unset, joins return null and cost/perf degrade.
-- Standardising onto the shared model makes downstream joins, segments, and grounding work consistently.
+- The Customer 360 Data Model's 300+ prebuilt types include Individual, Account, Order and
+  Engagement. Extend only when necessary.
 
-## Identity Resolution — the Expensive Step
+## Identity Resolution
 
-Identity resolution merges DLO/DMO records describing the same entity into a **Unified DMO** (unified profile) using match + reconciliation rules.
-
-- It is the **largest credit consumer** by three to four orders of magnitude over a query, and bills on **rows processed, not rows ingested**. Multipliers and their source: SKILL.md §8.
-- Run **incrementally**, scheduled to actual data change — never continuously.
-- Align downstream recompute (CIs, segments) to IR's real incremental behaviour; don't recompute the world on every trickle of new data.
+Identity resolution merges DLO/DMO records describing the same entity into a **Unified DMO** using
+match and reconciliation rules. Cost and scheduling: SKILL.md §4 and §8.
 
 ## Calculated Insights (`__cio`)
 
-Metrics computed over modeled data (dimensions + measures): lifetime value, engagement scores, RFM.
-
-- **Batch by default.** A streaming CI costs multiples of a batch CI for output consumed daily. Multipliers: SKILL.md §8.
-- Create/manage via the Connect API; CIs created through the API need a developer name ending in `__cio`.
-- Use as grounding inputs for Agentforce and as segment criteria.
+- Use them as grounding inputs for Agentforce and as segment criteria.
 
 ## Segments
 
-Filtered audiences for activation.
-
-- A data model that forces complex joins raises segmentation/activation cost 20–40% — model well first.
-- Use aggregate filters and waterfall/ranked segments where supported to target precisely.
-- Manage via the Connect API for repeatable, deployable definitions.
-
-## Data Actions & Activation
-
-Data 360 reacts to change in near-real-time:
-
-- A **Data Action** fires when DMO records or calculated insights change, emitting the `DataObjectDataChgEvent` **platform event**.
-- Supported targets: **Salesforce Platform Event**, **webhook**, **Marketing Cloud**.
-- A subscriber (Flow, or Apex on the platform event) acts on the change — update a CRM record, call an external webhook, launch a personalised offer.
-
-Pattern: real-time signals → Data Action → platform event → automation. Keep heavy analytical recomputation in scheduled batch; reserve Data Actions for events whose value is immediate.
+- Use aggregate filters and waterfall/ranked segments where supported.
+- Manage them through the Connect API for repeatable, deployable definitions.
 
 ## DevOps for Data 360
 
-Promote Data 360 logic (data transforms, code extensions) through CI/CD with **DevOps data kits**, like Apex/LWC metadata — enabling headless, repeatable deployments across environments.
+Promote Data 360 logic (data transforms, code extensions) through CI/CD with **DevOps data kits**,
+like Apex/LWC metadata, for headless, repeatable deployments across environments.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Streaming ingestion as the default | Batch; streaming only for <15-min business value |
-| Continuous / full identity resolution | Incremental IR aligned to real change |
-| Streaming calculated insights for daily output | Batch CI |
-| Custom object shapes ignoring the C360 model | Map to standard DMOs |
-| Joins without key qualifiers | Configure key qualifier fields |
 | Ingesting a warehouse you could federate | Zero-copy (EDLO) |
 | Heavy recompute inside a Data Action | Data Action for real-time only; batch the rest |
 | No schema on an ingestion pipeline | Define schema explicitly |
