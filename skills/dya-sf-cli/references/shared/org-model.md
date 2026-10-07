@@ -9,8 +9,8 @@ Where Salesforce code lives, how it gets there, and the vocabulary the rest of t
 
 ## An org is the unit of everything
 
-An **org** is a single tenant: its own data, its own configuration, its own users, its own copy of
-every customisation. There is no "server" to deploy to and no filesystem to inspect. Code is
+An **org** is a single tenant: its own data, configuration, users and copy of every
+customisation. There is no "server" to deploy to and no filesystem to inspect. Code is
 **metadata**, and it moves between orgs as metadata.
 
 | Org type | What it is | Lives for |
@@ -20,7 +20,7 @@ every customisation. There is no "server" to deploy to and no filesystem to insp
 | Scratch org | A disposable org built from a config file and a source push | Up to 30 days |
 | Developer Edition | A free permanent org for learning and packaging | Indefinitely |
 
-Sandboxes get the next release **ahead of production** during preview windows, which is where a new
+Sandboxes get the next release **ahead of production** during preview windows; that is where a new
 API version is tested before it reaches live users.
 
 ## Metadata and the source tree
@@ -38,8 +38,8 @@ force-app/main/default/
 └── permissionsets/   permission sets
 ```
 
-A **DX project** is any directory containing an `sfdx-project.json` that names those package
-directories. That file is what makes `sf` commands work in a folder.
+A **DX project** is any directory with an `sfdx-project.json` naming those package directories.
+That file makes `sf` commands work in a folder.
 
 ## Getting code in and out
 
@@ -51,7 +51,7 @@ sf apex run test --target-org myorg --code-coverage                 # run tests
 ```
 
 Deploying to **production** runs Apex tests and requires **75% aggregate Apex code coverage**, with
-every trigger covered by at least one line. Sandboxes do not enforce that gate, which is why coverage
+every trigger covered by at least one line. Sandboxes do not enforce that gate, so coverage
 problems surface late. Declarative Flow tests do **not** contribute to this percentage.
 
 Two orgs must be on **the same API version** for certain metadata types to deploy between them —
@@ -60,8 +60,8 @@ Agentforce agent definitions in 68.0 are the current example.
 ## Packaging
 
 - **Unlocked packages** — versioned bundles of your own metadata, the modern way to modularise an org.
-- **Managed packages** — what ISVs publish on AppExchange. Their internals are hidden, their
-  components carry a **namespace prefix** (`acme__Field__c`), and you cannot edit them.
+- **Managed packages** — what ISVs publish on AppExchange. Internals hidden, components carry a
+  **namespace prefix** (`acme__Field__c`), and you cannot edit them.
 - **Change sets** — the point-and-click path between related orgs. Slow, unversioned, no diff. Fine
   for a one-off, wrong as a delivery process.
 

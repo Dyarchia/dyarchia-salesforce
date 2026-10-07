@@ -6,17 +6,17 @@ allowed-tools: Read, Glob
 
 Print the catalogue of `dya-sf-` Salesforce skills available in this session.
 
-These skills load on their own only before an edit inside their scope, so a reader who is asking
-rather than editing never sees them. This command is how someone finds out what is on the shelf.
+These skills load on their own only before an edit in their scope, so a reader who is asking
+rather than editing never sees them. This command shows what is on the shelf.
 
 ## What to print
 
 Every skill whose name begins with `dya-sf-`, grouped by the families below, each with a one-line
-summary of what it actually covers. Take the summaries from the skill descriptions you can already
-see — they are in context, so no file reading is needed. If a description is not available to you,
-read it from `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` rather than guessing.
+summary of what it covers. Take the summaries from the skill descriptions already in context; no
+file reading is needed. If a description is not available, read it from
+`${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` rather than guessing.
 
-Group them like this, and keep the order:
+Keep this grouping and order:
 
 ```text
 Core development        apex · lwc · flow
@@ -32,22 +32,22 @@ Integration family      integration-overview · integration-inbound-apis ·
                         integration-connectors-mcp
 ```
 
-Do not print the `Applies to` list or the trigger clause that ends every description — they say
-when the skill loads, not what it covers. Print the part that says what the skill covers.
+Print only the part of each description that says what the skill covers. Omit the `Applies to`
+list and the closing trigger clause — they say when the skill loads.
 
 ## Arguments
 
 When `$ARGUMENTS` is present, treat it as a filter and print only the skills whose name or coverage
 matches it. `/dya-sf-skills integration` prints the integration family; `/dya-sf-skills apex` prints
-`dya-sf-apex` and anything else that names Apex in its coverage.
+`dya-sf-apex` and anything else naming Apex in its coverage.
 
-When there are no arguments, print the whole catalogue.
+With no arguments, print the whole catalogue.
 
 ## After the list
 
-Close with one line telling the user how to invoke one, naming a real example from what you just
-printed rather than a placeholder. Say that `dya-sf-integration-overview` is the entry point when the
-question is which integration pattern to use, since that skill exists to route between its siblings.
+Close with one line on how to invoke a skill, naming a real example from the list rather than a
+placeholder. Say that `dya-sf-integration-overview` is the entry point for choosing an integration
+pattern, since it exists to route between its siblings.
 
-Keep the whole thing scannable. This is a menu, not documentation: no preamble, no explanation of
-what agent skills are, and no offer to do further work unless the user asks.
+Keep it scannable. This is a menu, not documentation: no preamble, no explanation of what agent
+skills are, and no offer of further work unless the user asks.
