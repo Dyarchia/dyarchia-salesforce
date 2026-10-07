@@ -1,11 +1,11 @@
 # Data Custom Code — Python Transforms Inside Data 360
 
-For transformation logic that Data Streams, formulas and Calculated Insights cannot express: Python
-on Data 360 compute, reading and writing DLOs and DMOs directly.
+Use Data Custom Code only when the transform needs a library — statistical work, fuzzy matching,
+parsing a format nobody else supports — never because Python is more familiar than SQL. Build
+anything expressible as a Calculated Insight as one; it is cheaper.
 
-Use it when the transform needs a library — statistical work, fuzzy matching, parsing a format
-nobody else supports — not because Python is more familiar than SQL. Anything expressible as
-a Calculated Insight is cheaper as one.
+Data Custom Code is for transformation logic that Data Streams, formulas and Calculated Insights
+cannot express: Python on Data 360 compute, reading and writing DLOs and DMOs directly.
 
 ## Two shapes
 
@@ -21,8 +21,8 @@ sf plugins install @salesforce/plugin-data-code-extension
 pip install salesforce-data-customcode
 ```
 
-**Python 3.11 exactly**, not 3.12 or 3.10. On this machine that means `py -3.11`; install 3.11 if it
-is missing.
+**Use Python 3.11 exactly**, not 3.12 or 3.10. With the Windows launcher that means `py -3.11`;
+install 3.11 if it is missing.
 
 **Docker is required for `deploy`, not for `run`**, so iterating locally needs no container.
 
@@ -35,7 +35,7 @@ sf data-code-extension script run                       # local, against REAL Da
 sf data-code-extension script deploy --package-dir ./payload --cpu-size CPU_2XL
 ```
 
-**`--package-dir` must point at `./payload`, not the project root**; otherwise deploy fails with an
+**Point `--package-dir` at `./payload`, not the project root**; otherwise deploy fails with an
 error that does not say so.
 
 ## Project shape
@@ -60,8 +60,8 @@ my_transform/
 }
 ```
 
-`script scan` generates it by statically analysing the entrypoint; rerun it after changing which
-objects the code reads or writes rather than hand-editing the file.
+Generate it with `script scan`, which statically analyses the entrypoint. After every change to
+which objects the code reads or writes, rerun `script scan`; never hand-edit the file.
 
 ## The Python API
 
@@ -76,7 +76,7 @@ client.write_to_dlo('OrderScored__dll', df, 'overwrite')
 client.write_to_dmo('OrderScored__dlm', df, 'upsert')
 ```
 
-Write modes differ by target, and the wrong one is accepted at authoring time:
+Match the write mode to the target; the wrong one is accepted at authoring time:
 
 | Target | Modes |
 |---|---|
@@ -98,8 +98,8 @@ bands:
 > 10M               CPU_4XL
 ```
 
-The default is two steps up, so a small transform is over-provisioned unless sized down, and Data 360
-compute is credit-metered (SKILL.md §8).
+Size small transforms down: the default is two steps up, so a small transform is over-provisioned
+otherwise, and Data 360 compute is credit-metered (SKILL.md §8).
 
 ## Local runs hit real data
 

@@ -27,9 +27,10 @@ AccountShare share = new AccountShare(
 insert share;
 ```
 
-Apex managed sharing requires the right permissions. Custom objects use `MyObject__Share` with
-`AccessLevel` and `RowCause`. For managed logic, use a custom **Apex sharing reason** defined on the
-object, not `RowCause.Manual`: it enables recalculation and clean maintenance.
+For managed logic, use a custom **Apex sharing reason** defined on the object, not
+`RowCause.Manual`; the custom reason enables recalculation and clean maintenance. Apex managed
+sharing requires the right permissions. Custom objects use `MyObject__Share` with `AccessLevel` and
+`RowCause`.
 
 ## The Metadata Behind It
 
@@ -76,13 +77,13 @@ Editable after creation:
 | `sharingCriteriaRules` | `<accessLevel>`, `<criteriaItems>`, `<label>`, `<booleanFilter>` |
 | `sharingGuestRules` | `<accessLevel>`, `<criteriaItems>`, `<label>`, `<includeHVUOwnedRecords>` |
 
-**`<sharedTo>` and `<sharedFrom>` cannot be edited in place in any kind.** The deploy fails; delete
-and recreate the rule.
+**Never edit `<sharedTo>` or `<sharedFrom>` in place, in any kind**; the deploy fails. Delete and
+recreate the rule.
 
 ### Deleting a rule
 
-`sf project deploy start` does not remove a sharing rule absent from the source. Deletion needs a
-destructive deploy naming the per-kind types — `SharingCriteriaRule`, `SharingOwnerRule`,
+Delete a rule with a destructive deploy; `sf project deploy start` does not remove a sharing rule
+absent from the source. Name the per-kind types — `SharingCriteriaRule`, `SharingOwnerRule`,
 `SharingGuestRule` — with members of the form `<ObjectName>.<RuleFullName>`.
 
 ### Guest sharing rules
@@ -91,7 +92,8 @@ destructive deploy naming the per-kind types — `SharingCriteriaRule`, `Sharing
   **`CommunityNickname`** — not the site's URL path prefix, and not a `<role>` or `<group>`.
 - **`<includeHVUOwnedRecords>` is required.** Set it to `false` unless records owned by high-volume
   site users should be included.
-- `<includeRecordsOwnedByAll>` belongs to `sharingCriteriaRules` and **fails** inside a guest rule.
+- Never put `<includeRecordsOwnedByAll>` in a guest rule; it belongs to `sharingCriteriaRules` and
+  **fails** there.
 - Guest user Ids start with `005`, like any user.
 
 ## Design Rules

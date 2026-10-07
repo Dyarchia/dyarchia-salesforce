@@ -27,23 +27,27 @@ revokes that grant; there is no separate revoke operation.
   delegates row and column filtering to central governance policies, so no per-object grants are
   needed and the policy stays in one place. Prefer it when governance policies exist.
 
-Requires Data Cloud provisioned; without it the element is ignored or rejected depending on the
-deploy path, so a permission set carrying it is not portable to an arbitrary org.
+Deploy the element only where Data Cloud is provisioned; without it the element is ignored or
+rejected depending on the deploy path, so a permission set carrying it is not portable to an
+arbitrary org.
 `minApiVersion` for the element is 67.0.
 
 ## Object grants go through a Connect API, not metadata
 
+Script the Connect API calls for object grants and keep the script in the repo beside the
+permission set, so the grants are reproducible.
+
 Grants on individual **DMO, DLO and CIO** objects are made at runtime through the **Object Access
 Grants Connect API**. There is no metadata for them, so they are not in source control and a fresh
-org needs them replayed rather than deployed. To make them reproducible, script the Connect API
-calls and keep the script in the repo beside the permission set.
+org needs them replayed rather than deployed.
 
 ## Entities SOQL cannot query
 
-**`DataspaceScope` and `DataspaceScopeAccess` are not SOQL-queryable.** A query against either
-returns `INVALID_TYPE` whatever permissions are granted, which looks like a permissions problem.
+**Never query `DataspaceScope` or `DataspaceScopeAccess` with SOQL; neither is queryable.** A query
+against either returns `INVALID_TYPE` whatever permissions are granted, which looks like a
+permissions problem.
 
-To inspect what a permission set grants, retrieve it through the Metadata API and read the
+Inspect what a permission set grants by retrieving it through the Metadata API and reading the
 `<dataspaceScopes>` blocks:
 
 ```bash
@@ -53,6 +57,6 @@ sf project retrieve start --metadata PermissionSet:Marketing_Analytics --target-
 ## Where this connects
 
 - A permission set carrying `<dataspaceScopes>` is otherwise ordinary — assignment order, licences
-  and muting behave normally. See `references/object-and-field-access.md`.
+  and muting behave normally.
 - What the granted objects contain, and how to query them once granted:
   `dya-sf-data360`.

@@ -17,7 +17,7 @@ The "what can the user do" axis of `dya-sf-permissions`.
 
 ## Field-Level Security (FLS)
 
-FLS is set on profiles and permission sets, not on the field definition, which defines defaults.
+Set FLS on profiles and permission sets, not on the field definition, which defines defaults.
 
 ## System & User Permissions
 
@@ -50,8 +50,8 @@ A `PermissionSet` is one XML file; everything it grants appears as a named eleme
 | `<hasActivationRequired>` | Whether the set is session-activated |
 | `<dataspaceScopes>` | Data 360 dataspaces — see `references/dataspace-access.md` |
 
-**A required field listed in `<fieldPermissions>` fails the deployment**, because required fields
-cannot carry field-level security; omit them. The error message does not say so.
+**Omit required fields from `<fieldPermissions>`.** Required fields cannot carry field-level
+security, so listing one fails the deployment. The error message does not say so.
 
 The XML references user permissions by API name: `PermissionsManageDataMaskPolicies` and
 `PermissionsAccessDataMaskAndSeed` gate Data Mask, and `PermissionsViewAllProfiles` bypasses
@@ -81,8 +81,8 @@ GET  /services/data/vXX.X/connect/setup/discovery/feature/{apiName}/status
 POST /services/data/vXX.X/connect/setup/discovery/feature/{apiName}/enable
 ```
 
-A disabled toggle looks like a permission problem: the permission set and profile are right, and
-the feature is still absent. Check the toggle before auditing access.
+Check the toggle before auditing access. A disabled toggle looks like a permission problem: the
+permission set and profile are right, and the feature is still absent.
 
 ## Design Rules
 

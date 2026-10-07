@@ -2,8 +2,8 @@
 
 Detail for SKILL.md §3, §4, §6, §7.
 
-Credit multipliers are in SKILL.md §8. Their sources are versioned and now tiered, so verify the
-current one rather than quoting from memory:
+Credit multipliers are in SKILL.md §8. Verify the current source before quoting a number; both are
+versioned and now tiered:
 
 - Customer Data Cloud Rate Card (PDF): <https://www.salesforce.com/en-us/wp-content/uploads/sites/4/documents/platform/data-cloud-platform-services-rate-sheet.pdf>
 - Data Services Billable Usage Types for Data 360: <https://help.salesforce.com/s/articleView?id=data.c360_a_data_usage_types.htm&language=en_US&type=5>

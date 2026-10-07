@@ -4,7 +4,7 @@ Detail for SKILL.md §5. Three methods; choose by where the logic runs.
 
 ## Method 1 — SOQL on DMOs From Apex
 
-Best when the logic is on-platform (an Agentforce Apex action, platform-event subscriber, controller).
+Use it when the logic is on-platform (an Agentforce Apex action, platform-event subscriber, controller).
 
 ```java
 public with sharing class LoyaltyService {
@@ -34,7 +34,7 @@ Notes and limits:
 
 ## Method 2 — Query API (Data 360 SQL)
 
-Best for analytical SQL: cross-object joins, aggregates, windowing, through Connect REST endpoints (and Apex).
+Use it for analytical SQL: cross-object joins, aggregates, windowing, through Connect REST endpoints (and Apex).
 
 ```sql
 -- ANSI SQL against modeled data. Fictional API names — replace with yours.
@@ -59,7 +59,7 @@ Performance/cost rules:
 
 ## Method 3 — Connect API in Apex (`ConnectApi`)
 
-Best for object-oriented operations from on-platform code: profiles, calculated insights, segments, metadata. The Apex `ConnectApi` namespace exposes a subset of the Connect REST API.
+Use it for object-oriented operations from on-platform code: profiles, calculated insights, segments, metadata. The Apex `ConnectApi` namespace exposes a subset of the Connect REST API.
 
 ```java
 // Illustrative shape — consult the ConnectApi Data 360 classes for exact method names.

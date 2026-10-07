@@ -4,10 +4,10 @@ Two modes on one API; choose between them on cost before latency (SKILL.md §8).
 
 ## Before any call
 
-An **Ingestion API connector** must exist, with a **schema** describing the objects you will send.
-Data 360 requires the schema up front; it is never inferred from the payload. The connector's
-`sourceName` (for example `ecomm_api`) and the object name appear in every streaming URL, so name
-them for readability.
+Create an **Ingestion API connector** first, with a **schema** describing the objects you will send.
+Data 360 requires the schema up front and never infers it from the payload. Name the connector's
+`sourceName` (for example `ecomm_api`) and the object name for readability; both appear in every
+streaming URL.
 
 Authentication is OAuth 2.0 against the Data 360 instance. All URLs below are
 `https://{instance_url}/api/v1/ingest/...`.
@@ -22,14 +22,14 @@ POST /api/v1/ingest/sources/{sourceName}/{objectName}
 POST /api/v1/ingest/sources/ecomm/Order/
 ```
 
-Records in the body enter the pipeline continuously. A **test action** validates a payload against
-the schema without ingesting:
+Records in the body enter the pipeline continuously. Validate a payload against the schema without
+ingesting through the **test action**:
 
 ```http
 POST /api/v1/ingest/sources/ecomm/Order/actions/test
 ```
 
-Use it while building: in production, a schema mismatch looks like data silently not arriving.
+Use it while building; in production, a schema mismatch looks like data silently not arriving.
 
 Delete by id on the same source path:
 
@@ -91,8 +91,8 @@ States: **`Open`** → **`UploadComplete`** → **`JobComplete`**. The response 
 
 ### Stream category is not a label
 
-Every data stream declares a category, which constrains what the stream needs and what the platform
-can do with it afterwards. Changing it later means rebuilding the stream.
+Choose every data stream's category before creating it; the category constrains what the stream
+needs and what the platform can do with it afterwards. Changing it later means rebuilding the stream.
 
 | Category | Requires |
 |---|---|
@@ -100,13 +100,14 @@ can do with it afterwards. Changing it later means rebuilding the stream.
 | `Engagement` | A primary key **and an event time field** |
 | `Other` | A primary key |
 
-An `Engagement` stream without a time field refuses to activate; the requirement surfaces only then.
+Give every `Engagement` stream a time field. Without one it refuses to activate, and the requirement
+surfaces only then.
 
 ### Field names change on the way in
 
 **DLO field naming transforms `__c` into `_c`.** A CRM field `Region__c` arrives as `Region_c` on the
-DLO. Any code that maps by name — a transform, a query, a Data Custom Code script — must use the DLO's
-name, not the CRM one.
+DLO. Use the DLO's name, not the CRM one, in any code that maps by name — a transform, a query, a Data
+Custom Code script.
 
 ### The auth flow is three hops, and the host changes
 
@@ -116,14 +117,14 @@ name, not the CRM one.
 3. Data 360 token        →  ingest, against the TENANT URL
 ```
 
-**The ingest endpoint is on the tenant URL, not the Salesforce instance URL.** Pointing step 3 at the
+**Point the ingest call at the tenant URL, not the Salesforce instance URL.** Pointing step 3 at the
 instance looks like an authentication problem and is not.
 
 ### `202` means accepted, not queryable
 
-The rows are not yet validated or in the DLO. Validation failures surface later, in the **Problem
-Records** DLO family, so a pipeline that checks only the HTTP status reports success while dropping
-rows.
+The rows are not yet validated or in the DLO. Check the **Problem Records** DLO family as well as the
+HTTP status: validation failures surface there later, and a pipeline that checks only the status
+reports success while dropping rows.
 
 ### Deleting a stream can delete its DLO
 
@@ -132,7 +133,7 @@ one that other objects map from.
 
 ### Feature gating reads as an error
 
-`CdpDataStreams` in an error response means the capability is **not provisioned for this org or
+Read `CdpDataStreams` in an error response as the capability **not provisioned for this org or
 user** — not a malformed request. The activation equivalents are `CdpActivationTarget` and
 `CdpActivationExternalPlatform`.
 

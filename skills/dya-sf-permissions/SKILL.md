@@ -22,8 +22,8 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
-**Minimum access is the default.** Salesforce steers orgs toward a thin base profile plus additive
-permission sets, where new capability lands.
+**Minimum access is the default.** Build on a thin base profile plus additive permission sets;
+Salesforce lands new capability in permission sets.
 
 **The model is enforced in code.** From API 67.0, Apex SOQL, SOSL and DML default to `USER_MODE`, so
 the running user's object, field and sharing access governs what controller and integration code can
@@ -36,9 +36,9 @@ read and write — not just the UI. See `references/shared/platform-deltas.md` a
 | **View Setup Audit Trail becomes a standalone permission** | GA | Auditors get the trail without the broader permission that used to carry it |
 | **Keep Manual Shares When Transferring Records** | GA, off by default | An org-wide setting that preserves the manual shares an ownership change previously deleted |
 
-Profile filtering's bypass permissions are View All Profiles, Customize Application, Manage Users and
-five others. **Do not grant View All Profiles to undo it.** When something breaks, find what needed
-the profile name; broad visibility is the fallback.
+**Do not grant View All Profiles to undo profile filtering.** When something breaks, find what
+needed the profile name; broad visibility is the fallback. Profile filtering's bypass permissions are
+View All Profiles, Customize Application, Manage Users and five others.
 
 ---
 
@@ -111,11 +111,11 @@ Each layer only **widens** access from a restrictive baseline; only restriction 
 3. **Sharing Rules** — owner-based (records owned by this group go to that group) or criteria-based
    (records matching a field filter go to a group). **Model them as immutable:** an owner-based rule
    allows editing only its access level, so changing who it shares from or to fails the deploy and
-   needs a delete-and-recreate. A normal deploy is **additive** and never removes a sharing rule;
-   that needs a destructive deploy.
-4. **Manual and Apex Managed Sharing** — one record shared with a user or group. Apex sharing writes
-   `__Share` rows with a **sharing reason**, which makes the share recalculable and survivable
-   across owner changes.
+   needs a delete-and-recreate. Remove a sharing rule with a destructive deploy; a normal deploy is
+   **additive** and never removes one.
+4. **Manual and Apex Managed Sharing** — one record shared with a user or group. Write Apex shares
+   as `__Share` rows with a **sharing reason**; the reason makes the share recalculable and
+   survivable across owner changes.
 5. **Teams** — Account, Opportunity and Case teams grant named collaborators a defined access level.
 6. **Implicit sharing** — grants the platform makes on its own, not configurable: read access to a
    child record grants read on its parent Account; Account access grants access to the associated
@@ -125,14 +125,14 @@ Each layer only **widens** access from a restrictive baseline; only restriction 
 
 ### The two narrowing layers
 
+Use a restriction rule for "must not see" and a scoping rule for "should not have to wade through". A
+scoping rule for a confidentiality requirement is a data leak.
+
 - **Restriction Rules** *remove* visibility, filtering objects the user already accesses to a subset
   — "this user sees only Cases of type Internal". Excluded records are absent from list views,
   reports and user-mode queries.
 - **Scoping Rules** change only the **default view**: which records a user sees *first*, not what
   they *can* reach. Search, a direct link or removing the filter still gets there.
-
-"Must not see" is a restriction rule. "Should not have to wade through" is a scoping rule. A scoping
-rule for a confidentiality requirement is a data leak.
 
 > Evaluation order, Apex sharing shapes and edge cases: `references/record-sharing.md`.
 
@@ -143,11 +143,15 @@ profile with no role, a separate, restricted class of sharing rules, and no acce
 objects. Anything a guest user can reach, the internet can reach. Read what the guest profile grants;
 never assume it is restrictive. See `dya-sf-lwr-sites`.
 
-**Integration users** get their own user and permission set, never a licence borrowed from a departed
+**Give each integration its own user and permission set**, never a licence borrowed from a departed
 admin. Grant exactly the objects and fields the integration touches; API 67.0 user mode enforces it, so
 an integration that now returns fewer rows was relying on an over-broad profile.
 
 ## 5. How Access Is Enforced in Code
+
+**Fix the model, not the symptom.** A too-narrow permission set or OWD makes user-mode code return
+fewer rows or throw. Widening permissions to clear the error also exposes that data in reports, list
+views and the API.
 
 - **`WITH USER_MODE` / `AccessLevel.USER_MODE`** enforce CRUD, FLS and sharing for the running user.
 - **`with sharing`** enforces record sharing on a class, **`without sharing`** ignores it, and
@@ -157,10 +161,6 @@ an integration that now returns fewer rows was relying on an over-broad profile.
   of the user.
 - **Flow** has three run contexts of its own, and the record-triggered default bypasses object and
   field permissions. See `dya-sf-flow`.
-
-A too-narrow permission set or OWD makes user-mode code return fewer rows or throw. Widening
-permissions to clear the error also exposes that data in reports, list views and the API. **Fix the
-model, not the symptom.**
 
 ## 6. Decision Matrix
 
@@ -211,8 +211,8 @@ model, not the symptom.**
 
 ## Summary — The Five Commandments
 
-1. **Two questions, always separate** — what they can *do* (CRUD, FLS, permissions) versus which records they can *see* (sharing).
-2. **Additive by design** — minimal profile, capability through permission sets and groups, removal only through muting.
-3. **Sharing widens from a restrictive OWD** — hierarchy, rules, manual and Apex sharing, teams, implicit grants; only restriction rules narrow.
-4. **The model is enforced in code** — `with sharing` plus `WITH USER_MODE`; triggers are the system-mode exception.
-5. **Least privilege: fix the model, never the symptom.** Widening access to clear an error exposes the same data in reports and the API.
+1. **Keep the two questions separate** — what they can *do* (CRUD, FLS, permissions) versus which records they can *see* (sharing).
+2. **Build access additively** — minimal profile, capability through permission sets and groups, removal only through muting.
+3. **Widen sharing from a restrictive OWD** — hierarchy, rules, manual and Apex sharing, teams, implicit grants; only restriction rules narrow.
+4. **Enforce the model in code** — `with sharing` plus `WITH USER_MODE`; triggers are the system-mode exception.
+5. **Apply least privilege: fix the model, never the symptom.** Widening access to clear an error exposes the same data in reports and the API.

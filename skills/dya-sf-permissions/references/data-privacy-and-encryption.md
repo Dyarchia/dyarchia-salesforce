@@ -26,13 +26,13 @@ Encryption is set per field, on `CustomField`, through the `encryptionScheme` el
 | `ProbabilisticEncryption` | **No** | The value is only ever displayed, never queried |
 | `None` | n/a | Removing encryption from a field |
 
-Probabilistic encryption is stronger because the same plaintext produces different ciphertext each
-time, which is why nothing can index it. A field that a report filters on, a SOQL `WHERE` touches,
-or a matching rule uses must be deterministic. Switching later means re-encrypting the field and
-re-testing every query that touched it.
+**Make a field deterministic if a report filters on it, a SOQL `WHERE` touches it, or a matching
+rule uses it.** Probabilistic encryption is stronger because the same plaintext produces different
+ciphertext each time, which is why nothing can index it. Switching later means re-encrypting the
+field and re-testing every query that touched it.
 
-Shield `encryptionScheme` is **not** Classic Encryption's `EncryptedText` field type, a separate,
-older mechanism with its own limitations. Do not mix the two in one design.
+Do not mix Shield `encryptionScheme` and Classic Encryption's `EncryptedText` field type in one
+design. They are **not** the same: Classic is a separate, older mechanism with its own limitations.
 
 ### Org-level settings
 
@@ -43,8 +43,8 @@ Two metadata types, both singletons:
 - **`EncryptionKeySettings`** — `enableCacheOnlyKeys`, `enableReplayDetection`,
   `canExternalKeyManagement`, plus the Data 360 and transactional-database toggles.
 
-**`enableReplayDetection` can be set only once `enableCacheOnlyKeys` is `true`.** Enabling Cache-Only
-Keys does not turn replay detection on, and a deploy setting both in the wrong order fails.
+**Set `enableReplayDetection` only once `enableCacheOnlyKeys` is `true`.** Enabling Cache-Only Keys
+does not turn replay detection on, and a deploy setting both in the wrong order fails.
 
 ### Key models
 
@@ -54,16 +54,16 @@ Keys does not turn replay detection on, and a deploy setting both in the wrong o
 | **BYOKMS / EKM** | Your external KMS, permanently | A reference, never the material |
 | **Cache-Only Key** | Your endpoint, fetched on demand | Nothing durable — it is cached and re-fetched |
 
-"Bring your own key" is used loosely for all three; their recovery and availability differ, so name
-the specific one in any design document.
+Name the specific key model in any design document. "Bring your own key" is used loosely for all
+three, and their recovery and availability differ.
 
 ## Data Subject Requests — `DsarPolicy`
 
 A DSAR policy gathers everything the org holds about one person to hand back. Its `minApiVersion` is
 **68.0**.
 
-**Right To Portability is export, not erasure.** A `DsarPolicy` deletes nothing; if the requirement
-is deletion, it is the wrong tool.
+**Right To Portability is export, not erasure.** A `DsarPolicy` deletes nothing; never use it for a
+deletion requirement.
 
 | Entity | Reached through |
 |---|---|
@@ -74,13 +74,13 @@ is deletion, it is the wrong tool.
 
 Execution, status and file retrieval are Connect DSR endpoints rather than metadata.
 
-Hard caps on the traversal tree: **10 children per path, depth 10, 200 nodes total.** A data model
-exceeding them needs the policy split before authoring.
+Hard caps on the traversal tree: **10 children per path, depth 10, 200 nodes total.** Split the
+policy before authoring when a data model exceeds them.
 
-A policy is created **INACTIVE** and activated deliberately. Editing an ACTIVE policy requires
-deactivating it first, leaving a window where nothing is active.
+A policy is created **INACTIVE**; activate it deliberately. Deactivate an ACTIVE policy before editing
+it, which leaves a window where nothing is active.
 
-- **The URL segment is `dsr`, not `dsar`.**
+- **Use the URL segment `dsr`, not `dsar`.**
 - **A failed run can return HTTP 201.** Read the response envelope and `RequestStatus`; the HTTP
   status is not the outcome.
 - An early file retrieval returns `NOT_FOUND` with "this file isn't ready yet"; poll the status
@@ -105,9 +105,9 @@ Two user permissions, granted by API name, gate it: `PermissionsManageDataMaskPo
 | `DataMaskPolicyJobRunDtl` | Standard SOQL (FK `DataMaskPolicyJobRunId`) | — |
 | `DataMaskCustomValueLibrary` | Standard SOQL | — |
 
-`sf sobject describe --sobject DataMaskPolicy` returns `NOT_FOUND`, and
-`SELECT ... FROM DataMaskPolicy` through `sf data query` returns `INVALID_TYPE`. Neither means the
-feature is missing.
+Query `DataMaskPolicy` through the Tooling API. `sf sobject describe --sobject DataMaskPolicy`
+returns `NOT_FOUND`, and `SELECT ... FROM DataMaskPolicy` through `sf data query` returns
+`INVALID_TYPE`. Neither means the feature is missing.
 
 ### Authoring order
 
@@ -128,20 +128,20 @@ A `DataMaskPolicyField` carries **`MaskingCategory`** (`library` or `replaceRand
 Row subsetting lives on `DataMaskPolicyObject` as `FilterEnabled` plus `WhereCriteria`, a SOQL-style
 predicate capped at **40 characters**, with the structured form in `RawFilterData`.
 
-- **There is no `sampleSize`, and a `LIMIT` is silently ignored** — the run masks the whole table
-  with no error.
+- **Never subset with `sampleSize` or `LIMIT`: there is no `sampleSize`, and a `LIMIT` is silently
+  ignored** — the run masks the whole table with no error.
 - `RawFilterData.operation` accepts only `eq, ne, lt, gt, ge, le, contains, not_contains, in,
   not_in`. Anything else — `startsWith`, for instance — fails the run with a **422**.
-- The predicate must be valid SOQL. `Id != 'null'` fails the job with `invalid ID field: null`,
+- Write the predicate as valid SOQL. `Id != 'null'` fails the job with `invalid ID field: null`,
   because the string `'null'` is not the null literal.
 
-Scheduling lives on the policy itself: `RunFrequency` (`once`, `daily`, `weekly`, `monthly`),
-`ScheduledStart`, and `RunOnRefresh` to mask automatically on every sandbox refresh; prefer it to
-masking manually after each refresh.
+Prefer `RunOnRefresh` to masking manually after each refresh; it masks automatically on every
+sandbox refresh. Scheduling lives on the policy itself: `RunFrequency` (`once`, `daily`, `weekly`,
+`monthly`), `ScheduledStart`, and `RunOnRefresh`.
 
 ## Where this connects
 
 - Encryption and field-level security are independent: encrypting a field does not substitute for
-  FLS on it. See `references/object-and-field-access.md`.
-- Data 360 has its own access layer that these do not cover — see `references/dataspace-access.md`
-  and `dya-sf-data360`.
+  FLS on it.
+- Data 360 has its own access layer that these do not cover: the permission set's
+  `<dataspaceScopes>` element. See `dya-sf-data360`.

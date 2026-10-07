@@ -1,6 +1,7 @@
 # Querying Data 360 — Reference (Winter '27 / API v68.0)
 
-The four surfaces are not interchangeable; picking the wrong one forces a rewrite.
+Pick the surface before writing the query; the four are not interchangeable, and the wrong one
+forces a rewrite.
 
 ## Pick the surface
 
@@ -42,13 +43,13 @@ POST https://{instance}/services/data/vXX.X/ssot/query-sql?dataspace=default&wor
 with `:startDate` in the statement bound from `sqlParameters`. String-built SQL is injectable here
 too.
 
-**`result_scan` reads a cached result.** Pass a submit's `queryId` to `result_scan` in a later SQL
+**Read a cached result with `result_scan`.** Pass a submit's `queryId` to `result_scan` in a later SQL
 statement to read the cached output instead of re-scanning.
 
 ## Data 360 REST API (Direct API), `/api/v3/query`
 
-**This one is not on your org URL.** It uses `dne_cdpInstanceUrl`, a separate instance URL obtained
-with the access token. Sent to the org URL, these calls fail with an error that does not point at the
+**Send these calls to `dne_cdpInstanceUrl`, not your org URL.** It is a separate instance URL
+obtained with the access token. Sent to the org URL, these calls fail with an error that does not point at the
 cause.
 
 ```http
@@ -60,15 +61,15 @@ GET    /api/v3/query/{queryId}/metadata           # output schema, no rows
 DELETE /api/v3/query/{queryId}                    # cancel
 ```
 
-The submit returns the `queryId` in the **`x-hyperdb-status` response header**, not the body; a
-client reading the body concludes the call failed.
+Read the submit's `queryId` from the **`x-hyperdb-status` response header**, not the body; a client
+reading the body concludes the call failed.
 
-**Chunks over offsets for large results.** Offset pagination re-walks the result each time; chunked
+**Use chunks, not offsets, for large results.** Offset pagination re-walks the result each time; chunked
 retrieval does not.
 
-**`/metadata` returns the output schema without rows**, so learning column types scans no data.
+**Learn column types from `/metadata`**; it returns the output schema without rows and scans no data.
 
-**Apache Arrow** is supported on submit, rows, chunks and metadata. Set
+**Use Apache Arrow for large result sets.** It is supported on submit, rows, chunks and metadata. Set
 `Accept: application/vnd.apache.arrow.stream` and the response is a binary Arrow IPC stream instead of
 JSON: smaller payloads and less deserialisation overhead for large result sets. Read it with
 PyArrow or the Arrow Java library.
@@ -119,15 +120,15 @@ DMO.
 Use them to resolve a **unified DMO's real, org-specific name** (SKILL.md §5).
 
 Every DLO also carries auto-injected system fields you did not define:
-`DataSource__c`, `InternalOrganization__c`, and the `cdp_sys_*` and `KQ_*` families. They are
-platform bookkeeping, not ingestion mappings.
+`DataSource__c`, `InternalOrganization__c`, and the `cdp_sys_*` and `KQ_*` families. Do not treat them
+as ingestion mappings; they are platform bookkeeping.
 
 ## Two SQL Constraints That Fail Confusingly
 
-- **Table names must be double-quoted** in Data 360 SQL:
+- **Double-quote table names** in Data 360 SQL:
   `SELECT COUNT(*) FROM "ssot__Individual__dlm"`. Unquoted is a syntax error.
-- **A hybrid-search `prefilter` only works on fields marked prefilter-capable when the index was
-  created.** HNSW index parameters are read-only afterwards, so a prefilter that silently matches
+- **Mark a field prefilter-capable when creating the index**; a hybrid-search `prefilter` works only
+  on fields marked that way. HNSW index parameters are read-only afterwards, so a prefilter that silently matches
   nothing means rebuilding the index, not fixing the query.
 
 ## Anti-Patterns
