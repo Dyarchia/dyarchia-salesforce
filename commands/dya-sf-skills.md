@@ -7,7 +7,7 @@ allowed-tools: Read, Glob
 Print the catalogue of `dya-sf-` Salesforce skills available in this session.
 
 These skills load on their own only before an edit in their scope, so a reader who is asking
-rather than editing never sees them. This command shows what is on the shelf.
+rather than editing never sees them.
 
 ## What to print
 
@@ -33,7 +33,7 @@ Integration family      integration-overview · integration-inbound-apis ·
 ```
 
 Print only the part of each description that says what the skill covers. Omit the `Applies to`
-list and the closing trigger clause — they say when the skill loads.
+list and the closing trigger clause.
 
 ## Arguments
 
@@ -47,7 +47,7 @@ With no arguments, print the whole catalogue.
 
 Close with one line on how to invoke a skill, naming a real example from the list rather than a
 placeholder. Say that `dya-sf-integration-overview` is the entry point for choosing an integration
-pattern, since it exists to route between its siblings.
+pattern, since it routes between its siblings.
 
-Keep it scannable. This is a menu, not documentation: no preamble, no explanation of what agent
-skills are, and no offer of further work unless the user asks.
+This is a menu, not documentation: no preamble, no explanation of what agent skills are, and no
+offer of further work unless the user asks.

@@ -6,11 +6,11 @@
 ![Salesforce API](https://img.shields.io/badge/Salesforce%20API-v68.0-00A1E0.svg)
 ![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Compatible-5B5BD6.svg)
 
-Agent skills are reusable instruction packs that customise how an AI coding agent approaches specific domains. They are becoming a cross-vendor standard, so this repo should be portable in spirit even where loading mechanics differ.
+Agent skills are reusable instruction packs that customise how an AI coding agent handles a domain. They are becoming a cross-vendor standard, so these skills aim to be portable even where loading mechanics differ.
 
 Every skill loads **before the agent creates or edits anything in its scope** — `dya-sf-apex` before an Apex class or trigger, `dya-sf-flow` before a flow — or when invoked by name. A Salesforce question that changes no code loads nothing.
 
-Run **`/dya-sf-skills`** to print the catalogue with what each skill covers. Add a word to filter — `/dya-sf-skills integration`.
+**`/dya-sf-skills`** prints the catalogue with what each skill covers; add a word to filter, as in `/dya-sf-skills integration`.
 
 ---
 
@@ -18,7 +18,7 @@ Run **`/dya-sf-skills`** to print the catalogue with what each skill covers. Add
 
 26 skills, all targeting **Winter '27 / API v68.0**, under `skills/`. Other Dyarchia domains live in sibling repositories under the same organisation — one repo per domain, one plugin per repo.
 
-Two skills are exempt from that version, as their own Platform Context states: **`dya-sf-b2c-commerce`**, the Demandware-lineage platform with no Salesforce core API version, and **`dya-sf-cli`**, which tracks the CLI's weekly cadence rather than the platform release. The validator allowlists both.
+Two skills are exempt from that version, as their Platform Context states: **`dya-sf-b2c-commerce`**, the Demandware-lineage platform with no Salesforce core API version, and **`dya-sf-cli`**, which tracks the CLI's weekly cadence. The validator allowlists both.
 
 ### Core development
 
@@ -125,9 +125,9 @@ graph LR
     class Plugin,Meta,Contract,Scripts,Cmds meta
 ```
 
-Each skill folder holds its `SKILL.md` (the load-bearing instructions) and a `references/` subfolder of verbatim implementations and large code examples the agent loads on demand.
+Each skill folder holds its `SKILL.md` (the load-bearing instructions) and a `references/` subfolder of verbatim implementations and large code examples, loaded on demand.
 
-`references-shared/` holds the platform fundamentals — governor limits, the access model, API-version semantics — written once. A skill lists the ones it needs in its own `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. A skill the canon does not apply to has no such file — today only `dya-sf-b2c-commerce`, since nothing on that platform is Salesforce core. The copies are committed so every skill folder stays self-contained; edit the canon, not the copies.
+`references-shared/` holds the platform fundamentals (governor limits, the access model, API-version semantics), written once. A skill lists the ones it needs in its `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. Only `dya-sf-b2c-commerce` has no such file, since nothing on that platform is Salesforce core. The copies are committed so every skill folder stays self-contained; edit the canon, not the copies.
 
 `agents/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
 
@@ -145,7 +145,7 @@ The repository is its own marketplace, so all 26 skills install in one step:
 /plugin install dyarchia-salesforce@dyarchia-salesforce
 ```
 
-The plugin and marketplace share a name because this repository is both: one repo per domain, one plugin per repo. Sibling Dyarchia domains ship their own repository and marketplace, so they install side by side without colliding.
+The plugin and marketplace share a name because this repository is both. Sibling Dyarchia domains ship their own repository and marketplace, so they install side by side without colliding.
 
 Skills are discovered from `skills/` automatically. No MCP servers are declared — wire your own.
 
@@ -153,7 +153,7 @@ Skills are discovered from `skills/` automatically. No MCP servers are declared 
 
 ## Install on other agents
 
-The skills are not Claude-specific. Each is a folder with a `SKILL.md` carrying `name` and `description` in YAML frontmatter — the [Agent Skills](https://agentskills.io) shape several vendors now read. Only the manifests differ, and they sit beside the content at the repository root:
+The skills are not Claude-specific. Each is a folder with a `SKILL.md` carrying `name` and `description` in YAML frontmatter, the [Agent Skills](https://agentskills.io) shape several vendors read. Only the manifests differ, at the repository root:
 
 ```text
 .claude-plugin/     plugin.json + marketplace.json
@@ -161,9 +161,9 @@ The skills are not Claude-specific. Each is a folder with a `SKILL.md` carrying 
 skills/             the content, shared by both
 ```
 
-- **Grok (xAI)** needs nothing. It reads Claude Code marketplaces, plugins, skills, MCP servers, agents, hooks and `CLAUDE.md` alongside its own `.grok/`, so clone the repo or install it as a plugin.
+- **Grok (xAI)** needs nothing. It reads Claude Code marketplaces, plugins, skills, MCP servers, agents, hooks and `CLAUDE.md` alongside its own `.grok/`; clone the repo or install it as a plugin.
 - **Codex / ChatGPT** reads `.codex-plugin/plugin.json`, which points at the same `skills/` tree. Add the folder to a local marketplace with `@plugin-creator`, then install it.
-- **Mistral Vibe** takes the skill folders directly — it implements the Agent Skills standard.
+- **Mistral Vibe** implements the Agent Skills standard and takes the skill folders directly.
 - **Anything that reads `.agents/skills/`** (Codex and Grok both do, at repo and user level) finds the skills if you symlink or copy `skills/` there.
 
 The two manifests duplicate the plugin name, version and description; `scripts/validate-skills` fails when they disagree.
@@ -174,7 +174,7 @@ Gemini has no equivalent plugin-and-skill surface at the time of writing; copy t
 
 ## Install from disk
 
-Agents that read skills from a folder on disk need no install step — copy the skill folder into the directory for the scope you want:
+Agents that read skills from a folder on disk need no install step; copy the skill folder into the directory for the scope you want:
 
 ```mermaid
 flowchart LR
@@ -193,13 +193,13 @@ flowchart LR
     class C,D cmd
 ```
 
-After restarting, verify the skill appears in the agent's loaded-skills list.
+After restarting, check that the skill appears in the agent's loaded-skills list.
 
 ---
 
 ## Contributing
 
-[`CONTRIBUTING.md`](CONTRIBUTING.md) is the procedure for adding, editing, splitting or removing a skill. [`CLAUDE.md`](CLAUDE.md) is the contract behind it: frontmatter rules, body conventions, the branch model and every validator check. Both are versioned on every branch — read them before your first change rather than inferring conventions from a diff.
+[`CONTRIBUTING.md`](CONTRIBUTING.md) is the procedure for adding, editing, splitting or removing a skill. [`CLAUDE.md`](CLAUDE.md) is the contract behind it: frontmatter rules, body conventions, the branch model and every validator check. Both are versioned on every branch; read them before your first change rather than inferring conventions from a diff.
 
 ---
 

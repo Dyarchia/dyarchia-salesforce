@@ -46,7 +46,7 @@ launches the flow server-side, and returns the outputs.
 ### Security
 
 Governor limits, sharing rules and field permissions apply exactly as for any execution by the
-authenticated user — see `dya-sf-permissions` and `references/shared/governor-limits.md`. Exposing
+authenticated user — see `dya-sf-permissions`. Exposing
 something as an MCP tool neither widens nor narrows it: if the user can do it, the agent can.
 
 ## Connecting a client

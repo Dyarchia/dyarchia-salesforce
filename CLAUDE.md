@@ -23,22 +23,21 @@ git push origin develop:master
 ```
 
 `master` points at whichever `develop` commit was last published, so the two share one history and
-cannot diverge. Mark the publish with an annotated tag, not a commit — a tag is what a release
-marker is for, and it does not distort the branch graph.
+cannot diverge. Mark the publish with an annotated tag, not a commit: a tag is a release marker and
+does not distort the branch graph.
 
 This replaced a merge-based sync in September 2026. Each merge of `develop` into `master` created a
-commit on `master` that never flowed back, so the counter grew by one per release and GitHub
-reported `develop` as eight commits behind `master` while the two were byte-identical. Worse, the
-"behind" banner invites a `git merge master` on `develop`, which drags publish-only commits into
-the working branch and breaks the one-way flow.
+commit on `master` that never flowed back, so GitHub reported `develop` one more commit behind per
+release, eight in the end, while the two were byte-identical. The "behind" banner also invites a
+`git merge master` on `develop`, which drags publish-only commits into the working branch and breaks
+the one-way flow.
 **If the two ever diverge again, reconcile with a single merge of `master` into `develop` — never
 force-push `master`.**
 
 Three consequences, all silent:
 
 - **Branch from `develop`, and set the pull-request base to `develop`.** GitHub offers `master` as
-  the default, so change the base by hand every time; a pull request that keeps it skips `develop`
-  entirely.
+  the default, so change the base by hand every time; a pull request that keeps it skips `develop`.
 - A clone or worktree created under a different default has a stale `refs/remotes/origin/HEAD`, so
   checking out the bare default gives the wrong branch. Repair it with `git remote set-head origin -a`
   instead of routing around it.
@@ -49,10 +48,10 @@ This file and `CONTRIBUTING.md` are **versioned on every branch**. They are the 
 contract: a clone without them cannot be contributed to correctly, and drift between them is this
 repo's defining failure mode. Like every file here, they are written in English.
 
-Untracked and gitignored by design: `.claude/` in full (the per-machine agent workspace — local settings,
-repo-local skills, worktrees), plus `docs/` and `.docs/` in full (private working notes). They
-record what someone is thinking about, not how the library works. Nothing inside them is part of
-the contract: anything a contributor must know belongs in this file or `CONTRIBUTING.md`.
+Untracked and gitignored by design: `.claude/` in full (the per-machine agent workspace: local
+settings, repo-local skills, worktrees), plus `docs/` and `.docs/` in full (private working notes).
+They record what someone is thinking about, not how the library works, and are not part of the
+contract: anything a contributor must know belongs in this file or `CONTRIBUTING.md`.
 
 ## Layout
 
@@ -79,24 +78,22 @@ dyarchia-salesforce/
 └── docs/                          # local working notes, untracked
 ```
 
-`commands/` holds slash commands. **The validator does not walk it** — only `skills/` — so a
-command is not counted as a skill and needs no Platform Context heading. That is why a
-meta-command like `/dya-sf-skills` lives there: it is not a Salesforce domain playbook and must not
-inflate the skill count.
+**The validator does not walk `commands/`**, only `skills/`, so a command is not counted as a skill
+and needs no Platform Context heading. That is why a meta-command like `/dya-sf-skills` lives there:
+it is not a Salesforce domain playbook and must not inflate the skill count.
 
 Reserved by convention, not present yet: `agents/`, `hooks/`, and `mcp/` for MCP servers written
 here. Third-party MCP servers are not vendored and not declared. Hosts discover all three from the
 repository root, so adding one ships it without touching any script.
 
 `sources/` may exist locally: read-only clones of third-party repos kept as raw material. It is
-gitignored, never installed, never published. Do not glob or grep across it by accident — it is
-large.
+gitignored, never installed, never published, and large; do not glob or grep across it by accident.
 
 ## Commands
 
 No test runner, no linter, no CI. Two scripts, each with a PowerShell and a bash twin, are the
-entire tooling surface. Order matters: **sync, then validate** — the validator compares each synced
-copy against its canon, so validating first reports your edit as drift. Both `.ps1` files declare
+entire tooling surface. **Sync, then validate**: the validator compares each synced copy against its
+canon, so validating first reports your edit as drift. Both `.ps1` files declare
 `#Requires -Version 7.0`.
 
 ```bash
@@ -109,8 +106,8 @@ pwsh -NoProfile -File scripts/sync-shared-refs.ps1
 pwsh -NoProfile -File scripts/validate-skills.ps1
 ```
 
-- The source root is overridable — `-SourceRoot` in PowerShell, the `SOURCE_ROOT` environment
-  variable in bash — and defaults to `skills`. It is joined onto the repo root, so it must be
+- The source root is overridable (`-SourceRoot` in PowerShell, the `SOURCE_ROOT` environment
+  variable in bash) and defaults to `skills`. It is joined onto the repo root, so it must be
   **relative**; an absolute path produces a nonsense concatenated path and the run dies.
 - The bash validator needs `sha256sum` on PATH and exits 1 without it.
 
@@ -161,7 +158,7 @@ the Claude and Codex manifests disagree                 name, version, and the s
 
 **README is the single source of truth for the platform version.** The catalogue line
 (`N skills, all targeting **<version>**`) is parsed, and the badge, every Platform Context heading
-and the plugin description are checked against it. A version bump lands everywhere or fails — never
+and the plugin description are checked against it. A version bump lands everywhere or fails, never
 one skill at a time.
 
 `$versionNeutralSkills` / `VERSION_NEUTRAL_SKILLS` exempts `dya-sf-b2c-commerce` (Demandware lineage,
@@ -171,20 +168,19 @@ no core API version) and `dya-sf-cli` (versions on the CLI's own weekly cadence)
 The trigger clause is matched as the literal substring `Load before creating or editing anything in
 this scope`. Reword it and the skill fails validation.
 
-The allowlist behind the README-token warning — `$nonSkillTokens` in PowerShell, `NON_SKILL_TOKENS`
-in bash, hardcoded in both — holds two entries: `dya-sf-skills`, the catalogue command, and the bare
-prefix `dya-sf-`, which the README layout diagram states as `dya-sf-&lt;name&gt;/` and the token scan
-reads as a name. It is for `dya-sf-`-prefixed names the README mentions on purpose without a folder
-under `skills/`; add any such name to **both** scripts, or the scan flags it. It also covers the
-cross-reference check below.
+The allowlist behind the README-token warning (`$nonSkillTokens` in PowerShell, `NON_SKILL_TOKENS`
+in bash) holds two entries: `dya-sf-skills`, the catalogue command, and the bare prefix `dya-sf-`,
+which the README layout diagram states as `dya-sf-&lt;name&gt;/` and the token scan reads as a name.
+It is for `dya-sf-`-prefixed names the README mentions on purpose without a folder under `skills/`;
+add any such name to **both** scripts, or the scan flags it. It also covers the cross-reference
+check below.
 
-**The routing graph is validated.** Skills hand off by naming a sibling in backticks, and that
-graph is why a reader can start anywhere. A rename used to break every prose mention of the old name
-silently, so the validator scans every `.md` under a skill — excluding the generated
-`references/shared/` — and **fails** on a backticked `dya-sf-<name>` with no matching folder. It
-reads the graph already in the prose rather than asking for it again in frontmatter, so a handoff
-costs nothing beyond writing the sentence. After a rename or removal, the validator names every file
-still pointing at the old name.
+**The routing graph is validated.** Skills hand off by naming a sibling in backticks, which is why a
+reader can start anywhere. A rename used to break every prose mention of the old name silently, so
+the validator scans every `.md` under a skill, excluding the generated `references/shared/`, and
+**fails** on a backticked `dya-sf-<name>` with no matching folder. It reads the graph from the prose
+rather than from frontmatter, so a handoff costs only the sentence. After a rename or removal, the
+validator names every file still pointing at the old name.
 
 ## The frontmatter contract
 
@@ -204,49 +200,48 @@ Three load-bearing invariants:
 - `name` matches the containing folder name exactly.
 - The description ends with the trigger clause, preceded by an `Applies to` list of concrete files
   and metadata types. The skill loads before any edit in its scope, so the rules are in context when
-  the code is written, not when someone remembers to ask; a question that changes no code loads
-  nothing. Name file extensions and metadata types, not topics: the router matches an edit against
-  this list, and an edit crossing scopes loads every skill it touches.
-- The description enumerates the actual surface covered, so the router can pick between siblings
-  without loading them.
+  the code is written; a question that changes no code loads nothing. Name file extensions and
+  metadata types, not topics: the router matches an edit against this list, and an edit crossing
+  scopes loads every skill it touches.
+- The description enumerates the surface covered, so the router can pick between siblings without
+  loading them.
 
-The `dya-sf-` prefix stays on skill names even though the repo name no longer repeats it. Skill
-names share a global namespace inside the assistant with `sf-apex`, `salesforce-skills` and other
-third-party Salesforce skills; that is where the prefix earns its keep. The `sf` segment carries the
-domain, so a sibling domain repo under the same org names its skills `dya-<domain>-<name>` and the
-two sets cannot collide. **`dya-sf-cli` is not an exception to the scheme** — it was named before
-the sweep and already matched it, and the string parses correctly either way.
+The `dya-sf-` prefix stays on skill names even though the repo name no longer repeats it, because
+skill names share a global namespace inside the assistant with `sf-apex`, `salesforce-skills` and
+other third-party Salesforce skills. The `sf` segment carries the domain, so a sibling domain repo
+under the same org names its skills `dya-<domain>-<name>` and the two sets cannot collide.
+**`dya-sf-cli` is not an exception to the scheme**: it was named before the sweep and already
+matched it, and the string parses correctly either way.
 
 ## Skill body conventions
 
 - **Never assign an identity.** No skill opens with "You are an expert X": the `#` heading already
-  names the domain, and these skills compose — a reader loading `dya-sf-apex`, `dya-sf-lwc` and
+  names the domain, and these skills compose; a reader loading `dya-sf-apex`, `dya-sf-lwc` and
   `dya-sf-flow` would be told they are three different people. Open on what is true about the
   domain, and keep the second-person imperative for the rules, which do compose:
   "You **always** ... Follow every rule below."
 - **Close the opening paragraph with "Follow every rule below."** It is the compliance imperative
-  and all 26 carry it. Introduce the reference list with a bare `References:` — the bullets say
-  what each file is for, so a sentence announcing the list is filler.
-- Cross-reference siblings by bare skill name in backticks. The integration family especially is a
-  routing graph: `dya-sf-integration-overview` routes, the others build.
-- State scope exclusions in the opening paragraph, not buried. Example: `dya-sf-b2c-commerce`
-  declares up front that there is no Apex, LWC or SOQL on that platform.
-- `SKILL.md` holds what must be true on every invocation. Anything consulted occasionally — full
-  code listings, command catalogues, per-vendor detail — belongs in `references/`.
-- `SKILL.md` size ceiling: 20480 bytes. Not a style note — `validate-skills` warns above it. Past
-  that, split into `references/`. **All 26 skills are under the ceiling, so a clean tree validates
-  with zero errors and zero warnings.** Fix a new warning in the same commit; do not accept it as
-  debt.
-- Platform fundamentals — governor limits, the access model, SOQL selectivity, API version
-  semantics, the org and deployment model, the release deltas — are **never written into a skill
+  and all 26 carry it. Introduce the reference list with a bare `References:`; the bullets say what
+  each file is for.
+- Cross-reference siblings by bare skill name in backticks. The integration family is a routing
+  graph: `dya-sf-integration-overview` routes, the others build.
+- State scope exclusions in the opening paragraph. Example: `dya-sf-b2c-commerce` declares up front
+  that there is no Apex, LWC or SOQL on that platform.
+- `SKILL.md` holds what must be true on every invocation. Anything consulted occasionally (full code
+  listings, command catalogues, per-vendor detail) belongs in `references/`.
+- `SKILL.md` size ceiling: 20480 bytes; `validate-skills` warns above it. Past that, split into
+  `references/`. **All 26 skills are under the ceiling, so a clean tree validates with zero errors
+  and zero warnings.** Fix a new warning in the same commit; do not accept it as debt.
+- Platform fundamentals (governor limits, the access model, SOQL selectivity, API version
+  semantics, the org and deployment model, the release deltas) are **never written into a skill
   body**. They live once in `references-shared/`; a skill declares what it needs in its own
   `shared-refs.txt` and `scripts/sync-shared-refs` materialises the copies. Editing a synced copy is
   a validation error.
 
 ### The section skeleton
 
-All 26 skills share one shape. Match it — the consistency lets a reader jump between skills without
-relearning the layout.
+All 26 skills share one shape, so a reader can jump between them without relearning the layout.
+Match it.
 
 - Open with `## Platform Context — Winter '27 / API v68.0`, stating the release's relevant changes
   and versioned defaults before any rule.
@@ -262,7 +257,7 @@ relearning the layout.
 
 `Winter '27 / API v68.0` is a repo-wide invariant, not a per-skill detail. It is asserted in all 26
 Platform Context sections, the README badge, and the descriptions in `plugin.json` and
-`marketplace.json`. A version bump is a coordinated sweep across every source file — never a
+`marketplace.json`, so a version bump is a coordinated sweep across every source file, never a
 single-skill edit.
 
 It is no longer a manual sweep across 267 occurrences. Edit the README catalogue line and badge,
@@ -272,14 +267,14 @@ you missed.
 
 The plugin `version` field is duplicated in `.claude-plugin/plugin.json` and
 `.claude-plugin/marketplace.json` (`0.3.0` in both). `validate-skills` checks that they agree but
-cannot tell which is right — bump them together.
+cannot tell which is right; bump them together.
 
 ## Host manifests
 
 **The skills are not Claude-specific; only the manifests are.** A skill is a folder with a `SKILL.md`
-carrying `name` and `description` in frontmatter — the Agent Skills shape that Codex, Grok and
-Mistral Vibe all read. That is why the frontmatter contract above is exactly two keys: the
-intersection every host requires, and hosts ignore keys they do not know.
+carrying `name` and `description` in frontmatter, the Agent Skills shape that Codex, Grok and
+Mistral Vibe all read. That is why the frontmatter contract is exactly two keys: the intersection
+every host requires, and hosts ignore keys they do not know.
 
 Two manifests serve the one `skills/` tree:
 
@@ -288,13 +283,12 @@ Two manifests serve the one `skills/` tree:
 .codex-plugin/plugin.json                        Codex / ChatGPT
 ```
 
-Grok needs neither — it reads Claude Code's marketplaces, plugins, skills and instruction files with
+Grok needs neither; it reads Claude Code's marketplaces, plugins, skills and instruction files with
 no configuration. Anything reading `.agents/skills/` finds the tree through a symlink.
 
-The two manifests **duplicate the plugin name, version and description** — exactly the drift this
-repo is built to prevent — so `validate-skills` checks all three against each other and against
-`skills/` and fails on disagreement. Adding a third host means adding it to that check in both
-script twins — never a manifest on its own.
+The two manifests **duplicate the plugin name, version and description**, so `validate-skills`
+checks all three against each other and against `skills/` and fails on disagreement. Adding a third
+host means adding it to that check in both script twins, never a manifest on its own.
 
 `.codex-plugin/plugin.json` also declares `"skills": "./skills/"`, which the validator pins to the
 source root. Changing `SourceRoot` without changing that string silently breaks the Codex install.
@@ -302,23 +296,22 @@ source root. Changing `SourceRoot` without changing that string silently breaks 
 ## Plugin and marketplace identity
 
 Both Claude manifests carry the name **`dyarchia-salesforce`**, and must match. The repository is
-both the plugin and the marketplace that serves it — one repo per domain, one plugin per repo — so a
-consumer installs with `/plugin install dyarchia-salesforce@dyarchia-salesforce`, where the part
-after the `@` is the marketplace.
+both the plugin and the marketplace that serves it, so a consumer installs with
+`/plugin install dyarchia-salesforce@dyarchia-salesforce`, where the part after the `@` is the
+marketplace.
 
 The marketplace was called `dyarchia` until September 2026. That name belonged to the organisation,
 not this repository, so every sibling domain repo would have declared a marketplace of the same name
 and a consumer adding two would have collided. **Name a domain repo's marketplace after the repo,
 never after the org.**
 
-The **skill count is checked wherever a script can read it**, like the platform version: the README
-catalogue line, layout diagram and install line, and the description of **both** plugin manifests.
-Disagreeing with the number of folders under `skills/` is a hard failure, so the count lands
-everywhere or the build stops.
+The **skill count is checked wherever a script can read it**: the README catalogue line, layout
+diagram and install line, and the description of **both** plugin manifests. Disagreeing with the
+number of folders under `skills/` is a hard failure.
 
-Two consequences. Rewording an assertion so no number survives produces a **warning**, not silence
-— a check that quietly stops applying is worse than one that fails. And `CLAUDE.md` and
-`CONTRIBUTING.md` still assert the count in prose, which nothing verifies; update those two by hand.
+Rewording an assertion so no number survives produces a **warning**, not silence; a check that
+quietly stops applying is worse than one that fails. `CLAUDE.md` and `CONTRIBUTING.md` also assert
+the count in prose, which nothing verifies; update those two by hand.
 
 ## Adding or editing a skill
 
@@ -329,8 +322,8 @@ Follow the procedure in `CONTRIBUTING.md` rather than improvising. In short:
 3. Validate: `scripts/validate-skills.ps1` (or the `.sh` twin). It must exit 0.
 4. Update the README catalogue and the CHANGELOG in the same commit.
 
-Drift between what a document asserts and what the tree holds is this repo's main exposure.
-`validate-skills` exists to catch it; run it before every commit that touches `skills/`.
+Drift between what a document asserts and what the tree holds is this repo's main exposure. Run
+`validate-skills` before every commit that touches `skills/`.
 
 ## Commit conventions
 
@@ -365,12 +358,11 @@ their scope, so a reader who is asking rather than editing never sees them; the 
 catalogue. It reads the descriptions already in context rather than the filesystem, so it cannot
 drift from what is installed.
 
-**Not implemented:** `agents/`, `hooks/` and `mcp/`. Nothing depends on them; they are additive
-whenever a real recurring need shows up in project work. Their governing principles are already
-decided:
+**Not implemented:** `agents/`, `hooks/` and `mcp/`. Nothing depends on them; they are added when a
+real recurring need shows up in project work. Their governing principles are already decided:
 
 - Sub-agents declare their tool list and model in frontmatter. Review and audit agents get no write
-  tools — the guarantee is structural, not an instruction the model can forget.
+  tools; the guarantee is structural, not an instruction the model can forget.
 - Frontmatter restricts by tool, not by path. Confining an agent to `*Test.cls` needs a PreToolUse
   hook that validates the path and blocks with exit 2.
 - Hooks carry the guardrails that must not depend on the model remembering: secret scanning,

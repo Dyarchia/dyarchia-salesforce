@@ -5,16 +5,16 @@
 > Edit the canon, never a copy.
 
 The library's single source of truth for API version numbers, retirement status and version
-semantics. A skill that needs one of these facts points here rather than restating it, because a
-restated date goes stale silently.
+semantics. Skills point here rather than restating these facts, because a restated date goes stale
+silently.
 
 ## Two different things are called "the API version"
 
 **The version stamped on a piece of metadata.** Every Apex class, trigger, LWC, Aura component and
 Visualforce page carries its own `apiVersion` in its `-meta.xml`. It decides which language and
-runtime semantics that artefact gets — including the security defaults in `platform-deltas.md`. It
-does **not** change when the org is upgraded. Raising it is an explicit edit plus a redeploy, and a
-behavioural change that needs testing.
+runtime semantics that artefact gets, including the security defaults in `platform-deltas.md`. It
+does **not** change when the org is upgraded. Raising it takes an edit plus a redeploy, and changes
+behaviour that needs testing.
 
 ```xml
 <!-- MyClass.cls-meta.xml -->
@@ -25,15 +25,15 @@ behavioural change that needs testing.
 </ApexClass>
 ```
 
-**The version in a REST or SOAP endpoint URL.** `/services/data/v68.0/sobjects/Account` — the
-contract an external caller asks for. This is what Salesforce retires. Winter '27 adds a `/latest`
-alias that resolves to the newest version: convenient for exploration, poor in production, because
-the integration's behaviour then changes three times a year without a deploy.
+**The version in a REST or SOAP endpoint URL.** `/services/data/v68.0/sobjects/Account` is the
+contract an external caller asks for, and what Salesforce retires. Winter '27 adds a `/latest` alias
+that resolves to the newest version: convenient for exploration, poor in production, because the
+integration's behaviour then changes three times a year without a deploy.
 
 ## Retirement status
 
-Retiring an endpoint version means calls to it **stop working**, returning `410 GONE` or a SOAP
-fault. It affects the `vXX.X` in standard endpoint URLs only.
+Calls to a retired endpoint version **stop working**, returning `410 GONE` or a SOAP fault.
+Retirement affects only the `vXX.X` in standard endpoint URLs.
 
 | Versions | Status |
 |---|---|
@@ -42,9 +42,8 @@ fault. It affects the `vXX.X` in standard endpoint URLs only.
 | 31.0 – 40.0 | Deprecated in Summer '27; **retired 1 June 2028** (Summer '28) |
 | 41.0 and above | Supported |
 
-After 1 June 2028 a REST, SOAP or Bulk request targeting 31.0–40.0 returns an error. That is far
-enough away to plan for and close enough that anything built new on those versions today will be
-rewritten.
+After 1 June 2028 a REST, SOAP or Bulk request targeting 31.0–40.0 returns an error. Anything built
+new on those versions today will be rewritten.
 
 Retiring an endpoint version does **not** retire your custom Apex REST or SOAP web services, Apex
 classes, triggers, Flows or Visualforce pages; they keep running under their own stamped version.
@@ -52,17 +51,16 @@ What breaks is an external caller addressing a retired `/services/data/vXX.X/` p
 
 SOAP `login()` is a separate, narrower retirement on an earlier clock: for API 31.0–64.0 it is
 retired on **1 June 2027** (Summer '27), and it is already unavailable at 65.0 and above. It also
-requires the **Any API Auth** user permission, enforced by default in new orgs. Do not conflate the
-two dates — `login()` goes a year before the versions. See `dya-sf-integration-auth`.
+requires the **Any API Auth** user permission, enforced by default in new orgs. `login()` goes a year
+before the versions; do not conflate the two dates. See `dya-sf-integration-auth`.
 
 ## Targets
 
 - **New integrations**: the current version, 68.0.
-- **Existing integrations**: 41.0 is the hard floor. Flag anything below it during review; it is on
-  borrowed time.
+- **Existing integrations**: 41.0 is the hard floor. Flag anything below it during review.
 - **New Apex, LWC and Flow**: the current version. Never stamp new metadata lower.
-- **Raising existing metadata**: deliberate, one artefact at a time, with tests re-run as a non-admin
-  user. The security defaults at 67.0 are why this is not a bulk find-and-replace.
+- **Raising existing metadata**: one artefact at a time, with tests re-run as a non-admin user. The
+  security defaults at 67.0 are why this is not a bulk find-and-replace.
 
 ## Finding what you have
 
@@ -74,5 +72,5 @@ grep -rl "<apiVersion>[1-3][0-9]\.0</apiVersion>" force-app/
 sf org display --target-org myorg --json
 ```
 
-The Tooling API exposes `ApexClass.ApiVersion` for a query-based audit across an org you cannot
-retrieve in full.
+For a query-based audit of an org you cannot retrieve in full, the Tooling API exposes
+`ApexClass.ApiVersion`.

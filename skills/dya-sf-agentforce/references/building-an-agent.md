@@ -16,7 +16,7 @@ Nothing works until Agentforce is on, and the symptom is a missing button rather
 4. **Enable Agentforce.** Setup › Agentforce Agents. After enabling it the first time, refresh the
    page or the **New Agent** button will not appear.
 5. **Create a Salesforce DX project** and authorise the org. Agents are metadata, so they live in a
-   DX project under version control. See `references/shared/org-model.md`.
+   DX project under version control.
 
 ## 1. Two workflows, and which to choose
 

@@ -106,7 +106,7 @@ Flow's Prompt Template Batch Generation action starts it.
 ## Moving templates between orgs
 
 Metadata API types: **`GenAiPromptTemplate`** and **`GenAiPromptTemplateActv`**. Deploy them like any
-other metadata, from a DX project under version control — see `references/shared/org-model.md`.
+other metadata, from a DX project under version control.
 
 ## Anti-Patterns
 

@@ -83,7 +83,7 @@ PyArrow or the Arrow Java library.
 ```
 
 Apex methods run in the **current user's session and permissions automatically** — no token to
-manage, and the user's access governs what comes back: the same user-mode enforcement described in `references/shared/sharing-and-access.md`.
+manage, and the user's access governs what comes back (user-mode enforcement).
 
 Prefer `sfsqlquery` for new work; `ConnectApi.CdpQuery` fits when you want the REST semantics mirrored
 exactly, for example when porting an existing integration inward.

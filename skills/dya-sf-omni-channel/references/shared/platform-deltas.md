@@ -12,10 +12,9 @@ and points here for the rest, so a version bump is one edit, not a sweep across 
 Salesforce ships three releases a year. Winter '27 is **API version 68.0**, generally available in
 waves through 3 and 10 October 2026.
 
-What governs behaviour is **the API version compiled into each class, trigger, component or
-page** — not the org's release. An org on Winter '27 still runs a class stamped 55.0 under 55.0
-semantics. Raising that stamp is a deliberate, testable act: it can change security defaults and
-break code that compiled fine before.
+Behaviour is governed by **the API version compiled into each class, trigger, component or page**,
+not the org's release. An org on Winter '27 still runs a class stamped 55.0 under 55.0 semantics.
+Raising that stamp can change security defaults and break code that compiled fine before, so test it.
 
 ## Security defaults from API 67.0 onward
 
@@ -30,28 +29,28 @@ These flipped in Summer '26 (67.0) and still hold in 68.0. They are the most com
 | `WITH SECURITY_ENFORCED` in SOQL | Supported | **Removed — does not compile** |
 | `with sharing` / `without sharing` on a trigger | Tolerated | **Illegal — does not compile** |
 
-Triggers themselves always run in **system mode**, in every API version. Sharing and field
-permissions are not enforced for you inside a trigger; enforce them explicitly when the work is on
-behalf of a user.
+Triggers always run in **system mode**, in every API version. Sharing and field permissions are not
+enforced inside a trigger; enforce them yourself when the work is on behalf of a user.
 
-`without sharing` is the most common misreading of this table. It is not an escape hatch to system
-mode: from 67.0 it suppresses **record sharing** only, so a query in such a class still throws when
-the running user lacks object or field permissions. Code needing genuine system-mode access asks for
-it per operation — `AccessLevel.SYSTEM_MODE`, or `WITH SYSTEM_MODE` in SOQL — with a comment saying
-why. This is the failure that surfaces when a class is raised from 66.0 to 67.0 or above and its
-tests only ever ran as an administrator.
+`without sharing` is not an escape hatch to system mode. Code needing system-mode access asks for it
+per operation, with `AccessLevel.SYSTEM_MODE` or `WITH SYSTEM_MODE` in SOQL, and a comment saying
+why. This failure surfaces when a class is raised from 66.0 to 67.0 or above and its tests only ever
+ran as an administrator.
 
-Migration order when raising a class to 68.0: replace `WITH SECURITY_ENFORCED` with `WITH USER_MODE`
-(or `Security.stripInaccessible` where partial results are acceptable), state the sharing keyword
-explicitly rather than relying on the new default, then re-run tests as a non-admin user.
+Migration order when raising a class to 68.0:
+
+1. Replace `WITH SECURITY_ENFORCED` with `WITH USER_MODE` (or `Security.stripInaccessible` where
+   partial results are acceptable).
+2. State the sharing keyword rather than relying on the new default.
+3. Re-run tests as a non-admin user.
+
 Server-to-server code that assumed system-mode access can silently return fewer rows rather than
-fail loudly.
+fail.
 
 ## What Winter '27 adds
 
-Status decides whether an agent may propose the feature. **Beta and Developer Preview features are
-not available in production orgs** — proposing them as a default produces code that does not
-deploy.
+**Beta and Developer Preview features are not available in production orgs**; proposing them as a
+default produces code that does not deploy.
 
 | Change | Status | Notes |
 |---|---|---|
@@ -68,15 +67,14 @@ deploy.
 
 ## Retirements and enforcements in Winter '27
 
-These break running integrations rather than merely deprecating a pattern.
+These break running integrations, not just deprecate a pattern.
 
-- **The OAuth 2.0 username-password flow for connected apps is retired**, announced as a Winter '27
-  Release Update enforced on **20 February 2027** — not at the release upgrade. On that date any
-  integration posting `grant_type=password` stops receiving a token. New orgs already block the
-  flow, and an org that does not see the Release Update is already unaffected. Migrate to the client
-  credentials flow (smallest change: one designated integration user, no password stored) or JWT
-  bearer (a signed certificate, and the better answer for anything high value). See
-  `dya-sf-integration-auth`.
+- **The OAuth 2.0 username-password flow for connected apps is retired** by a Winter '27 Release
+  Update enforced on **20 February 2027**, not at the release upgrade. From that date any integration
+  posting `grant_type=password` stops receiving a token. New orgs already block the flow, and an org
+  that does not see the Release Update is already unaffected. Migrate to the client credentials flow
+  (smallest change: one designated integration user, no password stored) or JWT bearer (a signed
+  certificate, and the better answer for anything high value). See `dya-sf-integration-auth`.
 - **Profile filtering is enforced.** A user without one of the bypass permissions (View All Profiles,
   Customize Application, Manage Users and five others) can no longer see other users' profile names;
   queries return empty rather than erroring. See `dya-sf-permissions`.
@@ -86,10 +84,10 @@ These break running integrations rather than merely deprecating a pattern.
 - **Experience Delivery (Beta) is discontinued**, with auto-migration on republish through October
   2026. See `dya-sf-lwr-sites`.
 
-No retirement date has been announced for Aura or Visualforce. Both remain supported and in
-maintenance mode — a reason to build new work in LWC, not a deadline.
+No retirement date has been announced for Aura or Visualforce. Both remain supported in maintenance
+mode: a reason to build new work in LWC, not a deadline.
 
 ## HTTPS
 
-Every external endpoint and resource must be HTTPS. There is no supported way to call an HTTP
-endpoint from Salesforce.
+Every external endpoint and resource must be HTTPS. Salesforce has no supported way to call an HTTP
+endpoint.

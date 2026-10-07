@@ -5,12 +5,11 @@
 > Edit the canon, never a copy.
 
 The minimum needed to avoid code that leaks data or throws for ordinary users: the shape of the
-model, not all of it. `dya-sf-permissions` owns the subject — the layers, edge cases and design
-guidance.
+model, not all of it. `dya-sf-permissions` owns the layers, edge cases and design guidance.
 
 ## Two independent axes
 
-A user needs a "yes" to both questions below to act on a record.
+A user needs a "yes" to both questions to act on a record.
 
 **Which records can this user see?**
 
@@ -27,24 +26,23 @@ A user needs a "yes" to both questions below to act on a record.
 - View All / Modify All
 - Granted by profile plus permission sets
 
-The most common bug is satisfying one axis but not the other. "The record is shared with them but
-they still cannot edit it" is missing object or field permissions. "They have Edit on the object but
-see no rows" is missing sharing.
+The most common bug satisfies one axis but not the other. "The record is shared with them but they
+cannot edit it" is missing object or field permissions. "They have Edit on the object but see no
+rows" is missing sharing.
 
 ## Where permissions come from
 
 Every user has exactly one **profile** and any number of **permission sets**. Permissions are
-**additive**: the user gets the union of everything granted, with no "deny" — adding a set cannot
-take a permission away. **Permission set groups** bundle sets for a job function,
-and **muting** inside a group is the one mechanism that subtracts.
+**additive**: the user gets the union of everything granted, with no "deny"; adding a set cannot
+take a permission away. **Permission set groups** bundle sets for a job function, and **muting**
+inside a group is the one mechanism that subtracts.
 
 Profiles are not being removed, but new capability lands in permission sets. Assign through
 permission sets; keep the profile minimal.
 
 ## System mode versus user mode
 
-Apex can run with permissions enforced or bypassed — the most important thing to get right in
-code.
+Whether Apex enforces or bypasses permissions is the most important thing to get right in code.
 
 | Context | Access mode | Sharing enforced? |
 |---|---|---|
@@ -55,7 +53,7 @@ code.
 | Flow (default) | System mode with sharing, unless set to user context | Depends on the setting |
 
 From API 67.0 a class with no `with sharing` / `without sharing` keyword defaults to `with sharing`.
-Write the keyword anyway — a reader should not need the version to know the behaviour.
+Write the keyword anyway, so a reader does not need the version to know the behaviour.
 
 ```apex
 public with sharing class AccountService {
@@ -71,16 +69,16 @@ acceptable, `Security.stripInaccessible` removes fields the user cannot see inst
 
 ## Record types
 
-A **record type** selects which picklist values and page layout apply to a record — a common
-source of "the value is valid in the org but rejected on save". Access to a record type is
-granted through the profile or permission set, separately from field permissions.
+A **record type** selects which picklist values and page layout apply to a record, so a value valid
+in the org can be rejected on save. Access to a record type is granted through the profile or
+permission set, separately from field permissions.
 
 ## Guest users
 
 Public sites and Experience Cloud sites run as a **guest user** with a dedicated, deliberately
 crippled profile: no role, read-only sharing rules of their own kind, and no access to most objects
-by default. Code reachable by a guest is reachable by the internet. Never rely on the guest
-profile being restrictive by accident — check what it actually grants.
+by default. Code reachable by a guest is reachable by the internet. Check what the guest profile
+grants; never assume it is restrictive.
 
 ## Anti-Patterns
 
