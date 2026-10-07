@@ -3,8 +3,8 @@
 The Service / Selector / Domain layering in SKILL.md **is** SOLID applied. Each principle below
 shows its concrete failure mode, in Winter '27 / API v68.0 syntax.
 
-SRP thresholds: **500 lines is the practical maximum for a class**, and a method past roughly
-**40 lines** wants a helper extracted. Neither is a platform limit.
+SRP thresholds: keep a class under **500 lines**, the practical maximum, and extract a helper from a
+method past roughly **40 lines**. Neither is a platform limit.
 
 ---
 
@@ -54,8 +54,8 @@ public with sharing class AccountService {
 
 ## O — Open/Closed Principle
 
-Open for extension, closed for modification. A new behaviour means a **new class**, not editing a
-growing `switch` inside an existing one.
+Open for extension, closed for modification. Add a new behaviour as a **new class**, never by editing
+a growing `switch` inside an existing one.
 
 **Violation** — every new tier reopens and rewrites the method.
 
@@ -134,7 +134,7 @@ The cache implements only `IAccountReader`; any reference to it is always substi
 
 ## I — Interface Segregation Principle
 
-Many small interfaces beat one fat one. A consumer depends only on what it uses — and a
+Prefer many small interfaces to one fat one. A consumer depends only on what it uses — and a
 mock stubs only that.
 
 **Violation** — every stub must fake reads, writes, sync, and email.

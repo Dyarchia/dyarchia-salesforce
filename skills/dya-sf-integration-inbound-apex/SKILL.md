@@ -35,7 +35,7 @@ that day. Inventory them now — `dya-sf-integration-auth`.
   at 67.0 or above with no sharing keyword defaults to `with sharing`, and its SOQL and DML default
   to `USER_MODE`. An endpoint relying on system-mode access returns fewer rows, silently, or throws.
   Audit **before** raising the version. `WITH SECURITY_ENFORCED` no longer compiles.
-- **HTTPS is mandatory** on every inbound endpoint.
+- **Serve every inbound endpoint over HTTPS**; it is mandatory.
 
 ---
 
@@ -48,9 +48,9 @@ that day. Inventory them now — `dya-sf-integration-auth`.
 | Caller | An external system over HTTP | A Flow, an agent action, or automation |
 | Inbound integration? | **Yes** — this is the inbound endpoint | No — it's an action building block |
 
-**Agents do not enter through `@RestResource`.** Agent capabilities are built with
-`@InvocableMethod` (`dya-sf-agentforce`). An existing Apex REST class can also be surfaced as an
-agent action through a generated OpenAPI document, as a secondary path.
+**Agents do not enter through `@RestResource`.** Build agent capabilities with `@InvocableMethod`
+(`dya-sf-agentforce`). As a secondary path, surface an existing Apex REST class as an agent action
+through a generated OpenAPI document.
 
 ---
 
@@ -90,7 +90,7 @@ global with sharing class OrderApi {
 }
 ```
 
-- The class is `global`; methods are `global static` and annotated
+- Make the class `global` and its methods `global static`, annotated
   `@HttpGet/@HttpPost/@HttpPut/@HttpPatch/@HttpDelete`, one of each per class.
 - Declare sharing explicitly — `with sharing` unless justified — query `WITH USER_MODE`, and run DML
   with `AccessLevel.USER_MODE`.
@@ -109,9 +109,8 @@ Public **Salesforce Sites** and **Experience Cloud** sites host guest-accessible
 webhook receivers or public APIs with no OAuth handshake.
 
 - The endpoint runs as the **guest user**: no role, a restricted class of sharing rules, and
-  whatever the guest profile grants. Under the API 67.0 user-mode defaults that profile governs what
-  the code can see and do, so scoping it is a functional requirement
-  (`dya-sf-permissions`).
+  whatever the guest profile grants. Scope that profile as a functional requirement
+  (`dya-sf-permissions`); under the API 67.0 user-mode defaults it governs what the code can see and do.
 - Validate and sanitise every input. Treat all guest traffic as hostile.
 - Prefer authenticated OAuth (`dya-sf-integration-auth`) whenever the caller can authenticate.
 
@@ -150,8 +149,8 @@ webhook receivers or public APIs with no OAuth handshake.
 
 ## Summary — The Five Commandments
 
-1. **Standard API first** — author an endpoint only when the contract needs it.
-2. **`@RestResource` is GA and recommended** for custom REST; `@InvocableMethod` is a *different thing* (Flow/agent actions), and Apex SOAP is legacy.
-3. **Boundary classes are security-critical** — explicit `with sharing` and `USER_MODE`, audited before you raise the version, never `WITH SECURITY_ENFORCED`.
-4. **Stable contracts, clean errors** — versioned DTOs, proper HTTP status codes, never raw stack traces.
+1. **Use the standard API first** — author an endpoint only when the contract needs it.
+2. **Use `@RestResource`, GA and recommended, for custom REST**; `@InvocableMethod` is a *different thing* (Flow/agent actions), and Apex SOAP is legacy.
+3. **Treat boundary classes as security-critical** — explicit `with sharing` and `USER_MODE`, audited before you raise the version, never `WITH SECURITY_ENFORCED`.
+4. **Keep contracts stable and errors clean** — versioned DTOs, proper HTTP status codes, never raw stack traces.
 5. **Treat guest/Site endpoints as hostile** — minimal profile, validate everything, prefer authenticated OAuth.

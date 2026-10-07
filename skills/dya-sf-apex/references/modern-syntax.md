@@ -19,7 +19,7 @@ only when the left is `null` — not when it is empty or zero.
 
 ## `switch on` instead of `if/else` chains
 
-Use when branching on more than two discrete values of one variable. It is exhaustive over enums.
+Use it when branching on more than two discrete values of one variable. It is exhaustive over enums.
 
 ```apex
 switch on Trigger.operationType {
@@ -34,7 +34,7 @@ cascades: the compiler catches a missing case, string comparison does not.
 
 ## Multiline string literals (API 67.0+)
 
-For any string spanning more than one logical line, replacing `+` concatenation or embedded `\n`.
+Use them for any string spanning more than one logical line, replacing `+` concatenation or embedded `\n`.
 
 ```apex
 // ✅
@@ -96,8 +96,8 @@ Schema.SObjectField nameField = Account.Name;
 String objectName = 'Account';
 ```
 
-String literals for object and field names are invisible to the compiler and to "where is this
-used" tooling. Schema references break the build when the metadata changes.
+Use schema references; they break the build when the metadata changes. String literals for object
+and field names are invisible to the compiler and to "where is this used" tooling.
 
 ## Collection initialisers
 

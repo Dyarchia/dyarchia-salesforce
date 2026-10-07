@@ -2,15 +2,15 @@
 
 Verbatim reference implementation of the trigger pattern this codebase enforces.
 
-The original 2013 pattern used `Trigger.isBefore && Trigger.isInsert` cascades. We keep Scott's interface and factory but dispatch on the modern `Trigger.operationType` enum — the same evolution Scott accepted from Steve Cox in 2013 when `Type` replaced strings.
+Keep Scott's interface and factory, but dispatch on the modern `Trigger.operationType` enum instead of the original 2013 `Trigger.isBefore && Trigger.isInsert` cascades — the same kind of change Scott accepted from Steve Cox in 2013 when `Type` replaced strings.
 
 ## Notes on alternatives
 
-Kevin O'Hara's `TriggerHandler` (abstract virtual class with `beforeInsert/afterUpdate` etc., plus runtime bypass by name) and `fflib_SObjectDomain` from Apex Enterprise Patterns are also legitimate, maintained options; any one beats none. Tony Scott is imposed here for consistency with the rest of this codebase. Whichever you adopt, apply it org-wide — never mix.
+Kevin O'Hara's `TriggerHandler` (abstract virtual class with `beforeInsert/afterUpdate` etc., plus runtime bypass by name) and `fflib_SObjectDomain` from Apex Enterprise Patterns are also legitimate, maintained options; any one beats none. Use Tony Scott for consistency with the rest of this codebase. Apply whichever you adopt org-wide — never mix.
 
 ## The `ITrigger` Interface
 
-Never modified. Every handler implements it in full.
+Never modify it. Implement it in full in every handler.
 
 ```java
 /**

@@ -21,7 +21,7 @@ public with sharing class AccountEnricher implements Queueable, Database.AllowsC
 System.enqueueJob(new AccountEnricher(ids));
 ```
 
-`Database.AllowsCallouts` is required if the job makes HTTP callouts.
+Implement `Database.AllowsCallouts` if the job makes HTTP callouts.
 
 ## Queueable + Transaction Finalizer
 
@@ -58,14 +58,14 @@ public with sharing class AccountEnricher implements Queueable {
 
 ### Finalizer rules
 
-- Only ONE Finalizer per Queueable job.
+- Attach only ONE Finalizer per Queueable job.
 - The Finalizer runs in its **own** execution context — it cannot reference the parent Queueable's state directly; pass values into its constructor.
 - Callouts and DML are both allowed in a Finalizer, even if the parent did DML.
 - A Finalizer can enqueue exactly one more async job (Queueable, Batch, or `@future`).
 
 ## Apex Cursors + Queueable Chain
 
-For up to roughly 5 million records needing flexible, bidirectional, serialisable iteration.
+Use for up to roughly 5 million records needing flexible, bidirectional, serialisable iteration.
 
 ```java
 public with sharing class LargeDataProcessor implements Queueable {
@@ -98,7 +98,11 @@ public with sharing class LargeDataProcessor implements Queueable {
 
 ### Cursors vs Batch Apex
 
-50M rows per cursor is the hard cap, not the practical ceiling. Every fetched row also counts against the 50,000-row SOQL limit, so one Queueable link moves at most ~50k rows, and a 50M-row cursor needs 1,000+ chained links and half the org's 100M rows/day cursor budget. Up to ~5M records (a guideline, not a platform limit), Cursors + Queueable is cleaner: flexible chunk sizes, bidirectional traversal, serialisable state across transactions. Above that, especially for recurring jobs, Batch Apex is usually simpler: its `start/execute/finish` lifecycle handles chunking, retry and scope management, and it does not draw on the cursor daily limits.
+Up to ~5M records (a guideline, not a platform limit), use Cursors + Queueable: flexible chunk sizes, bidirectional traversal, serialisable state across transactions.
+
+Above that, especially for recurring jobs, prefer Batch Apex: its `start/execute/finish` lifecycle handles chunking, retry and scope management, and it does not draw on the cursor daily limits.
+
+50M rows per cursor is the hard cap, not the practical ceiling. Every fetched row also counts against the 50,000-row SOQL limit, so one Queueable link moves at most ~50k rows, and a 50M-row cursor needs 1,000+ chained links and half the org's 100M rows/day cursor budget.
 
 ## Mixed DML — Setup vs Non-Setup Objects
 

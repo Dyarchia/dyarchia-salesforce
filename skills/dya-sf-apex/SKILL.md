@@ -60,10 +60,10 @@ one does not deploy.
 
 ## 1. Class Structure
 
-State a sharing keyword on **every** class, defaulting to `with sharing`. `without sharing` only for
-system-level integration or admin tooling, with a class comment saying why; from 67.0 it suppresses
-**record sharing only** — a query there still throws for a user lacking CRUD or FLS.
-`inherited sharing` for utilities whose sharing must follow the caller.
+State a sharing keyword on **every** class, defaulting to `with sharing`. Use `without sharing` only
+for system-level integration or admin tooling, with a class comment saying why; from 67.0 it
+suppresses **record sharing only** — a query there still throws for a user lacking CRUD or FLS.
+Use `inherited sharing` for utilities whose sharing must follow the caller.
 
 ```apex
 // ✅
@@ -75,8 +75,8 @@ public inherited sharing class ReusableHelper { }
 public class AccountService { }
 ```
 
-`private` by default; `public` only when an external caller needs it; `global` only in managed
-packages or web service interfaces, never for org-internal code.
+Make members `private` by default; `public` only when an external caller needs it; `global` only in
+managed packages or web service interfaces, never for org-internal code.
 
 ## 2. Modern Syntax
 
@@ -89,9 +89,9 @@ schema references over string literals for object and field names.
 
 ## 3. Security — User Mode, Explicitly
 
-`USER_MODE` enforces object permissions, field-level security and sharing for the running user. It is
-the versioned default from 67.0; **write it out anyway**, so the behaviour is readable without
-checking the API version and nothing changes silently on a legacy branch.
+**Write `USER_MODE` out**, although it is the versioned default from 67.0; nothing then changes
+silently on a legacy branch. It enforces object permissions, field-level security and sharing for
+the running user.
 
 ```apex
 // ✅
@@ -105,8 +105,8 @@ Database.SaveResult[] results = Database.insert(accounts, false, AccessLevel.USE
 List<Account> accts = [SELECT Id, Name FROM Account WITH SECURITY_ENFORCED];
 ```
 
-**System mode** is for code that must legitimately escape user constraints — an integration, or a
-trigger writing an audit field the user cannot edit. Redesign first; if you keep it, say why:
+Use **system mode** only for code that must legitimately escape user constraints — an integration,
+or a trigger writing an audit field the user cannot edit. Redesign first; if you keep it, say why:
 
 ```apex
 // SYSTEM_MODE required: audit field, end users intentionally lack edit access.
@@ -114,8 +114,8 @@ Database.update(auditRecords, AccessLevel.SYSTEM_MODE);
 ```
 
 Where a *partial* result is acceptable — typically an `@AuraEnabled` method serving users with
-differing FLS — `Security.stripInaccessible(AccessType.READABLE, records)` removes fields the user
-cannot see instead of throwing.
+differing FLS — use `Security.stripInaccessible(AccessType.READABLE, records)`; it removes fields
+the user cannot see instead of throwing.
 
 > The access model — profiles, permission sets, OWD, sharing rules:
 > `references/shared/sharing-and-access.md`. Design questions belong to `dya-sf-permissions`.
@@ -133,7 +133,7 @@ Map<Id, Account> byId = new Map<Id, Account>([
 for (Contact c : Trigger.new) { c.Description = byId.get(c.AccountId)?.Name; }
 ```
 
-**Every query must be selective**: at least one filter on an indexed field, matching fewer rows than
+**Make every query selective**: at least one filter on an indexed field, matching fewer rows than
 that index's threshold — 30% of the first million for a standard index, 10% for a custom one. On a
 large object a non-selective query fails with `QueryException: Non-selective query` — in production
 long before in a test org. `WHERE Industry = 'Tech'` is a table scan; an
@@ -141,7 +141,7 @@ unindexed picklist narrows nothing.
 
 > Thresholds, what is indexed, what defeats an index, how to read a query plan: `references/shared/soql-selectivity.md`.
 
-**Dynamic SOQL binds, never concatenates** — concatenation is a SOQL injection vulnerability:
+**Bind dynamic SOQL; never concatenate** — concatenation is a SOQL injection vulnerability:
 
 ```apex
 List<Account> accts = Database.queryWithBinds(
@@ -151,16 +151,16 @@ List<Account> accts = Database.queryWithBinds(
 );
 ```
 
-Same for `Database.countQueryWithBinds` and `Database.getQueryLocatorWithBinds`. In dynamic SOQL the
-access level is an argument; in static SOQL, the inline `WITH USER_MODE` clause — not
-interchangeable.
+Bind the same way with `Database.countQueryWithBinds` and `Database.getQueryLocatorWithBinds`. In
+dynamic SOQL the access level is an argument; in static SOQL, the inline `WITH USER_MODE` clause —
+not interchangeable.
 
 **For bulk reads, iterate the query** (`for (Account[] batch : [SELECT …])`) rather than
-materialising it: the for-loop chunks at 200 records and keeps heap flat.
+materialising it; the for-loop chunks at 200 records and keeps heap flat.
 
-**Apex Cursors** (GA since Spring '26) handle up to 50M rows per cursor with flexible and
-bidirectional chunking, bounded by **10 `fetch()` calls per transaction**, 10k cursors/day and 100M
-rows/day. Use them where Batch Apex's fixed forward chunking does not fit.
+Use **Apex Cursors** (GA since Spring '26) where Batch Apex's fixed forward chunking does not fit.
+They handle up to 50M rows per cursor with flexible and bidirectional chunking, bounded by
+**10 `fetch()` calls per transaction**, 10k cursors/day and 100M rows/day.
 
 > Cursor + Queueable chain: `references/async-patterns.md`.
 
@@ -184,19 +184,18 @@ otherwise partial failure is silent.
 Database.upsert(records, Account.External_Id__c, false, AccessLevel.USER_MODE);
 ```
 
-**You cannot call out after uncommitted DML in the same transaction.** Call out before the DML,
-or move the callout into a Queueable (preferred) or a Transaction Finalizer.
+**Never call out after uncommitted DML in the same transaction**; the platform forbids it. Call out
+before the DML, or move the callout into a Queueable (preferred) or a Transaction Finalizer.
 
 ## 6. Triggers
 
-On **greenfield** orgs the default is the Tony Scott "Trigger Pattern for Tidy, Streamlined,
-Bulkified Triggers": one trigger per object, zero logic in the file, canonical execution order through
+On **greenfield** orgs, use the Tony Scott "Trigger Pattern for Tidy, Streamlined, Bulkified
+Triggers": one trigger per object, zero logic in the file, canonical execution order through
 an `ITrigger` interface, bulk caching in `bulkBefore`/`bulkAfter`, per-record work in the iterative
 methods, post-processing in `andFinally`.
 
 On **brownfield** orgs — already standardised on Kevin O'Hara, fflib, Trigger Actions or a
-hand-rolled handler — do not impose it. **Ask which framework the org uses and conform.** Org-wide
-consistency beats a better framework bolted onto a different one.
+hand-rolled handler — do not impose it. **Ask which framework the org uses and conform.**
 
 ```apex
 // The trigger file - one line, no logic, no sharing keyword.
@@ -214,26 +213,26 @@ explicitly to the `Database.*` call.
 
 ### The per-object kill-switch
 
-Every trigger must be silenceable without a deployment, **per object** — an integration or agent
-user may need to skip the Account trigger while the Case trigger keeps running.
+Make every trigger silenceable without a deployment, **per object** — an integration or agent user
+may need to skip the Account trigger while the Case trigger keeps running.
 
 Model it as one **Hierarchy** Custom Setting resolved at trigger entry — the one case where a Custom
 Setting beats a Custom Metadata Type: a per-user bypass needs hierarchy resolution (org → profile →
-user), which `__mdt` cannot express. It is a circuit breaker, not a recursion guard;
-keep the framework's recursion handling regardless.
+user), which `__mdt` cannot express. It is a circuit breaker, not a recursion guard; keep the
+framework's recursion handling regardless.
 
 > The setting's shape and field naming, `TriggerBypass`, entry-point wiring, and the form for a
 > non-framework trigger: `references/trigger-framework.md`.
 
 ### Absolute rules
 
-- One trigger per object. Order between multiple triggers on one object is undefined.
-- No logic in the trigger file.
-- No SOQL or DML in the iterative `beforeX`/`afterX` methods — cache in `bulkBefore`/`bulkAfter`, DML in `andFinally`.
-- Field-value validation goes in `after` methods; before-triggers and workflows can still change values.
-- All SOQL is delegated to a Selector/Gateway class.
+- Write one trigger per object. Order between multiple triggers on one object is undefined.
+- Put no logic in the trigger file.
+- Never run SOQL or DML in the iterative `beforeX`/`afterX` methods — cache in `bulkBefore`/`bulkAfter`, DML in `andFinally`.
+- Validate field values in `after` methods; before-triggers and workflows can still change values.
+- Delegate all SOQL to a Selector/Gateway class.
 - For callouts caused by DML, enqueue **one** Queueable in `andFinally` with the whole batch — never `@future` per record.
-- Every trigger checks its kill-switch at entry.
+- Check the kill-switch at the entry of every trigger.
 
 ## 7. Async — The Decision Tree
 
@@ -251,19 +250,19 @@ Stop at the first option that fits.
 
 ## 8. Testing
 
-- `@TestSetup` for shared data; each test method gets a fresh rolled-back copy.
-- **Test in bulk.** Every bulk-callable class needs a 200+ record test: that is what the platform
-  sends, and a one-record test proves nothing about limits.
+- Use `@TestSetup` for shared data; each test method gets a fresh rolled-back copy.
+- **Test in bulk.** Give every bulk-callable class a 200+ record test; the platform sends 200 per
+  chunk.
 - Wrap the act in `Test.startTest()` / `Test.stopTest()`: fresh limits, and async work is forced to complete.
 - Never make a real callout: `Test.setMock(HttpCalloutMock.class, …)`. Use the Stub API
   (`Test.createStub`) for unit tests with mocked selectors.
 - Centralise record creation in an `@IsTest` `TestDataFactory`. Never `@IsTest(SeeAllData=true)`,
   never a hard-coded Id — query by `DeveloperName` or `Name`.
-- Run security-sensitive tests under `System.runAs(nonAdminUser)`. Testing only as an admin proves nothing about user mode.
+- Run security-sensitive tests under `System.runAs(nonAdminUser)`; an admin run proves nothing about user mode.
 - Assert a meaningful business outcome, with a message. Coverage without assertions is worthless.
 
-75% aggregate coverage is a **production deployment gate**, not a quality bar. Target full coverage
-of meaningful branches.
+Target full coverage of meaningful branches. 75% aggregate coverage is a **production deployment
+gate**, not a quality bar.
 
 `@IsTest(critical=true)` and `@IsTest(testFor='…')` (Beta, API 66.0+) narrow what runs under
 `sf project deploy start --test-level RunRelevantTests`. Until GA, verify production-critical tests with
@@ -291,12 +290,12 @@ try {
 try { } catch (Exception e) { }
 ```
 
-`@AuraEnabled` methods throw **`AuraHandledException`** with a clean message; any other exception
-sends an internal stack trace to the browser.
+From `@AuraEnabled` methods, throw **`AuraHandledException`** with a clean message; any other
+exception sends an internal stack trace to the browser.
 
 ## 10. Performance
 
-Assume 200 records. Beyond that, the levers: Platform Cache for hot reference
+Assume 200 records. Beyond that, use Platform Cache for hot reference
 data, Custom Metadata Types for configuration (`getInstance` costs no SOQL), DataWeave for structured
 payload transformation, ApexGuru for finding real hotspots from runtime profiling, and heap
 discipline — project only the fields you use.
@@ -310,7 +309,7 @@ invented `Log__c` fails to deploy where it does not exist and is one more unused
 does. If the org runs a logging framework, find it and call it; if it has none, say so — standing one
 up is the owner's call.
 
-`System.debug` is a development tool; pass a level. Uncaught exceptions already send an **Apex
+Use `System.debug` only in development, always with a level. Uncaught exceptions already send an **Apex
 exception email**. `AsyncApexJob` carries async health in
 `ExtendedStatus`; `System.purgeOldAsyncJobs(Integer)` bounds how many records a call deletes.
 
@@ -324,11 +323,10 @@ exception email**. `AsyncApexJob` carries async health in
 - **Domain** (optional) — instance behaviour over a collection of records.
 - **Wrapper / DTO** — the `@AuraEnabled` types returned to a client.
 
-This layering makes the code mockable through the Stub API.
+Keep this layering; it makes the code mockable through the Stub API.
 
-The `@AuraEnabled` contract: `cacheable=true` for reads (enables the Lightning Data Service cache,
-forbids DML, must be `static`); no `cacheable` for writes; primitive or DTO parameters, never raw
-`SObject`.
+For `@AuraEnabled`, use `cacheable=true` for reads (enables the Lightning Data Service cache, forbids
+DML, must be `static`), no `cacheable` for writes, and primitive or DTO parameters, never raw `SObject`.
 
 > SOLID applied to this layering, with Stub-API injection: `references/solid-principles.md`.
 > Apply SOLID before reaching for a named design pattern.
@@ -368,8 +366,8 @@ Write Apex only when the declarative surface cannot express the requirement.
 
 ## Summary — The Five Commandments
 
-1. **Security is explicit.** `with sharing` and `USER_MODE` written out, every time; system mode only with a comment saying why.
+1. **Make security explicit.** `with sharing` and `USER_MODE` written out, every time; system mode only with a comment saying why.
 2. **Bulkify everything.** Assume 200 records, test with 200+, and know the limits in `references/shared/governor-limits.md` that make it mandatory.
-3. **Triggers: one per object, zero logic in the file, behind a per-object kill-switch.** Tony Scott by default on greenfield; in an existing org, conform to what is already there — ask first.
-4. **Async means Queueable plus a Finalizer**; Cursors for flexible chunking, Batch Apex for very large or parallel work. `@future` is the only legacy one.
+3. **Write one trigger per object, zero logic in the file, behind a per-object kill-switch.** Tony Scott by default on greenfield; in an existing org, conform to what is already there — ask first.
+4. **Default async to Queueable plus a Finalizer**; Cursors for flexible chunking, Batch Apex for very large or parallel work. Avoid `@future`, the only legacy one.
 5. **Never invent observability.** Apex exception emails, `AsyncApexJob` and Finalizers are already there; if the org has no logging framework, report it rather than building one.

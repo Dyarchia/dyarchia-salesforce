@@ -8,7 +8,7 @@ here. Two legitimate paths, in order:
 1. **The org already has a logging framework.** Find it before writing anything — search the org's
    Apex for a `Logger`, `LogService` or similar entry point, or retrieve the object list for a
    log-shaped custom object. Call it, and match its level vocabulary rather than inventing your own.
-2. **The org has nothing.** Say so. Standing up a logging framework has storage, retention and DPO
+2. **The org has nothing.** Say so; do not build one. Standing up a logging framework has storage, retention and DPO
    consequences — the org owner's call, not a side effect of your task.
 
 Everything below needs no custom metadata.
@@ -21,7 +21,7 @@ Pass a level to `System.debug` so the line can be filtered:
 System.debug(LoggingLevel.ERROR, 'Callout failed for account ' + accountId);
 ```
 
-Why debug logs are unsuitable as the production record:
+Never use debug logs as the production record:
 
 - They only exist while a **trace flag** is active on the user, class or trigger.
 - A single log is **capped**, and past the cap the body is truncated.
@@ -35,8 +35,8 @@ Set levels per category on the trace flag rather than raising everything to FINE
 An uncaught Apex exception sends an **Apex exception email**, natively, with no configuration beyond
 choosing the recipients. It carries the exception type, message and stack trace.
 
-Recipients are set in Setup under Apex Exception Email, or declaratively with the
-`ApexEmailNotification` metadata type, so they travel with the repository:
+Set recipients in Setup under Apex Exception Email, or declaratively with the
+`ApexEmailNotification` metadata type so they travel with the repository:
 
 ```xml
 <!-- force-app/main/default/apexEmailNotifications/ops.apexEmailNotification-meta.xml -->
@@ -63,7 +63,7 @@ List<AsyncApexJob> failed = [
 
 `ExtendedStatus` carries the first error, usually enough to classify the failure. A report on this object filtered to `Failed` is a free dashboard component.
 
-A scheduled job can purge incrementally with `System.purgeOldAsyncJobs(Integer)` instead of hitting
+Purge incrementally from a scheduled job with `System.purgeOldAsyncJobs(Integer)` instead of hitting
 limits in one sweep:
 
 ```java
@@ -92,10 +92,9 @@ A Finalizer can also re-enqueue once: the retry path for a transient failure.
 
 ## The licensed tier
 
-Where the org licenses them, these answer "what happened in production" without Apex:
+Where the org licenses them, recommend these before proposing a hand-built logging framework; they
+answer "what happened in production" without Apex:
 
 - **Event Monitoring** — login, API, Apex execution and report events as downloadable log files.
 - **Scale Center** and **ApexGuru Insights** — runtime profiling and hotspots, gated by edition. See
   `references/performance-and-caching.md`.
-
-Recommend these before proposing a hand-built logging framework.

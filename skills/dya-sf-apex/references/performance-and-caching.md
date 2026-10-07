@@ -2,16 +2,16 @@
 
 ## Platform Cache
 
-Caching trades a SOQL query for a lookup that costs no governor limit. It is **best-effort storage** —
-the platform may evict anything at any time — so never the system of record, and every read must
-handle a miss.
+Never make Platform Cache the system of record, and handle a miss on every read: it is
+**best-effort storage** and the platform may evict anything at any time. Caching trades a SOQL query
+for a lookup that costs no governor limit.
 
 | Partition | Scope | Use for | Max TTL |
 |---|---|---|---|
 | Org Cache | Every user in the org | Currency rates, configuration tables, reference data | 48 h (default 24 h) |
 | Session Cache | One user's session | Auth tokens, user preferences, wizard state | 8 h |
 
-**A partition must exist first.** Create it under Setup › Platform Cache and allocate capacity; the
+**Create the partition first**, under Setup › Platform Cache, and allocate capacity; the
 `local.` prefix is the namespace of an unmanaged org. `Cache.Org.getPartition` on a missing partition
 throws `Cache.Org.OrgCacheException` at runtime — a fresh org has no partitions and no allocation.
 
@@ -31,23 +31,22 @@ public with sharing class FxRateService {
 }
 ```
 
-- Individual items are capped at **100 KB**. Cache one collection rather than a hundred small keys.
+- Cache one collection rather than a hundred small keys. Individual items are capped at **100 KB**.
 - Code that assumes a cache hit fails intermittently in production and never in a test.
 - Do not cache user-specific data in the Org partition; it is shared across every user.
 - Session Cache is empty for guest users and for any API-only integration user.
 
 ## Configuration data: Custom Metadata over Custom Settings
 
-`MyConfig__mdt.getInstance('Name')` reads from the platform cache with **no SOQL query**, and the
-records deploy and package like other metadata, so Custom Metadata Types are the default for
-configuration.
+Default to Custom Metadata Types for configuration. `MyConfig__mdt.getInstance('Name')` reads from
+the platform cache with **no SOQL query**, and the records deploy and package like other metadata.
 
-Custom Settings remain correct for the one thing Custom Metadata cannot express, **hierarchy resolution** — a value set at org level and
+Use Custom Settings only for the one thing Custom Metadata cannot express, **hierarchy resolution** — a value set at org level and
 overridden per profile or user — as in the trigger kill-switch (`references/trigger-framework.md`).
 
 ## DataWeave in Apex
 
-For JSON, XML and CSV transformation, DataWeave replaces hand-written parsers and the untyped
+Use DataWeave for JSON, XML and CSV transformation instead of hand-written parsers and the untyped
 `JSON.deserializeUntyped` map-walking that follows them.
 
 ```apex
@@ -56,8 +55,8 @@ Dataweave.Result result = script.execute(new Map<String, Object>{ 'payload' => c
 List<Contact> contacts = (List<Contact>) result.getValueAsList();
 ```
 
-- `createScript` is CPU-expensive. Create the script once and reuse it for every row in the
-  transaction.
+- Create the script once and reuse it for every row in the transaction; `createScript` is
+  CPU-expensive.
 - Chunk inputs above roughly 1 MB — a single large payload hits heap before CPU.
 - Test with realistic volumes; DataWeave CPU cost does not show at 10 rows.
 
@@ -74,9 +73,9 @@ Review the insights at least quarterly, not only when something is already slow.
 
 ## Heap discipline
 
-- Every extra projected field is heap on every row.
+- Project only the fields you use; every extra projected field is heap on every row.
 - `clear()` large collections once done with them inside a long transaction.
-- Past roughly 50,000 rows, stop fitting it in one transaction: Apex Cursors or Batch Apex.
+- Past roughly 50,000 rows, stop fitting it in one transaction: use Apex Cursors or Batch Apex.
 
 ## Anti-Patterns
 

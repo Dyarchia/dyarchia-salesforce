@@ -31,7 +31,7 @@ private class AccountHandlerTest {
 }
 ```
 
-`Test.startTest()` / `Test.stopTest()` wraps the act, not the arrange.
+Wrap the act, not the arrange, in `Test.startTest()` / `Test.stopTest()`.
 
 ## Stub API — Unit Test Isolation
 
@@ -64,11 +64,11 @@ Both take effect only with:
 sf project deploy start --test-level RunRelevantTests
 ```
 
-`RunRelevantTests` is a speed optimisation for feature branches, not the gate in front of production.
+Never use `RunRelevantTests` as the gate in front of production; it is a speed optimisation for feature branches.
 
 ## Raising a class from 66.0 to 67.0 or above
 
-A bump changes the security defaults, so it is a testing exercise, not a metadata edit. In order:
+Treat a bump as a testing exercise, not a metadata edit; it changes the security defaults. In order:
 
 1. Replace `WITH SECURITY_ENFORCED` with `WITH USER_MODE`, or `Security.stripInaccessible` where
    partial results are acceptable.
@@ -79,9 +79,8 @@ A bump changes the security defaults, so it is a testing exercise, not a metadat
 4. **Grant the required CRUD and FLS to the test users or permission sets**, then re-run the
    affected tests as a non-administrator.
 
-`System.runAs` alone is not enough:
-its user must carry a **permission set granting the object and field access the code needs**, or
-every user-mode query throws. A test that passes as an administrator and fails under `runAs` usually
+Give the `System.runAs` user a **permission set granting the object and field access the code
+needs**, or every user-mode query throws; `System.runAs` alone is not enough. A test that passes as an administrator and fails under `runAs` usually
 reports a missing permission set, not a bug.
 
 Triage a failure by checking the failing SOQL or DML's stack trace for a CRUD/FLS access error.
@@ -90,15 +89,15 @@ explicit and say why.
 
 ## Integration tests with real callouts (Developer Preview, Winter '27)
 
-`@IntegrationTest` marks a test allowed to make **real HTTP callouts** instead of using a mock. It
-is for contract verification against a sandbox endpoint — proving your request shape and parsing
-survive the actual service — not ordinary unit testing.
+`@IntegrationTest` marks a test allowed to make **real HTTP callouts** instead of using a mock. Use
+it for contract verification against a sandbox endpoint — proving your request shape and parsing
+survive the actual service — not for ordinary unit testing.
 
 - **Developer Preview.** Not available in production orgs, and not a substitute for the mocked tests
   that gate a deployment. Keep full `HttpCalloutMock` coverage alongside it.
 - **Asynchronous only**, and only one such test runs at a time.
-- **No automatic rollback.** The test must clean up what it creates; a failure midway leaves
-  records behind.
-- The endpoint must be reachable and stable, or the team learns to ignore the test.
+- **No automatic rollback.** Clean up what the test creates; a failure midway leaves records
+  behind.
+- Point it only at a reachable, stable endpoint, or the team learns to ignore the test.
 
 Treat it as a scheduled contract check, not as part of the deployment gate.

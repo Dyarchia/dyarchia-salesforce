@@ -2,7 +2,7 @@
 
 Salesforce Code Analyzer is the unified front end over seven analysis engines.
 
-The command is **`sf code-analyzer run`**. `sf scanner run` is the deprecated v3 command; a CI config
+Run **`sf code-analyzer run`**. Never call `sf scanner run`, the deprecated v3 command; a CI config
 that still calls it runs nothing.
 
 ## The engines
@@ -19,8 +19,8 @@ that still calls it runs nothing.
 
 Plus a `regex` selector for custom pattern rules.
 
-`sfge` is slow — 10 to 20 minutes on a real codebase — so scope it with `--workspace`
-and run it on a schedule, not on every commit.
+Scope `sfge` with `--workspace` and run it on a schedule, not on every commit; it is slow — 10 to 20
+minutes on a real codebase.
 
 ## Running it
 
@@ -55,13 +55,12 @@ Recommended                    the curated default set
 <engine>:<category>:(<sev>)    severity 1 (Critical) … 5 (Info)
 ```
 
-`all:Security:(1,2)` is a reasonable pipeline gate: every engine, security findings, critical and
-high only.
+Gate a pipeline on `all:Security:(1,2)`: every engine, security findings, critical and high only.
 
 ## Configuration
 
-The config file is **`code-analyzer.yml`** and it must sit at the **project root**; a file
-anywhere else is silently not read.
+Put the config file, **`code-analyzer.yml`**, at the **project root**; a file anywhere else is
+silently not read.
 
 Two silent failures that look like a broken rule:
 
@@ -71,9 +70,8 @@ Two silent failures that look like a broken rule:
 - `regex_ignore` is **per line**, not per file. `ignores.files` is **global across every engine and
   rule**, so a path excluded there is excluded from security analysis too.
 
-Code Analyzer's file-extension validator accepts only simple extensions matching
-`/^[.][a-zA-Z0-9]+$/`, so a compound extension like `.permissionset-meta.xml` is rejected — use
-`.xml`.
+Use a simple extension such as `.xml`, never a compound one like `.permissionset-meta.xml`: Code
+Analyzer's file-extension validator accepts only extensions matching `/^[.][a-zA-Z0-9]+$/`.
 
 ## Writing a custom PMD rule
 
@@ -88,7 +86,7 @@ Two PMD 7 traps make an XPath rule silently match nothing:
   //UserClass[not(@WithSharing)]           ❌ the attribute is present, so this is never true
   ```
 
-- **XML metadata rules must use `local-name()`.** Salesforce metadata carries a namespace, so bare
+- **Use `local-name()` in XML metadata rules.** Salesforce metadata carries a namespace, so bare
   element names never match.
 
 `sf code-analyzer ast-dump --file <x.cls>` prints the tree a rule matches against.
@@ -104,5 +102,5 @@ Two PMD 7 traps make an XPath rule silently match nothing:
 | Flow | Python 3 |
 | ApexGuru | An authenticated org |
 
-A missing runtime disables its engines rather than failing the run, so a pipeline can pass while
-analysing only part of the code. Check the engine list in the output.
+Check the engine list in the output. A missing runtime disables its engines rather than failing the
+run, so a pipeline can pass while analysing only part of the code.
