@@ -1,20 +1,19 @@
 # Agent Script — Reference (Winter '27 / API v68.0)
 
 Load from `dya-sf-agentforce` when writing or reading an agent's script. Agent Script is the language
-behind Agentforce Builder; this is its actual syntax, not a description of it.
+behind Agentforce Builder; this is its actual syntax.
 
 ## The one idea that matters
 
-Agent Script mixes two kinds of instruction in the same workflow, and the symbol tells you which:
+Agent Script mixes two kinds of instruction in one workflow, and the symbol tells you which:
 
-- **`->` logic instructions** run **deterministically**, every time. Business rules, running actions,
+- **`->` logic instructions** run **deterministically**, every time: business rules, running actions,
   setting variables, branching.
 - **`|` prompt instructions** are natural language **sent to the LLM**, which interprets them and
   decides how to respond.
 
-Everything else in the language exists to serve that split. Anything that must be reliable —
-eligibility, pricing, compliance, escalation routing — goes after `->`. Anything conversational goes
-after `|`.
+The rest of the language serves that split. Anything that must be reliable — eligibility, pricing,
+compliance, escalation routing — goes after `->`. Anything conversational goes after `|`.
 
 ```agentscript
 reasoning:
@@ -25,12 +24,12 @@ reasoning:
             | ask the user if they want to upgrade to Premium service
 ```
 
-Read that as: the *decision* is deterministic, the *wording* is the LLM's.
+The *decision* is deterministic; the *wording* is the LLM's.
 
 ## Language shape
 
 **Compiled.** Saving an agent version compiles the script into the lower-level metadata the reasoning
-engine runs. Syntax errors are caught at save time, not at conversation time.
+engine runs. Syntax errors surface at save time, not conversation time.
 
 **Property-based.** Everything is `key: value`. Top-level properties are called **blocks**.
 
@@ -51,7 +50,7 @@ The `@` symbol reaches every resource:
 | `@outputs.<name>` | An action's output |
 | `@utils.<name>` | A built-in utility |
 
-Inside **prompt text** a variable must be wrapped in brackets, and this trips people constantly:
+Inside **prompt text** a variable must be wrapped in brackets — a constant trip-up:
 
 ```agentscript
 | Ask the user this question: {!@variables.my_question}
@@ -74,8 +73,8 @@ run @actions.get_account_info
 ### `system` — agent-wide instructions and messages
 
 The `messages` block is **optional**. Define `welcome` or `error` when a target or use case needs
-custom copy, and validate them against that target; otherwise leave the block out rather than
-padding it with placeholder text.
+custom copy, and validate them against that target; otherwise omit the block rather than padding it
+with placeholder text.
 
 A `system` block is **declarative**: `instructions` is prompt text, and `->` logic, `run`, `set`,
 `if` and `transition` are all illegal inside it. Logic belongs in `before_reasoning` or the
@@ -105,15 +104,15 @@ system:
 
 `default_agent_user` is **deprecated here** — it belongs in the `access` block.
 
-`agent_type` is not a cosmetic label; each value forbids or requires things elsewhere in the file:
+`agent_type` is not cosmetic; each value forbids or requires things elsewhere in the file:
 
 | `agent_type` | Rules |
 |---|---|
 | `AgentforceEmployeeAgent` | **Must NOT** carry `access.default_agent_user`, an escalation subagent using `@utils.escalate`, or a `connection messaging:` block |
 | `AgentforceServiceAgent` | **Requires** `access.default_agent_user`, on a user with an Einstein Agent licence |
 
-`label:` is also valid as an optional block on both `start_agent` and `subagent`, giving a
-human-readable display name. It is distinct from the top-level `config.agent_label`.
+`label:` is also an optional block on both `start_agent` and `subagent`, giving a human-readable
+display name, distinct from the top-level `config.agent_label`.
 
 Write new `.agent` files with **4 spaces** per indent level.
 
@@ -136,16 +135,16 @@ variables:
         description: "Indicates whether the user is a premium user."
 ```
 
-Use variables rather than hoping the model remembers something across turns.
+Use variables rather than hoping the model remembers across turns.
 
 ### `subagent` — a bounded job, with its own reasoning and actions
 
-**Formerly called a Topic.** Renamed in April 2026; functionality unchanged, and you will still meet
-"topic" in older documentation and in some UI.
+**Formerly called a Topic.** Renamed in April 2026; functionality unchanged. Older documentation and
+some UI still say "topic".
 
 Blocks go in a fixed order: `label` (optional) → `description` (required) → `system` (optional) →
 **`before_reasoning`** (optional) → `reasoning` (required) → **`after_reasoning`** (optional) →
-`actions` (optional). The two reasoning hooks run either side of the reasoning phase — and
+`actions` (optional). The two reasoning hooks run either side of the reasoning phase;
 `before_reasoning` runs once per *execution*, which a self-transition restarts within the same turn.
 See `references/agent-control-flow-pitfalls.md`.
 
@@ -184,7 +183,7 @@ subagent Order_Management:
 ```
 
 The subagent name cannot contain spaces — use `snake_case`, and make it describe the scope, because
-the name and `description` are what routing reads.
+routing reads the name and `description`.
 
 **`target`** uses `{TARGET_TYPE}://{DEVELOPER_NAME}` and accepts three types:
 
@@ -192,8 +191,8 @@ the name and `description` are what routing reads.
 - `flow://` — an autolaunched Flow
 - `prompt://` — a Prompt Template
 
-An output parameter with `filter_from_agent: True` is hidden from the agent — use it for values the
-script needs but the model should never see or repeat.
+An output parameter with `filter_from_agent: True` is hidden from the agent — for values the script
+needs but the model should never see or repeat.
 
 ### `start_agent` — the router
 
@@ -216,9 +215,9 @@ start_agent agent_router:
                 available when @variables.verified == True
 ```
 
-**`available when` is the guardrail worth internalising.** It gates a route on a deterministic
-condition, so the LLM cannot route to order management before identity is verified — no matter how
-persuasively the customer asks. That is the difference between a rule and a hope.
+**`available when` is the guardrail to internalise.** It gates a route on a deterministic condition,
+so the LLM cannot route to order management before identity is verified, however persuasively the
+customer asks. That is the difference between a rule and a hope.
 
 ## Expressions and operators
 

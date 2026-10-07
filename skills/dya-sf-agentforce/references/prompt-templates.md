@@ -1,7 +1,7 @@
 # Prompt Templates — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-agentforce` when an agent action generates or transforms text, or when you need to
-call a prompt template from code.
+Load from `dya-sf-agentforce` when an agent action generates or transforms text, or to call a prompt
+template from code.
 
 ## What they are, and where the line falls
 
@@ -10,9 +10,9 @@ data — record fields, related lists, Flow output, Apex — into a prompt and c
 right action type whenever the job is *produce text grounded in records*: a summary, a draft email, a
 field value, a classification.
 
-Authoring a template is a Prompt Builder task, done in the UI and documented in Salesforce Help. What
-belongs to a developer, and what this reference covers, is **calling one from code**, **running one
-over many records**, and **moving one between orgs**.
+Authoring a template is a Prompt Builder task, done in the UI and documented in Salesforce Help. This
+reference covers the developer's part: **calling one from code**, **running one over many records**,
+and **moving one between orgs**.
 
 In Agent Script an action reaches a template with the `prompt://` target — see
 `references/agent-script.md`:
@@ -33,13 +33,13 @@ Three surfaces, chosen by where the caller lives:
 | Apex | **Connect in Apex** — resolve the template; the `EinsteinLLM` class carries the static methods |
 | Flow, or anywhere on the platform | The **Generate Prompt Response** invocable action |
 
-The invocable action is the one to reach for by default: it works from Flow, from an agent, and from
-anywhere an action can be called, without you writing an integration.
+Default to the invocable action: it works from Flow, an agent, and anywhere an action can be called,
+without writing an integration.
 
 ## Batch processing — many records, no user waiting
 
-For generating output over a large set of records — a nightly summarisation of a case backlog — do
-not loop synchronous calls. Two standard objects drive an asynchronous batch: **`AiJobRun`** (the job)
+For output over a large set of records — a nightly summarisation of a case backlog — do not loop
+synchronous calls. Two standard objects drive an asynchronous batch: **`AiJobRun`** (the job)
 and **`AiJobRunItem`** (one per input record).
 
 ### Step 1 — create the job
@@ -53,9 +53,9 @@ AiJobRun jobRun = new AiJobRun(
 insert as user jobRun;
 ```
 
-`Target` takes the template's **DeveloperName or its record Id** — prefer the DeveloperName, because
-it is stable across orgs and an Id is not. `Status` is required on insert; start at `New` so the
-items can be added before anything runs.
+`Target` takes the template's **DeveloperName or its record Id** — prefer the DeveloperName, which is
+stable across orgs; an Id is not. `Status` is required on insert; start at `New` so items can be
+added before anything runs.
 
 ### Step 2 — one item per record
 
@@ -76,8 +76,8 @@ for (Case c : cases) {
 insert as user items;
 ```
 
-`Input` is a JSON string whose keys use the `Input:` prefix, and the value is a record pointer with
-an `id`. Every item goes in at `Status = 'Ready'`.
+`Input` is a JSON string whose keys use the `Input:` prefix; the value is a record pointer with an
+`id`. Every item goes in at `Status = 'Ready'`.
 
 For a run approaching the item cap, wrap this step in a `Database.Batchable` so each execute scope
 gets fresh governor limits — see `dya-sf-apex`.
@@ -91,23 +91,22 @@ update as user jobRun;
 
 **Nothing changes after this point.** Once the job reaches `InProgress`, `AiJobRunId` and `Input`
 become immutable, non-null schema fields are frozen, and neither the job nor its items can be
-deleted. The `InProgress`, `Completed` and `Failed` statuses cannot be set by you at all. Build the
-whole batch before flipping the switch.
+deleted. You cannot set the `InProgress`, `Completed` or `Failed` statuses at all. Build the whole
+batch before flipping the switch.
 
-### Limits worth knowing before you design
+### Limits to know before you design
 
 | | Standard models | Models with native batch support |
 |---|---|---|
 | Items per `AiJobRun` | 1,000 | 10,000 |
 | Recommended daily volume from Apex | 5,000 | 50,000 |
 
-You may create as many jobs as you need; extras sit in `Queued` and are picked up as capacity frees.
-Exceeding the recommended daily volume does not fail — jobs simply take longer than 24 hours, which
-is worse, because it looks like a hang. Native-batch completion time is set by the model provider,
-typically 24 hours.
+Create as many jobs as you need; extras sit in `Queued` until capacity frees. Exceeding the
+recommended daily volume does not fail — jobs take longer than 24 hours, which is worse, because it
+looks like a hang. The model provider sets native-batch completion time, typically 24 hours.
 
 Jobs at `ReadyToStart` process in `CreatedDate` order, though several flipped within a few seconds of
-each other may not strictly hold that order — do not depend on sequencing between jobs.
+each other may not strictly hold it — do not depend on sequencing between jobs.
 
 `JobType` differs by initiator: `PromptTemplate` for an Apex-created run, `GeneratePromptAsyncIA` when
 Flow's Prompt Template Batch Generation action starts it.

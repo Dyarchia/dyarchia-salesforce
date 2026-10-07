@@ -1,9 +1,9 @@
 # Agent Script Control Flow — Where It Goes Wrong
 
 The Agent Script syntax reference is `references/agent-script.md`. This file is the shorter, more
-useful list: the constructs that compile, deploy and then behave differently from how they read.
+useful list: constructs that compile, deploy, then behave differently from how they read.
 
-Every entry here fails *quietly*. None of them produces an error at authoring time.
+Every entry fails *quietly*, with no error at authoring time.
 
 ## A bare `@variables.X` inside a `|` block passes its name, not its value
 
@@ -13,11 +13,11 @@ reasoning:|
     Summarise this case for the customer: {!@variables.case_summary}     ✅
 ```
 
-The model receives the literal characters `@variables.case_summary`. It will usually invent a
-plausible summary around them, so the output looks like a quality problem rather than a wiring one.
+The model receives the literal characters `@variables.case_summary` and usually invents a plausible
+summary around them, so the output looks like a quality problem rather than a wiring one.
 
-`{!@variables.x}` is the merge syntax for a value. There is an equivalent for actions —
-`{!@actions.X}` — when you want to name an action to the model inside prompt text.
+`{!@variables.x}` is the merge syntax for a value. The action equivalent, `{!@actions.X}`, names an
+action to the model inside prompt text.
 
 ## Indentation inside a `|` block is prose, not scope
 
@@ -29,15 +29,15 @@ if @variables.escalate == True
 ```
 
 Everything after `|` is text. Indenting a statement under it does not put it inside the enclosing
-`if`, and the action runs unconditionally. Deterministic statements live outside `|` blocks.
+`if`, so the action runs unconditionally. Deterministic statements live outside `|` blocks.
 
 Related: a line **without** a `|` continues the current prompt fragment. Use **one `|` per contiguous
 block**; repeated adjacent `|` markers do not create steps, stages, or any notion of priority.
 
 ## `available when` gates action definitions too
 
-Most examples show it on a transition, which makes it look like a routing-only construct. It also
-gates whether an action exists for the model to choose at all:
+Most examples show it on a transition, so it looks routing-only. It also gates whether an action
+exists for the model to choose at all:
 
 ```agentscript
 actions:
@@ -46,14 +46,13 @@ actions:
 ```
 
 That is the difference between an agent that *can* call an action and merely was not told to, and an
-agent for which the action is not on the menu. For anything with a side effect, the second is what
-you want.
+agent for which the action is not on the menu. For anything with a side effect, you want the second.
 
 ## `before_reasoning` runs once per subagent *execution*, not per turn
 
-A transition — **including a self-transition** — starts another execution inside the same user turn.
-An unconditional assignment in `before_reasoning` therefore re-runs and silently erases state
-gathered earlier in that same turn.
+A transition — **including a self-transition** — starts another execution inside the same user turn,
+so an unconditional assignment in `before_reasoning` re-runs and silently erases state gathered
+earlier in that turn.
 
 ```agentscript
 before_reasoning:
@@ -64,21 +63,21 @@ before_reasoning:
 
 ## Deterministic statements do not pause for the model
 
-A `|` block sitting between a `run` and a following `set` does **not** create a turn boundary. The
-whole sequence executes before the model sees anything, so code written expecting the user to have
-answered in between is executing against stale state.
+A `|` block between a `run` and a following `set` does **not** create a turn boundary. The whole
+sequence executes before the model sees anything, so code expecting the user to have answered in
+between runs against stale state.
 
-The supported way to create a phase boundary is a **guarded self-transition**.
+The supported phase boundary is a **guarded self-transition**.
 
 ## A `system` block is declarative
 
 `system.instructions` is prompt text, not a procedure. `instructions: ->`, `run`, `set`, `if` and
-`transition` are all illegal inside a `system` block. If you find yourself wanting them there, the
-logic belongs in `before_reasoning` or in the subagent's own body.
+`transition` are all illegal inside a `system` block. Logic that wants them belongs in
+`before_reasoning` or the subagent's own body.
 
 ## Model output is not evidence a side effect happened
 
-When an action reaches an external system, verify along the whole chain rather than trusting the
+When an action reaches an external system, verify the whole chain rather than trusting the
 transcript:
 
 ```text
@@ -92,8 +91,7 @@ configured → available → invoked → executed → effected
 - **effected** — the external system changed.
 
 An agent saying "I've created that ticket for you" establishes none of these. It is generated text,
-and a confidently wrong claim is the normal failure mode, not an unusual one. Check the target
-system or the trace.
+and a confidently wrong claim is the normal failure mode. Check the target system or the trace.
 
 ## `elif` does not exist
 

@@ -10,12 +10,12 @@ and **always** enforce security through the Trust Layer. Follow every rule below
 
 References:
 
-- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults an Apex action inherits.
-- `references/shared/sharing-and-access.md` — the permission model an agent's run-as identity is bound by. **Read this before designing a customer-facing agent.**
-- `references/shared/governor-limits.md` — the budget an action spends, and why "one transaction per action" is not a licence to skip bulkification.
-- `references/building-an-agent.md` — **the end-to-end path**: prerequisites and org setup, the two authoring workflows, the CLI commands, testing and activation. Start here if you have never built one.
-- `references/agent-script.md` — the actual syntax: blocks, `->` logic versus `|` prompt instructions, variables, routing, `available when` guards.
-- `references/agent-control-flow-pitfalls.md` — the constructs that compile and then behave differently from how they read. Read before debugging an agent that "ignores" its script.
+- `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults an Apex action inherits.
+- `references/shared/sharing-and-access.md` — the permission model binding an agent's run-as identity. **Read before designing a customer-facing agent.**
+- `references/shared/governor-limits.md` — the budget an action spends, and why "one transaction per action" is no licence to skip bulkification.
+- `references/building-an-agent.md` — **the end-to-end path**: prerequisites and org setup, the two authoring workflows, CLI commands, testing and activation. Start here if you have never built one.
+- `references/agent-script.md` — the syntax: blocks, `->` logic versus `|` prompt instructions, variables, routing, `available when` guards.
+- `references/agent-control-flow-pitfalls.md` — constructs that compile but behave differently from how they read. Read before debugging an agent that "ignores" its script.
 - `references/agent-lifecycle-metadata.md` — the bundle on disk, why deploy is not publish, the writable-versus-snapshot bundle trap, and the `sf agent` surface.
 - `references/apex-actions.md` — `@InvocableMethod` / `@InvocableVariable` actions, action-type comparison, security, bulkification, error handling.
 - `references/prompt-templates.md` — calling a template from code, batch generation with `AiJobRun`, moving templates between orgs.
@@ -33,13 +33,12 @@ build:
 
 - **`AiAgentDefinition` / `AiAgentDefinitionVersion` are GA at 68.0, and both orgs must be on 68.0.**
   A deploy from a 68.0 sandbox into a 67.0 org carries neither, silently.
-- **The 24 additional conversation languages are Beta** — not production. Check the list before
+- **The 24 additional conversation languages are Beta**, not production. Check the list before
   promising a language.
 - **An Apex action is Apex**, so it inherits the 67.0+ security defaults: `with sharing` and
   `USER_MODE`, and `WITH SECURITY_ENFORCED` no longer compiles. See §4 and `dya-sf-apex`.
-- **Since April 2026 a Topic is a subagent.** The functionality did not change, and older
-  documentation, parts of the UI and help-article URLs still say "topic". This skill says
-  **subagent**; they are the same thing.
+- **Since April 2026 a Topic is a subagent.** The functionality is unchanged; older documentation,
+  parts of the UI and help-article URLs still say "topic". This skill says **subagent**.
 
 > Everything else Winter '27 adds — MCP interoperability, observability and custom scorers, Voice
 > improvements, Data 360 SQL from Apex, and the standing facts about Atlas 3.0, Agent Script and
@@ -51,23 +50,22 @@ build:
 
 An agent understands a request in natural language and acts on it, grounded in your Salesforce data.
 
-The brain is the **Atlas Reasoning Engine**: no fixed decision tree, reasoning on every request from
+The brain is the **Atlas Reasoning Engine**: no fixed decision tree; it reasons on every request from
 the descriptions you wrote.
 
-1. **Intent classification** — Atlas reads the user's message and picks the most relevant
-   **subagent**.
-2. **Plan** — it reads that subagent's scope, instructions and the descriptions of the available
-   **Actions**, then decides what to do: ask a question, run an action, use a prompt template.
+1. **Intent classification** — Atlas reads the message and picks the most relevant **subagent**.
+2. **Plan** — it reads that subagent's scope, instructions and available **Actions**' descriptions,
+   then decides: ask a question, run an action, use a prompt template.
 3. **Ground (RAG)** — it pulls live, trusted context from Salesforce, **Data 360** or external
    systems via MCP.
-4. **Act** — it executes the chosen actions (Apex, Flow, Prompt Template) and checks results,
-   looping if needed.
-5. **Respond** — the final answer passes through the **Einstein Trust Layer** — masking, grounding
-   checks, zero-retention — before it reaches the user.
+4. **Act** — it runs the chosen actions (Apex, Flow, Prompt Template) and checks results, looping
+   if needed.
+5. **Respond** — the answer passes through the **Einstein Trust Layer** (masking, grounding checks,
+   zero-retention) before reaching the user.
 
-**The single most important consequence:** Atlas chooses subagents and actions by reading their
-**natural-language descriptions**. Vague descriptions route wrongly. Your descriptions *are* the
-program; treat them as carefully as code.
+**The key consequence:** Atlas chooses subagents and actions by reading their **natural-language
+descriptions**. Vague descriptions route wrongly. Your descriptions *are* the program; treat them as
+code.
 
 ---
 
@@ -75,28 +73,27 @@ program; treat them as carefully as code.
 
 | Building block | What it is | Who owns it |
 |---|---|---|
-| **Agent** | The deployed assistant, with a role, channels, and a user/permission context | Builder |
+| **Agent** | The deployed assistant, with a role, channels and a user/permission context | Builder |
 | **Subagent** (formerly Topic) | A bounded job-to-be-done, e.g. "Order Management". Holds the classification description, scope and instructions | Builder |
 | **Classification description** | Tells Atlas *when* this subagent applies | Builder |
 | **Scope** | What the agent may and may not do within the subagent — a guardrail | Builder |
 | **Instructions** | Natural-language rules (prompt-like) that shape behaviour and reference actions | Builder |
-| **Action** | A concrete capability the agent can invoke: Apex, Flow, Prompt Template, Apex REST, Named Query | Developer |
+| **Action** | A capability the agent invokes: Apex, Flow, Prompt Template, Apex REST, Named Query | Developer |
 
 ### Writing Instructions (the high-leverage skill)
 
-- One subagent covers one coherent set of tasks. Never build a mega-subagent.
+- One subagent per coherent set of tasks. Never build a mega-subagent.
 - Instructions live *inside* the subagent, not as separate metadata, and may reference Actions by
   name.
 - Be explicit and imperative. State preconditions and the order of operations.
-- Use them as guardrails: say what *not* to do, not only what to do.
+- Use them as guardrails: say what *not* to do, too.
 - Encode hard business rules in **Agent Script** (§5) rather than hoping the LLM follows prose.
 
 ---
 
 ## 3. Designing Actions — Choose the Right Type
 
-Pick the least-code option that fits, and write a crisp label and description so Atlas can match
-intent.
+Pick the least-code option that fits, with a crisp label and description so Atlas can match intent.
 
 | Need | Action type | Code? |
 |---|---|---|
@@ -108,8 +105,8 @@ intent.
 | Call another active agent | **AI Agent action** (Apex/Flow) | maybe |
 
 **Declarative for orchestration, Apex for deterministic logic the LLM must not improvise.** Keep each
-action narrow and single-purpose: Atlas composes small, well-described actions better than it drives
-one giant one.
+action narrow and single-purpose: Atlas composes small, well-described actions better than one giant
+one.
 
 ---
 
@@ -121,29 +118,29 @@ Class skeleton, wrappers and the bulk-in bulk-out signature: `references/apex-ac
 Absolute rules:
 
 - **Bulkify anyway.** An agent invokes an action **once per turn, in its own transaction**, so it
-  will never hand you 200 records — but the same `@InvocableMethod` gets reused from a Flow, and
-  **Flow always passes a `List`**, often the whole 200-record trigger batch. Take `List<Request>`,
-  return `List<Result>`. See `dya-sf-flow`.
+  never passes 200 records — but a Flow reusing the same `@InvocableMethod` **always passes a
+  `List`**, often the whole 200-record trigger batch. Take `List<Request>`, return `List<Result>`.
+  See `dya-sf-flow`.
 - **One input and output wrapper class** with `@InvocableVariable`s; primitives or DTOs, never a raw
   `SObject` you do not control.
 - **`with sharing` + `WITH USER_MODE`** — the defaults from API 67.0, but state them.
   `WITH SECURITY_ENFORCED` no longer compiles.
 - **Descriptions are prompts.** A clear `label` and `description` on the method and every variable,
-  kept in sync with the action config in Agent Builder.
+  in sync with the action config in Agent Builder.
 - **Errors: structured, not thrown.** Return a success flag and a human-readable message the agent
-  can relay; a thrown exception gives it something it cannot explain to a user. This is the
-  **opposite** of a Flow-facing action, where throwing is how the fault message reaches a Fault
-  Path, so a method serving both returns the result and lets the Flow branch on it. Log failures
-  durably through Platform Events (`dya-sf-apex`).
-- Keep actions **deterministic**. They exist so the LLM does not improvise critical logic.
+  can relay; a thrown exception is something it cannot explain to a user. This is the **opposite**
+  of a Flow-facing action, where throwing is how the fault message reaches a Fault Path, so a method
+  serving both returns the result and lets the Flow branch on it. Log failures durably through
+  Platform Events (`dya-sf-apex`).
+- Keep actions **deterministic**, so the LLM does not improvise critical logic.
 
 ---
 
 ## 5. Agent Script — Deterministic Control (GA)
 
-Agent Script is the compiled language behind Agentforce Builder, and its whole design is one
-distinction: **`->` logic instructions run deterministically every time; `|` prompt instructions go to
-the LLM to interpret.**
+Agent Script is the compiled language behind Agentforce Builder, designed around one distinction:
+**`->` logic instructions run deterministically every time; `|` prompt instructions go to the LLM to
+interpret.**
 
 ```agentscript
 instructions: ->
@@ -163,8 +160,7 @@ routing after `->`; leave the conversational parts to `|`. Guard every subagent 
 
 ## 6. Grounding & Prompt Templates
 
-**Grounding** injects trusted data into the prompt, which is what makes answers accurate and
-explainable.
+**Grounding** injects trusted data into the prompt, making answers accurate and explainable.
 
 - **Prompt Templates** — reusable, parameterised prompts that merge record data and call the LLM, for
   summaries, drafts and classifications. Reach them from Agent Script with a `prompt://` target.
@@ -184,8 +180,8 @@ auditable.
 - **Agent API** (REST) — start a session, send messages with context, receive structured responses,
   with **no logged-in user**. For server-side and customer-facing integrations.
 - **AI Agent action** (Apex / Flow) — trigger any active agent from automation: a Quick Action, a
-  screen flow, or limited agent-to-agent calls. Pass a user message and optional session id, then
-  capture the response.
+  screen flow, or limited agent-to-agent calls. Pass a user message and optional session id; capture
+  the response.
 
 Endpoints, payloads, the `bypassUser` identity switch and the `sequenceId` counter:
 `references/lifecycle-and-api.md`.
@@ -201,7 +197,7 @@ Test at scale; one chat proves nothing.
 - **Evaluations** (Agentforce DX, Beta) — YAML/JSON eval suites from the CLI. **Custom Scoring Evals**
   grade *decision quality*, not just whether an action ran.
 - **`agent preview`** (CLI, GA) — scripted sessions with **trace files** showing how the agent routed.
-  Unimplemented actions are mocked, so routing can be tested before they are written.
+  Unimplemented actions are mocked, so routing is testable before they are written.
 - **A/B Testing API** — compare agent versions against real traffic after launch.
 
 Test subagent classification, action selection and grounding accuracy separately.
@@ -224,11 +220,10 @@ ungrounded answers.
 ## 10. Security & the Trust Layer
 
 - The **Einstein Trust Layer** enforces data masking, dynamic grounding, FLS and zero-data-retention
-  with LLM providers on every session, however the agent is invoked — UI, API or MCP.
+  with LLM providers on every session, whether invoked by UI, API or MCP.
 - Agents run with a **user and permission context**: an employee-facing agent acts with the running
-  user's permissions, a customer-facing agent under a dedicated guest or service profile. Whatever
-  that identity can see, the agent can surface, so scope it to the minimum deliberately. See
-  `dya-sf-permissions`.
+  user's permissions, a customer-facing agent under a dedicated guest or service profile. The agent
+  can surface whatever that identity sees, so scope it to the minimum. See `dya-sf-permissions`.
 - Apex actions enforce `with sharing` and `USER_MODE`. Never widen permissions to make a user-mode
   error disappear — that leaks the same data into reports and APIs.
 - Treat agent instructions as an untrusted-input boundary: guard against prompt injection by scoping
@@ -242,9 +237,9 @@ An **orchestrator** agent routes to **specialist subagents** by reading their de
 actions — reasoning, not a hard-coded map.
 
 - **Agent and subagent descriptions become routing logic.** Make them precise and non-overlapping.
-- Keep subagents focused on one domain; overlapping scopes cause mis-routing, the seam problem.
+- Keep each subagent to one domain; overlapping scopes cause mis-routing, the seam problem.
 - Subagents can be backed by Apex, Flow and Prompt Template actions independently.
-- Interop standards A2A and MCP let agents coordinate with tools and with other agents.
+- Interop standards A2A and MCP let agents coordinate with tools and other agents.
 - **Handing off to a human is Omni-Channel's job.** The `routeWork` Flow action carries the work to a
   queue, and the same action routes work *to* an agent through `agentforceEmployeeAgentId`. Both
   directions of that seam are in `dya-sf-omni-channel`.
@@ -297,7 +292,7 @@ actions — reasoning, not a hard-coded map.
 ## Summary — The Five Commandments
 
 1. **Descriptions are the program** — Atlas routes by reading subagent and action descriptions; write them like code.
-2. **Determinism where it matters** — Agent Script and Apex actions for business-critical logic; let the LLM handle only the fuzzy, conversational parts.
+2. **Determinism where it matters** — Agent Script and Apex actions for business-critical logic; the LLM handles only the fuzzy, conversational parts.
 3. **Ground everything** — Data 360 / retrievers / MCP for trusted, permission-aware context; prefer grounding over fine-tuning.
 4. **Actions are Apex citizens** — bulkified, `with sharing`, `WITH USER_MODE`, structured errors; narrow and single-purpose.
 5. **Test, evaluate, observe, and trust** — batch tests + Custom Scoring Evals before launch, Session Tracing after; the Einstein Trust Layer and least-privilege profiles on every path.

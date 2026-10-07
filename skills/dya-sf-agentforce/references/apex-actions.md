@@ -1,6 +1,6 @@
 # Agentforce Apex Actions — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §3–§4. Load this when building or reviewing an agent action. Actions are how an agent *does* things; Apex actions are the deterministic backbone for logic the LLM must not improvise. They are Apex — the deep rules in `dya-sf-apex` apply on top.
+Full implementations referenced from SKILL.md §3–§4. Load when building or reviewing an agent action. Actions are how an agent *does* things; Apex actions are the deterministic backbone for logic the LLM must not improvise. The deep rules in `dya-sf-apex` apply on top.
 
 ## Action Type Comparison
 
@@ -79,12 +79,12 @@ public with sharing class CreateCaseAction {
 
 ## Rules
 
-- **Bulk in, bulk out.** Signature is `List<Request>` → `List<Result>`. Actions do not bulkify automatically; each invocation is its own transaction, and the same class is often reused in Flows. Assume 200.
+- **Bulk in, bulk out.** `List<Request>` → `List<Result>`. Actions do not bulkify automatically; each invocation is its own transaction, and Flows often reuse the same class. Assume 200.
 - **Wrapper classes** for input and output, each field an `@InvocableVariable` with a `label` and `description`. Mark truly required inputs `required=true`.
-- **Descriptions feed Atlas.** The method `label`/`description` and each variable `description` are how the engine matches intent and fills parameters. Keep them synced with the Agent Builder action config.
+- **Descriptions feed Atlas.** The engine matches intent and fills parameters from the method `label`/`description` and each variable `description`. Keep them synced with the Agent Builder action config.
 - **Security:** `with sharing`, `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML. `WITH SECURITY_ENFORCED` does not compile at API 67.
-- **No raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; keep the real cause server-side. A thrown exception gives the agent nothing useful to say.
-- **Determinism:** put the business rule in code. The action exists so the LLM does not have to reason about it.
+- **No raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; keep the real cause server-side. A thrown exception leaves the agent nothing useful to say.
+- **Determinism:** put the business rule in code, so the LLM does not reason about it.
 - **Idempotency:** where the agent might retry, make the action safe to call twice (e.g. upsert by external id).
 
 ## Anti-Patterns
