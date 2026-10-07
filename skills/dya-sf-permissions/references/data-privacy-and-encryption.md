@@ -1,11 +1,8 @@
 # Regulated Data — Encryption, Subject Requests, and Masking
 
-The third axis of the access model. "What can they do" and "which records" decide who reaches a
-value; this file covers what the value looks like at rest, what must be handed back when a person
-asks for their data, and how production data is made safe to copy into a sandbox.
-
-The three are configured through different APIs, and that split is what people get wrong most often,
-so each section names which API owns which entity.
+The third axis of the access model: what a value looks like at rest, what to hand back when a person
+requests their data, and how production data is made safe to copy into a sandbox. The three are
+configured through different APIs; each section names which API owns which entity.
 
 ## Shield Platform Encryption
 
@@ -20,7 +17,7 @@ Encryption is set per field, on `CustomField`, through the `encryptionScheme` el
 </CustomField>
 ```
 
-**The enum has exactly four values.** Any other string fails the deployment outright:
+**The enum has exactly four values**; any other string fails the deployment:
 
 | Value | Filterable / sortable / groupable | Use when |
 |---|---|---|
@@ -29,14 +26,13 @@ Encryption is set per field, on `CustomField`, through the `encryptionScheme` el
 | `ProbabilisticEncryption` | **No** | The value is only ever displayed, never queried |
 | `None` | n/a | Removing encryption from a field |
 
-This trade-off decides the design: probabilistic encryption is stronger because the same plaintext
-produces different ciphertext each time, which is precisely why nothing can index it. A field that a
-report filters on, a SOQL `WHERE` touches, or a matching rule uses must be deterministic. Discovering
-this after choosing probabilistic means re-encrypting the field and re-testing every query that
-touched it.
+Probabilistic encryption is stronger because the same plaintext produces different ciphertext each
+time, which is why nothing can index it. A field that a report filters on, a SOQL `WHERE` touches,
+or a matching rule uses must be deterministic. Switching later means re-encrypting the field and
+re-testing every query that touched it.
 
 Shield `encryptionScheme` is **not** Classic Encryption's `EncryptedText` field type, a separate,
-older mechanism with its own limitations. Do not mix the two in one design or one sentence.
+older mechanism with its own limitations. Do not mix the two in one design.
 
 ### Org-level settings
 
@@ -47,11 +43,10 @@ Two metadata types, both singletons:
 - **`EncryptionKeySettings`** — `enableCacheOnlyKeys`, `enableReplayDetection`,
   `canExternalKeyManagement`, plus the Data 360 and transactional-database toggles.
 
-**`enableReplayDetection` can only be set once `enableCacheOnlyKeys` is already `true`.** Enabling
-Cache-Only Keys does not turn replay detection on, and a deploy setting both in one pass in the
-wrong order fails.
+**`enableReplayDetection` can be set only once `enableCacheOnlyKeys` is `true`.** Enabling Cache-Only
+Keys does not turn replay detection on, and a deploy setting both in the wrong order fails.
 
-### Three key models, often conflated
+### Key models
 
 | Model | Where the key material lives | What Salesforce holds |
 |---|---|---|
@@ -59,19 +54,16 @@ wrong order fails.
 | **BYOKMS / EKM** | Your external KMS, permanently | A reference, never the material |
 | **Cache-Only Key** | Your endpoint, fetched on demand | Nothing durable — it is cached and re-fetched |
 
-"Bring your own key" is used loosely for all three. Their recovery and availability stories differ
-materially, so name the specific one in any design document.
+"Bring your own key" is used loosely for all three; their recovery and availability differ, so name
+the specific one in any design document.
 
 ## Data Subject Requests — `DsarPolicy`
 
-A DSAR policy describes how to gather everything the org holds about one person so it can be handed
-back. Its `minApiVersion` is **68.0** — the one piece of this material that arrives at the version
-this library targets rather than below it.
+A DSAR policy gathers everything the org holds about one person to hand back. Its `minApiVersion` is
+**68.0**.
 
-**Right To Portability is export, not erasure.** A `DsarPolicy` deletes nothing, ever. If the
-requirement is deletion, it is the wrong tool; saying so early saves a rebuild.
-
-Four entities, three different APIs:
+**Right To Portability is export, not erasure.** A `DsarPolicy` deletes nothing; if the
+requirement is deletion, it is the wrong tool.
 
 | Entity | Reached through |
 |---|---|
@@ -83,28 +75,22 @@ Four entities, three different APIs:
 Execution, status and file retrieval are Connect DSR endpoints rather than metadata.
 
 Hard caps on the traversal tree: **10 children per path, depth 10, 200 nodes total.** A data model
-exceeding them needs the policy split — a modelling decision to make before authoring, not after a
-rejection.
+exceeding them needs the policy split before authoring.
 
-Lifecycle: a policy is created **INACTIVE** and activated deliberately. Editing an ACTIVE policy
-requires deactivating first, so changing a live policy is a three-step operation with a window where
-nothing is active.
+A policy is created **INACTIVE** and activated deliberately. Editing an ACTIVE policy requires
+deactivating it first, leaving a window where nothing is active.
 
-Three traps:
-
-- **The URL segment is `dsr`, not `dsar`.** The entity is spelled one way and the endpoint the
-  other.
+- **The URL segment is `dsr`, not `dsar`.**
 - **A failed run can return HTTP 201.** Read the response envelope and `RequestStatus`; the HTTP
   status is not the outcome.
-- An early file retrieval returns `NOT_FOUND` with "this file isn't ready yet". That is the contract
-  working, not an error to retry blindly — poll the status resource instead.
+- An early file retrieval returns `NOT_FOUND` with "this file isn't ready yet"; poll the status
+  resource instead of retrying blindly.
 
 ## Data Mask
 
-Data Mask rewrites sensitive values in a sandbox so a refreshed copy of production is safe to work
-in. **It is sandbox-only: the run and abort endpoints return 403 in production.**
+Data Mask rewrites sensitive values in a sandbox refreshed from production. **It is sandbox-only: the run and abort endpoints return 403 in production.**
 
-Two user permissions gate it, which a permission set must grant explicitly by API name:
+Two user permissions, granted by API name, gate it:
 `PermissionsManageDataMaskPolicies` and `PermissionsAccessDataMaskAndSeed`.
 
 ### The per-entity API split
@@ -118,11 +104,11 @@ Two user permissions gate it, which a permission set must grant explicitly by AP
 | `DataMaskPolicyJobRunDtl` | Standard SOQL (FK `DataMaskPolicyJobRunId`) | — |
 | `DataMaskCustomValueLibrary` | Standard SOQL | — |
 
-Consequently `sf sobject describe --sobject DataMaskPolicy` returns `NOT_FOUND`, and
+`sf sobject describe --sobject DataMaskPolicy` returns `NOT_FOUND`, and
 `SELECT ... FROM DataMaskPolicy` through `sf data query` returns `INVALID_TYPE`. Neither means the
 feature is missing.
 
-### Authoring is two ordered steps
+### Authoring order
 
 1. Deploy the policy shell through the **Metadata API in mdapi format** — a `--metadata-dir` with a
    `package.xml`. A source-format `--source-dir` deploy fails with "Could not infer a metadata type".
@@ -136,27 +122,26 @@ attach to.
 ### Field treatment and row filtering
 
 A `DataMaskPolicyField` carries **`MaskingCategory`** (`library` or `replaceRandom`) and
-**`MaskValue`**. There is no `MaskingRuleType` column, however plausible it looks.
+**`MaskValue`**. There is no `MaskingRuleType` column.
 
 Row subsetting lives on `DataMaskPolicyObject` as `FilterEnabled` plus `WhereCriteria`, a SOQL-style
-predicate capped at **40 characters**, with the structured form in `RawFilterData`. Three facts:
+predicate capped at **40 characters**, with the structured form in `RawFilterData`.
 
 - **There is no `sampleSize`, and a `LIMIT` is silently ignored** — the run masks the whole table
-  with no error message, so never assume a limit took effect.
+  with no error.
 - `RawFilterData.operation` accepts only `eq, ne, lt, gt, ge, le, contains, not_contains, in,
   not_in`. Anything else — `startsWith`, for instance — fails the run with a **422**.
 - The predicate must be valid SOQL. `Id != 'null'` fails the job with `invalid ID field: null`,
   because the string `'null'` is not the null literal.
 
 Scheduling lives on the policy itself: `RunFrequency` (`once`, `daily`, `weekly`, `monthly`),
-`ScheduledStart`, and `RunOnRefresh` to mask automatically on every sandbox refresh. That last one is
-usually what you want — a policy that must be remembered after every refresh will be forgotten after
-some refresh.
+`ScheduledStart`, and `RunOnRefresh` to mask automatically on every sandbox refresh; prefer it to masking manually
+after each refresh.
 
 ## Where this connects
 
-- Field-level security decides who sees a field; encryption decides what the value looks like
-  underneath. They are independent: encrypting a field does not substitute for FLS on it. See
+- Encryption and field-level security are independent: encrypting a field does not substitute for FLS
+  on it. See
   `references/object-and-field-access.md`.
 - Data 360 has its own access layer that these do not cover — see `references/dataspace-access.md`
   and `dya-sf-data360`.

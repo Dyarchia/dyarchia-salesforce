@@ -1,6 +1,6 @@
 # Apex REST Service — Reference Implementation (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-inbound-apex` when building a custom inbound REST endpoint. Apex REST is GA and recommended; this is the canonical multi-verb, transactional, securely bounded service. Deep Apex rules (bulkification, async, logging) live in `dya-sf-apex`.
+The multi-verb, transactional, securely bounded `@RestResource` service for `dya-sf-integration-inbound-apex`. Deep Apex rules (bulkification, async, logging) live in `dya-sf-apex`.
 
 ## Full Service
 
@@ -103,13 +103,10 @@ global with sharing class OrderApi {
 
 ## Rules Embodied Above
 
-- **`global with sharing`** class; **`global static`** methods, one annotation per verb.
-- **User-mode security**: `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML — required from API 67.0 (`WITH SECURITY_ENFORCED` no longer compiles).
 - **Idempotency**: upsert by external id so a retried POST updates rather than duplicates.
 - **Bulk**: children built in a list, one DML. No DML/SOQL in loops.
 - **Stable contract**: explicit DTOs and a versioned URL (`/v1/orders/`).
 - **HTTP semantics**: 201 create, 204 delete, 400/422 validation, 404 not found, 500 with a clean message.
-- **No leaked internals**: catch, log durably, return a sanitised message.
 
 ## Raw Body and Headers
 
@@ -123,16 +120,3 @@ global static void webhook() {
     RestContext.response.statusCode = 200;
 }
 ```
-
-## Anti-Patterns
-
-| Anti-Pattern | Correct Approach |
-|---|---|
-| `@RestResource` for plain CRUD | Standard REST API |
-| SOQL/DML in a loop in the handler | Bulk before/after the loop |
-| Blind insert on a retried POST | Upsert by external id |
-| `WITH SECURITY_ENFORCED` | `WITH USER_MODE` |
-| No sharing keyword | Explicit `with sharing` |
-| Returning the exception/stack trace | Sanitised error DTO + status code |
-| Unversioned URL/contract | `/v1/...` and versioned DTOs |
-| Trusting a webhook body without verifying | Verify signature from the raw body + header |
