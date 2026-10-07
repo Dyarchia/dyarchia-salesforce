@@ -4,8 +4,7 @@ Load from `dya-sf-lwc` when configuring a component bundle or setting up the loc
 
 ## The bundle's meta XML
 
-Every component has a `<component>.js-meta.xml` beside its JavaScript, deciding where it can be
-dropped and what an admin can configure.
+`<component>.js-meta.xml` sits beside the component's JavaScript.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -25,10 +24,8 @@ dropped and what an admin can configure.
 ```
 
 `isExposed` false means only other components can use it — the right default for a building block.
-A component with no `targets` cannot be placed on a page, the usual cause of "my component doesn't
-appear in the Lightning App Builder".
-
-This `apiVersion` decides the component's runtime semantics, per bundle, not per org.
+A component with no `targets` cannot be placed on a page, the usual cause of a component missing
+from the Lightning App Builder.
 
 ## SLDS styling hooks for Flow Screen components
 
@@ -51,7 +48,7 @@ In VS Code: install the Salesforce Extension Pack, then Command Palette › *SFD
 Preview*. Live preview supports public LDS wire adapters, `@salesforce` scoped modules and Apex
 controllers, so most components run without deploying.
 
-Hot Module Reloading applies an edit without a full page reload — what makes the loop worth using.
+Hot Module Reloading applies an edit without a full page reload.
 
 These commands need a **DX project** — a directory with an `sfdx-project.json` naming the package
 directories. Outside one, `sf` cannot resolve component paths. See
@@ -65,9 +62,9 @@ compiles locally and only the resulting `.js` is deployed, so no runtime behavio
 ## Dynamic Lists virtualization — Developer Preview
 
 `lightning-dynamic-list-container` and `lightning-dynamic-list-item` render only the rows in the
-viewport — the standard answer for lists of thousands of records. It is **Developer Preview**: not
-available in production orgs, and not something to design a delivery around. Until it advances, page
-the data — GraphQL's `first` and `after` with `endCursor`.
+viewport, for lists of thousands of records. It is **Developer Preview**, not available in
+production orgs. Until it advances, page the data with GraphQL's `first` and `after` with
+`endCursor`.
 
 ## Anti-Patterns
 

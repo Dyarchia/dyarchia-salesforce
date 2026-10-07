@@ -1,20 +1,17 @@
 # CDC and Managed Subscriptions — the Metadata
 
-Change Data Capture and durable subscriptions are configured entirely through metadata, and almost
-every failure here is a naming or element-name mistake, not a permissions or logic problem. This
-file is the element inventory and the error-to-cause map.
+Change Data Capture and durable subscriptions are configured entirely through metadata; almost every
+failure is a naming or element-name mistake, not a permissions or logic problem.
 
-Both types have a floor of API 60.0, so nothing here is gated above our target.
+Both types have a floor of API 60.0.
 
 ## Enabling CDC on an entity
 
 ### The only two valid types
 
 `PlatformEventChannelMember` (one per subscribed entity) and `PlatformEventChannel` (custom channels
-only). Nothing else exists: there is no `ChangeDataCapture` metadata
-type, no `.changeDataCapture-meta.xml`, no `changeDataCapture/` source directory, no
-`EnableChangeDataCapture`. `ManagedEventSubscription` is a real type but a different feature — see
-below.
+only). There is no `EnableChangeDataCapture` type either. `ManagedEventSubscription` is a real type
+but a different feature — see below.
 
 ```xml
 <!-- force-app/main/default/platformEventChannelMembers/Order_ChangeEvent.platformEventChannelMember-meta.xml -->
@@ -26,16 +23,10 @@ below.
 
 ### The underscore rule
 
-The two names disagree, and both are correct:
-
 | Source object | `<selectedEntity>` | Filename |
 |---|---|---|
 | `Account` | `AccountChangeEvent` | `AccountChangeEvent.platformEventChannelMember-meta.xml` |
 | `Order__c` | `Order__ChangeEvent` (double) | `Order_ChangeEvent…` (**single**) |
-
-A double-underscore filename is parsed as `<namespace>__<name>` and rejected with "Cannot create a
-new component with the namespace: Order". Passing the plain source object in `<selectedEntity>`
-fails with "references an invalid event in the selectedEntity field".
 
 ### The element inventory
 
@@ -58,8 +49,6 @@ DeveloperName is CamelCase plus the literal suffix **`__chn`** — "Partner Sync
 `PartnerSync__chn`, filed as `PartnerSync__chn.platformEventChannel-meta.xml`. The XML **must**
 carry `<channelType>data</channelType>` or the channel is rejected for CDC use.
 
-Never author a channel file for the default `ChangeEvents` channel; it is system-provided.
-
 ### Enrichment fields
 
 `<enrichedFields>` adds fields to every change event for the entity, changed or not — how a
@@ -70,21 +59,17 @@ They must be **single-hop API names on the source entity**: `OwnerId`, `ParentId
 `Parent.Account.Industry` are rejected with "The selected field, X.Y, isn't valid".
 
 Compound fields use the **flat** name here (`BillingCity`), the opposite of the filter expression
-below. That inversion is not a typo in either place.
+below.
 
 ### Filter expressions
 
 `<filterExpression>` is a `WHERE` clause **body with the `WHERE` keyword omitted** — including it
 gives "unexpected token: 'WHERE'".
 
-Constraints:
-
 - No `IsDeleted`.
 - No relationship traversal.
-- **The right-hand side must be a literal.** `BillingCity = ShippingCity` is invalid; you cannot
-  compare two fields.
-- **DateTime fields support only `=` and `!=`.** Use a named date literal —
-  `LastModifiedDate = TODAY` — rather than reaching for `<` or `>`.
+- **The right-hand side must be a literal.** `BillingCity = ShippingCity` is invalid.
+- **DateTime fields support only `=` and `!=`.** Use a named date literal: `LastModifiedDate = TODAY`.
 - Compound fields use the **dotted** form: `BillingAddress.City = 'X'`. The flat `BillingCity` is
   rejected. This is the inverse of `<enrichedFields>`.
 
@@ -96,9 +81,6 @@ Constraints:
   transaction, or sequence them.
 
 ## Durable subscriptions — `ManagedEventSubscription`
-
-The platform's answer to "store the last processed replay id and resume from it": the subscription
-records the position, so the consumer no longer owns that state.
 
 ```xml
 <!-- force-app/main/default/managedEventSubscriptions/OrderSync.managedEventSubscription-meta.xml -->
@@ -115,8 +97,7 @@ records the position, so the consumer no longer owns that state.
 **All six elements are required** — omitting any one fails the deploy. Do not include
 `<namespacePrefix>`, `<id>` or `<createdDate>`; they are read-only.
 
-**`eventChannel` and `isActive`** do not exist here; the correct names are `topicName` and
-`state`.
+**`eventChannel` and `isActive`** do not exist here; use `topicName` and `state`.
 
 ### Values
 
@@ -138,13 +119,12 @@ The prefix is mandatory — omitting it gives "The topicName field is invalid":
 
 **`topicName` is immutable after creation.** Changing it means deleting and recreating the
 subscription, which discards the stored replay position, so the replacement starts from
-`defaultReplay`. Plan for that before a rename.
+`defaultReplay`.
 
 ### Consuming it
 
-The Pub/Sub API subscribes through the **`ManagedSubscribe`** RPC rather than `Subscribe`,
-identifying the subscription by `DeveloperName` or record Id. See `references/pubsub-api.md` for the
-surrounding flow.
+`ManagedSubscribe` identifies the subscription by `DeveloperName` or record Id. Surrounding flow:
+`references/pubsub-api.md`.
 
 ### Operational facts before the first run
 

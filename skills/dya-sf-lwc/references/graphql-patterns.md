@@ -1,8 +1,8 @@
 # GraphQL Wire Adapter — Reference (Winter '27 / API v68.0)
 
-Full implementations of the GraphQL patterns from SKILL.md §4. Load when writing a GraphQL-backed component or refactoring an Apex-backed one.
+Implementations of the GraphQL patterns from SKILL.md §4. Load when writing a GraphQL-backed component or refactoring an Apex-backed one.
 
-Use `lightning/graphql` (v2), never the deprecated `lightning/uiGraphQLApi` (v1). The v2 adapter returns `errors` (plural), not `error` like the other wire adapters.
+The v2 adapter returns `errors` (plural), not `error` like the other wire adapters.
 
 ## Basic Query
 
@@ -47,8 +47,6 @@ export default class AccountList extends LightningElement {
 
 ## Query With Reactive Variables
 
-Use `variables` with a getter for reactivity — never hardcode dynamic values in the query string.
-
 ```javascript
 import { LightningElement, wire } from 'lwc';
 import { gql, graphql } from 'lightning/graphql';
@@ -92,8 +90,6 @@ export default class FilteredAccounts extends LightningElement {
 ```
 
 ## Cursor-Based Pagination
-
-Default page size is 10. Set it with `first`; paginate forward with `after` and `endCursor`.
 
 ```javascript
 get variables() {
@@ -156,14 +152,12 @@ export default class CreateAccount extends LightningElement {
 }
 ```
 
-Two shapes are easy to get wrong, and fail differently:
-
 - The mutation payload field is **`Record`**, capitalised. Lowercase `record` does not exist in the
   schema, so the query is rejected rather than returning null. Selecting it needs API 64.0 or above,
   below our floor.
 - **`executeMutation` takes the document first and options second** — `executeMutation(document,
   { variables })`. A single `{ query, variables }` object leaves the document undefined and the call
-  fails with nothing useful to read.
+  fails without a useful error.
 
 Update (`<Object>Update`) and Delete (`<Object>Delete`) take the same shape, with two restrictions:
 `Create` and `Update` payloads must not select child relationships and may reach a `REFERENCE` field
@@ -174,8 +168,7 @@ in the payload's `errors` array instead of failing the request.
 
 **Operators:** `eq`, `ne`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `like`, `contains`.
 
-**Semi-join and anti-join** — filter a parent by a condition on its children, otherwise a common
-reason to fall back to Apex:
+**Semi-join and anti-join** filter a parent by a condition on its children:
 
 ```graphql
 Account(where: {
@@ -197,8 +190,7 @@ is null only the raw `Id` can be returned.
 ### Discovering the schema
 
 There is **no `/graphql/sdl` route**. Introspect through `/services/data/vXX.X/graphql` with a
-standard GraphQL introspection query. The SDL runs past 265,000 lines, so grep it rather than read
-it:
+standard GraphQL introspection query. The SDL runs past 265,000 lines, so grep it:
 
 ```text
 ^type <Object> implements Record
@@ -216,7 +208,7 @@ it:
 
 ## Multi-Object Query in One Call
 
-Multiple queries can run in one operation. Alias an object queried twice.
+Alias an object queried twice.
 
 ```javascript
 get accountsAndContactsQuery() {
@@ -237,7 +229,7 @@ get accountsAndContactsQuery() {
 }
 ```
 
-Dependent queries (B needs A's result) require separate calls — the second `@wire` reacts to the first's result via a getter.
+For dependent queries, the second `@wire` reacts to the first's result via a getter.
 
 ## Chained Mutations
 
@@ -261,8 +253,6 @@ const mutation = gql`
     }
 `;
 ```
-
-Three constraints:
 
 - **The producing mutation must appear first** in the document. Order, not alias name, is the
   dependency.

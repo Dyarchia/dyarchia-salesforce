@@ -1,12 +1,10 @@
 # Jest Testing for LWC — Reference (Winter '27 / API v68.0)
 
-Full implementations of the LWC Jest testing patterns from SKILL.md §10. Load when writing or refactoring Jest tests for a Lightning web component.
+Implementations of the LWC Jest testing patterns from SKILL.md §10. Load when writing or refactoring Jest tests for a Lightning web component.
 
-`@salesforce/sfdx-lwc-jest` is the **only** test runner Salesforce supports for LWC. It runs Jest over the components with `jsdom` — no browser, org or network. The package has its own release cadence, independent of the Salesforce release — check the installed major version and match it with an active Node LTS. These are unit tests of one component's rendered output and behaviour, not end-to-end tests.
+`@salesforce/sfdx-lwc-jest` runs Jest with `jsdom`: no browser, org or network. The package has its own release cadence, independent of the Salesforce release; match its installed major version with an active Node LTS. These are unit tests of one component, not end-to-end tests.
 
 ## Install & npm Scripts
-
-Install once per Salesforce DX project — via the CLI helper or as a dev dependency.
 
 ```bash
 # Recommended: installs the package and seeds the package.json scripts
@@ -56,7 +54,7 @@ module.exports = {
 };
 ```
 
-`jestConfig` stubs base `lightning/*` components and the standard LDS / GraphQL adapters automatically — map only modules with no built-in stub.
+`jestConfig` stubs base `lightning/*` components and the standard LDS / GraphQL adapters; map only modules with no built-in stub.
 
 ## Test File Layout
 
@@ -110,11 +108,10 @@ describe('c-hello-world', () => {
 
 ### The async-render rule
 
-Re-rendering after a property change, wire emit or resolved promise is **asynchronous**. Always `await flushPromises()` (equivalently `await Promise.resolve()`) between act and assert. Returning a `.then()` chain also works, but `async/await` reads cleaner and is the project default. For chained updates (promise → state → render) await once per microtask boundary.
+`await flushPromises()` (equivalently `await Promise.resolve()`) between act and assert. A returned `.then()` chain also works, but `async/await` is the project default. For chained updates (promise → state → render), await once per microtask boundary.
 
 ## Querying & Interacting With the Shadow DOM
 
-- Query **only** through `element.shadowRoot.querySelector(...)` / `querySelectorAll(...)` — never `document.querySelector`.
 - Drive interactions by dispatching real DOM events on the queried node, then await a render.
 
 ```javascript
@@ -314,8 +311,7 @@ it('fires a success toast after save', async () => {
 
 ## Accessibility Tests with Sa11y
 
-`@sa11y/jest` runs axe assertions inside the Jest suite, so accessibility regressions fail the build
-instead of waiting for a manual audit.
+`@sa11y/jest` runs axe assertions inside the Jest suite, so accessibility regressions fail the build.
 
 ```bash
 npm install --save-dev @sa11y/jest
@@ -333,7 +329,7 @@ internal Bazel builds and do nothing in a DX project. Exit codes are Jest's usua
 ## Coverage & CI
 
 - `npm run test:unit:coverage` writes an Istanbul report; gate the build with `coverageThreshold` in `jest.config.js`.
-- Test behaviour through rendered output and emitted events, not private implementation details — refactors should not break passing tests.
+- Test rendered output and emitted events, not private details, so refactors do not break passing tests.
 - Keep each `it` focused on one observable behaviour; one `expect` per concept reads best.
 
 ## Anti-Patterns

@@ -2,19 +2,14 @@
 
 Load from `dya-sf-lwc` when writing a component that reads or writes records without Apex.
 
-## What LDS actually is
+## What LDS is
 
-**Lightning Data Service** is a client-side layer that reads and writes Salesforce records through the
-**UI API** and keeps a shared browser cache. Two components asking for the same record get one network
-request and one cached copy, and both re-render when it changes. Hence the skill's first rule, avoid
-Apex: an `@AuraEnabled` controller bypasses that cache, costing a round trip every time and updating
-nothing else on the page.
+**Lightning Data Service** is a client-side layer over the **UI API** with a shared browser cache
+(SKILL.md §3). An `@AuraEnabled` controller bypasses that cache, costing a round trip every time and
+updating nothing else on the page.
 
 **UI API** is the REST API behind it, returning record data *plus* the metadata and layout information
-a UI needs, with field-level security applied. Its one significant limitation is coverage: it supports
-most standard and custom objects but **not all**, and an unsupported object is unreachable by any LDS
-adapter, `lightning-record-form` or GraphQL. Check the *UI API Developer Guide* object list before
-designing around it — an unsupported object is the most common legitimate reason to fall back to Apex.
+a UI needs, with field-level security applied. It does not support every object; see SKILL.md §1.
 
 A **wire adapter** is a function attached to a component property with `@wire`. The framework calls
 it, hands back `{ data, error }`, and calls it again whenever a reactive input changes. You never
@@ -42,14 +37,7 @@ export default class AccountDetail extends LightningElement {
 }
 ```
 
-**The `$` prefix is the most common LWC mistake.** `'$recordId'` — a string, with a dollar sign —
-means "the value of `this.recordId`; re-run this wire whenever it changes". `recordId: this.recordId`
-passes the value *once*, at construction, usually while still `undefined`; the wire never re-fires and
-the component renders empty forever. If a wire seems never to run, check this first.
-
-Importing fields from `@salesforce/schema/...` instead of the string `'Account.Name'` makes the
-reference break at compile time if the field is renamed or deleted, not silently at run time in
-production.
+If a wire seems never to run, check the `$` prefix first (SKILL.md §3).
 
 ## Reading a related list
 
@@ -89,13 +77,10 @@ async handleCreate() {
 ## Object metadata and picklists
 
 `getObjectInfo` and `getPicklistValues` from `lightning/uiObjectInfoApi` return object metadata and
-record-type-aware picklist values. Picklist values derived by hand or hardcoded in JavaScript are
-guaranteed to drift from the org.
+record-type-aware picklist values. Picklist values derived by hand or hardcoded in JavaScript drift
+from the org.
 
 ## The full adapter directory
-
-Four modules. Reaching for Apex or GraphQL without knowing an adapter existed is the most common way
-a component ends up heavier than needed.
 
 | Module | Adapters |
 |---|---|
@@ -106,13 +91,10 @@ a component ends up heavier than needed.
 
 ### `optionalFields` versus `fields`
 
-The most common cause of a `getRecord` wire erroring in a multi-profile org:
-
 - A field the user cannot access, listed in **`fields`**, makes the whole wire **error**.
 - The same field in **`optionalFields`** is silently omitted from the result.
 
-Put any field the running user might lack FLS on into `optionalFields` and handle its absence, or
-the component breaks for one profile while working for yours.
+Put any field the running user might lack FLS on into `optionalFields` and handle its absence.
 
 ### List views
 
@@ -143,8 +125,8 @@ await updateRecord(
 
 `ifUnmodifiedSince` turns a silent last-write-wins into a detectable conflict. The `recordInput`
 also accepts `triggerOtherEmail`, `triggerUserEmail`, `useDefaultRule` (case and lead assignment
-rules) and `allowSaveOnDuplicate` — all defaulting to `false`, which is why assignment rules seem not
-to fire from an LWC until requested.
+rules) and `allowSaveOnDuplicate` — all default to `false`, so assignment rules do not fire from an
+LWC unless requested.
 
 ## Telling the cache something changed
 
@@ -154,15 +136,12 @@ import { notifyRecordUpdateAvailable } from 'lightning/uiRecordApi';
 await notifyRecordUpdateAvailable([{ recordId: this.recordId }]);
 ```
 
-Call it after something outside LDS changed a record — an Apex callout, an imperative Apex write —
-so the cache refreshes and every component bound to that record re-renders. Do not use the deprecated
-predecessor, `getRecordNotifyChange`.
+Every component bound to the record then re-renders.
 
 ## Refreshing a wired Apex method — a different mechanism
 
-`notifyRecordUpdateAvailable` refreshes the **LDS** cache. A component reading through `@wire` on an
-Apex method bypasses LDS, so that call does nothing and stale data stays on screen with no error. Use
-`refreshApex`, which needs the **raw wire result** — keep it instead of destructuring:
+A wired Apex method bypasses LDS, so `notifyRecordUpdateAvailable` does nothing and stale data stays
+on screen with no error. `refreshApex` needs the **raw wire result**:
 
 ```javascript
 import { refreshApex } from '@salesforce/apex';
@@ -183,8 +162,6 @@ export default class ContactList extends LightningElement {
 }
 ```
 
-Which one to reach for:
-
 | The component reads via | Something changed the record through | Refresh with |
 |---|---|---|
 | LDS (`getRecord`, `getRelatedListRecords`, base components) | LDS imperative (`updateRecord`) | nothing — LDS updates itself |
@@ -193,7 +170,7 @@ Which one to reach for:
 | **Imperative** Apex | anything | call the method again — there is no wire to refresh |
 | `lightning-record-form` / `-edit-form` / `-view-form` | its own save | nothing — it refreshes itself |
 
-## Handling errors from three different shapes
+## Normalising error shapes
 
 ```javascript
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -209,8 +186,8 @@ showError(error) {
 ```
 
 LDS, GraphQL (`errors`, plural) and `AuraHandledException` each return a different error shape.
-`reduceErrors` from the standard `ldsUtils` community utility normalises all three. A hand-rolled one
-handles only the shape you happened to test.
+`reduceErrors` from the standard `ldsUtils` community utility normalises all three. A hand-rolled formatter
+usually handles only the shape you tested.
 
 ## Anti-Patterns
 

@@ -1,14 +1,12 @@
 # Shared State Across Components — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementation of the shared-state patterns from SKILL.md §5. Two GA mechanisms with different jobs: **`@lwc/state`** for same-page shared **reactive** state, and **Lightning Message Service (LMS)** for broadcast across the DOM, pages, apps or technologies (LWC / Aura / Visualforce).
-
-Load when designing data flow across multiple LWC components on the same page or app.
+Implementation of the shared-state patterns from SKILL.md §5: **`@lwc/state`** and **Lightning Message Service (LMS)**. Load when designing data flow across LWC components on the same page or app.
 
 ## `@lwc/state` — Same-Page Shared Reactive State (GA)
 
-Prefer `@lwc/state` for siblings or decoupled components on the **same page** sharing reactive state (UI selections, multi-step form values, derived totals). It moves the state and its logic into a reusable, testable module, so you neither prop-drill nor lift state into a common parent.
+Typical state: UI selections, multi-step form values, derived totals.
 
-Define the manager with `defineState` and the `atom` / `computed` / `setAtom` primitives. `atom` holds a reactive value, `computed` derives from atoms and recomputes automatically, and `setAtom` is the only way to mutate an atom. The callback returns the public surface, which consumers reach through the instance's `.value`.
+Define the manager with `defineState` and the `atom` / `computed` / `setAtom` primitives. `atom` holds a reactive value, `computed` derives from atoms and recomputes, and `setAtom` is the only way to mutate an atom. The callback returns the public surface, which consumers reach through the instance's `.value`.
 
 ```javascript
 // selectionState.js
@@ -47,26 +45,25 @@ export default class ResultsGrid extends LightningElement {
 
 ### Built-in Lightning State Managers
 
-For record-backed shared state, Salesforce ships built-in managers wrapping Lightning Data Service — records, object info, layouts and related lists. For record data, use a built-in manager (or a GraphQL wire) before writing your own.
+Built-in managers wrap Lightning Data Service for records, object info, layouts and related lists. For record data, use one (or a GraphQL wire) before writing your own.
 
 ### Rules
 
 - One manager module per logical concern; import the same module from every component that shares it.
 - Mutate only through actions that call `setAtom` — never reassign atoms directly from a consumer.
 - Derive with `computed`; do not duplicate derived values as separate atoms.
-- `@lwc/state` is same-page client state — it does not cross the DOM, pages or technologies. For that, use LMS.
 
 ## When to Use LMS
 
-Use LMS when **two or more components share or react to the same data** outside a simple parent → child relationship. Examples: a product list and a cart summary on the same page, a filter panel driving a results grid in another component, an Aura component reacting to an event an LWC published.
+Use LMS when **two or more components react to the same data** outside a parent → child relationship, for example a product list and a cart summary on the same page, a filter panel driving a results grid in another component, an Aura component reacting to an event an LWC published.
 
 Do NOT use LMS for:
-- Local component state (a JS property — primitives are reactive by default).
+- Local component state (a plain property).
 - Single parent → child data flow (`@api` properties).
-- Child → parent notification (a bubbling `CustomEvent` is simpler and more contained).
-- Salesforce record data LDS or GraphQL already updates (let the wire adapter own it).
+- Child → parent notification (a bubbling `CustomEvent`).
+- Salesforce record data LDS or GraphQL already updates .
 
-LMS publishes across the whole application context, so prefer scoped events (`CustomEvent`) for local relationships — overusing LMS makes data flow hard to trace.
+LMS publishes across the whole application context; overusing it makes data flow hard to trace.
 
 ## Define a Message Channel
 
@@ -178,12 +175,12 @@ export default class CartSummary extends LightningElement {
 
 ## Architectural Rules
 
-- Always `unsubscribe` in `disconnectedCallback` — orphaned subscriptions leak and cause duplicate handling.
+- `unsubscribe` in `disconnectedCallback`; orphaned subscriptions leak and cause duplicate handling.
 - Guard against double-subscription in `connectedCallback` (the early-return pattern above).
 - Keep message payloads small and serialisable — primitives and plain objects, never component instances or DOM nodes.
 - Treat received data immutably: build a new array/object (`[...items, message]`) so reactivity fires.
 - One channel per logical concern; don't multiplex unrelated events through a single channel.
-- LMS bridges LWC, Aura and Visualforce — any of them can publish/subscribe on the same channel.
+- LWC, Aura and Visualforce can all publish and subscribe on the same channel.
 
 ## Anti-Patterns
 
@@ -197,11 +194,6 @@ export default class CartSummary extends LightningElement {
 | Using LMS to mirror Salesforce records | Let LDS / GraphQL own that data |
 | LMS (or prop drilling) for same-page reactive state | `@lwc/state` (GA) |
 
-## `@lwc/state` vs LMS — Decision
-
-- Same-page shared **reactive** state (UI selections, form values, derived totals) → `@lwc/state`.
-- Record-backed shared state → a built-in Lightning State Manager or a GraphQL wire.
-- Broadcast across the DOM, pages, apps or technologies (LWC / Aura / Visualforce) → LMS.
-- Direct parent ↔ child → `@api` props and `CustomEvent`, neither of the above.
+## Migration
 
 When migrating an older codebase, move same-page LMS channels and prop drilling to `@lwc/state` concern by concern; keep LMS only where communication crosses a boundary `@lwc/state` cannot.

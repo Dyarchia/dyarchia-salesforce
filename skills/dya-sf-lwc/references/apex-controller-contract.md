@@ -6,7 +6,7 @@ Selector / Domain layering, the trigger framework, async patterns, observability
 
 ## SOQL — `WITH USER_MODE`
 
-In API 67+, `WITH SECURITY_ENFORCED` is **removed** and no longer compiles. `WITH USER_MODE`
+From API 67.0, `WITH SECURITY_ENFORCED` no longer compiles. `WITH USER_MODE`
 (available since API v60.0) enforces object permissions, FLS and sharing, applies to the full query
 rather than just the `SELECT` clause, handles polymorphic fields, and returns every access error.
 
@@ -40,14 +40,12 @@ public with sharing class AccountController {
 }
 ```
 
-The comment above the method justifies using Apex at all — if you cannot write that sentence, the
-work belongs in LDS, GraphQL or Flow. The method body is one line: the controller is a boundary, not
-a place for business logic.
+The comment above the method justifies using Apex; if you cannot write that sentence, the work
+belongs in LDS, GraphQL or Flow. The method body is one line: the controller is a boundary.
 
-In API 67+, an `@AuraEnabled` class with no sharing keyword defaults to `with sharing`, and SOQL and
-DML run in user mode. Declare both anyway, so enforcement is intentional and does not silently change
-if the class is later touched on a legacy API version. Use `?.` and `??` for null handling. Throw
-`AuraHandledException` on failure so the LWC receives a clean message.
+From API 67.0, an `@AuraEnabled` class with no sharing keyword defaults to `with sharing`, and SOQL
+and DML run in user mode. Declare both anyway, so enforcement does not change silently if the class
+is later saved on an older API version. Use `?.` and `??` for null handling.
 
 ## Calling It From LWC
 
@@ -68,9 +66,3 @@ connectedCallback() {
     getSummaries({ accountIds: this.ids }).then(r => this.data = r);
 }
 ```
-
-The `$` prefix in `'$selectedIds'` makes the wire reactive: the method re-runs whenever the property
-changes. An imperative call in `connectedCallback` loses both the LDS cache and that re-fetch.
-
-`@AuraEnabled(cacheable=true)` reads are served from the Lightning Data Service cache after the first
-call. Cacheable methods cannot perform DML and must be `static`.

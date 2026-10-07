@@ -22,19 +22,16 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 changes little here directly, but changes the surrounding surface: **agents now discover
-external tools through governed MCP connections**, making an event-driven backbone the natural way to
-feed them without polling. See `dya-sf-integration-connectors-mcp`.
+Winter '27 changes little here directly. **Agents now discover external tools through governed MCP
+connections**; an event-driven backbone feeds them without polling. See
+`dya-sf-integration-connectors-mcp`.
 
-Standing facts that decide designs here:
+Standing facts:
 
 - **The Pub/Sub API (gRPC over HTTP/2) is the single strategic interface** for external systems to
   publish and subscribe to Platform Events, Change Data Capture and Real-Time Event Monitoring. Use
   it over the legacy CometD Streaming API in every new build.
-- **PushTopic and Generic Streaming are legacy** — no longer enhanced, limited support. Migrate
-  PushTopic to CDC and Generic Streaming to Platform Events.
-- **Events are retained 72 hours** on the event bus. A subscriber replays from a stored replay id
-  within that window only; beyond it, only a reconciliation batch recovers the gap.
+- **Events are retained 72 hours** on the event bus; replay works only within that window.
 - **From API 67.0** publish and subscribe code defaults to `with sharing` and `USER_MODE`. CDC and
   Platform Event Apex triggers run in **system mode**, like every trigger, so they see records the
   subscribing user could not.
@@ -49,9 +46,6 @@ Standing facts that decide designs here:
 | **Change Data Capture (CDC)** | Salesforce, automatically on record change | Mirrors the object + change header | Propagate create/update/delete/undelete to external systems |
 | **Real-Time Event Monitoring** | Salesforce, on security/audit events | Salesforce-defined | Security/audit streaming |
 
-**CDC** reacts to *record changes* you never had to instrument. **Platform Events** publish a
-*business fact* whose shape you control.
-
 ---
 
 ## 2. Pub/Sub API — the External Interface
@@ -60,11 +54,9 @@ A **gRPC/HTTP-2** service with Avro-encoded binary payloads, available in many l
 **bidirectional streaming** and **pull-based flow control**: the subscriber requests N events at a
 time, at most 100 per fetch.
 
-- **One interface for all three event types** — Platform Events, CDC and RTEM.
-- **Replay:** events live on the bus for **72 hours**; resubscribe from `LATEST`, `EARLIEST` or a
-  specific **replay id** to recover missed events.
+- **Replay:** resubscribe from `LATEST`, `EARLIEST` or a specific **replay id** to recover missed
+  events.
 - **Efficient:** Avro binary plus flow control make it far lighter than the CometD Streaming API.
-  Prefer it for every new external subscriber or publisher.
 
 Subscribe/publish flow and replay handling: `references/pubsub-api.md`.
 
@@ -81,8 +73,8 @@ EventBus.publish(new Order_Placed__e(Order_Id__c = ordId, Amount__c = amt));
 ```
 
 - **Publish behaviour:** *Publish Immediately* fires even if the transaction rolls back; *Publish
-  After Commit* fires only on commit. Choose deliberately.
-- **Fire-and-forget decoupling:** the publisher neither knows nor waits for subscribers — ideal for
+  After Commit* fires only on commit.
+- **Fire-and-forget decoupling:** the publisher neither knows nor waits for subscribers, as in
   "order placed → tell N systems".
 - **High volume:** built for throughput; pair with Pub/Sub for external consumers.
 
@@ -99,14 +91,13 @@ is created, updated, deleted or undeleted.
   an **Apex CDC trigger**.
 - The payload carries a **change event header** — change type, changed fields, record ids — plus the
   changed field values.
-- Use it to keep an external store in sync with Salesforce without polling.
 
 **Enabling it is `PlatformEventChannelMember`, and nothing else.** There is no `ChangeDataCapture`
 metadata type, no `.changeDataCapture-meta.xml`, no `changeDataCapture/` directory — a file by that
 name fails the deploy with "Could not infer a metadata type". One member per subscribed entity; a
 `PlatformEventChannel` alongside it only when the channel is custom.
 
-Two naming rules trip up every first attempt, and disagree on purpose:
+Two naming rules disagree on purpose:
 
 - **`<selectedEntity>` is the ChangeEvent type, not the source object.** `Account` becomes
   `AccountChangeEvent`; `Order__c` becomes **`Order__ChangeEvent`**, keeping the double underscore.
@@ -129,17 +120,15 @@ The default channel value is exactly **`ChangeEvents`** — not `data/ChangeEven
 
 | Legacy | Status | Migrate to |
 |---|---|---|
-| **PushTopic events** | Legacy, not enhanced | Change Data Capture |
-| **Generic Streaming** | Legacy, not enhanced | Platform Events |
+| **PushTopic events** | Legacy, not enhanced, limited support | Change Data Capture |
+| **Generic Streaming** | Legacy, not enhanced, limited support | Platform Events |
 | **CometD Streaming API** | Superseded for external subscribers | Pub/Sub API |
 
-Where an org has these, plan the migration. Never start new work on them.
+Where an org has these, plan the migration.
 
 ---
 
 ## 6. Webhook Patterns (Salesforce has no native outbound webhooks)
-
-"Call a URL when something happens" is composed from existing primitives:
 
 | Pattern | How | When |
 |---|---|---|
@@ -148,8 +137,7 @@ Where an org has these, plan the migration. Never start new work on them.
 | **Platform Event → external subscriber** | Publish PE; external app subscribes via Pub/Sub | Decoupled, durable, many consumers |
 | **Outbound Message** | Workflow-based SOAP push | Legacy only |
 
-Prefer **Platform Event → Pub/Sub** for durable, multi-consumer, decoupled webhooks; Flow HTTP
-Callout for the simple single target. Outbound paths: `dya-sf-integration-outbound`.
+Outbound paths: `dya-sf-integration-outbound`.
 
 ---
 
@@ -158,8 +146,7 @@ Callout for the simple single target. Outbound paths: `dya-sf-integration-outbou
 - **At-least-once delivery.** Consumers may see an event more than once, so every handler is
   **idempotent** — dedupe on a business key or the replay id.
 - **72 h retention.** Store the last processed replay id and resume from it; design a
-  reconciliation batch for gaps beyond the window. **Or do not hand-roll it:** a
-  `ManagedEventSubscription` makes the platform track the replay position, consumed through the
+  reconciliation batch for gaps beyond the window. Alternatively, a `ManagedEventSubscription` makes the platform track the replay position, consumed through the
   Pub/Sub **`ManagedSubscribe`** RPC instead of `Subscribe`. That is the default for a long-lived
   in-platform consumer; keep manual replay bookkeeping for an external subscriber with durable state
   of its own.

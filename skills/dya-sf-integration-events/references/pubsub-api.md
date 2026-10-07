@@ -1,12 +1,10 @@
 # Pub/Sub API — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-events` when an external system must publish or subscribe to Salesforce events. The Pub/Sub API is the strategic gRPC interface for Platform Events, Change Data Capture, and Real-Time Event Monitoring.
+Load from `dya-sf-integration-events`.
 
-## Why Pub/Sub API
+## Flow Control and Clients
 
-- **gRPC / HTTP-2**, **Avro** binary payloads — compact and fast versus the legacy CometD Streaming API.
-- **One interface** for Platform Events, CDC, and RTEM.
-- **Bidirectional streaming** with **pull-based flow control**: the subscriber requests a number of events (`num_requested`, **max 100 per fetch**) and the server delivers up to that many, so the client is never flooded.
+- **Pull-based flow control**: the subscriber requests `num_requested` events (**max 100 per fetch**) and the server delivers up to that many, so the client is never flooded.
 - Client libraries across ~11 languages; generate stubs from the published `.proto`.
 
 ## Core RPCs
@@ -32,8 +30,8 @@ Load from `dya-sf-integration-events` when an external system must publish or su
 
 ## Replay & Recovery
 
-- Events are retained **72 hours**. Store the **last successfully processed replay id**; on reconnect, resume with `CUSTOM` from that id to avoid gaps and duplicates-beyond-necessary.
-- Beyond 72 h (or first-time backfill), you cannot replay from the bus — run a **reconciliation** (Bulk API query / CDC gap-fill) to resync.
+- On reconnect, resume with `CUSTOM` from the **last successfully processed replay id**.
+- Beyond 72 h, or for a first-time backfill, run a **reconciliation** (Bulk API query or CDC gap-fill).
 
 ### Or let the platform hold the position
 
@@ -45,15 +43,7 @@ Prefer it for a long-lived subscriber. Keep `Subscribe` with manual replay bookk
 consumer already has durable state and wants the position committed in the same transaction as the
 work.
 
-Two operational facts that look like bugs:
-
-- A create, update or delete of the subscription can take **around two minutes** to reach the
-  Pub/Sub API. `NOT_FOUND` straight after a deploy means wait and retry.
-- A subscription whose `defaultReplay` is `EARLIEST` replays **up to the full 72-hour window** on
-  activation. On a busy channel that is three days of backlog arriving as fast as the consumer takes
-  it.
-
-Full element inventory and the `topicName` formats: `references/cdc-metadata.md`.
+Operational facts, element inventory and `topicName` formats: `references/cdc-metadata.md`.
 
 ## Publishing Platform Events via Pub/Sub
 
@@ -70,15 +60,9 @@ Full element inventory and the `topicName` formats: `references/cdc-metadata.md`
                                              +-- persist replay id
 ```
 
-The standard way to keep an external database/warehouse in near-real-time sync without polling.
-
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| CometD Streaming API for a new external subscriber | Pub/Sub API (gRPC) |
-| Not persisting the replay id | Store last processed replay id; resume on reconnect |
 | Requesting more than 100 events per fetch | `num_requested` ≤ 100; pull in a loop |
 | Ignoring Avro schema versioning | `GetSchema` by schema id; handle schema evolution |
-| Assuming no duplicates | Idempotent processing (at-least-once delivery) |
-| Relying on the bus for >72 h history | Reconcile via Bulk query / gap-fill |

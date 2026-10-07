@@ -1,10 +1,10 @@
 # OmniStudio — Integration Procedures & Data Mappers
 
-Load from `dya-sf-omnistudio`. Server-side orchestration (IPs), data shaping (Data Mappers), and invoking them from code. Standard (`omnistudio`) and Managed Package (`vlocity_*`) differ in namespace — confirm the org's flavor.
+Load from `dya-sf-omnistudio`.
 
 ## Integration Procedures (IPs)
 
-A declarative, **server-side** process running **multiple actions in a single server call** — the controller behind OmniScripts/FlexCards and a reusable orchestration unit. Build in the Integration Procedure Designer; reference by **Type_SubType**.
+Build in the Integration Procedure Designer; reference by **Type_SubType**.
 
 ### Common actions
 - **DataRaptor Extract / Load / Transform** — read/write/reshape Salesforce data.
@@ -22,11 +22,10 @@ A declarative, **server-side** process running **multiple actions in a single se
 ### Caching
 Mind the `VlocityMetadata` / API-response cache partitions for read-heavy IPs; activate/version IPs deliberately.
 
-## `PropertySetConfig` — What Each Element Is Actually Configured With
+## `PropertySetConfig` — Element Keys
 
-An Integration Procedure element is configured through a `PropertySetConfig` JSON block. What the
-skill body calls "map the response node" is one of these keys; knowing them lets you read or
-generate an IP rather than click one.
+An IP element is configured through a `PropertySetConfig` JSON block; knowing its keys lets you read
+or generate an IP rather than click one.
 
 | Element | Keys |
 |---|---|
@@ -36,23 +35,22 @@ generate an IP rather than click one.
 
 ### Reading another element's output
 
-**Merge syntax is `%ElementName:fieldName%`** — the mechanism behind passing data between steps:
+**Merge syntax `%ElementName:fieldName%`** passes data between steps:
 
 ```json
 { "AccountId": "%GetAccountDetails:Id%" }
 ```
 
-Each element's output is stored in the IP response **under the element's own name** —
-`{"GetAccountDetails": { … }}` — which is why `responseJSONNode` exists and why renaming an element
-breaks every downstream reference to it.
+Each element's output is stored in the IP response **under the element's own name**
+(`{"GetAccountDetails": { … }}`), so renaming an element breaks every downstream reference to it.
 
 `sendOnlyAdditionalInput: true` suppresses the accumulated data context and sends only what
-`additionalInput` declares. Use it when an element should not see upstream data — a payload-size and
-a least-privilege decision.
+`additionalInput` declares. Use it when an element should not see upstream data, for payload size and
+least privilege.
 
 ### The two async flags
 
-- **`useQueueableApexRemoting`** runs the Remote Action as a Queueable. The IP continues and the
+- **`useQueueableApexRemoting`** runs the Remote Action as a Queueable; the IP continues and the
   result is available.
 - **`useFuture`** runs it as a `@future` method, which **returns no value**: the element cannot
   contribute to the response, and anything downstream reading its output gets nothing.
@@ -73,12 +71,10 @@ Map<String, Object> output = (Map<String, Object>) omnistudio.IntegrationProcedu
 // Managed Package equivalent: vlocity_cmt.IntegrationProcedureService.runIntegrationService(...)
 ```
 
-This reuses an IP's orchestration from server code. For long-running IPs, configure Chainable/Queueable Chainable and invoke accordingly.
-
 ## Invoking from LWC / REST
 
 - **LWC** — call an IP via the OmniStudio LWC APIs / wire, or through an `@AuraEnabled` Apex method that calls `runIntegrationService`.
-- **REST / Connect API** — expose an IP as an API-callable endpoint for external systems (a high-performance, declarative alternative to hand-written Apex REST for transformation/orchestration at scale). Authenticate with OAuth (`dya-sf-integration-auth`).
+- **REST / Connect API** — expose an IP as an API-callable endpoint for external systems (a declarative, high-performance alternative to hand-written Apex REST for orchestration at scale). Authenticate with OAuth (`dya-sf-integration-auth`).
 
 ## Data Mappers (DataRaptors)
 
@@ -89,7 +85,7 @@ This reuses an IP's orchestration from server code. For long-running IPs, config
 | **Load** | JSON → SF | Insert/update records (DML) |
 | **Turbo Extract** | SF → JSON | High-performance single-object read |
 
-Prefer Data Mappers for standard read/transform/write inside IPs; reserve Apex Remote Actions for logic they can't express. Keep mappings field-precise (don't over-extract).
+Keep mappings field-precise; do not over-extract.
 
 ## Choosing IP vs Apex vs Flow (orchestration)
 
@@ -103,8 +99,6 @@ Prefer Data Mappers for standard read/transform/write inside IPs; reserve Apex R
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Per-element server calls from an OmniScript | One IP bundling the actions |
-| Apex for standard read/transform/write | Data Mappers |
 | Over-extracting whole objects | Field-precise Data Mapper |
 | Ignoring non-blocking response mapping | Map Response JSON Node/Path |
 | Wrong namespace for `IntegrationProcedureService` | `omnistudio` (Standard) vs `vlocity_*` (Managed) |

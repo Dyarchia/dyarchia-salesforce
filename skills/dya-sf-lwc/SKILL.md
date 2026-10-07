@@ -34,14 +34,12 @@ Server-side Apex — security design, SOQL and DML, triggers, async, observabili
 Save new bundles at `<apiVersion>68.0</apiVersion>`. The version is per bundle and decides its
 semantics; see `references/shared/metadata-and-api-versions.md`.
 
-Four facts gate what compiles and deploys:
-
 - **Complex template expressions are GA, but need the bundle at `apiVersion` 66.0 or higher.** Below
-  that they do not compile — the version-stamp trap this skill exists to prevent.
-- **Dynamic Lists virtualization is Developer Preview**, unavailable in production. Proposed as the
-  default, it produces a component that cannot be deployed.
-- **Lightning Web Security blocks `data:` URIs** on `HTMLAnchorElement.href`. Client-side downloads
-  use `blob:` with an explicit MIME type. §8 and `references/lws-rules.md`.
+  that they do not compile.
+- **Dynamic Lists virtualization is Developer Preview**, unavailable in production, so a component
+  built on it cannot be deployed.
+- **Lightning Web Security blocks `data:` URIs** on `HTMLAnchorElement.href`. See §8 and
+  `references/lws-rules.md`.
 - **From API 67.0 an `@AuraEnabled` class defaults to `with sharing` and user mode**, and
   `WITH SECURITY_ENFORCED` no longer compiles. §7.
 
@@ -65,10 +63,9 @@ Evaluate in order; stop at the first option that satisfies the requirement:
 6. **Apex** — only when none of the above can express it: complex cross-object logic, callouts,
    platform events, async work, or an object the **UI API does not support**.
 
-That last exclusion decides real designs, so check it rather than guess: the UI API covers most
-standard and custom objects but not all, and an unsupported object is unreachable by *every* option
-above. The supported-object list is in the UI API Developer Guide. `references/lds-patterns.md`
-explains the UI API and how LDS sits on it.
+Check that last exclusion against the supported-object list in the UI API Developer Guide: the UI
+API covers most standard and custom objects but not all, and an unsupported object is unreachable by
+*every* option above.
 
 When falling back to Apex, add a class-level comment saying which client-side option failed and why.
 
@@ -89,20 +86,18 @@ anti-pattern.
 </template>
 ```
 
-**Template expressions are GA**, so a getter that only formats a value is unnecessary — provided the
-bundle is at `apiVersion` 66.0 or above.
+**Template expressions** replace a getter that only formats a value, at `apiVersion` 66.0 or higher.
 
 ```html
 <p>{firstName + ' ' + lastName}</p>
 <p>{user?.role === 'admin' ? 'Manager' : 'Member'}</p>
 ```
 
-Keep a getter when the logic is more than an expression, or worth naming. Fitting on one line alone
-is no reason to inline it.
+Keep a getter when the logic is more than an expression or worth naming, even if it fits on one line.
 
-**Dynamic event listeners** use `lwc:on` with an object mapping event name to handler. Listeners are
-rebound when the object reference changes and cleaned up on disconnect, so there is no
-`removeEventListener` to forget.
+**Dynamic event listeners** use `lwc:on` with an object mapping event name to handler. Listeners
+rebind when the object reference changes and are removed on disconnect, so no `removeEventListener`
+is needed.
 
 ```html
 <button lwc:on={buttonHandlers}>Click Me</button>
@@ -112,8 +107,8 @@ Keys are bare event names (`click`, not `onclick`). Combining `lwc:on` with an `
 attribute for the same event throws. With `lwc:component` and `lwc:is`, it also attaches listeners
 to a dynamically loaded child.
 
-**Third-party web components** use `lwc:external` on the tag. The only former option was an iframe,
-so third-party elements in older code are usually worth revisiting.
+**Third-party web components** use `lwc:external` on the tag. Older code hosting them in an iframe
+is worth revisiting.
 
 **Property spread** uses `lwc:spread={props}`. Reassign the object to trigger reactivity —
 `this.childProps = { ...this.childProps, name: 'Updated' }`. In-place mutation does not re-render.
@@ -128,21 +123,21 @@ others, with no JavaScript and no `lightning-accordion`.
 
 LDS reads and writes records through the UI API and keeps a **shared browser cache**: two components
 asking for the same record cost one request and both re-render when it changes. An Apex controller
-bypasses that cache entirely — the concrete reason section 1 puts Apex last.
+bypasses that cache, which is why section 1 puts Apex last.
 
 ```javascript
 @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
 account;
 ```
 
-`'$recordId'` — with the dollar sign — means "the current value of `this.recordId`; re-run when it
-changes". `recordId: this.recordId` passes the value once, usually while still `undefined`, and the
-wire never fires again — the most common reason a component renders empty forever.
+`'$recordId'` means "the current value of `this.recordId`; re-run when it changes".
+`recordId: this.recordId` passes the value once, usually while still `undefined`, and the wire never
+fires again, so the component renders empty.
 
 Import fields from `@salesforce/schema/...`, not `'Account.Name'`: a renamed field then breaks the
 build instead of failing silently in production.
 
-**Refreshing after a write has two answers; the wrong one fails silently.** When Apex or a callout
+**Refreshing after a write.** When Apex or a callout
 changed the record, call `notifyRecordUpdateAvailable([{ recordId }])` so the LDS cache re-fetches;
 `getRecordNotifyChange` is deprecated. When the component reads through a **wired Apex** method, that
 notification does nothing — the wire is not LDS. Use `refreshApex(this.wiredResult)` from
@@ -166,11 +161,9 @@ returns `errors` — plural.
 
 ## 5. Shared State Across Components
 
-Two GA mechanisms with different jobs.
-
 **`@lwc/state`** is for shared **reactive** state between components on the same page. A state manager
 moves the data and its logic into a reusable, testable module, so siblings coordinate without lifting
-state into a common parent or drilling props through uninterested layers. Built-in **Lightning State
+state to a common parent or drilling props. Built-in **Lightning State
 Managers** wrap LDS for record-backed state, so most cases need no hand-written manager.
 
 **Lightning Message Service** is pub/sub over a Lightning Message Channel, for relationships that
@@ -188,8 +181,7 @@ component broadcasting application-wide. Subscribe in `connectedCallback` and **
 | Across the DOM, pages or apps | Lightning Message Service |
 | LWC talking to Aura or Visualforce | Lightning Message Service |
 
-For directly related components, `@api` properties and events remain simplest — use a state manager
-when the relationship is genuinely lateral, not merely awkward.
+Use a state manager only when the relationship is lateral, not merely awkward.
 
 > Manager patterns, channel definition, scope options, Aura and Visualforce interop: `references/state-management.md`.
 
@@ -213,10 +205,10 @@ agent is `dya-sf-agentforce`.
 
 ## 7. The `@AuraEnabled` Contract
 
-The only server-side surface this skill owns. All other Apex is `dya-sf-apex`.
+The only server-side surface this skill owns.
 
-- Declare `with sharing` and query `WITH USER_MODE` explicitly. Both are the default from API 67.0,
-  but stating them keeps the intent readable and stable. `WITH SECURITY_ENFORCED` no longer compiles.
+- Declare `with sharing` and query `WITH USER_MODE` explicitly, although both are the default from
+  API 67.0; stating them keeps the intent readable and stable.
 - `cacheable=true` for reads — served from the LDS cache after the first call, cannot perform DML,
   must be `static`. No `cacheable` for writes.
 - Parameters and return values are primitives or `@AuraEnabled` DTO wrappers, never raw `SObject`.
@@ -235,8 +227,8 @@ the reactive re-fetch.
 Optional chaining and nullish coalescing. `async`/`await` over `.then()` chains, except inside `@wire`
 handlers, which are not async functions. Destructuring. `Array.prototype` methods over manual loops.
 
-**Downloads use `blob:`, never `data:`.** Lightning Web Security blocks `data:` URIs on
-`HTMLAnchorElement.href`, so the "set `href` to a data URI and click" trick fails silently.
+**Downloads use `blob:` with an explicit MIME type, never `data:`.** A `data:` URI set as `href` and
+clicked fails silently under Lightning Web Security.
 
 ```javascript
 downloadCsv(csv) {
@@ -281,7 +273,7 @@ keep one `jest.config.js` at the root, and put each test in a `__tests__` folder
   jsdom and mocks are shared within a file.
 - **Mock wires with `.emit()` and `.error()`** on the imported adapter. The `registerTestWireAdapter`
   family is legacy.
-- **Imperative Apex is mocked with `jest.mock`** on the `@salesforce/apex/...` module.
+- **Mock imperative Apex with `jest.mock`** on the `@salesforce/apex/...` module.
 - **Test behaviour, not internals.** Assert rendered output and dispatched events; never reach into
   private methods or snapshot whole trees.
 

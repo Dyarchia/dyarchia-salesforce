@@ -1,10 +1,10 @@
 # Platform Events & Change Data Capture — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-events` when defining/publishing Platform Events or wiring Change Data Capture. In-org Apex publish/subscribe depth is in `dya-sf-apex`.
+Load from `dya-sf-integration-events`. In-org Apex publish/subscribe depth is in `dya-sf-apex`.
 
 ## Platform Events
 
-A custom message with a schema you define (API name ends in `__e`). Define fields in Setup (or metadata); choose the **publish behaviour**.
+Define fields in Setup or metadata; the API name ends in `__e`.
 
 ### Publish (Apex)
 
@@ -19,7 +19,7 @@ for (Database.SaveResult sr : results) {
 }
 ```
 
-### Publish behaviour — choose deliberately
+### Publish behaviour
 
 | Behaviour | Fires when | Use |
 |---|---|---|
@@ -39,11 +39,9 @@ A Flow can publish a Platform Event with a Create Records-style element on the `
 
 ## Change Data Capture (CDC)
 
-Salesforce emits a change event, with no producer code, when a record on a **CDC-enabled** object is created, updated, deleted, or undeleted.
-
 - **Enable** per object in Setup (Change Data Capture) or via the standard channel; custom channels can group objects.
 - **Payload** = a **ChangeEventHeader** (`changeType`, `changedFields`, `recordIds`, `commitTimestamp`, …) plus the changed field values.
-- **Subscribe** externally via **Pub/Sub API** (the replication/ETL pattern) or in-org via an **Apex CDC trigger** on `XxxChangeEvent`.
+- **Subscribe** in-org via an **Apex CDC trigger** on `XxxChangeEvent`.
 
 ```apex
 trigger AccountCDCTrigger on AccountChangeEvent (after insert) {
@@ -55,31 +53,12 @@ trigger AccountCDCTrigger on AccountChangeEvent (after insert) {
 }
 ```
 
-Use CDC to keep an external store in sync **without polling**; use the changed-fields header to apply only deltas.
-
-## Delivery Semantics
-
-- **At-least-once** delivery — design idempotent consumers.
-- **72 h** retention on the bus; resume from a stored replay id.
-- **Order** preserved per channel in publish order; no cross-channel ordering guarantee.
-- **Allocations** apply to publishing and to CDC/PE delivery — high-volume designs budget them.
-
-## Choosing Platform Events vs CDC
-
-| Situation | Use |
-|---|---|
-| Broadcast a *business fact* with your own shape | Platform Event |
-| React to *record changes* you didn't instrument | Change Data Capture |
-| Notify many decoupled consumers | Platform Event |
-| External replica of Salesforce data | CDC over Pub/Sub |
+Apply only deltas, using the changed-fields header.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
 | Heavy logic inside a CDC/PE trigger | React lightly; offload to Queueable |
-| Publish Immediately when commit semantics were needed | Publish After Commit |
 | One Platform Event published per record in a loop | Bulk `EventBus.publish(List)` |
-| Non-idempotent subscriber | Dedupe on business key / replay id |
-| Polling instead of CDC | Subscribe to change events |
 | Assuming `EventBus.publish` throws on failure | Inspect `SaveResult[]` |
