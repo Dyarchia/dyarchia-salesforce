@@ -32,19 +32,25 @@ patterns is `dya-sf-integration-overview`.
 If an org does not see the username-password Release Update in Setup, the flow is already blocked
 there. New orgs block it by default.
 
-**Migrating off username-password.** The **client credentials flow** is the smaller change: the
-external client app runs as one designated integration user and stores no password. **JWT bearer**
-uses a signed certificate instead of a shared secret — better for anything high value. Use the **web
-server flow with PKCE** when a human authorises. Never migrate to another password-carrying scheme.
+**Migrating off username-password.** Never migrate to another password-carrying scheme.
 
-**Update Instanced URLs in API Traffic** is testable now: Setup › My Domain › Redirections ›
-*Block API traffic that uses an incorrect instanced URL*. Turn it on in a sandbox before the date.
+- Use the **client credentials flow** for the smallest change: the external client app runs as one
+  designated integration user and stores no password.
+- Use **JWT bearer** for anything high value: it uses a signed certificate instead of a shared secret.
+- Use the **web server flow with PKCE** when a human authorises.
 
-Standing context: **External Client Apps are the default** for inbound integration identity; new
-Connected App creation has been disabled by default since Spring '26. **Named Credentials plus
-External Credentials** are the outbound model; legacy Named Credentials are deprecated. **Hosted MCP
-servers** authenticate with OAuth plus PKCE through an ECA carrying the `mcp_api` and `refresh_token`
-scopes — see `dya-sf-integration-connectors-mcp`. HTTPS is mandatory everywhere.
+Test **Update Instanced URLs in API Traffic** now: turn on Setup › My Domain › Redirections ›
+*Block API traffic that uses an incorrect instanced URL* in a sandbox before the date.
+
+Standing context:
+
+- **External Client Apps are the default** for inbound integration identity; new Connected App
+  creation has been disabled by default since Spring '26.
+- **Named Credentials plus External Credentials** are the outbound model; legacy Named Credentials
+  are deprecated.
+- **Hosted MCP servers** authenticate with OAuth plus PKCE through an ECA carrying the `mcp_api` and
+  `refresh_token` scopes — see `dya-sf-integration-connectors-mcp`.
+- HTTPS is mandatory everywhere.
 
 ---
 
@@ -58,8 +64,8 @@ OUTBOUND  Salesforce authenticates OUT to an external system
           → Named Credential (the endpoint) + External Credential (the authentication)
 ```
 
-Never hard-code a secret in code *or* metadata, in either direction: a secret in a `.cls` file is a
-secret in version control.
+Never hard-code a secret in code *or* metadata, in either direction; a secret in a `.cls` file
+lands in version control.
 
 ## 2. Inbound — Choosing the OAuth Flow
 
@@ -83,15 +89,15 @@ secret in version control.
 | Security posture | **Closed by default**; blocks legacy password flows outright | Historically open by default |
 | Secret rotation | Staged Credentials API — rotate with no downtime | Manual, with a gap |
 
-Keep existing Connected Apps running, but migrate one when you touch it. **Inventory everything using
-username-password or SOAP `login()` now.**
+**Inventory everything using username-password or SOAP `login()` now.** Keep existing Connected
+Apps running, and migrate each one whenever you touch it.
 
 ## 4. Inbound — Other Mechanisms
 
-- **Session-based** — for a caller already in session, such as Visualforce or Aura calling Apex
-  REST. A harvested session id is never a long-lived API credential.
-- **Mutual TLS** — certificate-based transport authentication where the counterparty requires it,
-  configured for inbound traffic in Setup.
+- **Session-based** — use it only for a caller already in session, such as Visualforce or Aura
+  calling Apex REST. Never use a harvested session id as a long-lived API credential.
+- **Mutual TLS** — use certificate-based transport authentication where the counterparty requires
+  it; configure it for inbound traffic in Setup.
 - **Guest access** — an unauthenticated endpoint on a Site or Experience Cloud page runs as the guest
   user. Lock that profile down: `dya-sf-integration-inbound-apex`, `dya-sf-permissions`.
 
@@ -154,8 +160,8 @@ built from a formula).
 
 ## Summary — The Five Commandments
 
-1. **External Client Apps plus OAuth inbound; Named and External Credentials outbound.** Secrets never live in code or metadata.
-2. **JWT Bearer is the backend default**, web server plus PKCE for user-facing. Username-password is retired — enforced 20 February 2027 — and SOAP `login()` follows in Summer '27.
-3. **ECAs over Connected Apps** — closed by default, packageable, and rotatable without downtime.
-4. **Least privilege everywhere.** Purpose-built integration users and principals; from API 67.0 their own object and field access governs what the code can read.
+1. **Use External Client Apps plus OAuth inbound, and Named and External Credentials outbound.** Never keep secrets in code or metadata.
+2. **Default to JWT Bearer for backends**, and web server plus PKCE for user-facing apps. Username-password is retired — enforced 20 February 2027 — and SOAP `login()` follows in Summer '27.
+3. **Choose ECAs over Connected Apps** — closed by default, packageable, and rotatable without downtime.
+4. **Apply least privilege everywhere.** Use purpose-built integration users and principals; from API 67.0 their own object and field access governs what the code can read.
 5. **Pick the principal type on purpose** — Named Principal for a shared system identity, Per-User when the external system must know who acted.

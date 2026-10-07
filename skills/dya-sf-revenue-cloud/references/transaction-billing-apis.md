@@ -1,6 +1,6 @@
 # Revenue Cloud Advanced — Transaction Management, Assets & Billing (Winter '27 / API v68.0)
 
-Load from `dya-sf-revenue-cloud`. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request/response bodies per version.
+Load from `dya-sf-revenue-cloud`. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request and response bodies for each version.
 
 ## Transaction Management (Quote & Order Capture)
 
@@ -19,7 +19,7 @@ Apex:
 - **`PlaceQuoteRLMApexProcessor`** lives in the placequote namespace.
 - Built-in Apex reference under **Transaction Management** (quote/order capture) classes.
 
-Invocable actions include placing a quote; new actions ship each release, so check the current list.
+Check the current invocable action list: it includes placing a quote, and new actions ship each release.
 
 ```apex
 // Illustrative PlaceQuote via Apex (confirm request/response types in the current developer guide)
@@ -30,7 +30,7 @@ Invocable actions include placing a quote; new actions ship each release, so che
 
 ## Asset Lifecycle
 
-Manage the installed base: **amend** (change quantity or terms), **renew**, **cancel** — the RCA equivalent of CPQ contract amendment. The business APIs, invocable actions and Apex produce correctly priced change transactions against existing assets. Don't mutate asset records directly.
+Never mutate asset records directly. Manage the installed base — **amend** (change quantity or terms), **renew**, **cancel**, the RCA equivalent of CPQ contract amendment — through the business APIs, invocable actions and Apex, which produce correctly priced change transactions against existing assets.
 
 ## Billing (ConnectApi namespace)
 

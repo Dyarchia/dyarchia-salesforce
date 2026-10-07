@@ -1,6 +1,6 @@
 # Revenue Cloud Advanced — Pricing, Catalog & Configuration (Winter '27 / API v68.0)
 
-Load from `dya-sf-revenue-cloud`. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request bodies against the guide for your version.
+Load from `dya-sf-revenue-cloud`. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request bodies against the guide for the org's version.
 
 ## Salesforce Pricing — the model
 
@@ -22,7 +22,7 @@ POST /services/data/v68.0/connect/pricing/price-context   # Price Context resour
 ```
 
 - **Standard Pricing Actions** ship for Quote, Order, Contract, Case, Opportunity; **Custom Pricing Actions** work on any object via the Lightning component.
-- Invoke from **Flow** (create pricing actions) or **Apex** (Pricing Connect API or invocable).
+- Invoke pricing from **Flow** (create pricing actions) or **Apex** (Pricing Connect API or invocable).
 
 ## Keeping rules fresh
 
@@ -35,9 +35,9 @@ GET  /services/data/v68.0/connect/pcm/snapshots/<ID>/index # poll status
 GET  /services/data/v68.0/connect/pcm/snapshots/<ID>/index/errors
 ```
 
-- **Decision Table Refresh Action** — call from a Record-Triggered Flow, Scheduled Flow or Apex; it refreshes one or many active tables asynchronously when the rule object or custom metadata changes.
-- **INCREMENTAL** for day-to-day; **FULL** for large/structural changes. The existing index keeps serving during a rebuild.
-- From Setup (clicks): **Salesforce Pricing Setup → Sync Pricing Data → Sync**.
+- Call the **Decision Table Refresh Action** from a Record-Triggered Flow, Scheduled Flow or Apex whenever the rule object or custom metadata changes; it refreshes one or many active tables asynchronously.
+- Use **INCREMENTAL** for day-to-day changes and **FULL** for large or structural changes. The existing index keeps serving during a rebuild.
+- To sync from Setup by clicks: **Salesforce Pricing Setup → Sync Pricing Data → Sync**.
 
 ```apex
 // Queueable outline to rebuild the PCM index (GET snapshot → POST deploy via Named Credential)
@@ -59,7 +59,7 @@ public class PcmIndexRebuild implements Queueable, Database.AllowsCallouts {
 
 - **Product Classifications** categorize products and let them inherit attributes; **Catalogs/Categories** group them.
 - Products are **configurable**, **static** or **bundle**.
-- Semantics resemble Industries CPQ EPC but differ — verify per the RLM guide.
+- Verify semantics against the RLM guide: they resemble Industries CPQ EPC but differ.
 
 ## Product Configurator Business APIs
 

@@ -33,7 +33,7 @@ Three things decide whether a project can use Headless 360:
 - **Maturity is uneven and mostly not GA.** The Apex Symbol API, the Salesforce DX MCP Server and
   the Metadata API Context MCP Server are **Beta**; the Data 360 MCP Server is **Developer Preview**.
   Hosted MCP servers and the Claude Code plugin are GA. Beta and Developer Preview do not run in
-  production orgs; check the label before designing around a tool.
+  production orgs. Check the label before designing around a tool.
 - **Agentforce Vibes carries no maturity label**, and its features are individually Beta. It is
   **not available in EU Operating Zone**, nor in Group, Professional or Essentials editions — an
   availability wall, not a licensing upsell.
@@ -72,9 +72,9 @@ Two lanes converge:
 - **Runtime** — business agents and apps *serve from* your org, output rendered natively per channel
   by the Experience Layer.
 
-**What is new:** headless existed for years through REST APIs, the Mobile SDK and React on
-Experience Cloud. Now **AI models discover, call and compose capabilities at runtime**, with no
-per-integration glue, because every capability is described as an agent-accessible tool.
+**What is new:** **AI models discover, call and compose capabilities at runtime**, with no
+per-integration glue, because every capability is described as an agent-accessible tool. Headless
+access itself predates this, through REST APIs, the Mobile SDK and React on Experience Cloud.
 
 **Where the others fit:** Agentforce reasons and *provides* capabilities, Data 360 is the data mesh
 underneath, and Headless 360 exposes and renders both.
@@ -124,18 +124,19 @@ A custom hosted MCP server builds tools from existing platform artefacts, with n
 - **Apex REST** — a `@RestResource` class.
 - **API Catalog endpoint** — registered platform and Connect APIs; coverage is still expanding.
 
-The method's inputs and outputs **are** the tool's parameter schema, so nested types make a tool hard
-to call. Changing the Apex does **not** resync the tool configuration in Setup.
+Flatten nested types: the method's inputs and outputs **are** the tool's parameter schema, and nested
+types make a tool hard to call. After every change to the Apex, update the tool configuration in
+Setup; it does **not** resync.
 
-An `@InvocableMethod` written as an **Agentforce action** is also an **MCP tool** for an external
-coding or business agent; build the capability once.
+Build the capability once: an `@InvocableMethod` written as an **Agentforce action** is also an
+**MCP tool** for an external coding or business agent.
 
 ### Golden rule of MCP exposure
 
-**Expose the smallest set of approved tools, never unrestricted access.** Past a few dozen tools an
-AI client starts choosing badly, so curate each server for one persona. The model picks a tool from
-its description: write descriptions as routing logic, with the same discipline as Agentforce action
-descriptions.
+**Expose the smallest set of approved tools, never unrestricted access.** Curate each server for one
+persona; past a few dozen tools an AI client starts choosing badly. Write descriptions as routing
+logic, with the same discipline as Agentforce action descriptions; the model picks a tool from its
+description.
 
 > Standard versus custom servers, the backing-type requirements, and the External Client App
 > callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and design rules:
@@ -264,8 +265,8 @@ Headless 360 changes the surface, **not** the security model:
 
 ## Summary — The Five Commandments
 
-1. **Three surfaces, one platform** — API for control, MCP for agent-discoverable capabilities, CLI for automation/DevOps; all enforce the same trust layer.
-2. **Headless 360 distributes; Agentforce reasons; Data 360 feeds** — the access/render layer over both, not a replacement for either.
+1. **Pick the surface by need** — API for control, MCP for agent-discoverable capabilities, CLI for automation/DevOps; all three are one platform and enforce the same trust layer.
+2. **Use Headless 360 to distribute, Agentforce to reason, Data 360 to feed** — Headless 360 is the access/render layer over both, not a replacement for either.
 3. **Build the capability once, expose it everywhere** — the same `@InvocableMethod` is an Agentforce action *and* an MCP tool; the same Lightning Type renders across every channel.
 4. **Curate and describe tools like code** — least-privilege, well-described MCP toolsets; descriptions are how models route.
-5. **Security carries through** — sharing, FLS, Trust Layer, token-scoped OAuth and Named Credentials apply on API, MCP, and CLI alike.
+5. **Rely on the security model on every surface** — sharing, FLS, Trust Layer, token-scoped OAuth and Named Credentials apply on API, MCP, and CLI alike.

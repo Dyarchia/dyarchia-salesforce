@@ -29,13 +29,13 @@ response you can hold, not the callout payload limit, which is separate and unch
 
 Standing facts:
 
-- **Named Credentials plus External Credentials are the only correct mechanism.** They replace
-  hard-coded endpoints, secrets and Remote Site Settings. Reference them as
+- **Use only Named Credentials plus External Credentials.** They replace hard-coded endpoints,
+  secrets and Remote Site Settings. Reference them as
   `callout:My_Named_Credential/path`. Detail in `dya-sf-integration-auth`.
 - **HTTPS is mandatory.** No supported path calls an `http://` endpoint.
-- **From API 67.0 a callout class defaults to `with sharing` and `USER_MODE`.** An async callout
-  class must still declare `Database.AllowsCallouts`: the marker interface permits the callout at
-  all, and omitting it fails at run time, not compile time.
+- **From API 67.0 a callout class defaults to `with sharing` and `USER_MODE`.** Still declare
+  `Database.AllowsCallouts` on every async callout class: the marker interface permits the callout
+  at all, and omitting it fails at run time, not compile time.
 
 ---
 
@@ -77,7 +77,7 @@ Hard limits, per Apex transaction:
 
 ### The callout-after-DML rule
 A callout **cannot** run while uncommitted DML sits in the transaction: "You have uncommitted work
-pending". In order of preference:
+pending". Resolve it, in order of preference:
 1. **Callout first, DML after**, where the order allows.
 2. **Move the callout into a Queueable**, so it runs in a fresh transaction after the DML commits.
 3. Continuation or Transaction Finalizer, for specific cases.
@@ -95,7 +95,7 @@ Full async callout patterns: `references/apex-callouts-async.md`.
 | **Batch** | Callout per chunk over large data | `Database.Batchable, Database.AllowsCallouts` (≤100 callouts/execute) |
 | **`@future(callout=true)`** | Legacy fire-and-forget | avoid in new code |
 
-The canonical async framework is in `dya-sf-apex`.
+Use the canonical async framework in `dya-sf-apex`.
 
 ---
 
@@ -104,9 +104,9 @@ The canonical async framework is in `dya-sf-apex`.
 Declarative outbound HTTP in Flow Builder, generating an External Service and invocable action
 behind the scenes. Needs the Customize Application permission and a Named Credential.
 
-- Methods: **GET, POST, PUT, PATCH, DELETE**, all GA.
 - **Auto-handles only 2xx**. For anything else, define the error schema and branch with a Decision
   element.
+- Methods: **GET, POST, PUT, PATCH, DELETE**, all GA.
 - Apex's platform callout governor limits apply, and Flow cannot adjust them.
 - Drop to Apex for retry and backoff, complex transformation, or large and streamed payloads.
 
@@ -117,7 +117,7 @@ behind the scenes. Needs the Customize Application permission and a Named Creden
 Register an API by its **OpenAPI/JSON schema** and Salesforce generates **invocable actions plus
 Apex-defined types** usable from Flow and Apex, with no hand-written callout code.
 
-- Best where the external API has a clean OpenAPI spec and Flows need declarative reuse.
+- Use it where the external API has a clean OpenAPI spec and Flows need declarative reuse.
 - The generated actions honour the Named Credential you bind.
 
 ---
@@ -127,7 +127,7 @@ Apex-defined types** usable from Flow and Apex, with no hand-written callout cod
 Workflow- or flow-triggered **SOAP** messages to a fixed endpoint, with guaranteed delivery and
 automatic retry: ack within 24 h, extendable to 7 days.
 
-- **Legacy**, tied to workflow rules, themselves being retired toward Flow. Avoid for new builds.
+- Avoid for new builds: **legacy**, tied to workflow rules, themselves being retired toward Flow.
 - Migrate to **Platform Events** for decoupling, or **Flow HTTP Callout** for REST flexibility.
 
 ---
@@ -141,7 +141,7 @@ Surface external data as **External Objects** without copying it.
   (Apex Connector Framework) for any REST API.
 - Use it when large external datasets must *appear* as records but not be stored. Supports
   indirect and external lookups, and incremental syncs.
-- Never for write-heavy or latency-critical flows: every access is a live callout.
+- Never use it for write-heavy or latency-critical flows: every access is a live callout.
 
 ---
 
@@ -200,8 +200,8 @@ See `dya-sf-lwc`.
 
 ## Summary — The Five Commandments
 
-1. **Code or no-code, sync or async** — Flow HTTP Callout for simple owned APIs, Apex for complex/async, Salesforce Connect for live reads, Platform Events for fire-and-forget.
-2. **Named/External Credentials always** — no hard-coded secrets, no Remote Site Settings, HTTPS only.
+1. **Choose code or no-code, sync or async** — Flow HTTP Callout for simple owned APIs, Apex for complex/async, Salesforce Connect for live reads, Platform Events for fire-and-forget.
+2. **Always use Named/External Credentials** — no hard-coded secrets, no Remote Site Settings, HTTPS only.
 3. **Respect the callout-after-DML rule** — callout-first or move it into a Queueable.
 4. **Know the numbers** — 100 callouts/transaction, 120 s cumulative, 6/12 MB; budget and go async when tight.
 5. **From LWC, proxy through Apex** — keep secrets server-side; `fetch()` only with CSP + CORS and never with credentials.

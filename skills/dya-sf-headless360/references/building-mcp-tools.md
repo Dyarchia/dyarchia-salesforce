@@ -37,8 +37,8 @@ separate OAuth apps or orgs.
 The method's input and output variables define the tool's parameter schema:
 
 - **Flatten complex or nested types** so an agent can call the tool reliably.
-- **Changing the underlying Apex — adding a parameter, changing a type — requires updating the tool
-  configuration in Setup.** Otherwise the agent calls with a stale schema.
+- **After every change to the underlying Apex — adding a parameter, changing a type — update the
+  tool configuration in Setup.** Otherwise the agent calls with a stale schema.
 
 For a Flow-backed tool, the server generates the schema from the flow's input and output variables,
 launches the flow server-side, and returns the outputs.
@@ -61,7 +61,8 @@ External Client App), with OAuth enabled and a callback URL that depends on the 
 | Postman | `https://oauth.pstmn.io/v1/callback`, or `https://oauth.pstmn.io/v1/browser-callback` in the browser version |
 | ChatGPT | Copy it from ChatGPT's Advanced settings |
 
-A failed authorisation is usually a callback-URL mismatch, not a scope problem; check that first.
+When authorisation fails, check the callback URL first; the cause is usually a mismatch, not a
+scope problem.
 
 For production, the app supports requiring client secrets (web-based clients), restricting to
 specific users, restricting by IP, shortening the token lifecycle, and single logout. See

@@ -10,12 +10,12 @@ IDE**. It installs from the VS Code Marketplace and Open VSX as part of the Sale
 It is built on Salesforce's **Coding Agent Platform**, orchestrated by **Claude and Mastra**, and on
 an **Agent SDK** for building your own agents, MCP integrations and agentic workflows.
 
-The documentation gives the **product** no GA, Beta or Developer Preview label; do not assign it one.
+Do not assign the **product** a GA, Beta or Developer Preview label; the documentation gives it none.
 Individual features carry their own: Metadata Experts MCP Server (Beta), Metadata API Context MCP
 Server (Beta), Content Read-Only MCP Server (Beta), Data SDK and GraphQL (Beta).
 
-**v4.0 was rebuilt from the ground up**, so material describing a "2.0" is a different product
-generation. Carried over: Rules and Skills as concepts, inline completions for Apex and LWC, the
+Treat material describing a "2.0" as a different product generation: **v4.0 was rebuilt from the
+ground up**. Carried over: Rules and Skills as concepts, inline completions for Apex and LWC, the
 Salesforce Trust Boundary, and the marketplace and cloud IDE presence. Moved: rule and skill files
 went from `.a4drules/` to **`.vibes/rules/`** and **`.vibes/skills/`**.
 
@@ -27,15 +27,15 @@ went from `.a4drules/` to **`.vibes/rules/`** and **`.vibes/skills/`**.
 | **EU Operating Zone** | **Not available**, on data-residency grounds. EU orgs *not* in EU Operating Zone are supported under standard terms |
 | Government Cloud | **The documentation contradicts itself — see below** |
 
-EU Operating Zone is a paid data-residency offering an enterprise customer may hold without the
-developer knowing. Being in the EU does not settle it; whether the org is in EU Operating Zone does.
+Check whether the org is in EU Operating Zone; being in the EU does not settle it. EU Operating Zone
+is a paid data-residency offering an enterprise customer may hold without the developer knowing.
 
-**On Government Cloud the docs disagree.** Three pages — admin settings, extension setup and the
+**On Government Cloud the docs disagree.** Treat Government Cloud as **unconfirmed** and verify
+against the org and with Salesforce before promising it either way. Three pages — admin settings, extension setup and the
 FAQ — list Government Cloud as unavailable, for data-residency reasons. A fourth is a dedicated guide
 to *using Agentforce Vibes with Government Cloud orgs*, stating FedRAMP High and DoD Impact Level 5
 authorization, automatic routing of AI requests to a dedicated Government Cloud endpoint, and
-authentication steps. Treat Government Cloud as **unconfirmed** and verify against the org and with
-Salesforce before promising it either way.
+authentication steps.
 
 **Salesforce Multi-Framework** is separately and unambiguously unavailable on Government Cloud and
 Alibaba Cloud — see `references/react-and-data-sdk.md`.
@@ -72,8 +72,8 @@ can also *suggest* a plan for a complex request without Plan Mode enabled.
 Use it for multi-file changes with an order of operations, deployments needing a validation pass,
 metadata migrations between orgs, and anything where you want to see the approach first.
 
-Plan Mode consumes context while building the plan, so split very large tasks. Manual changes
-between approval and execution can invalidate a plan.
+Split very large tasks; Plan Mode consumes context while building the plan. Avoid manual changes
+between approval and execution; they can invalidate a plan.
 
 ## Rules — always-on standards
 
@@ -95,8 +95,8 @@ Application modes:
 - **File pattern** — active only when the agent touches files matching a glob, e.g. `**/*.cls`. Use
   for language-specific conventions.
 
-**Every rule consumes context in every interaction it applies to**, so an Apex naming rule belongs
-behind a file pattern, not loaded while the agent edits an LWC template. Keep each rule to a single
+Put an Apex naming rule behind a file pattern, not loaded while the agent edits an LWC template:
+**every rule consumes context in every interaction it applies to**. Keep each rule to a single
 concern.
 
 Salesforce rules cannot be edited or deleted, only toggled. Project rules override global rules when
@@ -112,7 +112,7 @@ Settings › **Permissions & Safety**. The session mode sets the agent's autonom
 | **Run safe defaults** | Auto-approves read-only actions and allowed shell commands; still asks before file edits, other commands and write tools |
 | **Bypass (trust all)** | Runs everything with no confirmation |
 
-**Run safe defaults is the recommended starting point.**
+**Start in Run safe defaults**, the recommended mode.
 
 **Safety guardrails apply only in Run safe defaults.** They list the shell commands that run without
 prompting, defaulting to filesystem reads, shell basics, git reads, Node/npm/pnpm and the Salesforce
@@ -140,11 +140,11 @@ before Vibes can use them; once activated they are enabled in Vibes automaticall
 
 ## Model selection
 
-The model picker sits in the bottom-left of the chat. Models are grouped by provider and depend on
-what the org has configured; switching mid-conversation does **not** reset context. Tiers: most
-capable for multi-file work and architectural planning, balanced for everyday development, fastest
-for questions and simple generation. Token consumption differs by tier, so do not default to the
-largest model.
+Match the tier to the task and do not default to the largest model; token consumption differs by
+tier. Tiers: most capable for multi-file work and architectural planning, balanced for everyday
+development, fastest for questions and simple generation. The model picker sits in the bottom-left
+of the chat. Models are grouped by provider and depend on what the org has configured; switching
+mid-conversation does **not** reset context.
 
 ## Anti-Patterns
 

@@ -57,11 +57,11 @@ Objective_Skill_Preferences     Objective_Custom_Logic
 
 ## Auto-created rules
 
-Creating a policy **auto-creates** the `Earliest Start Permitted` and `Due Date` Match Time rules.
-Do not write them; a deploy that includes them collides with the package's own.
+Do not write the `Earliest Start Permitted` and `Due Date` Match Time rules: creating a policy
+**auto-creates** them, and a deploy that includes them collides with the package's own.
 
-It does **not** create `Service Resource Availability`, mandatory on every policy. Its omission is the
-most common cause of a policy that schedules nothing and reports no useful error.
+Always add `Service Resource Availability`, mandatory on every policy; it is **not** auto-created.
+Its omission is the most common cause of a policy that schedules nothing and reports no useful error.
 
 Shipped starter policies: `Customer First`, `High Intensity`, `Soft Boundaries`, `Emergency`.
 
@@ -92,9 +92,9 @@ A relevance group scopes a rule to a subset of work or resources via a **Boolean
 `ServiceAppointment` for work, on `ServiceTerritoryMember` for resources. STM supports **primary and
 relocation memberships only, not secondary**.
 
-**Groups must be mutually exclusive.** Where two relevance-grouped rules overlap the more
+**Keep groups mutually exclusive.** Where two relevance-grouped rules overlap the more
 restrictive wins — except for **Service Resource Availability, where an overlap throws an error**.
-Every resource must be covered by exactly one Service Resource Availability rule.
+Cover every resource with exactly one Service Resource Availability rule.
 
 | Additive — may overlap | Single-coverage — must not |
 |---|---|

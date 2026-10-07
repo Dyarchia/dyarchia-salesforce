@@ -109,7 +109,7 @@ public class OrderOutput {
 }
 ```
 
-Lists of DTOs are supported but harder for Flow authors. Prefer flat structures.
+Prefer flat structures; lists of DTOs are supported but harder for Flow authors.
 
 ## Partial Success — Per-Row Error Handling
 
@@ -147,11 +147,11 @@ public static List<OrderOutput> process(List<OrderInput> inputs) {
 }
 ```
 
-In Flow, route on `output[].success`; if any row failed, branch to a fault-handling path. A single throw would abort the entire flow batch.
+In Flow, route on `output[].success`; if any row failed, branch to a fault-handling path. Do not throw here; a single throw aborts the entire flow batch.
 
 ## Full-Batch Failure — Throwing
 
-If the whole batch should fail when anything goes wrong (e.g., a callout returns an error), throw; Flow routes to the action's Fault Path.
+Throw when the whole batch should fail on any error (e.g., a callout returns an error); Flow routes to the action's Fault Path.
 
 ```java
 public static List<Output> sync(List<Input> inputs) {
@@ -182,11 +182,11 @@ With `callout=true`, the action:
 - CAN be placed in an Asynchronous Path of a record-triggered flow.
 - CAN be placed anywhere in an autolaunched or screen flow.
 
-Without `callout=true`, Flow lets you place the action where it fails at runtime with `CalloutException: You have uncommitted work pending`.
+Always set `callout=true` on a method that makes callouts. Without it, Flow lets you place the action where it fails at runtime with `CalloutException: You have uncommitted work pending`.
 
 ## Generic SObject Inputs
 
-For an action that accepts any SObject (e.g., a logging utility), use `List<SObject>`:
+Use `List<SObject>` for an action that accepts any SObject (e.g., a logging utility):
 
 ```java
 @InvocableMethod(label='Log Record Change')
@@ -202,7 +202,7 @@ Use sparingly — typed DTOs are clearer and catch errors earlier.
 
 ## Custom Input Types Need a No-Argument Constructor (API 67.0+)
 
-A class with only a parameterised constructor fails at runtime; if you add a non-default constructor, add the no-arg one back.
+Whenever you add a non-default constructor, add the no-arg one back; a class with only a parameterised constructor fails at runtime.
 
 ```java
 public class OrderInput {
@@ -263,7 +263,7 @@ Test invocable methods like any static Apex method; the annotation is only metad
 
 ## The Reverse Direction — Calling a Flow from Apex
 
-When Apex orchestrates and a Flow is the step, use `Flow.Interview`:
+Use `Flow.Interview` when Apex orchestrates and a Flow is the step:
 
 ```apex
 Map<String, Object> inputs = new Map<String, Object>{

@@ -28,6 +28,7 @@ At v4.0+, a ground-up rebuild on Salesforce's Coding Agent Platform, orchestrate
 Mastra and exposing an Agent SDK. It installs from the VS Code Marketplace and Open VSX, and also
 runs as a cloud-hosted IDE.
 
-Material describing a "2.0" is a previous generation. The lineage **Einstein for Developers →
-Agentforce for Developers → Agentforce Vibes** survives in documentation URLs and in the extension
-id `salesforcedx-einstein-gpt`, so searching for the current name misses older answers.
+Treat material describing a "2.0" as a previous generation. Search under the older names too: the
+lineage **Einstein for Developers → Agentforce for Developers → Agentforce Vibes** survives in
+documentation URLs and in the extension id `salesforcedx-einstein-gpt`, so searching for the current
+name misses older answers.

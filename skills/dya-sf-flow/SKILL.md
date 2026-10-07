@@ -82,10 +82,10 @@ DML statements. Instead:
 **Custom batch size** in a scheduled flow's "Select Object" settings lowers records-per-transaction
 from the default 200. Use it only when you measurably hit CPU limits or `UNABLE_TO_LOCK_ROW`.
 
-> `UNABLE_TO_LOCK_ROW` means another transaction held a lock on a record yours needed — usually many
-> child records each locking the **same shared parent** (a batch of Opportunities rolling up to one
-> Account). A batch size of 1 removes the contention at the cost of far more transactions and a
-> longer run. Reordering the data so a batch touches distinct parents is cheaper.
+> On `UNABLE_TO_LOCK_ROW`, first reorder the data so a batch touches distinct parents. The error
+> means another transaction held a lock on a record yours needed — usually many child records each
+> locking the **same shared parent** (a batch of Opportunities rolling up to one Account). A batch
+> size of 1 also removes the contention, at the cost of far more transactions and a longer run.
 
 **Tight entry conditions.** A record-triggered flow fires on every DML against the object. Filter in
 the entry condition (`Industry CHANGED to "Tech"`), not with a Decision inside the flow — a run that
@@ -102,8 +102,8 @@ Set the context in Edit Version Properties, "How to Run the Flow".
 | **System Context with Sharing** | Enforced | Bypassed | Record-Triggered Flows |
 | **System Context without Sharing** | Bypassed | Bypassed | Never a default |
 
-The record-triggered default lets a user trigger writes they could not perform directly. For a flow
-updating fields the running user should be able to edit, switch to **User Context**. **Never** ship
+Switch to **User Context** for a flow updating fields the running user should be able to edit; the
+record-triggered default lets a user trigger writes they could not perform directly. **Never** ship
 "System Context without Sharing" without a justification in the flow description — it is the
 declarative `without sharing`, almost always wrong outside a deliberate integration.
 
@@ -125,9 +125,9 @@ Before writing an LWC, check the standard components: `lightning-record-form`,
 `lightning-input-field`, Radio Button Group, the Time component and Data Table (with "Show record
 name" and "Link to record" on lookup columns).
 
-**AI-assisted editing** accepts natural-language changes through the Agentforce panel ("add a phone
-field below the email", "show address fields only when billing country is US"). Use it for
-prototyping; review every generated change before activation.
+Use **AI-assisted editing** for prototyping only, and review every generated change before
+activation. It accepts natural-language changes through the Agentforce panel ("add a phone field
+below the email", "show address fields only when billing country is US").
 
 Avoid wizards where every step is a screen with a Next button; check whether the journey collapses
 into fewer reactive screens.
@@ -137,23 +137,23 @@ into fewer reactive screens.
 Use `@InvocableMethod` for logic Flow cannot express, callouts with custom marshalling, or complex
 error handling.
 
-- The method must be `static` and take exactly one `List<T>` parameter.
-- Return `void` or a `List<U>`; output length **and order** must match the input.
-- `@InvocableVariable(required=true)` on mandatory inputs.
-- `callout=true` when the method makes HTTP callouts — it gates where the action can be used.
-- A custom Apex type used as an action input needs a **public no-argument constructor**, or the
-  platform cannot instantiate it at run time.
-- **Flow always passes a `List`**, even from a single-record context — write for the batch. An
+- Make the method `static`, taking exactly one `List<T>` parameter.
+- Return `void` or a `List<U>`; match the input's length **and order** in the output.
+- Mark mandatory inputs `@InvocableVariable(required=true)`.
+- Set `callout=true` when the method makes HTTP callouts; it gates where the action can be used.
+- Give a custom Apex type used as an action input a **public no-argument constructor**; the platform
+  cannot instantiate it at run time otherwise.
+- Write for the batch: **Flow always passes a `List`**, even from a single-record context.
+- Decide which caller you serve, or serve both by returning a result the flow branches on. An
   Agentforce agent calling the same method does not batch, and wants a structured result rather than
-  a thrown exception. Decide which caller you serve, or serve both by returning a result the flow
-  branches on.
-- On full-batch failure, throwing surfaces the message as `{!$Flow.FaultMessage}` for a Fault Path.
-  For per-row failures, return a success flag and an error message in the output.
+  a thrown exception.
+- On full-batch failure, throw; the message surfaces as `{!$Flow.FaultMessage}` for a Fault Path.
+- On per-row failures, return a success flag and an error message in the output.
 
-**`InvocableActionExtension`** shapes how an admin configures the action in Flow Builder: a custom
-property editor on one input, fixed picklist values for a `String` input instead of free text, and a
-custom header above the property panel. Use it for reusable or packaged actions, to prevent
-misconfigured flows.
+Use **`InvocableActionExtension`** on reusable or packaged actions, to prevent misconfigured flows.
+It shapes how an admin configures the action in Flow Builder: a custom property editor on one input,
+fixed picklist values for a `String` input instead of free text, and a custom header above the
+property panel.
 
 > Class shape, DTOs, partial success, `callout=true`, `Flow.Interview` for the reverse direction,
 > testing, and the Flow-versus-agent caller table: `references/invocable-apex-patterns.md`.
@@ -166,11 +166,11 @@ method, paste sample request and response JSON; the platform generates the Exter
 Apex types.
 
 - **Always a Named Credential.** Never a raw URL or an inline secret.
-- POST and PUT bodies need a Record variable of the generated type, populated by Assignments.
+- Pass POST and PUT bodies as a Record variable of the generated type, populated by Assignments.
 - **Always branch on `{!ActionName.statusCode}`** in a Decision afterwards. The action returns a
   non-2xx response without throwing.
 - Always connect a **Fault Path** for platform-level failures: network, misconfigured credential.
-- In a record-triggered flow a callout must run on the **Asynchronous Path**; the synchronous path
+- In a record-triggered flow, run the callout on the **Asynchronous Path**; the synchronous path
   forbids a callout after uncommitted DML.
 
 > Full setup, status-code branching, pagination, anti-patterns: `references/http-callout-patterns.md`.
@@ -186,11 +186,12 @@ Subflows — gets a Fault Path.
    exists, or — last resort — to a notification. Do not create a logging object to hold the fault.
 
 Where one error-handling subflow serves every fault path, collapse them with the chevron on the Fault
-edge. The **Element Error Rate** column in the Automation app list view shows the percentage of
-elements that errored in the most recent run, without opening a debug log.
+edge. Check the **Element Error Rate** column in the Automation app list view: it shows the
+percentage of elements that errored in the most recent run, without opening a debug log.
 
-**Ask Agentforce** (Beta) diagnoses a failure in natural language and may offer an automatic
-"Fix Issue". Verify the change and run the flow in Debug before reactivating.
+Verify any "Fix Issue" that **Ask Agentforce** (Beta) offers, and run the flow in Debug before
+reactivating. Ask Agentforce diagnoses a failure in natural language and may offer the fix
+automatically.
 
 ## 9. Subflows and Reuse
 
@@ -268,8 +269,8 @@ control through a pipeline: validate against a sandbox, then deploy.
 
 ## Summary — The Five Commandments
 
-1. **Flow first, Apex second** — declarative is faster to build, easier to maintain, and equally bulkified when used correctly.
+1. **Flow first, Apex second** — build declaratively whenever Flow can express the requirement; it is equally bulkified when used correctly.
 2. **Bulkify by structure** — no data element inside a Loop; collections in, collections out; tune batch size only when you measure a real limit.
 3. **Fault Paths are mandatory** — every fallible element gets one, routed somewhere durable.
 4. **Named Credentials always** — no raw URLs, no inline secrets.
-5. **Test because production is unforgiving**, not because a gate makes you — Flow Tests earn no Apex coverage and block no deployment.
+5. **Test every flow, though no gate forces you** — Flow Tests earn no Apex coverage and block no deployment, and production is unforgiving.

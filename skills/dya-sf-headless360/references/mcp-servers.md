@@ -22,8 +22,8 @@ Hosted MCP servers let agentic clients (Claude Desktop, Claude Code, ChatGPT, Cu
 
 ## Design Rules for Custom Tools
 
-- **One tool, one clear job.** Narrow, composable tools beat a mega-tool.
-- **Input descriptions are routing logic too**, alongside the tool label and description.
+- **Give each tool one clear job.** Build narrow, composable tools, not a mega-tool.
+- **Write input descriptions as routing logic too**, alongside the tool label and description.
 - **An MCP-exposed `@InvocableMethod` is still Apex** — `with sharing`, `WITH USER_MODE`, bulkified (see `dya-sf-apex` / `dya-sf-agentforce`).
 
 ## Anti-Patterns

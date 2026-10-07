@@ -21,10 +21,10 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 completes a three-release rename, and features split across the Growth, Advanced and
-Billing tiers — check the org's tier before promising a capability. The **programmatic surface is
-unchanged**: the Connect business APIs, invocable actions, Apex hooks and metadata types below still
-apply.
+Check the org's tier before promising a capability: features split across the Growth, Advanced and
+Billing tiers. Winter '27 completes a three-release rename; the **programmatic surface is
+unchanged**, so the Connect business APIs, invocable actions, Apex hooks and metadata types below
+still apply.
 
 - RCA is **API-first and on-core**. Every domain exposes **Connect REST business APIs, standard
   invocable actions, built-in Apex classes and namespaces, Metadata API types and platform events**.
@@ -69,14 +69,14 @@ Pick by where the logic runs:
 | **Metadata API types** | Source-control/deploy domain config (procedures, catalogs, settings) |
 | **Platform events** | React to lifecycle changes (e.g. billing) |
 
-Never hand-roll DML against RCA objects where a business API or invocable action exists; those
+Never hand-roll DML against RCA objects where a business API or invocable action exists; only those
 enforce the engine's pricing, configuration, qualification and tax rules.
 
 ---
 
 ## 3. Salesforce Pricing — Configure, Then Hook
 
-Pricing is **configured**, not coded:
+**Configure** pricing; do not code it:
 
 - **Pricing Procedures** (Pricing Procedure Builder) — the visual successor to Industries'
   Calculation Procedures and Pricing Plan Steps: ordered pricing elements computing the net price and
@@ -85,9 +85,9 @@ Pricing is **configured**, not coded:
   Procedures read from internal lookup tables.
 - **Context Service** — **Context Definitions and Mappings** assemble the runtime data a procedure
   consumes and write results back.
-- **Apex Hooks for Pricing Procedures** (Summer '25) — inject Apex for logic the declarative tools
-  cannot express, or to pass attribute values into or out of the procedure. The **supported** custom-pricing extension point, not
-  a Quote Calculator Plugin.
+- **Apex Hooks for Pricing Procedures** (Summer '25) — use them to inject Apex for logic the
+  declarative tools cannot express, or to pass attribute values into or out of the procedure. They
+  are the **supported** custom-pricing extension point; never use a Quote Calculator Plugin.
 
 ```
 # Connect REST — run a pricing action with context + procedure + waterfall
@@ -95,8 +95,8 @@ POST /services/data/v68.0/connect/pricing/...        (Run Salesforce Pricing / P
 ```
 
 From **Flow or Apex**, use the **Run Salesforce Pricing Action**, supplying context instance Ids,
-the pricing procedure name and the discovery procedure. After changing rule data, run the **Decision
-Table Refresh Action** — invocable, no callout — and rebuild the PCM index. Detail:
+the pricing procedure name and the discovery procedure. After every rule-data change, run the
+**Decision Table Refresh Action** — invocable, no callout — and rebuild the PCM index. Detail:
 `references/pricing-and-config.md`.
 
 ---
@@ -114,8 +114,8 @@ POST /services/data/v68.0/connect/quotes/place                 # Place Quote
 POST /services/data/v68.0/connect/commerce/sales-transactions/actions/place   # Place Sales Transaction
 ```
 
-In Apex, **`PlaceQuoteRLMApexProcessor`** and the wider PlaceQuote Apex surface process quote
-placement; standard **invocable actions** serve Flow and Agentforce, such as creating an order
+In Apex, place quotes through **`PlaceQuoteRLMApexProcessor`** and the wider PlaceQuote Apex
+surface. From Flow and Agentforce, use the standard **invocable actions**, such as creating an order
 from an existing quote. Full Apex, endpoints and actions: `references/transaction-billing-apis.md`.
 
 ---
@@ -170,8 +170,8 @@ from an existing quote. Full Apex, endpoints and actions: `references/transactio
 
 ## Summary — The Five Commandments
 
-1. **RCA is the API-first CPQ successor** — a re-implementation with a new data model; never port legacy CPQ logic.
-2. **Same extension shape per domain** — Connect REST (external), invocable actions (Flow/Agentforce), Apex (on-platform), Metadata API (deploy), platform events (react).
+1. **Treat RCA as the API-first CPQ successor** — a re-implementation with a new data model; never port legacy CPQ logic.
+2. **Use the same extension shape in every domain** — Connect REST (external), invocable actions (Flow/Agentforce), Apex (on-platform), Metadata API (deploy), platform events (react).
 3. **Configure pricing, then hook** — Pricing Procedures + Decision/Lookup Tables + Context Service; **Apex Hooks** for the inexpressible (not Quote Calculator Plugins).
-4. **Transactions via Place Quote / Place Sales Transaction** — never raw DML; `PlaceQuoteRLMApexProcessor` in Apex.
+4. **Place transactions via Place Quote / Place Sales Transaction** — never raw DML; use `PlaceQuoteRLMApexProcessor` in Apex.
 5. **After rule changes, refresh** — Decision Table Refresh Action + PCM index deploy; build on core with `with sharing` + `WITH USER_MODE` and the Revenue Cloud PSLs.

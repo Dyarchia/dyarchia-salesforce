@@ -128,9 +128,9 @@ const dataSdk = await createDataSDK();
 const result = await dataSdk.graphql?.query<MyQueryType>({ query, variables });
 ```
 
+**Use optional chaining (`graphql?.`, `fetch?.`) every time** — it is the documented contract.
 `createDataSDK(options?)` returns a `DataSDK` whose `graphql` and `fetch` members are **both
-optional**, because they are supported only in specific environments. **Use optional chaining
-(`graphql?.`, `fetch?.`) every time** — it is the documented contract.
+optional**, because they are supported only in specific environments.
 Options cover surface detection, a `basePath` for API calls, and `on401` / `on403` callbacks.
 
 **Order of preference:**
@@ -147,9 +147,9 @@ authentication and CSRF validation.
 
 ### Typed queries
 
+Search `schema.graphql` for `type <ObjectName> implements Record` rather than guessing field names.
 Queries follow the UI API shape (`uiapi` → `query` → object), the same structure as LWC's GraphQL
-wire adapter. Search `schema.graphql` for `type <ObjectName> implements Record` rather than
-guessing field names.
+wire adapter.
 
 ```shell
 npm run graphql:codegen     # types generated at src/api/graphql-operations-types.ts

@@ -26,7 +26,7 @@ Setup:
 ## Outbound Messages (Legacy)
 
 - Migration: **Platform Events** (decoupled, replayable) for fire-and-forget notification, or **Flow HTTP Callout** for a REST push with logic.
-- Still fits: legacy middleware that already consumes the Outbound Message SOAP envelope and needs guaranteed-delivery semantics not yet re-platformed.
+- Keep it only for legacy middleware that already consumes the Outbound Message SOAP envelope and needs guaranteed-delivery semantics not yet re-platformed.
 
 ## Salesforce Connect / External Objects (Data Virtualization)
 

@@ -69,7 +69,7 @@ When persisting to `ArrivalWindowStartTime/EndTime`, offset for a differing oper
 global static FSL.AdvancedGapMatrix getGradedMatrix(...);   // confirm params in-sandbox
 ```
 
-Caveat: `getGradedMatrix` returns **all** possible slots; for a resource free all day it often returns ~2 (start of day, after the break), so arrival windows can be missing. Prefer `AppointmentBookingService.GetSlots` for customer-facing slot lists.
+Use `AppointmentBookingService.GetSlots` for customer-facing slot lists. `getGradedMatrix` returns **all** possible slots; for a resource free all day it often returns ~2 (start of day, after the break), so arrival windows can be missing.
 
 ## FSL.OAAS (optimization)
 
@@ -107,7 +107,8 @@ To chain requests, start the next when the prior `FSL__Optimization_Request__c` 
 
 ## The scope-1 Batch Pattern
 
-Full `FsBookingScheduling` + `FsBookingSchedulingBatch` example and rules: SKILL.md §2.
+Run each scheduling call in a Batchable with scope = 1, the DML step before the callout step in
+separate methods. Full `FsBookingScheduling` + `FsBookingSchedulingBatch` example: SKILL.md §2.
 
 ## Other FSL utilities (developer-relevant)
 

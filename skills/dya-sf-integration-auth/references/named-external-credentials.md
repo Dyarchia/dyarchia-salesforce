@@ -33,7 +33,7 @@ A user or integration user may use a Principal once assigned the **permission se
 | **Basic** | Legacy username/password to the *external* system (avoid where possible) |
 | **Custom** | Set the auth header yourself via a formula (API keys, bespoke schemes) |
 
-Prefer **OAuth Client Credentials with JWT** for modern machine-to-machine; **Custom** for simple API-key headers; reserve **Basic** for legacy targets.
+Prefer **OAuth Client Credentials with JWT** for modern machine-to-machine and **Custom** for simple API-key headers; reserve **Basic** for legacy targets.
 
 ## Setup Outline
 
@@ -44,12 +44,12 @@ Prefer **OAuth Client Credentials with JWT** for modern machine-to-machine; **Cu
 
 ## Custom Headers via Formula
 
-External Credentials support **custom headers** computed with formulas (e.g. an API key, a computed signature, a tenant id), so you don't hand-build them in Apex. Keep secrets in the credential and reference them in the formula.
+Compute **custom headers** (e.g. an API key, a computed signature, a tenant id) with External Credential formulas; never hand-build them in Apex. Keep secrets in the credential and reference them in the formula.
 
-## Why Not Remote Site Settings / Hard-Coding
+## Never Remote Site Settings or Hard-Coding
 
-- Remote Site Settings only allowlist a URL; they manage no auth, secrets or rotation.
-- Hard-coded tokens leak in code, version control, and logs, and can't be rotated centrally.
+- Never rely on a Remote Site Setting: it only allowlists a URL and manages no auth, secrets or rotation.
+- Never hard-code tokens: they leak in code, version control and logs, and cannot be rotated centrally.
 
 ## Anti-Patterns
 

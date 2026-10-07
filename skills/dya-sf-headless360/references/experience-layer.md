@@ -38,11 +38,11 @@ Use **native React** when the Experience Layer's native renderings are not enoug
 | UI only ever shown in Lightning Experience | **LWC** (`dya-sf-lwc`), or Aura (`dya-sf-aura`) for the rare gap |
 | Server-rendered PDF / Classic / email template | **Visualforce** (`dya-sf-visualforce`) |
 
-The pivot is **how many surfaces**: one Lightning surface → plain LWC; many or agent surfaces → Experience Layer + Lightning Types.
+Decide by **how many surfaces**: one Lightning surface → plain LWC; many or agent surfaces → Experience Layer + Lightning Types.
 
 ## Maturity
 
-The **build-time** surface — authoring capabilities, MCP tooling and coding skills — is mature. The cross-surface **runtime** vision — the same capability delivered across voice, partner mobile apps and any MCP-compatible client — is expanding through the release. Build with the "define once" model now; the set of natively-rendered surfaces will grow.
+Build with the "define once" model now; the set of natively-rendered surfaces will grow. The **build-time** surface — authoring capabilities, MCP tooling and coding skills — is mature. The cross-surface **runtime** vision — the same capability delivered across voice, partner mobile apps and any MCP-compatible client — is expanding through the release.
 
 ## Anti-Patterns
 

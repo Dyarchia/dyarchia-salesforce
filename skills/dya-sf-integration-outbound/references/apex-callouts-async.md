@@ -37,8 +37,8 @@ public with sharing class PaymentGateway {
 
 ## The Callout-After-DML Rule
 
-- A Queueable fits "save record, then notify external".
-- Continuation fits long-running calls; a Finalizer fits guaranteed post-work.
+- Use a Queueable for "save record, then notify external".
+- Use Continuation for long-running calls, and a Finalizer for guaranteed post-work.
 
 ## Queueable Callout
 

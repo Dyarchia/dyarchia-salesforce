@@ -12,16 +12,16 @@ The client signs a JWT with a private key; Salesforce trusts the matching certif
 3. POST to the token endpoint with `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer` and the assertion → receive an access token.
 4. Call the API with `Authorization: Bearer <token>`.
 
-Best for: ETL, middleware, backend services. Rotate by swapping the certificate.
+Use it for ETL, middleware and backend services. Rotate by swapping the certificate.
 
 ### Web Server (authorization code + PKCE)
 PKCE uses a code challenge and verifier. The flow returns an authorization code, exchanged for access + refresh tokens.
 
 ### Client Credentials
-The **run-as user** is configured on the ECA. Simpler than JWT but uses a shared secret; fits when certificate management is undesirable and a secret is acceptable.
+Use it when certificate management is undesirable and a secret is acceptable; it is simpler than JWT but uses a shared secret. Configure the **run-as user** on the ECA.
 
 ### Refresh Token
-Gives long-lived access without re-prompting. Refresh tokens are high-value credentials.
+Gives long-lived access without re-prompting. Treat refresh tokens as high-value credentials.
 
 ### Device
 The device shows a code the user enters on another screen.
@@ -35,11 +35,11 @@ The device shows a code the user enters on another screen.
 
 ## MCP / Agent Auth
 
-External AI clients authenticate like hosted MCP servers; tokens must be JWT-shaped. Every MCP call runs as the authenticated user with full CRUD/FLS/sharing, so scope the user tightly. See `dya-sf-integration-connectors-mcp`.
+Scope the user tightly: every MCP call runs as the authenticated user with full CRUD/FLS/sharing. External AI clients authenticate like hosted MCP servers; tokens must be JWT-shaped. See `dya-sf-integration-connectors-mcp`.
 
 ## Token Hygiene
 
-- Short-lived access tokens; refresh rather than long sessions.
+- Use short-lived access tokens; refresh rather than holding long sessions.
 - Store refresh tokens/private keys in a secret manager, never in code or config files.
 - Request only the scopes needed (`api`, `refresh_token`, `mcp_api`, …).
 - Rotate via Staged Credentials; monitor with Login History / API usage event logs.

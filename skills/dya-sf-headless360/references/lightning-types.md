@@ -20,8 +20,8 @@ lightning__multilineTextType
 lightning__urlType
 ```
 
-Each has type-specific keywords, much like JSON Schema. **Support varies by application** — check
-before assuming a type renders everywhere.
+Each has type-specific keywords, much like JSON Schema. **Check support per application** before
+assuming a type renders everywhere; it varies by application.
 
 **Custom types** (`LightningTypeBundle`, **API version 64.0**+) override the default interface for
 complex interactions.
@@ -59,8 +59,8 @@ in an org.
 
 ## Apex-backed custom types
 
-These exist because of namespaced orgs and managed packages; skipping them fails at invocation, not
-at deploy.
+Meet every requirement below; they exist for namespaced orgs and managed packages, and skipping one
+fails at invocation, not at deploy.
 
 - **Top-level classes only.** Every class in its own file; **no inner classes**.
 - **`global` visibility on all of them.** `public` or `private` fails in namespaced orgs and managed
@@ -82,8 +82,8 @@ classes.
 
 ## When to use them
 
-When the target is only Lightning Experience, a plain LWC is simpler and better supported; see
-`dya-sf-lwc`.
+Use a plain LWC when the target is only Lightning Experience; it is simpler and better supported.
+See `dya-sf-lwc`.
 
 ## Anti-Patterns
 

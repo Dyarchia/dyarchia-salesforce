@@ -9,8 +9,9 @@ The **programmatic** surface only, with real signatures and compilable code. Adm
 rules and policies in Setup — is out of scope except where code references it. Builds on
 `dya-sf-apex` and `dya-sf-lwc`. Follow every rule below.
 
-`FSL.*` classes and `FSL__*__c` objects are **managed-package** artifacts and **version-dependent**:
-signatures change across package upgrades; verify against the installed version (§8).
+Verify every `FSL.*` signature against the installed package version (§8). `FSL.*` classes and
+`FSL__*__c` objects are **managed-package** artifacts and **version-dependent**: signatures change
+across package upgrades.
 
 References:
 - `references/shared/platform-deltas.md` — release-coupled facts, including the raised heap limits scheduling calls run inside.
@@ -49,8 +50,8 @@ asynchronous, which matters when a scheduling call holds a large candidate set.
 | **`FSL` Apex namespace** (managed package) | `ScheduleService`, `AppointmentBookingService`, `GradeSlotsService`, `OAAS` | In-session scheduling, booking, grading, optimization |
 | **Standard data model + REST** | `ServiceAppointment`/`WorkOrder`/… + Salesforce Scheduler REST + Bundling REST | Headless/external booking, bundling, integrations |
 
-The FSL Apex classes run **in-session** only; external self-service goes through Salesforce
-Scheduler REST (§5).
+Route external self-service through Salesforce Scheduler REST (§5); the FSL Apex classes run
+**in-session** only.
 
 ---
 
@@ -134,13 +135,13 @@ Id new FSL.OAAS().optimize(FSL.OAASRequest request);
 
 - **`GetSlots` returns slots only between the SA's `EarliestStartTime` and `DueDate`.** Widen
   `DueDate` for more windows.
-- Slot times are relative to the supplied `TimeZone`; offset when persisting
-  `ArrivalWindowStartTime/EndTime` if the operating-hours timezone differs.
+- Offset when persisting `ArrivalWindowStartTime/EndTime` if the operating-hours timezone differs;
+  slot times are relative to the supplied `TimeZone`.
 - **Status changes schedule too.** Setting a SA's `Status` to a scheduled or none-mapped value
   schedules or unschedules it, per the FSL Settings life-cycle mapping.
-- **The policy, not the call, decides latency.** Database rules filter inside the SOQL query; Apex
-  rules then run over **every candidate it returned**. A policy needs at least one database rule,
-  narrowing to roughly **20 candidates** before any Apex rule or objective runs. A pure-Apex-rule
+- **Give every policy at least one database rule**, narrowing to roughly **20 candidates** before
+  any Apex rule or objective runs. The policy, not the call, decides latency: database rules filter
+  inside the SOQL query; Apex rules then run over **every candidate it returned**. A pure-Apex-rule
   policy is the usual cause of slow scheduling.
 
 Full members, `GradeSlotsService.getGradedMatrix` and the `OAASRequest` fields:
@@ -165,16 +166,16 @@ Id optimizationRequestId = new FSL.OAAS().optimize(req);  // run from async (All
 - **Optimize 1–7 days ahead.** Longer passes waste compute on a schedule that keeps changing.
 - **In-Day is capped at 5 minutes with ESO, 10 without**, and reshuffles today; a Global run works
   the full horizon and takes hours. **Chain** requests rather than widening one.
-- **Commit Mode decides whether your DML survives.** `Always Commit` lets a dispatcher change, or
-  your Apex `update` on a `ServiceAppointment`, land mid-optimization; `Rollback` rejects it, so
-  writes disappear silently during an optimization window.
+- **Check Commit Mode before writing during an optimization window**; it decides whether your DML
+  survives. `Always Commit` lets a dispatcher change, or your Apex `update` on a
+  `ServiceAppointment`, land mid-optimization; `Rollback` rejects it, so writes disappear silently.
 - Run from a Queueable or Batch with `Database.AllowsCallouts`, never inline in a per-save trigger.
 
 ---
 
 ## 5. External / Headless Booking — Salesforce Scheduler REST
 
-A distinct product sharing objects with FSL — confirm licensing:
+Confirm licensing; Salesforce Scheduler is a distinct product sharing objects with FSL:
 
 - **Get Appointment Candidates** — resources available for a work-type-group/work-type + territories.
 - **Get Appointment Slots** — available time slots for a resource.
@@ -216,11 +217,11 @@ with `resourceLimitApptDistribution` when a territory exceeds ~20. Full payloads
 `FSL__Service_Goal__c` (service objectives), `FSL__Optimization_Request__c`, `FSL__Polygon__c`.
 
 **`ServiceAppointment.ParentRecordId` is create-only** and polymorphic over Account, Asset, Lead,
-Opportunity, WorkOrder and WorkOrderLineItem, so §5's headless flow must know the parent before it
-commits. **`DurationType`** — Minutes or Hours — governs what `Duration` means. **`StatusCategory`**
-is a restricted picklist and the mechanism behind the status mapping, so a custom Status must declare
-its category. Bundling carries `BundlePolicyId` and
-`RelatedBundleId`, not only `IsBundle` and `IsBundleMember`.
+Opportunity, WorkOrder and WorkOrderLineItem; resolve the parent before §5's headless flow commits.
+**`DurationType`** — Minutes or Hours — governs what `Duration` means. **`StatusCategory`** is a
+restricted picklist and the mechanism behind the status mapping; declare the category of every custom
+Status. Bundling carries `BundlePolicyId` and `RelatedBundleId`, not only `IsBundle` and
+`IsBundleMember`.
 
 **Lifecycle (default, customizable):** `None → Scheduled → Dispatched → In Progress → Completed`,
 with `Cannot Complete` and `Canceled` as exceptions. Scheduling keys off the status-category mapping
@@ -235,11 +236,12 @@ the Tooling API **with no `WHERE` clause** — it rejects `NamespacePrefix` filt
 client-side for the first prefix starting with `FSL`; empty means FSL is not installed. Then try the
 managed object, falling back to the native one on `INVALID_TYPE`.
 
-Policies and objectives are referenced **by Id**, queried by Name:
-`[SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = 'Customer First']` — which throws
-`INVALID_TYPE` on an ESO-native org, so resolve first.
+Reference policies and objectives **by Id**, queried by Name, after resolving the namespace:
+`[SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = 'Customer First']` throws `INVALID_TYPE` on
+an ESO-native org.
 
-There is **no supported "write a Work Rule in Apex" SPI**; four declarative hooks come first:
+Exhaust four declarative hooks before custom code; there is **no supported "write a Work Rule in
+Apex" SPI**:
 **Extended Match** (a junction object with *exactly two* Master-Detail relationships, to
 `ServiceResource` and the matched object — the packaged trigger fails the rule with any other
 number), **Match Fields** (any appointment field against any resource field), **Match Boolean** (any
@@ -271,8 +273,8 @@ flows (the "Skill Iron Rule" pattern) or custom Gantt actions only when those ar
 - **An empty Forms tab is a sharing problem, not a data one.** The tab reads through the UI API,
   which enforces sharing, so a Private OWD on `DynamicDataCapture` or `WorkPlan` — the platform
   default — returns `INSUFFICIENT_ACCESS` and the app shows "No forms available". Admin desktop SOQL
-  will not reproduce it. The app caches its sharing snapshot at login, so the technician must sign
-  out and back in after the fix.
+  will not reproduce it. After the fix, have the technician sign out and back in; the app caches its
+  sharing snapshot at login.
 - **Pre-Work Brief activation cannot be driven from Apex.** The prompt-template activation endpoint
   is `@ConnectHidden(from=Apex)`, so `ConnectApi.EinsteinLLM` and metadata approaches both fail by
   design. Drive it from the CLI or an external caller.

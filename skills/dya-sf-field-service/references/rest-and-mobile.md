@@ -21,7 +21,7 @@ The operations and the in-session `lxscheduler` builder are in SKILL.md §5.
 }
 ```
 
-`resourceLimitApptDistribution` (on `getAppointmentCandidates` and `available-territory-slots`) caps how many resource calendars are evaluated; set it when a territory exceeds ~20 resources.
+Set `resourceLimitApptDistribution` (on `getAppointmentCandidates` and `available-territory-slots`) when a territory exceeds ~20 resources; it caps how many resource calendars are evaluated.
 
 **Headless booking flow:** (1) call candidates/slots to show windows; (2) create `WorkOrder` + `ServiceAppointment` (Work Type, `EarliestStartTime`, `DueDate`) **only when the customer selects a slot**; (3) commit via the Scheduler save action or `FSL.ScheduleService.schedule`.
 

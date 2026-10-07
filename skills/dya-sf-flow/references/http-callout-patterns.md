@@ -125,7 +125,7 @@ Paginate with a Loop:
    - **Decision**: if the response has results, append to `allRecords` and update `nextCursor`; otherwise exit the loop.
 4. After the loop, `allRecords` holds the full result set.
 
-The **synchronous Apex CPU limit applies to flows** even with no visible Apex. For very large result sets, paginate across multiple invocations on an async path, or move to a scheduled-flow + cursor pattern.
+For very large result sets, paginate across multiple invocations on an async path, or move to a scheduled-flow + cursor pattern; the **synchronous Apex CPU limit applies to flows** even with no visible Apex.
 
 ## Reusable HTTP Callout for Multiple Flows
 

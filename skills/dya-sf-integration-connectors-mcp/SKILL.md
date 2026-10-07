@@ -49,8 +49,8 @@ How many systems / how much orchestration?
 └─ An AI agent/assistant is the caller ....... Hosted MCP server / Agent API
 ```
 
-At **more than one or two integrations**, or the first need for transformation, orchestration or
-queuing, move from point-to-point Apex callouts to **MuleSoft**.
+Move from point-to-point Apex callouts to **MuleSoft** at **more than one or two integrations**, or at
+the first need for transformation, orchestration or queuing.
 
 ---
 
@@ -77,8 +77,8 @@ retired 31 January 2025.
 
 - Use it for elastic or custom compute, languages other than Apex, long-running jobs, and heavy data
   processing close to Salesforce.
-- Heroku enterprise sales to new customers have ended. Confirm commercial fit before committing
-  new strategic workloads.
+- Confirm commercial fit before committing new strategic workloads: Heroku enterprise sales to new
+  customers have ended.
 
 ---
 
@@ -96,8 +96,8 @@ low-latency operational access to resident data. Pipeline mechanics, credits and
 
 ## 5. AppExchange / ISV Connectors
 
-Packaged AppExchange integrations, distributed via External Client Apps for 2GP. Before building,
-check for a vetted managed-package connector, especially for common SaaS targets. Govern an
+Check for a vetted managed-package connector before building, especially for common SaaS targets.
+These are packaged AppExchange integrations, distributed via External Client Apps for 2GP. Govern an
 installed connector's API usage and permissions.
 
 ---
@@ -160,7 +160,7 @@ MCP and HXL internals: `dya-sf-headless360`.
 ## Summary — The Five Commandments
 
 1. **Don't hand-code past one integration** — connectors/MuleSoft once it's multi-system or needs orchestration.
-2. **MuleSoft for Flow for prebuilt SaaS**, Anypoint for real orchestration/transformation/API management.
-3. **Sometimes the best integration moves no data** — Data 360 zero-copy for analytics/grounding.
-4. **MCP is the agentic integration surface** — custom servers expose your Apex actions/Flows/Named Queries; curate, describe, and run as a least-privilege user.
+2. **Use MuleSoft for Flow for prebuilt SaaS**, Anypoint for real orchestration/transformation/API management.
+3. **Move no data when none needs moving** — Data 360 zero-copy for analytics/grounding.
+4. **Use MCP as the agentic integration surface** — custom servers expose your Apex actions/Flows/Named Queries; curate, describe, and run as a least-privilege user.
 5. **Mind the retirements** — Salesforce Functions gone (→ Heroku/AppLink), Salesforce-to-Salesforce ending (→ Cross-Org/MuleSoft/Data Cloud One).
