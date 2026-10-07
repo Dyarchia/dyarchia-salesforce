@@ -78,20 +78,20 @@ queue, no agent in an available status, or every eligible agent at capacity.
 | `enableOmniStatusCapModel` | Status-based rather than tab-based capacity |
 | `enableOmniAutoLoginPrompt` | Prompting an agent to go online at login |
 
-**With `enableOmniChannel = false`, every downstream metadata type rejects with `INVALID_TYPE`.**
-The error names the deployed type, not the setting. Deploy the setting first, in its own step, and
-confirm it.
+**Deploy `enableOmniChannel` first, in its own step, and confirm it.** With
+`enableOmniChannel = false`, every downstream metadata type rejects with `INVALID_TYPE`, and the error
+names the deployed type, not the setting.
 
-`enableOmniAutoLoginPrompt` deploys and round-trips cleanly but **does not currently drive the UI
-radio**. Do not debug why the prompt is absent.
+Do not debug why the login prompt is absent: `enableOmniAutoLoginPrompt` deploys and round-trips
+cleanly but **does not currently drive the UI radio**.
 
 ---
 
 ## 3. `routeWork` — the Agentforce Seam
 
-The `routeWork` Flow action pushes a record into routing from automation; it is the boundary with
-`dya-sf-agentforce`. An agent that cannot help calls it; a queue that an agent rather than a person
-should handle routes through it too.
+Use the `routeWork` Flow action to push a record into routing from automation; it is the boundary
+with `dya-sf-agentforce`. Call it when an agent cannot help, and route through it when a queue should
+be handled by an agent rather than a person.
 
 Pass exactly one target:
 
@@ -105,8 +105,8 @@ Pass exactly one target:
 | **`digitalWorkerId`** | An Agentforce Orchestrator digital worker |
 | `externalConversationBotId` | An external conversation bot |
 
-**Escalation from an agent to a person and delegation from a person to an agent use the same
-action.** Model both directions; the agent is not a terminal node.
+**Model both directions; the agent is not a terminal node.** Escalation from an agent to a person
+and delegation from a person to an agent use the same action.
 
 > Full parameter list, the flow process types that carry it, and the error taxonomy:
 > `references/omni-flow-deploy.md`.
@@ -115,30 +115,30 @@ action.** Model both directions; the agent is not a terminal node.
 
 ## 4. Capacity
 
-Capacity decides when an agent is full.
+Capacity decides when an agent is full. **Read per-agent capacity totals from
+`PresenceUserConfig.Capacity`,** not from the channel.
 
 - **Tab-based** (`capacityModel: TAB_BASED`) — each open work item costs its channel's weight.
 - **Status-based** (`STATUS_BASED`, needs `enableOmniStatusCapModel`) — capacity is per presence
   status, for an agent who can take three chats *or* one call but not both.
 
-**Per-agent capacity totals live on `PresenceUserConfig.Capacity`,** not on the channel. The channel
-declares the *cost* of one item; the user config declares the *budget*. `capacityWeight` is gone from
-`ServiceChannel` — see `references/omni-gotchas.md`.
+The channel declares the *cost* of one item; the user config declares the *budget*.
+`capacityWeight` is gone from `ServiceChannel` — see `references/omni-gotchas.md`.
 
 ---
 
 ## 5. Skills-Based Routing
 
-Attribute-based routing matches a work item's required skills against agents' skills instead of
-taking whoever is next.
+Use attribute-based routing where the wrong agent means a transfer rather than a slower answer:
+language, product line, regulatory certification. It matches a work item's required skills against
+agents' skills instead of taking whoever is next.
 
 - `QueueRoutingConfig.IsAttributeBased = true` switches a queue to it.
 - `WorkSkillRouting` declares which skills a work item needs.
 - `SkillUser` grants a skill, at a level, to a user.
 
-Use it where the wrong agent means a transfer rather than a slower answer — language, product line,
-regulatory certification. It is not a quality mechanism: each required skill narrows the eligible
-pool, and an item matching nobody available waits rather than routing to a competent generalist.
+Do not use it as a quality mechanism: each required skill narrows the eligible pool, and an item
+matching nobody available waits rather than routing to a competent generalist.
 
 ---
 
@@ -180,11 +180,11 @@ pool, and an item matching nobody available waits rather than routing to a compe
 
 1. **Learn the chain and diagnose along it** — channel, queue, routing config, pending routing,
    agent work. Every "it is not routing" question is a position on that list.
-2. **`enableOmniChannel` comes first.** Nothing else deploys until it is on, and the error does not
+2. **Deploy `enableOmniChannel` first.** Nothing else deploys until it is on, and the error does not
    say so.
-3. **`routeWork` is the seam with Agentforce, and it runs both ways.** Escalating to a human and
+3. **Use `routeWork` as the seam with Agentforce, in both directions.** Escalating to a human and
    delegating to an agent are the same action with a different target.
-4. **Capacity is a budget on the user and a cost on the channel.** Do not look for the total on
+4. **Set the capacity budget on the user and the cost on the channel.** Do not look for the total on
    `ServiceChannel`.
 5. **Configure it as metadata, in order.** The read paths are asymmetric and several element names
    changed at v66 — check `references/omni-gotchas.md` before assuming a field exists.

@@ -15,7 +15,7 @@ the channel look unconfigured.
 **`WorkSkillRouting` does expose a queryable `Metadata` field**, so a helper written for one type and
 reused for the other silently returns empty.
 
-To read a `ServiceChannel`'s configuration, retrieve the metadata:
+Retrieve the metadata to read a `ServiceChannel`'s configuration:
 
 ```bash
 sf project retrieve start --metadata "ServiceChannel:Cases" --target-org <alias>
@@ -23,8 +23,8 @@ sf project retrieve start --metadata "ServiceChannel:Cases" --target-org <alias>
 
 ## The v66 renames
 
-The old `ServiceChannel` element names persist in documentation and StackExchange answers; a deploy
-using them fails.
+Use the current `ServiceChannel` element names. The old ones persist in documentation and
+StackExchange answers; a deploy using them fails.
 
 | Before | Now |
 |---|---|
@@ -40,8 +40,8 @@ reliably order them.
 
 ## The queue that accepts nothing
 
-A `Group` with `Type = 'Queue'` and no `QueueSobject` row for the routed entity deploys, receives
-nothing and raises no error. When a specific queue is not receiving, check `QueueSobject` first.
+When a specific queue is not receiving, check `QueueSobject` first. A `Group` with `Type = 'Queue'`
+and no `QueueSobject` row for the routed entity deploys, receives nothing and raises no error.
 
 ## Diagnosis order
 

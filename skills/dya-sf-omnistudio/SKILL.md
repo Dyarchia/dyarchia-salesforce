@@ -110,18 +110,24 @@ global with sharing class AccountRemoteActions implements vlocity_cmt.VlocityOpe
 }
 ```
 
-Rules: the class is `global with sharing`; only methods on classes implementing `Callable` or
-extending `VlocityOpenInterface(2)` are invocable from OmniStudio; dispatch on `methodName`; read
-`input`, write `outMap`/`output`, read `options`; return `Boolean` success. It is **bulk-safe,
-`WITH USER_MODE`, and free of SOQL and DML in loops**. Register class and method in the Remote
-Action element as **Remote Class** and **Remote Method**. Full contract and errors:
-`references/apex-remote-actions.md`.
+Rules:
 
-**A `{ inputMap, options }` envelope is a different call site.** A generic `System.Callable`
-skeleton that reads `args.get('inputMap')` and *returns* a response map serves Industries Apex called
-by your own code, and migration off `VlocityOpenInterface`. A Remote Action differs: the OmniStudio
-runtime supplies `input`, `output` and `options` and reads `output` back. Do not "fix" the sample
-above to match it.
+- Declare the class `global with sharing`.
+- Implement `Callable` or extend `VlocityOpenInterface(2)`; only methods on such classes are
+  invocable from OmniStudio.
+- Dispatch on `methodName`.
+- Read `input`, write `outMap`/`output`, read `options`.
+- Return `Boolean` success.
+- Keep it **bulk-safe, `WITH USER_MODE`, and free of SOQL and DML in loops**.
+- Register class and method in the Remote Action element as **Remote Class** and **Remote Method**.
+
+Full contract and errors: `references/apex-remote-actions.md`.
+
+**Do not "fix" the sample above to match a `{ inputMap, options }` envelope; that is a different
+call site.** A generic `System.Callable` skeleton that reads `args.get('inputMap')` and *returns* a
+response map serves Industries Apex called by your own code, and migration off
+`VlocityOpenInterface`. A Remote Action differs: the OmniStudio runtime supplies `input`, `output`
+and `options` and reads `output` back.
 
 ---
 
@@ -164,16 +170,16 @@ Remote Actions for logic they cannot express.
 
 ## 5. Deployment — DataPacks, Not `sf project deploy`
 
-**OmniStudio artifacts are records, not metadata.** OmniScripts, FlexCards, Integration Procedures
-and Data Mappers do not move with `sf project deploy start`; they move as **DataPacks**, through the
-`vlocity` Build tool. Plan this second pipeline from project start.
+**Move OmniStudio artifacts as DataPacks, through the `vlocity` Build tool.** They are records, not
+metadata: OmniScripts, FlexCards, Integration Procedures and Data Mappers do not move with
+`sf project deploy start`. Plan this second pipeline from project start.
 
-Fixed order: `validateLocalData` → optionally `packGetDiffs` → `packDeploy` → then
+Run in fixed order: `validateLocalData` → optionally `packGetDiffs` → `packDeploy` → then
 **`packRetry` repeatedly while the error count keeps dropping**, because dependency ordering resolves
 across passes.
 
-A DataPack is identified by its **GlobalKey**. Most deploy failures are that key disagreeing between
-source and target, not a wrong artifact.
+On a deploy failure, check the **GlobalKey** first: it identifies a DataPack, and most deploy
+failures are that key disagreeing between source and target, not a wrong artifact.
 
 > Command catalog, job-file keys, incremental `gitCheck` deploys and the error-to-cause table:
 > `references/datapacks.md`.
@@ -216,8 +222,8 @@ source and target, not a wrong artifact.
 
 ## Summary — The Five Commandments
 
-1. **Presentation vs logic vs data vs code** — OmniScript/FlexCard, Integration Procedure, Data Mapper, Apex Remote Action; each for its job.
+1. **Separate presentation, logic, data and code** — OmniScript/FlexCard, Integration Procedure, Data Mapper, Apex Remote Action; each for its job.
 2. **Know your flavor** — Standard (`omnistudio` namespace, `Callable`) vs Managed Package (`vlocity_*`, `VlocityOpenInterface2`); the Apex contract differs.
-3. **Remote Actions follow the contract** — `global with sharing`, dispatch on `methodName`, read `input`/write `output`/read `options`, return `Boolean`, bulk-safe, `WITH USER_MODE`.
+3. **Follow the Remote Action contract** — `global with sharing`, dispatch on `methodName`, read `input`/write `output`/read `options`, return `Boolean`, bulk-safe, `WITH USER_MODE`.
 4. **Configure first, code second** — IPs and Data Mappers over Apex; Apex is the escape hatch for the inexpressible.
-5. **One server call, reuse everywhere** — IPs bundle actions; invoke them from Apex (`IntegrationProcedureService.runIntegrationService`), LWC, and REST.
+5. **Bundle into one server call and reuse it everywhere** — IPs bundle actions; invoke them from Apex (`IntegrationProcedureService.runIntegrationService`), LWC, and REST.

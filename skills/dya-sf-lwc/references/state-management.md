@@ -49,7 +49,7 @@ Built-in managers wrap Lightning Data Service for records, object info, layouts 
 
 ### Rules
 
-- One manager module per logical concern; import the same module from every component that shares it.
+- Write one manager module per logical concern; import the same module from every component that shares it.
 - Mutate only through actions that call `setAtom` — never reassign atoms directly from a consumer.
 - Derive with `computed`; do not duplicate derived values as separate atoms.
 
@@ -63,7 +63,7 @@ Do NOT use LMS for:
 - Child → parent notification (a bubbling `CustomEvent`).
 - Salesforce record data that LDS or GraphQL already updates.
 
-LMS publishes across the whole application context; overusing it makes data flow hard to trace.
+Keep LMS to cross-boundary cases: it publishes across the whole application context, and overuse makes data flow hard to trace.
 
 ## Define a Message Channel
 
@@ -175,11 +175,11 @@ export default class CartSummary extends LightningElement {
 
 ## Architectural Rules
 
-- `unsubscribe` in `disconnectedCallback`; orphaned subscriptions leak and cause duplicate handling.
+- Call `unsubscribe` in `disconnectedCallback`; orphaned subscriptions leak and cause duplicate handling.
 - Guard against double-subscription in `connectedCallback` (the early-return pattern above).
 - Keep message payloads small and serialisable — primitives and plain objects, never component instances or DOM nodes.
 - Treat received data immutably: build a new array/object (`[...items, message]`) so reactivity fires.
-- One channel per logical concern; don't multiplex unrelated events through a single channel.
+- Use one channel per logical concern; never multiplex unrelated events through a single channel.
 - LWC, Aura and Visualforce can all publish and subscribe on the same channel.
 
 ## Anti-Patterns

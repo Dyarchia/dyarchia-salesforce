@@ -23,7 +23,8 @@ Group (Type = 'Queue')     the queue record itself
 QueueSobject               one row per sObject type the queue accepts
 ```
 
-A queue with no matching `QueueSobject` row silently accepts nothing, so work never arrives.
+Add a `QueueSobject` row for every routed sObject type; a queue with no matching row silently
+accepts nothing, so work never arrives.
 
 Queue membership — which users can receive from it — is ordinary group membership, and the visibility
 of the resulting records follows the sharing model. See `references/shared/sharing-and-access.md`.
@@ -37,8 +38,8 @@ of the resulting records follows the sharing model. See `references/shared/shari
 | `IsAttributeBased` | Switches the queue to skills-based routing |
 | `RoutingPriority` | Lower routes first across queues |
 
-`MostAvailable` spreads load. For conversational work, `LeastActive` usually serves customers better
-because no agent juggles many chats at once.
+For conversational work, prefer `LeastActive`, so no agent juggles many chats at once. `MostAvailable`
+spreads load.
 
 ## `PendingServiceRouting` — the waiting room
 
@@ -47,11 +48,11 @@ configuration, is the constraint.
 
 ## `AgentWork` — the assignment and its history
 
-Records when an item was pushed, accepted, declined and closed. Supervisor dashboards read it; query
-it to answer "who had this, and when".
+Query it to answer "who had this, and when": it records when an item was pushed, accepted, declined
+and closed. Supervisor dashboards read it.
 
-Supervisors see only the `AgentWork` records sharing grants them, so an empty supervisor console is
-usually a sharing problem, not a routing one.
+Treat an empty supervisor console as a sharing problem first, not a routing one: supervisors see only
+the `AgentWork` records sharing grants them.
 
 ## The agent side
 
@@ -68,7 +69,7 @@ Assigned per user, usually through a `PresenceUserConfigUser` association.
 ## Skills-based routing
 
 Unlike `ServiceChannel`, **`WorkSkillRouting` exposes a queryable `Metadata` field** through the
-Tooling API — see `references/omni-gotchas.md` for why that asymmetry matters.
+Tooling API, so a helper written for one type and reused for the other silently returns empty.
 
 ## Supervisor configuration
 
@@ -78,5 +79,5 @@ Tooling API — see `references/omni-gotchas.md` for why that asymmetry matters.
 | `OmniSupervisorConfigAction` | Which actions a supervisor may take |
 | `OmniSupervisorConfigTab` | Which tabs appear |
 
-The shipped permission set is **`ContactCenterSupervisor`**. It grants the console, not the records:
-pair it with `AgentWork` sharing so supervisors see their team's work.
+Pair the shipped permission set, **`ContactCenterSupervisor`**, with `AgentWork` sharing so
+supervisors see their team's work; it grants the console, not the records.

@@ -19,7 +19,7 @@ document.cookie = 'k=v';             // ✅ document is not on the list
 ```
 
 **Reads are unaffected**, and it only applies to files importing from `lwc` — a plain utility module
-does not trip it. The fix is usually a module-scoped variable or a service module, not a global.
+does not trip it. Use a module-scoped variable or a service module instead of a global.
 
 ## `lws-016` — `Map` and `Set` misuse
 
@@ -44,8 +44,7 @@ this.wiredData[0].amount = 0;        // ❌ wire data is not yours
 element.customProp = 123;            // ❌ use element.dataset instead
 ```
 
-Spread into a local copy and mutate that. Under LWS, one-way data flow is a platform constraint, not
-a style preference.
+Spread into a local copy and mutate that. Under LWS, one-way data flow is a platform constraint.
 
 ## `lws-019` — `URL.createObjectURL` by MIME type
 
@@ -80,7 +79,7 @@ assigning it.
 ## `lws-018` — trusted-type policy names
 
 `trustedTypes.createPolicy()` refuses the names `'default'`, `''`, `'lwsInternal'` and `'trusted'`.
-Pick something namespaced to your component.
+Name the policy with something namespaced to your component.
 
 ## `lws-014` — `document.execCommand`
 

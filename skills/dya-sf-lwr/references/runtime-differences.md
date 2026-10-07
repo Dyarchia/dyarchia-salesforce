@@ -44,8 +44,8 @@ export default class Nav extends NavigationMixin(LightningElement) {
 }
 ```
 
-For simple intra-site links, an anchor whose `href` derives from `<base href>` is often simpler than
-programmatic navigation:
+For simple intra-site links, use an anchor whose `href` derives from `<base href>`; it is often simpler
+than programmatic navigation:
 
 ```javascript
 get homeHref() {

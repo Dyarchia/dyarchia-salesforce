@@ -40,8 +40,8 @@ public with sharing class AccountController {
 }
 ```
 
-The comment above the method justifies using Apex; if you cannot write that sentence, the work
-belongs in LDS, GraphQL or Flow. The method body is one line: the controller is a boundary.
+Justify Apex in a comment above the method; if you cannot write that sentence, the work
+belongs in LDS, GraphQL or Flow. Keep the method body to one line: the controller is a boundary.
 
 From API 67.0, an `@AuraEnabled` class with no sharing keyword defaults to `with sharing`, and SOQL
 and DML run in user mode. Declare both anyway, so enforcement does not change silently if the class

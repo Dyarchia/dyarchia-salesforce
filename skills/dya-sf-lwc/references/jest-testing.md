@@ -108,7 +108,7 @@ describe('c-hello-world', () => {
 
 ### The async-render rule
 
-Always `await flushPromises()` (equivalently `await Promise.resolve()`) between act and assert. A returned `.then()` chain also works, but `async/await` is the project default. For chained updates (promise → state → render), await once per microtask boundary.
+Always `await flushPromises()` (equivalently `await Promise.resolve()`) between act and assert. Use `async/await`; a returned `.then()` chain also works. For chained updates (promise → state → render), await once per microtask boundary.
 
 ## Querying & Interacting With the Shadow DOM
 
@@ -318,8 +318,8 @@ npm install --save-dev @sa11y/jest
 npm test -- --testMatch="**/*.accessibility.test.js"
 ```
 
-Convention is a separate `*.accessibility.test.js` file per component, so the a11y suite runs and
-reports independently of the unit suite.
+Put accessibility tests in a separate `*.accessibility.test.js` file per component; the a11y suite
+then runs and reports independently of the unit suite.
 
 **Do not prefix the command with `SA11Y_*` environment variables.** Once wired into the project's Jest
 setup, `@sa11y/jest` runs automatically; `SA11Y_AUTO`,
@@ -329,8 +329,8 @@ internal Bazel builds and do nothing in a DX project. Exit codes are Jest's usua
 ## Coverage & CI
 
 - `npm run test:unit:coverage` writes an Istanbul report; gate the build with `coverageThreshold` in `jest.config.js`.
-- Test rendered output and emitted events, not private details, so refactors do not break passing tests.
-- Keep each `it` focused on one observable behaviour; one `expect` per concept reads best.
+- Test rendered output and emitted events, not private details; refactors then do not break passing tests.
+- Keep each `it` focused on one observable behaviour; use one `expect` per concept.
 
 ## Anti-Patterns
 

@@ -71,8 +71,7 @@ When falling back to Apex, add a class-level comment saying which client-side op
 
 ## 2. Template Syntax
 
-**Conditionals** are `lwc:if` / `lwc:elseif` / `lwc:else`. Legacy `if:true` / `if:false` is an
-anti-pattern.
+**Conditionals**: use `lwc:if` / `lwc:elseif` / `lwc:else`. Never use legacy `if:true` / `if:false`.
 
 ```html
 <template lwc:if={isLoading}>
@@ -86,7 +85,7 @@ anti-pattern.
 </template>
 ```
 
-**Template expressions** replace a getter that only formats a value, at `apiVersion` 66.0 or higher.
+**Template expressions**: use one instead of a getter that only formats a value. They need `apiVersion` 66.0 or higher.
 
 ```html
 <p>{firstName + ' ' + lastName}</p>
@@ -95,25 +94,25 @@ anti-pattern.
 
 Keep a getter when the logic is more than an expression or worth naming, even if it fits on one line.
 
-**Dynamic event listeners** use `lwc:on` with an object mapping event name to handler. Listeners
-rebind when the object reference changes and are removed on disconnect, so no `removeEventListener`
-is needed.
+**Dynamic event listeners**: use `lwc:on` with an object mapping event name to handler. Listeners
+rebind when the object reference changes and are removed on disconnect; do not call
+`removeEventListener`.
 
 ```html
 <button lwc:on={buttonHandlers}>Click Me</button>
 ```
 
-Keys are bare event names (`click`, not `onclick`). Combining `lwc:on` with an `onevent={...}`
-attribute for the same event throws. With `lwc:component` and `lwc:is`, it also attaches listeners
+Use bare event names as keys (`click`, not `onclick`). Never combine `lwc:on` with an `onevent={...}`
+attribute for the same event; it throws. With `lwc:component` and `lwc:is`, it also attaches listeners
 to a dynamically loaded child.
 
-**Third-party web components** use `lwc:external` on the tag. Older code hosting them in an iframe
-is worth revisiting.
+**Third-party web components**: put `lwc:external` on the tag. Revisit older code that hosts them in an
+iframe.
 
-**Property spread** uses `lwc:spread={props}`. Reassign the object to trigger reactivity —
+**Property spread**: use `lwc:spread={props}`. Reassign the object to trigger reactivity —
 `this.childProps = { ...this.childProps, name: 'Updated' }`. In-place mutation does not re-render.
 
-**Reactivity**: primitive fields are reactive without `@track`. Use `@track` only to deep-track
+**Reactivity**: leave primitive fields without `@track`; they are already reactive. Use `@track` only to deep-track
 mutated nested properties of an object or array — and prefer creating a new object or array.
 
 **Native accordions**: give sibling `<details>` elements the same `name`; opening one closes the
@@ -123,26 +122,26 @@ others, with no JavaScript and no `lightning-accordion`.
 
 LDS reads and writes records through the UI API and keeps a **shared browser cache**: two components
 asking for the same record cost one request and both re-render when it changes. An Apex controller
-bypasses that cache, which is why section 1 puts Apex last.
+bypasses that cache.
 
 ```javascript
 @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
 account;
 ```
 
-`'$recordId'` means "the current value of `this.recordId`; re-run when it changes".
-`recordId: this.recordId` passes the value once, usually while still `undefined`, and the wire never
-fires again, so the component renders empty.
+Use `'$recordId'`: it means "the current value of `this.recordId`; re-run when it changes".
+Never write `recordId: this.recordId`: it passes the value once, usually while still `undefined`, the
+wire never fires again, and the component renders empty.
 
-Import fields from `@salesforce/schema/...`, not `'Account.Name'`: a renamed field then breaks the
+Import fields from `@salesforce/schema/...`, not `'Account.Name'`; a renamed field then breaks the
 build instead of failing silently in production.
 
-**Refreshing after a write.** When Apex or a callout changed the record, call
-`notifyRecordUpdateAvailable([{ recordId }])` so the LDS cache re-fetches; `getRecordNotifyChange` is
-deprecated. When the component reads through a **wired Apex** method, that
-notification does nothing — the wire is not LDS. Use `refreshApex(this.wiredResult)` from
-`@salesforce/apex`, keeping the raw wire result (`@wire(m) wired(result) { this.wiredResult = result; }`)
-instead of destructuring `{ data, error }`. *Imperative* Apex has no wire to refresh: call it again.
+**Refreshing after a write.** After every write by Apex or a callout, call
+`notifyRecordUpdateAvailable([{ recordId }])` so the LDS cache re-fetches; never use the deprecated
+`getRecordNotifyChange`. When the component reads through a **wired Apex** method, that
+notification does nothing — the wire is not LDS. Call `refreshApex(this.wiredResult)` from
+`@salesforce/apex` instead, keeping the raw wire result (`@wire(m) wired(result) { this.wiredResult = result; }`)
+rather than destructuring `{ data, error }`. *Imperative* Apex has no wire to refresh: call it again.
 Record-form base components refresh themselves.
 
 > Every read and write pattern, object metadata, picklists, and error normalisation: `references/lds-patterns.md`.
@@ -161,13 +160,13 @@ returns `errors` — plural.
 
 ## 5. Shared State Across Components
 
-**`@lwc/state`** is for shared **reactive** state between components in one component tree. A state manager
-moves the data and its logic into a reusable, testable module, so siblings coordinate without lifting
-state to a common parent or drilling props. Built-in **Lightning State Managers** wrap LDS for
-record-backed state, so most cases need no hand-written manager. A state manager needs a provider
+Use **`@lwc/state`** for shared **reactive** state between components in one component tree. A state
+manager holds the data and its logic in a reusable, testable module; siblings coordinate without lifting
+state to a common parent or drilling props. Use the built-in **Lightning State Managers**, which wrap LDS,
+for record-backed state before writing a manager by hand. A state manager needs a provider
 ancestor; components placed separately in App Builder have none.
 
-**Lightning Message Service** is pub/sub over a Lightning Message Channel, for relationships that
+Use **Lightning Message Service**, pub/sub over a Lightning Message Channel, for relationships that
 cross the DOM, pages, apps or technologies — LWC talking to Aura or Visualforce, or a utility-bar
 component broadcasting application-wide. Subscribe in `connectedCallback` and **unsubscribe in
 `disconnectedCallback`**; a subscription that outlives its component is a leak.
@@ -182,7 +181,7 @@ component broadcasting application-wide. Subscribe in `connectedCallback` and **
 | Across the DOM: separate App Builder components, utility bar, pages or apps | Lightning Message Service |
 | LWC talking to Aura or Visualforce | Lightning Message Service |
 
-For directly related components, `@api` properties and events stay correct and simplest. Use a state
+For directly related components, use `@api` properties and events. Use a state
 manager only when the relationship is lateral, not merely awkward.
 
 > Manager patterns, channel definition, scope options, Aura and Visualforce interop: `references/state-management.md`.
@@ -200,39 +199,43 @@ this[NavigationMixin.Navigate]({
 });
 ```
 
-`lightning/accApi` is the headless Agentforce Conversation Client: `open()`, `close()` and
-`execute(utterance, botId)` drive the Agentforce side panel from your own UI without embedding the
-chat component. Confirm the import binding against the module docs for your release. Building the
+Drive the Agentforce side panel from your own UI with `lightning/accApi`, the headless Agentforce
+Conversation Client: `open()`, `close()` and `execute(utterance, botId)`, without embedding the chat
+component. Confirm the import binding against the module docs for your release. Building the
 agent is `dya-sf-agentforce`.
 
 ## 7. The `@AuraEnabled` Contract
 
 The only server-side surface this skill owns.
 
-- Declare `with sharing` and query `WITH USER_MODE` explicitly, although both are the default from
-  API 67.0; stating them keeps the intent readable and stable.
-- `cacheable=true` for reads — served from the LDS cache after the first call, cannot perform DML,
-  must be `static`. No `cacheable` for writes.
-- Parameters and return values are primitives or `@AuraEnabled` DTO wrappers, never raw `SObject`.
-- The controller delegates to a service class; business logic stays out of the `@AuraEnabled` method.
-- Throw `AuraHandledException` on failure, so the component gets a clean message, not a stack trace.
+- Declare `with sharing` and query `WITH USER_MODE` explicitly, even though both are the default from
+  API 67.0.
+- Mark reads `cacheable=true`: served from the LDS cache after the first call, no DML, must be
+  `static`. Never mark writes `cacheable`.
+- Take and return only primitives or `@AuraEnabled` DTO wrappers, never raw `SObject`.
+- Delegate to a service class; keep business logic out of the `@AuraEnabled` method.
+- Throw `AuraHandledException` on failure; the component then gets a clean message, not a stack trace.
 
-Use `@wire` for cacheable reads and imperative `await` only for DML or non-cacheable work. An
-imperative call in `connectedCallback` for something `@wire` could serve bypasses the cache and loses
-the reactive re-fetch.
+Use `@wire` for cacheable reads and imperative `await` only for DML or non-cacheable work. Never make
+an imperative call in `connectedCallback` for something `@wire` could serve; it bypasses the cache and
+loses the reactive re-fetch.
 
 > The minimum viable controller with its DTO, and the `@wire` versus imperative forms: `references/apex-controller-contract.md`.
 
 ## 8. JavaScript
 
-`const` and `let`, never `var`. Arrow functions for callbacks. Template literals over concatenation.
-Optional chaining and nullish coalescing. `async`/`await` over `.then()` chains, except inside `@wire`
-handlers, which are not async functions. Destructuring. `Array.prototype` methods over manual loops.
+- Use `const` and `let`, never `var`.
+- Use arrow functions for callbacks.
+- Use template literals over concatenation.
+- Use optional chaining and nullish coalescing.
+- Use `async`/`await` over `.then()` chains, except inside `@wire` handlers, which are not async functions.
+- Use destructuring.
+- Use `Array.prototype` methods over manual loops.
 
-**Downloads use `blob:` with an explicit MIME type, never `data:`.** A `data:` URI set as `href` and
+**Build downloads with `blob:` and an explicit MIME type, never `data:`.** A `data:` URI set as `href` and
 clicked fails silently under Lightning Web Security. Take the type from the allowed set in
-`references/lws-rules.md`: `text/csv` is not on it and throws `Unsupported MIME type.`, so a CSV goes
-out as `application/octet-stream` and `download` supplies the name. No `;charset=` parameters.
+`references/lws-rules.md`: `text/csv` is not on it and throws `Unsupported MIME type.`, so send a CSV
+as `application/octet-stream` and let `download` supply the name. Never add `;charset=` parameters.
 
 ```javascript
 downloadCsv(csv) {
@@ -267,16 +270,16 @@ downloadCsv(csv) {
 
 ## 10. Testing — Jest
 
-`@salesforce/sfdx-lwc-jest` is the only supported LWC unit-test runner. Install it once per DX project,
+Use `@salesforce/sfdx-lwc-jest`, the only supported LWC unit-test runner. Install it once per DX project,
 keep one `jest.config.js` at the root, and put each test in a `__tests__` folder in the bundle.
 
 - **`createElement` → `appendChild` → assert.** Query through `element.shadowRoot`, never `document`.
-- **Rendering is asynchronous.** After any property change, wire emit or resolved promise, `await`
-  a flushed microtask before asserting.
+- **Await rendering.** After every property change, wire emit or resolved promise, `await`
+  a flushed microtask before asserting; rendering is asynchronous.
 - **Reset between tests.** In `afterEach`, remove every child of `document.body` and clear mocks;
   jsdom and mocks are shared within a file.
-- **Mock wires with `.emit()` and `.error()`** on the imported adapter. The `registerTestWireAdapter`
-  family is legacy.
+- **Mock wires with `.emit()` and `.error()`** on the imported adapter. Never use the legacy
+  `registerTestWireAdapter` family.
 - **Mock imperative Apex with `jest.mock`** on the `@salesforce/apex/...` module.
 - **Test behaviour, not internals.** Assert rendered output and dispatched events; never reach into
   private methods or snapshot whole trees.
@@ -320,7 +323,7 @@ preview (`sf lightning dev component`) runs a component without deploying, insid
 ## Summary — The Five Commandments
 
 1. **Avoid Apex.** LDS adapters, GraphQL and the standard component library cover most needs — and LDS shares a cache an Apex controller bypasses.
-2. **Modern template syntax only** — `lwc:if`, `lwc:on`, `lwc:spread`, `lwc:external`, and template expressions (GA at `apiVersion` 66.0 and above).
-3. **GraphQL v2 is the default for queries and mutations** — never the deprecated v1 adapter.
-4. **`@lwc/state` for same-page shared reactive state.** Keep Lightning Message Service for crossing the DOM, pages, apps or technologies.
+2. **Use modern template syntax only** — `lwc:if`, `lwc:on`, `lwc:spread`, `lwc:external`, and template expressions (GA at `apiVersion` 66.0 and above).
+3. **Default to GraphQL v2 for queries and mutations** — never the deprecated v1 adapter.
+4. **Use `@lwc/state` for same-page shared reactive state.** Keep Lightning Message Service for crossing the DOM, pages, apps or technologies.
 5. **Treat `@AuraEnabled` Apex as code, not glue** — explicit `with sharing` and `USER_MODE`, DTOs rather than raw SObjects, `AuraHandledException` on failure, and the real logic in a service class.

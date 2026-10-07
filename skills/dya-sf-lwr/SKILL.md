@@ -52,9 +52,9 @@ both LEX and LWR is restricted to the **intersection** of supported APIs.
 
 With no Aura underneath, some Lightning Experience behaviour is absent or different on LWR:
 
-- Many `lightning/*` modules work, but **not all** — verify each against the LWR reference.
-- `@salesforce/*` scoped modules are largely available; confirm per module.
-- Aura-runtime services that LEX provides implicitly are not present.
+- Verify each `lightning/*` module against the LWR reference; many work, but **not all**.
+- Confirm each `@salesforce/*` scoped module; most are available.
+- Never rely on the Aura-runtime services that LEX provides implicitly; they are not present.
 
 When a module is unavailable, prefer a standard-web-platform alternative over an Aura-era API.
 
@@ -79,7 +79,7 @@ export default class GoExternal extends NavigationMixin(LightningElement) {
 }
 ```
 
-- `NavigationMixin` is the **cross-compatible** choice (LEX and LWR). LWR also exposes `navigate()` /
+- Use `NavigationMixin`, the **cross-compatible** choice (LEX and LWR). LWR also exposes `navigate()` /
   `generateUrl()` from the navigation module with the same capability.
 - `this[NavigationMixin.GenerateUrl](pageRef)` returns a `Promise<string>`; use it to build a real
   `href` wherever a link suits better than programmatic navigation.
@@ -132,8 +132,8 @@ Site-level guest hardening: `dya-sf-lwr-sites`.
 
 - Mind bundle size, lazy-load heavy work, and keep large libraries out of a guest-facing page.
 - Let LDS and GraphQL own data and caching rather than hand-rolling fetch-and-store.
-- Public LWR pages are measured on real-world load and Core Web Vitals. Treat performance as a
-  requirement.
+- Treat performance as a requirement: public LWR pages are measured on real-world load and Core Web
+  Vitals.
 
 ---
 
@@ -197,11 +197,11 @@ lower-risk choice for a UI that will only ever live in one org.
 
 ## Summary — The Five Commandments
 
-1. **Runtime first** — decide LEX (Aura) vs LWR vs Lightning Out before writing; they are not
+1. **Decide the runtime first** — decide LEX (Aura) vs LWR vs Lightning Out before writing; they are not
    interchangeable.
-2. **No Aura underneath** — verify module and base-component availability against LWR; do not
+2. **Assume no Aura underneath** — verify module and base-component availability against LWR; do not
    assume LEX services exist.
-3. **Navigation and security differ** — `lightning/navigation` is a narrower client-side router
+3. **Treat navigation and security as different** — `lightning/navigation` is a narrower client-side router
    on LWR; LWS (not Locker) with strict CSP, and `data:` URIs are blocked.
 4. **Design for the guest** — read-only, no ownership, empty/denied is a normal state.
-5. **LWC by default; a UI Bundle when the app ships to other orgs** — Multi-Framework packages as 2GP, but it is Hyperforce-only and adds a build step LWC does not have.
+5. **Default to LWC; use a UI Bundle when the app ships to other orgs** — Multi-Framework packages as 2GP, but it is Hyperforce-only and adds a build step LWC does not have.

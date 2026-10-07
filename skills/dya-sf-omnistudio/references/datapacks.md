@@ -27,10 +27,11 @@ but it puts a credential in a file that ends up committed.
 | `packContinue` | Resumes an interrupted run |
 | `packUpdateSettings` | Refreshes the DataPack settings in the org |
 
-**`validateLocalData` is not optional.**
+**Run `validateLocalData` on every deploy; it is not optional.**
 
-A pack whose dependency had not landed succeeds on the next `packRetry` pass. Stop retrying when the
-error count stops dropping; the remaining errors are real and the table below applies.
+Run `packRetry` while the error count keeps dropping: a pack whose dependency had not landed succeeds
+on the next pass. Stop retrying when the error count stops dropping; the remaining errors are real
+and the table below applies.
 
 ## The job file
 
@@ -46,7 +47,7 @@ gitCheck: true
 gitCheckKey: myproject
 ```
 
-`gitCheck` with a `gitCheckKey` gives incremental deploys: only DataPacks changed since the last
+Set `gitCheck` with a `gitCheckKey` for incremental deploys: only DataPacks changed since the last
 recorded commit are processed; on a large estate, two minutes instead of forty.
 
 The namespace appears as the **`%vlocity_namespace%`** token, or literally as `vlocity_cmt` for the
@@ -64,9 +65,9 @@ Most DataPack failures are identity failures; the message does not say so.
 | `No Configuration Found` | Stale DataPack settings — run `packUpdateSettings`, or set `autoUpdateSettings` |
 | SASS or template compile failure | A referenced UI template asset is missing |
 
-Root cause of the first three: **matching-key strategy and GlobalKey integrity must be consistent
-across source and target.** Where the same logical artifact has a different key, every deploy creates
-duplicates.
+**Keep the matching-key strategy and GlobalKey integrity consistent across source and target**;
+their inconsistency is the root cause of the first three. Where the same logical artifact has a
+different key, every deploy creates duplicates.
 
-`--fixLocalGlobalKeys` regenerates them. It is destructive: run it only on explicit request, after
-explaining that it rewrites identity for every affected pack.
+Run `--fixLocalGlobalKeys`, which regenerates the keys, only on explicit request, after explaining
+that it rewrites identity for every affected pack; it is destructive.

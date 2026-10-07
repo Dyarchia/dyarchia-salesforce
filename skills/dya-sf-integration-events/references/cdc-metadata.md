@@ -1,7 +1,8 @@
 # CDC and Managed Subscriptions — the Metadata
 
-Change Data Capture and durable subscriptions are configured entirely through metadata; almost every
-failure is a naming or element-name mistake, not a permissions or logic problem.
+Configure Change Data Capture and durable subscriptions entirely through metadata. On a failure,
+check naming and element names first; almost every failure is one of those, not a permissions or
+logic problem.
 
 Both types have a floor of API 60.0.
 
@@ -51,10 +52,10 @@ carry `<channelType>data</channelType>` or the channel is rejected for CDC use.
 
 ### Enrichment fields
 
-`<enrichedFields>` adds fields to every change event for the entity, changed or not — how a
-downstream consumer gets a foreign key to route on.
+Use `<enrichedFields>` to give a downstream consumer a foreign key to route on; it adds fields to
+every change event for the entity, changed or not.
 
-They must be **single-hop API names on the source entity**: `OwnerId`, `ParentId`, `MyLookup__c`,
+List only **single-hop API names on the source entity**: `OwnerId`, `ParentId`, `MyLookup__c`,
 `Region__c` all validate. Relationship traversal does not — `Owner.Name` and
 `Parent.Account.Industry` are rejected with "The selected field, X.Y, isn't valid".
 
@@ -63,8 +64,8 @@ below.
 
 ### Filter expressions
 
-`<filterExpression>` is a `WHERE` clause **body with the `WHERE` keyword omitted** — including it
-gives "unexpected token: 'WHERE'".
+Write `<filterExpression>` as a `WHERE` clause **body with the `WHERE` keyword omitted** — including
+it gives "unexpected token: 'WHERE'".
 
 - No `IsDeleted`.
 - No relationship traversal.
@@ -77,8 +78,8 @@ gives "unexpected token: 'WHERE'".
 
 - Deploying the same member twice returns `DUPLICATE_VALUE`. **CDC does not support upsert on
   members** — retrieve and diff rather than redeploying blindly.
-- A custom object's ChangeEvent entity does not exist until the object does. Deploy both in one
-  transaction, or sequence them.
+- Deploy a custom object and its member in one transaction, or sequence them; the object's
+  ChangeEvent entity does not exist until the object does.
 
 ## Durable subscriptions — `ManagedEventSubscription`
 
@@ -97,7 +98,7 @@ gives "unexpected token: 'WHERE'".
 **All six elements are required** — omitting any one fails the deploy. Do not include
 `<namespacePrefix>`, `<id>` or `<createdDate>`; they are read-only.
 
-**`eventChannel` and `isActive`** do not exist here; use `topicName` and `state`.
+Use `topicName` and `state`; **`eventChannel` and `isActive`** do not exist here.
 
 ### Values
 
@@ -136,8 +137,8 @@ subscription, which discards the stored replay position, so the replacement star
       --query "SELECT Id, DeveloperName FROM ManagedEventSubscription WHERE DeveloperName='OrderSync'"
   ```
 
-- **The Pub/Sub API can take around two minutes to see a create, update or delete.** A `NOT_FOUND`
-  from `ManagedSubscribe` right after a deploy means wait and retry, not a failed deploy.
+- **The Pub/Sub API can take around two minutes to see a create, update or delete.** On a
+  `NOT_FOUND` from `ManagedSubscribe` right after a deploy, wait and retry; it is not a failed deploy.
 - **`EARLIEST` on a busy channel replays up to the full 72-hour retention window on activation:**
   three days of backlog, delivered as fast as the consumer accepts it. Size the consumer for that,
   or start at `LATEST` and backfill deliberately.

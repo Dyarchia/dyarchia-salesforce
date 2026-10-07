@@ -152,7 +152,7 @@ export default class CreateAccount extends LightningElement {
 }
 ```
 
-- The mutation payload field is **`Record`**, capitalised. Lowercase `record` does not exist in the
+- Select the mutation payload field as **`Record`**, capitalised. Lowercase `record` does not exist in the
   schema, so the query is rejected rather than returning null. Selecting it needs API 64.0 or above,
   below our floor.
 - **`executeMutation` takes the document first and options second** — `executeMutation(document,
@@ -229,7 +229,7 @@ get accountsAndContactsQuery() {
 }
 ```
 
-For dependent queries, the second `@wire` reacts to the first's result via a getter.
+For dependent queries, make the second `@wire` react to the first's result via a getter.
 
 ## Chained Mutations
 

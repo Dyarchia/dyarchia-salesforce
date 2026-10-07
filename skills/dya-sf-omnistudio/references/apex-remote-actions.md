@@ -59,7 +59,7 @@ global with sharing class AccountRemoteActions implements Callable {
 
 Sample: `SKILL.md` section 2.
 
-`VlocityOpenInterface` is the older single-method variant; prefer `VlocityOpenInterface2`. The namespace prefix — `vlocity_cmt` (Comms/Media), `vlocity_ins` (Insurance), `vlocity_ps` (Public Sector) — depends on the installed industry package.
+Prefer `VlocityOpenInterface2`; `VlocityOpenInterface` is the older single-method variant. The namespace prefix — `vlocity_cmt` (Comms/Media), `vlocity_ins` (Insurance), `vlocity_ps` (Public Sector) — depends on the installed industry package.
 
 ## Registering & Calling
 
@@ -68,9 +68,9 @@ Sample: `SKILL.md` section 2.
 
 ## Rules
 
-- `with sharing` unless justified.
+- Use `with sharing` unless justified.
 - One class can host many methods.
-- **`WITH USER_MODE`** SOQL / `AccessLevel.USER_MODE` or `as user` DML.
+- Use **`WITH USER_MODE`** SOQL / `AccessLevel.USER_MODE` or `as user` DML.
 - **Test** the class as normal Apex and through the component.
 
 ## Anti-Patterns

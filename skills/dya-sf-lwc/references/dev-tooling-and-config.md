@@ -23,14 +23,14 @@ Load from `dya-sf-lwc` when configuring a component bundle or setting up the loc
 </LightningComponentBundle>
 ```
 
-`isExposed` false means only other components can use it — the right default for a building block.
-A component with no `targets` cannot be placed on a page, the usual cause of a component missing
-from the Lightning App Builder.
+Leave `isExposed` false on a building block; only other components can then use it.
+Give a placeable component `targets`: without them it cannot be placed on a page, the usual cause of a
+component missing from the Lightning App Builder.
 
 ## SLDS styling hooks for Flow Screen components
 
 For a component targeting `lightning__FlowScreen`, expose colour, radius, weight and other CSS custom
-properties through `<targetConfig>`. They appear on the Flow Builder **Style** tab, so an admin
+properties through `<targetConfig>`. They appear on the Flow Builder **Style** tab, where an admin
 themes the component without touching code. Group related hooks so the panel reads as a design
 system, not a list of variables.
 
@@ -50,7 +50,7 @@ controllers, so most components run without deploying.
 
 Hot Module Reloading applies an edit without a full page reload.
 
-These commands need a **DX project** — a directory with an `sfdx-project.json` naming the package
+Run these commands inside a **DX project** — a directory with an `sfdx-project.json` naming the package
 directories. Outside one, `sf` cannot resolve component paths. See
 `references/shared/org-model.md`.
 

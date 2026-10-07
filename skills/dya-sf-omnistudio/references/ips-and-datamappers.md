@@ -24,8 +24,8 @@ Mind the `VlocityMetadata` / API-response cache partitions for read-heavy IPs; a
 
 ## `PropertySetConfig` — Element Keys
 
-An IP element is configured through a `PropertySetConfig` JSON block; knowing its keys lets you read
-or generate an IP rather than click one.
+Read or generate an IP from its elements' keys rather than clicking one; each element is configured
+through a `PropertySetConfig` JSON block.
 
 | Element | Keys |
 |---|---|
@@ -35,7 +35,7 @@ or generate an IP rather than click one.
 
 ### Reading another element's output
 
-**Merge syntax `%ElementName:fieldName%`** passes data between steps:
+Pass data between steps with the **merge syntax `%ElementName:fieldName%`**:
 
 ```json
 { "AccountId": "%GetAccountDetails:Id%" }
@@ -45,9 +45,9 @@ Each element's output is stored in the IP response **under the element's own nam
 (`{"GetAccountDetails": { … }}`). That is why `responseJSONNode` exists, and why renaming an element
 breaks every downstream reference to it.
 
-`sendOnlyAdditionalInput: true` suppresses the accumulated data context and sends only what
-`additionalInput` declares. Use it when an element should not see upstream data, for payload size and
-least privilege.
+Set `sendOnlyAdditionalInput: true` when an element should not see upstream data, for payload size
+and least privilege. It suppresses the accumulated data context and sends only what
+`additionalInput` declares.
 
 ### The two async flags
 

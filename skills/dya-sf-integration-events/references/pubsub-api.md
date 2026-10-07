@@ -35,11 +35,12 @@ Load from `dya-sf-integration-events`.
 
 ### Or let the platform hold the position
 
-`ManagedSubscribe` consumes a **`ManagedEventSubscription`**, identified by DeveloperName or Id, and
-the replay position lives on the platform. That removes the most common source of duplicate or
-skipped events — a consumer crashing between processing an event and persisting its replay id.
+Prefer `ManagedSubscribe` for a long-lived subscriber. It consumes a **`ManagedEventSubscription`**,
+identified by DeveloperName or Id, and the replay position lives on the platform. That removes the
+most common source of duplicate or skipped events — a consumer crashing between processing an event
+and persisting its replay id.
 
-Prefer it for a long-lived subscriber. Keep `Subscribe` with manual replay bookkeeping when the
+Keep `Subscribe` with manual replay bookkeeping when the
 consumer already has durable state and wants the position committed in the same transaction as the
 work.
 

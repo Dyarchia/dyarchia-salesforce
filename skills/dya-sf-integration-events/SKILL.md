@@ -23,7 +23,7 @@ References:
 ## Platform Context — Winter '27 / API v68.0
 
 Winter '27 changes little here directly. **Agents now discover external tools through governed MCP
-connections**, so an event-driven backbone is the natural way to feed them without polling. See
+connections**; feed them from an event-driven backbone rather than by polling. See
 `dya-sf-integration-connectors-mcp`.
 
 Standing facts:
@@ -92,10 +92,10 @@ is created, updated, deleted or undeleted.
 - The payload carries a **change event header** — change type, changed fields, record ids — plus the
   changed field values.
 
-**Enabling it is `PlatformEventChannelMember`, and nothing else.** There is no `ChangeDataCapture`
+**Enable it with `PlatformEventChannelMember`, and nothing else.** There is no `ChangeDataCapture`
 metadata type, no `.changeDataCapture-meta.xml`, no `changeDataCapture/` directory — a file by that
-name fails the deploy with "Could not infer a metadata type". One member per subscribed entity; a
-`PlatformEventChannel` alongside it only when the channel is custom.
+name fails the deploy with "Could not infer a metadata type". Deploy one member per subscribed
+entity; add a `PlatformEventChannel` alongside it only when the channel is custom.
 
 Two naming rules disagree on purpose:
 
@@ -107,9 +107,9 @@ Two naming rules disagree on purpose:
   A double-underscore filename is parsed as `<namespace>__<name>` and rejected with "Cannot create a
   new component with the namespace: Order".
 
-The default channel value is exactly **`ChangeEvents`** — not `data/ChangeEvents`, which returns
-"Unable to find the specified channel" — and it is system-provided, so never author a
-`PlatformEventChannel` file for it.
+Set the default channel value to exactly **`ChangeEvents`** — not `data/ChangeEvents`, which returns
+"Unable to find the specified channel". Never author a `PlatformEventChannel` file for it; it is
+system-provided.
 
 > Element inventories, enrichment fields, filter expressions and custom channels:
 > `references/cdc-metadata.md`.
@@ -124,7 +124,7 @@ The default channel value is exactly **`ChangeEvents`** — not `data/ChangeEven
 | **Generic Streaming** | Legacy, not enhanced, limited support | Platform Events |
 | **CometD Streaming API** | Superseded for external subscribers | Pub/Sub API |
 
-Where an org has these, plan the migration.
+Plan the migration wherever an org has these.
 
 ---
 
@@ -143,16 +143,16 @@ Outbound paths: `dya-sf-integration-outbound`.
 
 ## 7. Delivery, Replay & Idempotency
 
-- **At-least-once delivery.** Consumers may see an event more than once, so every handler is
-  **idempotent** — dedupe on a business key or the replay id.
+- **At-least-once delivery.** Make every handler **idempotent** — dedupe on a business key or the
+  replay id; consumers may see an event more than once.
 - **72 h retention.** Store the last processed replay id and resume from it; design a
   reconciliation batch for gaps beyond the window. Alternatively, a `ManagedEventSubscription` makes
   the platform track the replay position, consumed through the Pub/Sub **`ManagedSubscribe`** RPC
-  instead of `Subscribe`. That is the default for a long-lived in-platform consumer; keep manual
+  instead of `Subscribe`. Use it by default for a long-lived in-platform consumer; keep manual
   replay bookkeeping for an external subscriber with durable state of its own.
 - **Order.** Events are delivered in publish order per channel. Never assume cross-channel ordering.
-- **Allocations.** Event publishing and delivery carry daily allocations; high-volume designs budget
-  for them.
+- **Allocations.** Budget for the daily allocations on event publishing and delivery in every
+  high-volume design.
 
 ---
 
@@ -189,8 +189,8 @@ Outbound paths: `dya-sf-integration-outbound`.
 
 ## Summary — The Five Commandments
 
-1. **CDC for "react to changes," Platform Events for "publish a fact"** — and the Pub/Sub API as the one external interface for both.
-2. **Pub/Sub over legacy** — PushTopic, Generic Streaming, and CometD are legacy; never build new on them.
-3. **At-least-once means idempotent** — dedupe every consumer; design for replays.
+1. **Use CDC for "react to changes," Platform Events for "publish a fact"** — and the Pub/Sub API as the one external interface for both.
+2. **Choose Pub/Sub over legacy** — PushTopic, Generic Streaming, and CometD are legacy; never build new on them.
+3. **Make every consumer idempotent; delivery is at-least-once** — dedupe every consumer; design for replays.
 4. **Mind 72 h retention** — track replay ids and reconcile beyond the window.
 5. **Compose webhooks from events** — Platform Event → Pub/Sub for durable multi-consumer; Flow HTTP Callout for the simple single target.

@@ -35,7 +35,7 @@ for (Database.SaveResult sr : results) {
 
 ### Publish (Flow)
 
-A Flow can publish a Platform Event with a Create Records-style element on the `__e` object — no code, useful for admin-owned fire-and-forget.
+Publish a Platform Event from a Flow with a Create Records-style element on the `__e` object — no code, useful for admin-owned fire-and-forget.
 
 ## Change Data Capture (CDC)
 

@@ -2,7 +2,8 @@
 
 ## The `routeWork` action
 
-Passing two targets is a validation error, not a precedence rule. `agentId` bypasses the queue.
+Pass exactly one target; two targets is a validation error, not a precedence rule. `agentId` bypasses
+the queue.
 
 Besides the target, the action takes the work item Id, the `ServiceChannel`, and for
 attribute-based routing the required skills.
@@ -19,7 +20,7 @@ attribute-based routing the required skills.
 To trigger routing from an external system, use an `AutoLaunchedFlow`, or have the system write the
 record and let a `RecordAfterSave` flow fire.
 
-`RoutingFlow` carries routing logic a `QueueRoutingConfig` cannot express.
+Use a `RoutingFlow` for routing logic a `QueueRoutingConfig` cannot express.
 
 ## Error taxonomy
 
@@ -27,7 +28,7 @@ record and let a `RecordAfterSave` flow fire.
 
 | Symptom | Cause |
 |---|---|
-| `INVALID_TYPE` on any routing metadata | `enableOmniChannel` is off — see `references/omni-gotchas.md` |
+| `INVALID_TYPE` on any routing metadata | `enableOmniChannel` is off. Deploy `Settings:OmniChannel` on its own first |
 | "the version you're trying to activate isn't the latest" | Another save landed between your read and your activate. Re-read the `FlowDefinition` and retry |
 
 ### Invocation
@@ -46,5 +47,5 @@ FROM   FlowDefinition
 WHERE  DeveloperName = '<name>'
 ```
 
-Through the Tooling API. A null `ActiveVersionId` is the 404 above. `LatestVersionId` differing from
+Run it through the Tooling API. A null `ActiveVersionId` is the 404 above. `LatestVersionId` differing from
 `ActiveVersionId` means an unactivated draft.

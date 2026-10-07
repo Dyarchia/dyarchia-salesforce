@@ -76,9 +76,9 @@ async handleCreate() {
 
 ## Object metadata and picklists
 
-`getObjectInfo` and `getPicklistValues` from `lightning/uiObjectInfoApi` return object metadata and
-record-type-aware picklist values. Picklist values derived by hand or hardcoded in JavaScript drift
-from the org.
+Use `getObjectInfo` and `getPicklistValues` from `lightning/uiObjectInfoApi` for object metadata and
+record-type-aware picklist values. Never derive picklist values by hand or hardcode them in JavaScript;
+they drift from the org.
 
 ## The full adapter directory
 
@@ -187,7 +187,7 @@ showError(error) {
 ```
 
 LDS, GraphQL (`errors`, plural) and `AuraHandledException` each return a different error shape.
-`reduceErrors` from the standard `ldsUtils` community utility normalises all three. A hand-rolled
+Normalise all three with `reduceErrors` from the standard `ldsUtils` community utility. A hand-rolled
 formatter usually handles only the shape you tested.
 
 ## Anti-Patterns
