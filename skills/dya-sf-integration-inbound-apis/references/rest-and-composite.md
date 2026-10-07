@@ -38,7 +38,7 @@ POST /services/data/v68.0/composite
 
 ## Composite Graph — Large Dependent Graphs
 
-Up to **500 nodes**; each graph is its **own transaction** (one failing doesn't roll back another). For interdependent record sets beyond Composite's 25-subrequest cap.
+Up to **500 nodes**; each graph is its **own transaction** (one failing doesn't roll back another). Use it for interdependent record sets beyond Composite's 25-subrequest cap.
 
 ```
 POST /services/data/v68.0/composite/graph
@@ -51,7 +51,7 @@ Up to **25 independent subrequests**, no reference passing, no shared rollback.
 
 ## sObject Collections — Same-Shape Bulk CRUD
 
-Up to **200 records** per call (create/update/delete/upsert), optional `allOrNone`. Between single-record REST and Bulk API: moderate volumes, synchronous.
+Up to **200 records** per call (create/update/delete/upsert), optional `allOrNone`. Use it between single-record REST and Bulk API: moderate volumes, synchronous.
 
 ```
 POST /services/data/v68.0/composite/sobjects
@@ -80,7 +80,7 @@ Up to **200 records** across nested parent-child structures up to **5 levels**; 
 
 - Use Composite Graph when partial success across graphs is acceptable.
 - Keep payloads lean and select only needed fields on reads.
-- One composite/collection call over N single calls conserves the daily API allocation.
+- Make one composite/collection call instead of N single calls; it conserves the daily API allocation.
 
 ## Anti-Patterns
 

@@ -131,8 +131,8 @@ Full catalog: `references/dev-and-agent.md`.
   one nonexistent type.
 - Shared flags: `-o/--target-org`, `--json`, `--flags-dir`, `-w/--wait` (minutes),
   `--api-version`.
-- Legacy `sfdx force:topic:action --camelCaseFlag` maps to `sf topic action --kebab-flag`; translate
-  old scripts.
+- Legacy `sfdx force:topic:action --camelCaseFlag` maps to `sf topic action --kebab-flag`. Translate
+  old scripts to the v2 form.
 
 ---
 
@@ -187,7 +187,7 @@ Full catalog: `references/dev-and-agent.md`.
 ## Summary — The Five Commandments
 
 1. **Emit `sf` v2 syntax** — topic + command + kebab-case flags; never legacy `sfdx force:`.
-2. **`--json` for automation**, human format only for interactive use.
+2. **Use `--json` for automation**, and human format only for interactive use.
 3. **Be explicit about the org** — aliases and `-o/--target-org`, especially in CI.
 4. **Validate before prod** — `deploy validate` → `deploy quick`.
-5. **Discover, don't guess** — `sf <topic> <command> --help`; the exhaustive lists are in `references/`.
+5. **Discover, do not guess** — `sf <topic> <command> --help`; the exhaustive lists are in `references/`.

@@ -3,7 +3,7 @@
 A top-level topic that scripts what DevOps Center otherwise does through Setup: projects,
 pipelines, stages, work items, reviews and promotions.
 
-Read the two gotchas at the end before writing a promotion script.
+Before writing a promotion script, read the two gotchas at the end.
 
 ## Command surface
 

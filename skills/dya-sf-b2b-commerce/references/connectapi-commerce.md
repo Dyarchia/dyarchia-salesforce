@@ -37,7 +37,7 @@ For custom buyer-group evaluation, extend `CommerceBuyGrp.BuyerGroupEvaluationSe
 
 ## Pricing data
 
-Pricing uses **Salesforce price books** by default. If the store uses **Faster Add-to-Cart**, every product needs a store price-book entry before you implement a pricing service extension, or add-to-cart/pricing breaks.
+Pricing uses **Salesforce price books** by default. If the store uses **Faster Add-to-Cart**, give every product a store price-book entry before implementing a pricing service extension; add-to-cart/pricing breaks otherwise.
 
 ## Storefront LWC
 

@@ -82,8 +82,8 @@ sf schema generate tab --output-dir force-app/.../tabs --icon 1 --directory-name
 
 ## API Passthrough (`sf api`)
 
-The `sf api request` family is **Beta**: for exploring an API from a terminal. Production
-integrations belong behind a Named Credential and an Apex callout.
+The `sf api request` family is **Beta**. Use it only to explore an API from a terminal. Put
+production integrations behind a Named Credential and an Apex callout.
 
 ```bash
 sf api request rest "/services/data/v68.0/limits" --target-org <a>
@@ -95,5 +95,5 @@ sf api request graphql --body query.graphql --target-org <a>
 ## Notes
 
 - Prefer **`--bulk`** / `import|export bulk` for large data sets (Bulk API 2.0); `tree` for related sample data with relationships.
-- `upsert bulk --external-id` is the idempotent load pattern.
-- `--result-format csv|human|json` on queries.
+- Use `upsert bulk --external-id` for idempotent loads.
+- Pick query output with `--result-format csv|human|json`.

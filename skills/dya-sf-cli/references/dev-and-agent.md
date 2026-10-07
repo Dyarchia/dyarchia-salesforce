@@ -80,7 +80,7 @@ sf package version promote --package <04t...>            # mark released
 sf package uninstall --package <04t...> --target-org <a>
 ```
 
-Supports **unlocked** and **managed 2GP** packages (1GP via `sf package1` legacy).
+Covers **unlocked** and **managed 2GP** packages; use legacy `sf package1` for 1GP.
 
 ## Code Analysis (`sf code-analyzer`)
 
@@ -100,8 +100,8 @@ sf code-analyzer ast-dump --file MyClass.cls --output-file ast.xml
 - **`--rule-selector` needs the exact full rule name and takes no wildcards.** Compose it as
   `<engine>:<category>:<severity>`, e.g. `all:Security:(1,2)`; severities run 1 (Critical) to
   5 (Info). Look names up with `sf code-analyzer rules --rule-selector all`. A misspelled or partial
-  rule name in `code-analyzer.yml` is **silently ignored** — the override never applies — and the
-  file must sit at the project root or auto-discovery misses it.
+  rule name in `code-analyzer.yml` is **silently ignored** — the override never applies. Put the
+  file at the project root; auto-discovery misses it anywhere else.
 
 Prerequisites: `@salesforce/plugin-code-analyzer` v5+, Java 11+ (PMD, CPD, SFGE), Node 18+ (ESLint,
 RetireJS), Python 3 (Flow), and an authenticated org for ApexGuru. `sfge` wants `--workspace` and
@@ -118,4 +118,4 @@ sf community publish --name "My Site" --target-org <a>
 ## Notes
 
 - Use `sf apex run test ... --code-coverage` to gate deploys on coverage; production deploys require ≥75% org-wide.
-- `sf agent preview` is the primary local test loop for Agentforce agents (see `dya-sf-agentforce`).
+- Use `sf agent preview` as the primary local test loop for Agentforce agents (see `dya-sf-agentforce`).

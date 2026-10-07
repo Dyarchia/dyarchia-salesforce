@@ -25,7 +25,7 @@ sf org logout --target-org <a>            # log out one org
 sf org logout --all
 ```
 
-**web** for humans, **jwt** for CI/headless (certificate-based, no password).
+Use **web** for humans and **jwt** for CI/headless (certificate-based, no password).
 
 ## Orgs
 
@@ -67,7 +67,7 @@ Editions are `developer`, `enterprise`, `group`, `professional`, plus the hyphen
 - **A timeout is exit code 69**, and the CLI prints a resume command. `--use-most-recent` avoids
   storing the job id.
 - **A reused alias is not rejected.** The CLI silently re-points it at the new org and the previous
-  org loses it, so batch creation must generate distinct aliases. There is no `--count`; loop.
+  org loses it. Generate distinct aliases in batch creation. There is no `--count`; loop.
 - **`target-dev-hub` is directory-scoped.** `sf config get target-dev-hub` can return empty after a
   `cd` even with a hub authenticated. Resolve it to a username *before* changing directory and pass
   `--target-dev-hub` explicitly.

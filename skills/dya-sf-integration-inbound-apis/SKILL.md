@@ -26,10 +26,10 @@ Who the integration user may be, and what its permissions let the call see, belo
 
 | Change | Status | What it means |
 |---|---|---|
-| **`/latest` version alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Fine for exploration; **never pin production to it** — the contract would change three times a year with no deploy on your side |
+| **`/latest` version alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Use it for exploration only; **never pin production to it** — the contract changes three times a year with no deploy on your side |
 | **Bulk API 2.0 coverage extended** | GA | More standard objects, including additional marketing objects |
 | **OAuth username-password flow retired** | Enforced **20 February 2027** | Any caller posting `grant_type=password` stops receiving a token. See `dya-sf-integration-auth` |
-| **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Callers must address the org's My Domain URL, not an instance URL. Test it now: Setup › My Domain › Redirections › *Block API traffic that uses an incorrect instanced URL* |
+| **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Address the org's My Domain URL, not an instance URL. Test it now: Setup › My Domain › Redirections › *Block API traffic that uses an incorrect instanced URL* |
 
 - **Target 68.0 for new integrations; 41.0 is the hard floor.** The version is the `vXX.X` in
   `/services/data/vXX.X/`. Dates and status live only in
@@ -95,9 +95,9 @@ call. Full patterns in `references/rest-and-composite.md`.
 
 ## 3. SOAP API
 
-- **Enterprise WSDL** — typed to *your* org's schema; regenerate after every metadata change. For a
-  single-org, tightly integrated client.
-- **Partner WSDL** — generic and loosely typed, for multi-org tools and ISVs.
+- **Enterprise WSDL** — typed to *your* org's schema; regenerate after every metadata change. Use it
+  for a single-org, tightly integrated client.
+- **Partner WSDL** — generic and loosely typed. Use it for multi-org tools and ISVs.
 - **Authenticate with OAuth.** **`login()` retires Summer '27** — never build a new integration
   on it.
 - Prefer REST for new work unless a consumer requires WSDL/SOAP.
@@ -136,7 +136,7 @@ UI-API objects.
 - **UI API** — returns records, metadata and layout together; powers Lightning Data Service. For
   custom UIs that must honour layouts and FLS without re-deriving metadata.
 - **Metadata API** — deploys and retrieves metadata as zipped XML; the basis for SFDX and DevOps
-  Center. Coarse-grained, for releases.
+  Center. Coarse-grained; use it for releases.
 - **Tooling API** — fine-grained and per-component: compile a class, run anonymous Apex. IDEs and
   Workbench use it for live edits.
 
@@ -181,8 +181,8 @@ UI-API objects.
 
 ## Summary — The Five Commandments
 
-1. **REST is the default; Bulk past 10k; Composite to cut round trips; GraphQL for field-precise/graph access.**
+1. **Default to REST; use Bulk past 10k, Composite to cut round trips, GraphQL for field-precise/graph access.**
 2. **Pick the composite resource by shape** — dependent (Composite/Graph), independent (Batch), same-shape (Collections), nested insert (Tree); governor limits are cumulative.
-3. **SOAP only for WSDL/legacy consumers**, and never on `login()` — OAuth + ECA.
-4. **Idempotency via upsert on external id** on every write path.
+3. **Use SOAP only for WSDL/legacy consumers**, and never on `login()` — OAuth + ECA.
+4. **Make every write path idempotent** with upsert on external id.
 5. **Target a current API version** — 68.0 for new work, 41.0 as the absolute floor — pinned explicitly, never `/latest`, and authenticated with OAuth. See `dya-sf-integration-auth`.

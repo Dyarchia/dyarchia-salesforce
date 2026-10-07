@@ -104,7 +104,7 @@ does not support `StringList` values.
 
 ## 4. Programmatic Cart Operations — `ConnectApi.CommerceCart`
 
-Cart and checkout operations in code go through the Commerce `ConnectApi` classes, which enforce
+Run cart and checkout operations in code through the Commerce `ConnectApi` classes, which enforce
 commerce rules, pricing and entitlements — never raw DML against the cart objects.
 
 ```apex
@@ -118,16 +118,16 @@ ConnectApi.CartItem item =
 ```
 
 `ConnectApi.CommerceCart` covers get, create, update, calculate and delete for carts and cart items.
-`"You can't view 'ProductId'"` despite record access usually means the buyer's **account is not in a
-buyer group tied to an entitlement policy** granting the product. Full class and type list, and
+On `"You can't view 'ProductId'"` despite record access, check the entitlement chain first: it usually
+means the buyer's **account is not in a buyer group tied to an entitlement policy** granting the product. Full class and type list, and
 entitlements: `references/connectapi-commerce.md`.
 
 ---
 
 ## 5. Storefront LWC
 
-B2B and D2C LWR stores support **Storefront APIs** for custom LWC — headers, footers, cart. Custom
-LWC follow the usual rules (`dya-sf-lwc`): wire and Storefront APIs for data, `@AuraEnabled` Apex or
+B2B and D2C LWR stores support **Storefront APIs** for custom LWC — headers, footers, cart. Build custom
+LWC by the usual rules (`dya-sf-lwc`): wire and Storefront APIs for data, `@AuraEnabled` Apex or
 `ConnectApi` for commerce operations, no secrets in the browser, and respect for the guest or buyer
 context.
 
@@ -171,8 +171,8 @@ context.
 
 ## Summary — The Five Commandments
 
-1. **On-core: LWC + Apex + `ConnectApi` + `CartExtension`** — reuse `dya-sf-apex`/`lwc`. Not CloudCraze, not B2C.
-2. **Two extension surfaces** — Cart Calculate (`CartExtension` calculators + orchestrator) for pricing-side math; `ConnectApi.BaseEndpointExtension` for endpoint I/O. Keep them straight.
+1. **Build on core with LWC + Apex + `ConnectApi` + `CartExtension`** — reuse `dya-sf-apex`/`lwc`. Not CloudCraze, not B2C.
+2. **Keep the two extension surfaces apart** — Cart Calculate (`CartExtension` calculators + orchestrator) for pricing-side math; `ConnectApi.BaseEndpointExtension` for endpoint I/O.
 3. **Override the calculator's `calculate(CartCalculateCalculatorRequest)`** — orchestrator decides *which* run; calculators do the work; the orchestrator's `priceCart`/`taxCart`/etc. dispatch methods can't be overridden.
-4. **Cart ops through `ConnectApi.CommerceCart`** — never raw DML; and "can't view product" is almost always an **entitlement** gap, not FLS.
-5. **Calculators run in the buyer path** — bulk-safe, one aggregated callout via Named Credential, resilient, `with sharing` + `WITH USER_MODE`; register via `RegisteredExternalService`.
+4. **Run cart ops through `ConnectApi.CommerceCart`** — never raw DML; treat "can't view product" as an **entitlement** gap, not FLS: it almost always is.
+5. **Write calculators for the buyer path** — bulk-safe, one aggregated callout via Named Credential, resilient, `with sharing` + `WITH USER_MODE`; register via `RegisteredExternalService`.

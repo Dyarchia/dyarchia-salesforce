@@ -22,8 +22,8 @@ References:
   and cartridge MVC, successor to SiteGenesis) and the **Composable Storefront** (headless **PWA
   Kit** on **Managed Runtime**, React, talking to SCAPI).
 - **OCAPI is deprecated since April 2026.** It keeps security updates, without new features, for
-  two years (until roughly April 2028). **New implementations use SCAPI exclusively**; existing
-  OCAPI integrations need a migration plan.
+  two years (until roughly April 2028). **Use SCAPI exclusively for new implementations**; give
+  existing OCAPI integrations a migration plan.
 - **SCAPI is the modern API; its Shopper APIs require a SLAS token.** SLAS grants (OAuth 2.1): guest
   uses client credentials; login and federated use auth code plus PKCE.
 - **SLAS refresh-token reuse is prohibited** for public clients under OAuth 2.1 (enforced since
@@ -187,8 +187,8 @@ Full endpoint families, Custom APIs, Shopper Context and Composable Storefront:
 | Families | Shopper APIs + Admin APIs + **Custom APIs** | Shop + Data APIs |
 | Personalized price | **Shopper Context API** (no custom code) | "Modify Response" hook (server script) |
 
-**Shopper Context** personalises price and promotions by member level or region and, unlike
-response-modifying hooks, preserves object-level caching.
+Personalise price and promotions by member level or region with **Shopper Context**; unlike
+response-modifying hooks, it preserves object-level caching.
 
 ---
 
@@ -231,8 +231,8 @@ response-modifying hooks, preserves object-level caching.
 
 ## Summary — The Five Commandments
 
-1. **Not Salesforce core** — server-side JavaScript, `dw.*` Script API, cartridges, ISML, SCAPI; no Apex/LWC/SOQL.
-2. **SCAPI only for new work; OCAPI is deprecated (Apr 2026)** — SLAS is the mandatory gatekeeper, refresh tokens are one-time-use.
+1. **Treat it as not Salesforce core** — server-side JavaScript, `dw.*` Script API, cartridges, ISML, SCAPI; no Apex/LWC/SOQL.
+2. **Use SCAPI only for new work; OCAPI is deprecated (Apr 2026)** — SLAS is the mandatory gatekeeper; use each refresh token once.
 3. **Extend by layering, not forking** — cartridge-path overrides, `server.append`, and hooks; never touch the base cartridge.
-4. **Know the real endpoint shape** — `{shortCode}.api.commercecloud.salesforce.com/{family}/{api}/{version}/organizations/{org}/{resource}?siteId=`; `v1` except Shopper Baskets (`v1/v2`).
-5. **Secrets server-side, cache deliberately, personalize with Shopper Context** — private SLAS clients on a BFF; chunk jobs ≤1,000 objects/transaction.
+4. **Use the real endpoint shape** — `{shortCode}.api.commercecloud.salesforce.com/{family}/{api}/{version}/organizations/{org}/{resource}?siteId=`; `v1` except Shopper Baskets (`v1/v2`).
+5. **Keep secrets server-side, cache deliberately, personalize with Shopper Context** — private SLAS clients on a BFF; chunk jobs ≤1,000 objects/transaction.

@@ -67,7 +67,7 @@ Transaction.wrap(function () {
 
 ## ISML Templates
 
-Server-rendered `.isml`; compute in controllers/models, render in ISML. Tags: `<isloop>`, `<isif>`, `<isset>`, `<isinclude>`, `<isscript>`, and `${...}`. Script API calls via `<isscript>`/`<isset>` work but are **not recommended**.
+Server-rendered `.isml`; compute in controllers/models, render in ISML. Tags: `<isloop>`, `<isif>`, `<isset>`, `<isinclude>`, `<isscript>`, and `${...}`. Script API calls via `<isscript>`/`<isset>` work; **avoid them**.
 
 ## Hooks
 

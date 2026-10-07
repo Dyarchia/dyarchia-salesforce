@@ -65,7 +65,7 @@ This mirrors the `CartCalculateSample.cls` default logic. Your orchestrator can 
 
 ## Registering an extension (`RegisteredExternalService`)
 
-Wire a calculator/extension to a store by inserting a `RegisteredExternalService` row whose `ExternalServiceProviderId` is the Apex class Id (or the metadata equivalent), then linking it from the store's Administration menu (e.g. **Tax Calculation → Integration**). Each integration type (price/promotions/inventory/shipping/tax) is linked per store.
+Wire a calculator/extension to a store by inserting a `RegisteredExternalService` row whose `ExternalServiceProviderId` is the Apex class Id (or the metadata equivalent), then linking it from the store's Administration menu (e.g. **Tax Calculation → Integration**). Link each integration type (price/promotions/inventory/shipping/tax) per store.
 
 ```apex
 // Illustrative registration insert (confirm field names for your version)

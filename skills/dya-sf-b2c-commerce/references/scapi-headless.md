@@ -13,7 +13,7 @@ Most-used API families/names: `product/shopper-products`, `product/shopper-searc
 
 ## SLAS — the Mandatory Gatekeeper
 
-Public clients hold no secret. Full-stack apps and any BFF must be private clients.
+Public clients hold no secret. Register full-stack apps and any BFF as private clients.
 
 The guest-token call returns `access_token`, `refresh_token`, `usid` and `customer_id`.
 
@@ -47,7 +47,7 @@ Authorization: Bearer {token}
 ```
 
 - Define the contract in an **OpenAPI 3.0** document (paths, params, `securitySchemes: ShopperToken`); implement each `operationId` in a **Script API** script in the cartridge.
-- Verify cartridge structure, activate the code version, and assign the cartridge to the site.
+- After every Custom API change, verify cartridge structure, activate the code version, and assign the cartridge to the site.
 
 ## Composable Storefront (PWA Kit + Managed Runtime)
 
