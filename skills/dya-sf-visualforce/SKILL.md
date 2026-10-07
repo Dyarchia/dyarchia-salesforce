@@ -28,21 +28,16 @@ brings **no new Visualforce markup**: Visualforce receives platform changes, not
 **No retirement date has been announced.** Maintenance mode is a reason to build new work in LWC, not
 a deadline; never imply an end date.
 
-Six platform changes reach Visualforce:
-
-- **SLDS 2.0** — in an org that adopts it, Visualforce adapts to the new styling: the cheapest way to
-  stop a legacy page looking legacy beside modern UI. Raise it whenever someone asks why an old page
-  looks wrong.
+- **SLDS 2.0** — in an org that adopts it, Visualforce adapts to the new styling. Raise it when
+  someone asks why an old page looks wrong.
 - **A Visualforce controller is Apex**, so the API 67.0 security defaults apply: SOQL, SOSL, DML and
   `Database.*` default to `USER_MODE`, and an omitted sharing declaration on a custom controller or
   extension defaults to `with sharing`. §3, `dya-sf-apex`, `dya-sf-permissions`.
 - **`WITH SECURITY_ENFORCED` no longer compiles.** Use `WITH USER_MODE`. §3.
 - **HTTPS is enforced everywhere** — every Visualforce page and custom domain. Never hard-code an
   `http://` resource or callback URL; use `URLFOR($Resource…)`, a relative URL, or a Named Credential.
-- **Lightning Web Security blocks `data:` URIs.** In a VF page embedded in Lightning Experience,
-  `HTMLAnchorElement.href` rejects them, so client-side downloads use a `blob:` URL. §8.
-- **Visualforce is in maintenance mode.** No new framework features; all new UI goes to LWC, then
-  Aura. Use it only for the cases in §1, never as the default for new work.
+- **Lightning Web Security blocks `data:` URIs** on `HTMLAnchorElement.href` in a VF page embedded in
+  Lightning Experience. §8.
 
 ---
 
@@ -77,8 +72,7 @@ of the page.
 ### Controller decision order
 
 1. **Standard controller** (`standardController="Account"`) — single-record CRUD with built-in
-   save, edit, delete and cancel; enforces CRUD, FLS and sharing automatically. Prefer it: record
-   security and persistence come free.
+   save, edit, delete and cancel; enforces CRUD, FLS and sharing automatically. Prefer it.
 2. **Standard controller + extension** (`extensions="AccountExt"`) — extra actions or data on top of
    standard behaviour. The extension constructor takes `ApexPages.StandardController`.
 3. **Standard list controller** (`recordSetVar="accounts"`) — list pages with built-in pagination and
@@ -90,9 +84,8 @@ of the page.
 ### Controller rules — absolute
 
 - One controller or extension per page concern, and no business logic in the markup.
-- **No SOQL or DML inside a getter.** Getters run repeatedly during rendering, so a query there is
-  the classic governor-limit bomb. Query once in the constructor or a `PageReference` action and
-  cache the result in a member field.
+- **No SOQL or DML inside a getter.** Getters run repeatedly during rendering. Query once in the
+  constructor or a `PageReference` action and cache the result in a member field.
 - Bulkify as in Apex: assume the page can act on many records.
 - Delegate SOQL to a Selector or Gateway class and business operations to a Service class
   (`dya-sf-apex`).
@@ -125,8 +118,8 @@ public List<Contact> getContacts() {
 
 ### CRUD / FLS in controllers
 
-Standard controllers enforce CRUD, FLS and sharing automatically. **Custom controllers do not**, so
-you enforce it. The API 67.0 defaults help; state them explicitly anyway.
+**Custom controllers do not enforce CRUD, FLS and sharing**; you do. The API 67.0 defaults help;
+state them explicitly anyway.
 
 ```apex
 // ✅ — explicit sharing + USER_MODE; CRUD/FLS enforced by the query
@@ -152,7 +145,7 @@ whose FLS varies, `Security.stripInaccessible`. Full rules in `dya-sf-apex` §3.
 ### Output encoding — Visualforce auto-encodes, but only in HTML context
 
 `{!expression}` is auto-HTML-encoded, which protects the HTML body context and nothing else. Inside a
-`<script>` block, a JS string, an inline event handler, a URL or a style attribute, you MUST encode
+`<script>` block, a JS string, an inline event handler, a URL or a style attribute, encode
 explicitly:
 
 ```html
@@ -180,14 +173,14 @@ resort. Full pattern in `references/controller-patterns.md`.
 ## 4. View State — Keep It Small
 
 `<apex:form>` postbacks serialise controller state into a hidden **view state** field on every
-request, against a hard limit of **135 KB**. Bloated view state is the number-one cause of slow VF
-pages and `Maximum view state size limit exceeded` errors.
+request, against a hard limit of **135 KB**. Bloated view state causes slow VF pages and
+`Maximum view state size limit exceeded` errors.
 
 ### Rules
 
-- Mark any field not needed across postbacks **`transient`** to exclude it from view state:
-  render-only collections, large blobs, derived data.
-- Never hold large query results in non-transient fields. Query what the current request needs and
+- Mark fields not needed across postbacks **`transient`**: render-only collections, large blobs,
+  derived data.
+- Never hold large query results in non-transient fields. Query what the current request needs;
   re-query on the next action.
 - Project only the fields you display — `SELECT Id, Name`, never everything.
 - Prefer **JavaScript Remoting** (§5) for data-heavy interactions: it carries no view state.
@@ -214,7 +207,7 @@ before shipping any non-trivial form page.
 
 ## 5. JavaScript Remoting Over `<apex:actionFunction>`
 
-For async, partial-page server interaction, **JavaScript Remoting** (`@RemoteAction`) is the default:
+**JavaScript Remoting** (`@RemoteAction`) is the default for async, partial-page server interaction:
 stateless, no view state, faster, with direct control over request and response in JS.
 
 ```apex
@@ -260,8 +253,7 @@ whole view state. Bulkified signatures and error handling: `references/javascrip
 
 ## 6. Styling — SLDS, Not Hand-Rolled CSS
 
-Opt into the Salesforce Lightning Design System to look native in Lightning Experience, rather than
-writing bespoke CSS.
+Opt into the Salesforce Lightning Design System to look native in Lightning Experience.
 
 ```html
 <!-- ✅ — platform applies SLDS + LEX look-and-feel -->
@@ -276,8 +268,7 @@ writing bespoke CSS.
 - `lightningStylesheets="true"` on `<apex:page>` gives standard VF components a Lightning skin in LEX
   and mobile.
 - `<apex:slds />` loads SLDS utility classes; wrap your markup in a `slds-scope` container.
-- Use SLDS classes, not hard-coded colours, fonts and pixel widths. Never pull SLDS into a
-  `renderAs="pdf"` page (§1).
+- Use SLDS classes, not hard-coded colours, fonts and pixel widths.
 
 ---
 
@@ -321,8 +312,7 @@ Keep payloads small and serialisable, and always unsubscribe when done. For the 
 
 ## 8. Client-Side File Downloads — `blob:`, not `data:`
 
-Lightning Web Security blocks `data:` URIs on an anchor `href`, so a VF page in LEX that builds a
-download in JavaScript uses a `blob:` URL.
+A VF page in LEX that builds a download in JavaScript uses a `blob:` URL.
 
 ```javascript
 // ✅

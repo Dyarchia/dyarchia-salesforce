@@ -37,28 +37,21 @@ Otherwise choose **asynchronous / event-driven** and design:
 ## API Version Retirement — Precise Facts
 
 The version numbers and dates live only in **`references/shared/metadata-and-api-versions.md`**, the
-library's single source of truth. Never restate them here or in a skill body — a date written in two
-places eventually disagrees with itself. The fragment carries the floor, the deprecated range, and
+library's single source of truth. Never restate them here or in a skill body. The fragment carries the floor, the deprecated range, and
 the two separate retirement dates (the versions themselves, and SOAP `login()` a year earlier).
-
-Integration-specific items alongside those dates:
 
 | Item | Status |
 |---|---|
 | "Any API Auth" user permission | Gates SOAP `login()`; enforced by default in new orgs |
-| OAuth 2.0 username-password flow for connected apps | Retired, enforced **20 February 2027** |
-| Custom Apex REST (`@RestResource`) and Apex SOAP web services | **Not retired** — explicitly excluded from version retirement |
 | Apex classes, triggers, Visualforce pages | **Not retired** — they keep their saved version |
-| Salesforce-to-Salesforce native feature | Support ended Summer '26; stops functioning Spring '27 |
 
-**The critical distinction:** version retirement targets the numeric version in *standard platform
-endpoint* URLs, plus the SOAP *login* method. It does not deprecate custom Apex services; a
-`@RestResource` class keeps working. Raising a class to 67.0 or above changes its *behaviour* — user
-mode and default sharing — a security change, not a retirement.
+Version retirement targets the numeric version in *standard platform endpoint* URLs, plus the SOAP
+*login* method. Raising a class to 67.0 or above changes its *behaviour* (user mode and default
+sharing): a security change, not a retirement.
 
 ## Governor Limits That Shape Integration Design
 
-- **100 callouts** per Apex transaction; **120 s** cumulative callout timeout; **6 MB / 12 MB** request+response (sync/async). (The separate "10" limit is concurrent synchronous requests running >5 s — not the per-transaction maximum.)
+- **6 MB / 12 MB** request+response (sync/async). (The separate "10" limit is concurrent synchronous requests running >5 s — not the per-transaction maximum.)
 - **Bulk API 2.0**: ~15,000 batches / 24 h shared with Bulk 1.0; 150 MB per file; 10k-record chunks.
 - **Composite**: 25 subrequests (governor limits cumulative across them); **Composite Graph**: 500 nodes, each graph its own transaction.
 - **Pub/Sub / Platform Events**: 72 h event retention; subscribe fetch max 100 events per request.
@@ -68,8 +61,4 @@ mode and default sharing — a security change, not a retirement.
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Sync callout for a notification | Fire-and-forget Platform Event |
 | No reconciliation behind an event integration | Periodic batch sync to heal gaps |
-| Treating version retirement as deprecating Apex REST | It targets endpoint versions + SOAP login(), not the feature |
-| Per-record REST in a loop | Composite / Bulk |
-| Ignoring idempotency on retried messages | Dedupe by external id / replay id |

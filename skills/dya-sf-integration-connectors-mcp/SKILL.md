@@ -5,15 +5,15 @@ description: Salesforce connectors & agentic integration (Winter '27 / API v68.0
 
 # Salesforce Connectors & Agentic Integration
 
-The higher-level integration layer: prebuilt connectors and middleware so you **do not hand-code**
-an integration, plus the 2026 agentic surfaces — MCP, Headless 360, Agent API. It decides *when not
-to write Apex or Flow at all*. Data 360 internals are `dya-sf-data360`; MCP and HXL internals
-`dya-sf-headless360`; agent building `dya-sf-agentforce`. Follow every rule below.
+Prebuilt connectors and middleware so you **do not hand-code** an integration, plus the 2026
+agentic surfaces — MCP, Headless 360, Agent API: *when not to write Apex or Flow at all*. Data 360
+internals are `dya-sf-data360`; MCP and HXL internals `dya-sf-headless360`; agent building
+`dya-sf-agentforce`. Follow every rule below.
 
 References:
 
 - `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults an MCP-exposed action inherits.
-- `references/connectors-and-mcp.md` — the MuleSoft family and API Catalog, Heroku and AppLink, building and consuming MCP servers as an integration surface, and the zero-copy versus ingestion decision.
+- `references/connectors-and-mcp.md` — the MuleSoft family and API Catalog, when point-to-point Apex still fits, building and consuming MCP servers as an integration surface, and the zero-copy versus ingestion decision.
 
 An MCP call sees what the calling user's permission model allows — `dya-sf-permissions`.
 
@@ -23,7 +23,7 @@ An MCP call sees what the calling user's permission model allows — `dya-sf-per
 
 | Change | Status | What it gives you |
 |---|---|---|
-| **MCP interoperability for agents** | GA | An Agentforce agent can discover and call tools on *external* MCP servers through a governed connection — the opposite direction to everything below, turning third-party capability into agent capability |
+| **MCP interoperability for agents** | GA | An Agentforce agent can discover and call tools on *external* MCP servers through a governed connection — the opposite direction to everything below |
 | **Expanded API Catalog capabilities** | GA | More of the API and MCP estate manageable from one hub |
 | **Composite API monitoring** | GA | Visibility into previously opaque composite request behaviour |
 | **Salesforce plugin for Claude Code** | GA | Detects a DX project and supplies org context through hosted MCP servers, from the Claude Plugin Marketplace. See `dya-sf-cli` and `dya-sf-headless360` |
@@ -31,25 +31,13 @@ An MCP call sees what the calling user's permission model allows — `dya-sf-per
 
 Standing facts:
 
-- **Hosted MCP servers are GA.** Salesforce-hosted servers expose sObject operations, Data 360,
-  Tableau and product APIs to any MCP client. Every MCP transaction runs **as the authenticated
-  user**, with object, field and sharing enforcement intact, and every call counts against the
-  daily API allocation.
-- **API Catalog for Salesforce** is the central hub for APIs and MCP servers across MuleSoft, Heroku
-  and Apex; it converts API operations into invocable actions for Flow, Apex and Agentforce.
 - **Named Query API is GA** — custom SOQL exposed as a scalable REST or agent action.
-- **Salesforce Functions is retired** (end of life 31 January 2025); migrate compute to Heroku via
-  AppLink. Salesforce has ended Heroku enterprise sales to new customers; confirm commercial fit
-  before committing a new strategic workload.
 - **Salesforce-to-Salesforce** ended support in Summer '26 and stops functioning in Spring '27 —
   migrate to MuleSoft, Data Cloud One, or the Cross-Org adapter.
 
 ---
 
 ## 1. The First Question — Should You Code This At All?
-
-Hand-coded Apex or Flow integration suits *one* well-bounded point-to-point need. Past that, prefer
-a connector or middleware.
 
 ```
 How many systems / how much orchestration?
@@ -73,7 +61,7 @@ queuing, move from point-to-point Apex callouts to **MuleSoft**.
 | **Anypoint Platform** | Full enterprise iPaaS + API management + the API/MCP gateway of the ecosystem | Many systems, complex orchestration, API governance |
 | **MuleSoft for Flow** | Low-code connectors invoked directly inside Flow (1500+ actions, 300+ triggers across 90+ connectors) | Admins wiring SaaS systems without Apex |
 | **MuleSoft Direct** | Prebuilt industry-cloud connectors surfaced in Salesforce (e.g. FHIR for Health Cloud) | Industry-cloud data without integration projects |
-| **API Catalog for Salesforce** | Central hub to manage APIs + MCP servers (MuleSoft/Heroku/Apex), convert ops to invocable actions | Discoverability + governance across surfaces |
+| **API Catalog for Salesforce** | Central hub to manage APIs + MCP servers (MuleSoft/Heroku/Apex), convert ops to invocable actions for Flow, Apex and Agentforce | Discoverability + governance across surfaces |
 
 Default to **MuleSoft for Flow** where a prebuilt connector exists and an admin owns the flow. Use
 **Anypoint** for real orchestration, DataWeave transformation, API management, or a façade over many
@@ -84,54 +72,50 @@ backends.
 ## 3. Heroku / AppLink
 
 The off-platform compute and integration tier. **AppLink** connects Heroku apps to Salesforce orgs
-with user-permission enforcement and multi-org connectivity; it is the official replacement for the
-**retired Salesforce Functions**.
+with user-permission enforcement and multi-org connectivity; it replaces **Salesforce Functions**,
+retired 31 January 2025.
 
 - Use it for elastic or custom compute, languages other than Apex, long-running jobs, and heavy data
   processing close to Salesforce.
-- Caveat: Heroku enterprise sales to new customers have ended. Confirm commercial fit before
-  committing new strategic workloads.
+- Heroku enterprise sales to new customers have ended. Confirm commercial fit before committing
+  new strategic workloads.
 
 ---
 
 ## 4. Data 360 as an Integration Path
 
-Often the best integration moves no data at all.
-
 - **Zero-copy federation** — query external warehouses (Snowflake, Databricks, BigQuery, Redshift) in
   place via Apache Iceberg: no ETL, no duplication.
 - **Ingestion API / connectors** — for data that must be resident in Data 360, streaming or batch.
 
-Pipeline mechanics, credits and zero-copy detail are `dya-sf-data360`. Choose zero-copy for analytics
-and grounding that should not duplicate data; ingestion when you need low-latency operational access
-to resident data.
+Choose zero-copy for analytics and grounding that should not duplicate data; ingestion for
+low-latency operational access to resident data. Pipeline mechanics, credits and zero-copy detail:
+`dya-sf-data360`.
 
 ---
 
 ## 5. AppExchange / ISV Connectors
 
-Packaged AppExchange integrations, now distributed via External Client Apps for 2GP. Before
-building, check for a vetted managed-package connector — especially for common SaaS targets. Govern
-an installed connector's API usage and permissions.
+Packaged AppExchange integrations, distributed via External Client Apps for 2GP. Before building,
+check for a vetted managed-package connector, especially for common SaaS targets. Govern an
+installed connector's API usage and permissions.
 
 ---
 
 ## 6. MCP / Headless 360 / Agent API — the Agentic Surface
 
-In 2026, integration includes **AI agents and assistants** acting on the org.
-
-- **Hosted MCP Servers (GA)** — connect external MCP clients to standard tools over Platform,
-  Data 360, Tableau and product APIs, out of the box.
+- **Hosted MCP Servers (GA)** — connect any external MCP client to standard tools over sObject
+  operations, Data 360, Tableau and product APIs, out of the box.
 - **Custom hosted MCP servers** — expose *your* chosen tools, built from **Apex actions
   (`@InvocableMethod`), Flows, Apex REST and Named Query APIs**. Curate the smallest approved
   toolset.
 - **Agent API** — invoke an Agentforce agent headlessly from an external system (`dya-sf-agentforce`).
 - Security: every MCP call runs **as the authenticated user** with CRUD, FLS and sharing enforced,
-  auth is OAuth plus PKCE via an ECA (`dya-sf-integration-auth`), and calls count against daily API
-  limits.
+  auth is OAuth plus PKCE via an ECA (`dya-sf-integration-auth`), and calls count against the daily
+  API allocation.
 
-MCP and HXL internals live in `dya-sf-headless360`. MCP is the right integration surface when the
-caller is an AI client that should discover and call capabilities dynamically.
+Choose MCP when the caller is an AI client that should discover and call capabilities dynamically.
+MCP and HXL internals: `dya-sf-headless360`.
 
 ---
 

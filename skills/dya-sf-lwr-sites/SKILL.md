@@ -27,26 +27,22 @@ Designing the guest profile and its sharing rules is `dya-sf-permissions`.
 
 **LWR sites are GA and the recommended site type for new builds.**
 
-- **LWR sites are LWC-native** — HTML/CSS/JS through Lightning Web Components, built for
-  performance and developer control. Legacy **Aura template sites** still exist and are out of scope.
-  Never migrate one blindly: it is a rebuild.
-- **Enhanced vs non-enhanced matters.** Enhanced sites (enhanced workspace,
-  `DigitalExperienceBundle`) are the forward path and unlock **partial deployment**,
+- **LWR sites are LWC-native** — HTML/CSS/JS through Lightning Web Components. Legacy **Aura
+  template sites** still exist and are out of scope.
+- **Enhanced sites** (enhanced workspace, `DigitalExperienceBundle`) are the forward path and unlock **partial deployment**,
   **expression-based visibility and variations**, a **component-specific Style tab** for custom CSS,
   and **site content search**. CMS collections from enhanced workspaces display **only** in enhanced
-  LWR sites; a non-enhanced site shows only object list views in the Grid.
+  LWR sites.
 - **LWR sites run Lightning Web Security**, with their **own LWS instance** independent of the org
   setting, and strict CSP.
 
-Winter '27 changes two things here:
+New in Winter '27:
 
 - **Embedded reports and dashboards come to LWR sites (Beta)** — charts and tables with conditional
-  formatting and inline record editing, previously Aura-template-only. That removes one of the last
-  reasons to stay on Aura; raise it whenever someone justifies an Aura site by reporting. Beta: not
-  production, not yet a delivery to plan around.
+  formatting and inline record editing, previously Aura-template-only. Raise it when someone justifies
+  an Aura site by reporting. Beta: not production, not a delivery to plan around.
 - **Experience Delivery (Beta) is discontinued**, with **auto-migration on republish through October
-  2026**. Republishing is the migration; confirm what the site looks like afterwards rather than
-  assuming it was transparent.
+  2026**. Republishing is the migration; check the site afterwards.
 
 Standing facts:
 
@@ -57,9 +53,6 @@ Standing facts:
   supported, AppExchange-distributable). A framework-hosted site is a thin `appContainer` over the
   bundle. Hyperforce-only, and needs the Dev Hub packaging toggle; confirm availability for the
   target org before planning production on it. See `dya-sf-lwr` §8.
-
-Sites deploy as metadata — `DigitalExperienceBundle`, `Network`, `CustomSite`,
-`DigitalExperienceConfig` — never hand-edited in production.
 
 ---
 
@@ -75,7 +68,7 @@ Existing Aura template site                   Stays Aura — migration is a rebu
 React or Angular SPA hosted on Salesforce     UI Bundle (Hyperforce only; packages as 2GP)
 ```
 
-Default to **enhanced LWR** for new builds. Aura-to-LWR is a **rebuild** of components, theme and
+Aura-to-LWR is a **rebuild** of components, theme and
 navigation, not a setting.
 
 ---
@@ -109,7 +102,7 @@ On enhanced sites, take the platform feature over a hand-rolled equivalent:
 ## 4. Guest User — Harden It First
 
 A public LWR site is browsed by the **guest user**: unauthenticated, **read-only**, **cannot own
-records**. Misconfigured guest access is the #1 Experience Cloud security incident.
+records**.
 
 - **Audit the guest user profile before activating**: the **minimum** object and field read access
   the site needs.
@@ -120,22 +113,16 @@ records**. Misconfigured guest access is the #1 Experience Cloud security incide
 - Every guest-facing component renders a clean **empty / access-denied** state, enforced
   component-side in `dya-sf-lwr`.
 
-> Full hardening procedure: `references/guest-and-seo.md`.
-
 ---
 
 ## 5. SEO — Mandatory for Public Sites
 
-Unlike Lightning Experience, a public LWR site must be crawlable:
-
 - **SEO-friendly URL slugs** (GA) replace record Ids in URLs for Accounts, Contacts and custom
   objects.
 - **Never hand-write a custom sitemap.** The platform generates `sitemap.xml`, and the guest
-  profile's read access scopes what it contains — least-privilege and SEO coverage are linked.
+  profile's read access scopes what it contains.
 - Maintain `robots.txt` with the paths to every sitemap for the domain.
 - Keep pages lean (`dya-sf-lwr` §7); Core Web Vitals affect ranking.
-
-> Full SEO setup: `references/guest-and-seo.md`.
 
 ---
 
@@ -144,8 +131,7 @@ Unlike Lightning Experience, a public LWR site must be crawlable:
 - The site runs its **own LWS instance**. Verify behaviour in the site, not in LEX.
 - Register every external endpoint as a **CSP Trusted Site**; load third-party scripts as **static
   resources**, not from arbitrary URLs.
-- Lock down head markup, CSP directives and trusted URLs before go-live: a public site is attack
-  surface.
+- Lock down head markup, CSP directives and trusted URLs before go-live.
 
 ---
 
@@ -153,17 +139,13 @@ Unlike Lightning Experience, a public LWR site must be crawlable:
 
 Source-track the metadata (`DigitalExperienceBundle` for enhanced, plus `Network`, `CustomSite` and
 `DigitalExperienceConfig`), deploy through CI/CD, use **partial deployment** for incremental changes
-on enhanced sites, and validate against a sandbox. Activating or editing a production site by hand is
-an incident waiting to happen.
+on enhanced sites, and validate against a sandbox. Never activate or edit a production site by hand.
 
 - **A newer LWR site abstracts FlexiPage away entirely.** Never reach for FlexiPage tooling —
-  retrieving, generating or editing one — on a `DigitalExperienceBundle` site. It is the reflex for
-  "Lightning page" and silently does nothing here.
+  retrieving, generating or editing one — on a `DigitalExperienceBundle` site; it silently does
+  nothing here.
 - **A page needs both a `route` and a `view`** under `digitalExperiences/site/<name>1/sfdc_cms__*/`,
   each with its own `_meta.json` and `content.json`. One without the other does not resolve.
-
-> Source layout, Connect API site creation, and the activate-then-publish sequence:
-> `references/site-provisioning.md`.
 
 ---
 

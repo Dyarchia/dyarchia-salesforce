@@ -1,7 +1,7 @@
 # Winter '27 — What the Release Adds to Flow
 
-Consultative. Facts that **change what you may build or claim** live in `SKILL.md`'s Platform
-Context; this is the rest.
+Facts that **change what you may build or claim** live in `SKILL.md`'s Platform Context; this is
+the rest.
 
 | Change | Status | What it gives you |
 |---|---|---|
@@ -13,17 +13,16 @@ Context; this is the rest.
 
 The Flow Builder UI refresh ships GA with no opt-out.
 
-## Earlier releases, now simply how the platform works
+## Earlier releases, now standard
 
-Worth knowing, because older documentation and forum answers present them as new:
+Older documentation and forum answers present these as new:
 
 - Custom batch size on scheduled flows.
 - Flow Orchestration as a Standard feature.
 - The Date operator family in Decision elements: `Is Today`, `Is This Month`,
   `Is Anniversary of Today`, `Last Number of Days`. **Date type only — they do not accept
-  DateTime**, the usual trap.
+  DateTime**.
 - Persistent Email Template references that survive deployment.
 - Global Flow Resources for reusable value mappings.
 - Collapsible fault paths and the Element Error Rate column.
-- `InvocableActionExtension` for configurable Apex actions. See
-  `references/invocable-apex-patterns.md`.
+- `InvocableActionExtension` for configurable Apex actions: `references/invocable-apex-patterns.md`.

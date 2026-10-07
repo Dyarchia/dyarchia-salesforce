@@ -1,10 +1,10 @@
 # Visualforce Controller Patterns — Reference Implementation (Winter '27 / API v68.0)
 
-Implementations for SKILL.md §2–§4, for writing or refactoring a controller, extension or list controller. Controllers are Apex, so `dya-sf-apex` (Service/Selector/Domain layering, async, testing, observability) applies on top.
+Implementations for SKILL.md §2–§4, for writing or refactoring a controller, extension or list controller.
 
 ## Standard Controller + Extension Skeleton
 
-The constructor receives an `ApexPages.StandardController`. Query once, cache in fields, expose actions returning `PageReference` (or `null` to stay on the page).
+Actions return a `PageReference`, or `null` to stay on the page.
 
 ```java
 public with sharing class AccountDashboardExt {
@@ -69,7 +69,7 @@ Page wiring:
 
 ## View State Discipline
 
-Hard limit: 135 KB. Every non-`transient` member field is serialised on each postback.
+Every non-`transient` member field is serialised on each postback.
 
 | Field role | Declaration |
 |---|---|
@@ -78,15 +78,7 @@ Hard limit: 135 KB. Every non-`transient` member field is serialised on each pos
 | Small scalar values needed across postbacks (filters, selected ids, flags) | non-transient |
 | References to `StandardController`, services, selectors | `private final` (and consider `transient`) |
 
-Rules:
-
-- Re-query in an action method (`refresh()` above) rather than carrying a big collection across postbacks.
-- Bind `<apex:inputField>` directly to SObject fields; don't shadow every field into scalar properties.
-- Verify size with the View State Inspector (enable Development Mode) before shipping.
-
 ## Custom Controller — CRUD/FLS Is Your Job
-
-A standard controller enforces CRUD/FLS/sharing automatically; a custom controller does not. Declare `with sharing` and enforce field access with `WITH USER_MODE` queries and `Security.stripInaccessible`.
 
 ```java
 public with sharing class CaseConsoleController {
@@ -112,8 +104,6 @@ public with sharing class CaseConsoleController {
 
 ## Injection-Safe Dynamic SOQL
 
-Never concatenate user input into a query. Prefer bind variables; for fully dynamic queries use `Database.queryWithBinds` with `AccessLevel.USER_MODE`.
-
 ```java
 public with sharing class SearchController {
 
@@ -138,16 +128,10 @@ public with sharing class SearchController {
 }
 ```
 
-If you cannot bind (e.g. a dynamic field/object name), validate against a `Schema.describe` allow-list and `String.escapeSingleQuotes` the literal — never trust raw input.
+If you cannot bind (e.g. a dynamic field/object name), validate against a `Schema.describe` allow-list and `String.escapeSingleQuotes` the literal.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| SOQL/DML in a getter | Query in constructor or action method; cache in a field |
-| Big collection in a non-`transient` field | Mark `transient`; re-query on demand |
-| `WITH SECURITY_ENFORCED` | `WITH USER_MODE` (removed in API 67+) |
-| Custom controller with no sharing keyword | `with sharing` + `WITH USER_MODE` |
-| `'SELECT … ' + userInput` | `Database.queryWithBinds(q, binds, USER_MODE)` |
 | `StandardController.save()` reimplemented by hand | Reuse the standard action; it enforces security |
-| Shadowing every SObject field into scalar properties | Bind components straight to SObject fields |

@@ -4,9 +4,6 @@ Reference for SKILL.md §4–§5. Load when configuring a production public LWR 
 
 ## Guest-user hardening — order of operations
 
-The guest user is unauthenticated, read-only, and cannot own records. Configure least privilege
-**before** activating the site.
-
 1. **Guest user profile** — read access only to the objects and fields the site renders; remove
    everything else. No create/edit/delete.
 2. **Org-wide defaults** — as restrictive as the rest of the org needs. Never relax one to expose
@@ -36,7 +33,7 @@ The guest user is unauthenticated, read-only, and cannot own records. Configure 
 
    - **`<guestUser>` takes the guest user's `CommunityNickname`** — not the site's URL path prefix,
      and not a `<role>` or `<group>` as an ordinary sharing rule would.
-   - **`<includeHVUOwnedRecords>` is required** — the commonest omission. Set it `false` unless
+   - **`<includeHVUOwnedRecords>` is required**. Set it `false` unless
      records owned by high-volume site users should be included.
    - `<includeRecordsOwnedByAll>` belongs to `sharingCriteriaRules` and **fails** inside a guest
      rule.
@@ -56,13 +53,8 @@ never assume data is present (`dya-sf-lwr` §6).
 
 ## SEO setup
 
-- **URL slugs (GA)** — enable SEO-friendly slugs to replace record Ids in URLs for Accounts,
-  Contacts, and custom objects. Readable URLs index better and drive organic traffic.
 - **Sitemaps** — the platform generates `sitemap.xml`; **never** author a custom sitemap for an
-  LWR (or Aura) site. Only what the guest profile can read gets indexed, so least-privilege and
-  SEO coverage are linked.
-- **robots.txt** — include the paths to all sitemaps for the domain.
-- **Performance** — keep pages lean (`dya-sf-lwr` §7); Core Web Vitals influence ranking.
+  LWR (or Aura) site. Only what the guest profile can read gets indexed.
 
 ## Pre-go-live checklist
 

@@ -1,8 +1,8 @@
 # HTTP Callout in Flow — Reference Setup
 
-Full implementation of the Flow HTTP Callout pattern from SKILL.md §7. Load when adding a REST integration to a flow, or when diagnosing a failing HTTP Callout action.
+Full implementation of SKILL.md §7. Load when adding a REST integration to a flow, or when diagnosing a failing HTTP Callout action.
 
-Introduced as Beta in Spring '23 (GET only), GA with POST/PUT/DELETE/PATCH in Summer '23. It is now the default for REST integration without custom marshalling — no Apex required.
+Beta in Spring '23 (GET only), GA with POST/PUT/DELETE/PATCH in Summer '23.
 
 ## Architecture
 
@@ -16,7 +16,7 @@ Flow ── invokes ──► HTTP Callout Action
                                                   └── exposes ──► Apex Types (auto-generated request/response DTOs)
 ```
 
-Build the Named Credential once. The first HTTP Callout created against it in Flow Builder generates the External Service and the Apex types from your sample request/response payloads; later callouts in any flow reuse them.
+The first HTTP Callout created against a Named Credential generates the External Service and the Apex types from your sample payloads; later callouts in any flow reuse them.
 
 ## Step 1 — The Named Credential
 
@@ -39,8 +39,6 @@ Setup → Security → Named Credentials → New Legacy Named Credential (or a n
 - Create a **Named Credential** referencing the External Credential.
 - The platform handles token acquisition, refresh, and header injection.
 
-**Never** hardcode API endpoints, API keys, or tokens in Flow metadata or Apex strings; they belong only in Named Credentials.
-
 ## Step 2 — Create the HTTP Callout Action in Flow Builder
 
 Flow Builder → New Action → "Create HTTP Callout", or open the Flow → Toolbox → Actions → "Create HTTP Callout".
@@ -52,7 +50,7 @@ Flow Builder → New Action → "Create HTTP Callout", or open the Flow → Tool
 - **Named Credential** — `Pricing_Engine`
 - **URL Path** — `/v2/quote` (appended to the Named Credential's base URL)
 - **Method** — `POST`
-- **Sample Request Body** — a real JSON request payload:
+- **Sample Request Body** — a real JSON payload:
 
   ```json
   {
@@ -62,7 +60,7 @@ Flow Builder → New Action → "Create HTTP Callout", or open the Flow → Tool
   }
   ```
 
-- **Sample Response Body** — a real JSON response payload:
+- **Sample Response Body** — a real JSON payload:
 
   ```json
   {
@@ -73,7 +71,7 @@ Flow Builder → New Action → "Create HTTP Callout", or open the Flow → Tool
   }
   ```
 
-  The platform parses both samples and generates two strongly-typed Apex types matching the JSON: `FetchPricingQuoteRequest` and `FetchPricingQuoteResponse`.
+  The platform generates two Apex types from the samples: `FetchPricingQuoteRequest` and `FetchPricingQuoteResponse`.
 
 - **Headers** — per-request headers if needed (`Content-Type: application/json` is added automatically; add `X-Idempotency-Key` if the API supports it).
 
@@ -83,11 +81,9 @@ Save. The action now appears in the Action picker for any flow type.
 
 ### GET — Simple Case
 
-A GET usually has only URL parameters; add them as query parameters in the action configuration. Reference the response as `{!Fetch_Pricing_Quote.response}`.
+Add URL parameters as query parameters in the action configuration. Reference the response as `{!Fetch_Pricing_Quote.response}`.
 
 ### POST/PUT — Body Required
-
-POST and PUT need a request body of the generated type, built with Assignment elements:
 
 1. **Create a Record Variable** of type `FetchPricingQuoteRequest`.
 2. **Assignment** — populate its fields: `quoteRequest.productCode = {!productSku}`, `quoteRequest.quantity = {!quantity}`, etc.
@@ -95,10 +91,6 @@ POST and PUT need a request body of the generated type, built with Assignment el
 4. After the action, `{!Fetch_Pricing_Quote.response.quoteId}` and the other response fields are available.
 
 ## Step 4 — Error Handling Is Mandatory
-
-The HTTP Callout action does NOT throw on a non-2xx response; it returns the response with the status code populated. You MUST check it explicitly.
-
-### Pattern
 
 After the action:
 
@@ -109,24 +101,22 @@ After the action:
    - else → unknown status path
 2. **Fault Path** — handles platform-level failures (network unreachable, Named Credential misconfigured). Connect it to an error-handling element.
 
-Both must exist: the Decision handles HTTP-level errors, the Fault Path platform-level ones. Skipping either creates silent failures in production.
+Skipping either creates silent failures in production.
 
 ## Step 5 — Asynchronous Path Requirement
 
-HTTP Callouts CANNOT run on a record-triggered flow's synchronous path (the platform forbids callouts after uncommitted DML).
-
-**Place HTTP Callouts on:**
+The synchronous path of a record-triggered flow forbids callouts after uncommitted DML. **Place HTTP Callouts on:**
 
 - The **Asynchronous Path** of a record-triggered flow, OR
 - An **autolaunched flow** invoked from elsewhere, OR
-- A **screen flow** (synchronous is fine — no committed DML precedes it), OR
+- A **screen flow** (synchronous is fine — no uncommitted DML precedes it), OR
 - A **scheduled flow**.
 
-A callout on the main path of a record-triggered flow errors at activation time. Restructure the flow; do not work around it.
+A callout on the main path of a record-triggered flow errors at activation time. Restructure the flow.
 
 ## Pagination Pattern
 
-For paginated REST APIs, use a Loop:
+Paginate with a Loop:
 
 1. **Variable**: `nextCursor` (Text, default empty).
 2. **Variable**: `allRecords` (Record Collection of the response item type).
@@ -135,7 +125,7 @@ For paginated REST APIs, use a Loop:
    - **Decision**: if the response has results, append to `allRecords` and update `nextCursor`; otherwise exit the loop.
 4. After the loop, `allRecords` holds the full result set.
 
-Beware governor limits — the **synchronous Apex CPU limit applies to flows** even with no visible Apex. For very large result sets, paginate across multiple invocations on an async path, or move to a scheduled-flow + cursor pattern.
+The **synchronous Apex CPU limit applies to flows** even with no visible Apex. For very large result sets, paginate across multiple invocations on an async path, or move to a scheduled-flow + cursor pattern.
 
 ## Reusable HTTP Callout for Multiple Flows
 
@@ -144,8 +134,6 @@ The generated External Service is a metadata component (`ExternalServiceRegistra
 - Other Flow Builder actions (automatically).
 - Apex (via the generated `ExternalService.<name>` namespace).
 - LWC (via an Apex wrapper, or the GraphQL adapter if it is a Salesforce object proxy).
-
-Define the integration once; reuse it across the stack.
 
 ## Anti-Patterns
 

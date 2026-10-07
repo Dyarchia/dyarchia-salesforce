@@ -5,8 +5,8 @@ description: Salesforce integration decision hub (Winter '27 / API v68.0) — ro
 
 # Salesforce Integration — Decision Hub
 
-This skill does not teach protocols — it **routes** to the right one and the right authoring
-surface. Use it to choose; use the siblings to build. Follow every rule below.
+This skill does not teach protocols; it **routes** to the right one and the right authoring
+surface. Follow every rule below.
 
 The `dya-sf-integration-*` family (load the one the decision points to):
 
@@ -38,11 +38,9 @@ ingestion → `dya-sf-data360`; MCP and the experience layer → `dya-sf-headles
 | **REST API `/latest` alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Fine for exploration; **pin an explicit version in production**, or behaviour changes three times a year with no deploy |
 | **OAuth username-password flow retired** | Enforced **20 February 2027** | Anything posting `grant_type=password` stops receiving a token on that date. See `dya-sf-integration-auth` |
 | **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Instance-based endpoints must become the org's My Domain URL. Testable today with the My Domain blocking setting |
-| **MCP interoperability for agents** | GA | Agents discover external tools through governed connections — a first-class integration surface. See `dya-sf-integration-connectors-mcp` |
+| **MCP interoperability for agents** | GA | Agents discover external tools through governed connections. See `dya-sf-integration-connectors-mcp` |
 
-Standing facts that decide designs:
-
-- **The API 67.0 Apex security defaults hit integration code hardest.** SOQL, SOSL and DML default
+- **API 67.0 Apex security defaults.** SOQL, SOSL and DML default
   to `USER_MODE`; an omitted sharing keyword defaults to `with sharing`. Server-to-server code that
   assumed system-mode access silently returns fewer rows once its class is raised to 67.0 or above.
   Behaviour keys off **each class's compiled version**, not the org's. See
@@ -58,10 +56,10 @@ Standing facts that decide designs:
 
 ---
 
-## 1. The Six Patterns — the Vocabulary
+## 1. The Six Patterns
 
 Salesforce's Integration Patterns and Practices defines the canonical set. **Name the pattern first;
-the technology follows.** Picking the technology first is how point-to-point spaghetti gets built.
+the technology follows.**
 
 | Pattern | Direction | Sync? | Canonical technology |
 |---|---|---|---|
@@ -72,9 +70,7 @@ the technology follows.** Picking the technology first is how point-to-point spa
 | **UI Update Based on Data Changes** | SF → UI/external | Async | CDC or Platform Events over Pub/Sub |
 | **Data Virtualization** | SF reads external | Sync | Salesforce Connect and External Objects |
 
-> Each pattern in depth: `references/patterns-and-versions.md`.
-
-## 2. First Cut — Direction and Who Initiates
+## 2. Direction and Who Initiates
 
 ```text
 Who starts the interaction?
@@ -91,7 +87,7 @@ Who starts the interaction?
 Cross-cutting on every path: authentication → dya-sf-integration-auth
 ```
 
-## 3. Sync vs Async — the Load-Bearing Choice
+## 3. Sync vs Async
 
 **Synchronous** only when the caller needs the answer *now* to proceed — a user is waiting, or the
 next step depends on the result. Costs: tight coupling, a blocked caller, both systems up
@@ -111,7 +107,7 @@ consistency, and designing idempotency and reconciliation yourself.
   `references/shared/governor-limits.md`.
 - **Error handling and retry.** Platform Events give 72 hours of replay; Outbound Messages retry
   automatically; Apex callouts need explicit retry and backoff. Surface failures where the org
-  already looks — one seen only in a debug log is one nobody sees.
+  already looks, not only in a debug log.
 - **Security.** OAuth over passwords; External Client Apps over Connected Apps; Named and External
   Credentials over hard-coded secrets and Remote Site Settings; HTTPS always; a purpose-built
   least-privilege integration user, whose own object and field access now governs what its code reads.
@@ -148,10 +144,9 @@ consistency, and designing idempotency and reconciliation yourself.
 | **No-code** | — | Flow HTTP Callout, External Services, Salesforce Connect, MuleSoft for Flow | Platform Events in Flow | Prefer for simple, well-described APIs |
 
 An LWC **cannot** call arbitrary Salesforce APIs from JavaScript — only Lightning Data Service and
-`lightning/graphql`. For an external API use an Apex proxy unless there is a specific reason to
-`fetch` directly. See `dya-sf-integration-outbound` and `dya-sf-lwc`.
+`lightning/graphql`. See `dya-sf-integration-outbound` and `dya-sf-lwc`.
 
-## 7. Decision Thresholds — the Numbers That Flip the Choice
+## 7. Decision Thresholds
 
 - **More than ~10,000 records** → Bulk API 2.0, not REST.
 - **Atomic multi-object writes needed** → Composite or Composite Graph, not separate REST calls.

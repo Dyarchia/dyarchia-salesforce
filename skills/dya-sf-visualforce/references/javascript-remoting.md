@@ -1,10 +1,10 @@
 # Visualforce JavaScript Remoting — Reference Implementation (Winter '27 / API v68.0)
 
-Implementations for SKILL.md §5, for async, partial-page server interaction. Remoting is the default: stateless (**no view state**), fast, with direct control over request and response in JavaScript.
+Implementations for SKILL.md §5.
 
 ## `@RemoteAction` Contract
 
-- The method MUST be `static` and annotated `@RemoteAction`.
+- Declare the method `static` and annotate it `@RemoteAction`.
 - Parameters and return types: primitives, SObjects, collections, or `@RemoteAction`-serialisable Apex types (no `Blob`, no `Object`).
 - It runs in its own transaction with its own governor limits — bulkify as you would a controller.
 - It does NOT enforce CRUD/FLS automatically — use `WITH USER_MODE` / `Security.stripInaccessible` and declare `with sharing` on the class.
@@ -99,11 +99,9 @@ Options object:
 | Basic record CRUD from JS without Apex | **Remote Objects** (`<apex:remoteObjects>`) | none | NO |
 | Declarative rerender on a component event | `<apex:actionSupport>` + `rerender` | full round-trip | maybe |
 
-Prefer Remoting for anything data-heavy. Reserve `<apex:actionFunction>`/`<apex:actionSupport>` for small, record-scoped interactions where the view-state round-trip is negligible and declarative rerender is wanted.
+Reserve `<apex:actionFunction>`/`<apex:actionSupport>` for small, record-scoped interactions where the view-state round-trip is negligible and declarative rerender is wanted.
 
 ## Remote Objects — CRUD Without Apex
-
-For basic CRUD on accessible objects without writing a controller:
 
 ```html
 <apex:page>
@@ -134,7 +132,6 @@ Remote Objects enforce the running user's CRUD/FLS automatically (same access la
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| `<apex:actionFunction>` for large data loads | JavaScript Remoting (`@RemoteAction`) |
 | Using `result` before checking `event.status` | Branch on `event.status` first |
 | `@RemoteAction` without `WITH USER_MODE` / sharing | Declare `with sharing`, query `WITH USER_MODE` |
 | Non-bulk DML inside `@RemoteAction` | Bulk `Database.*` with `AccessLevel.USER_MODE` |

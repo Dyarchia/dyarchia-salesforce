@@ -12,12 +12,11 @@ with explicit error handling and a documented run context. Follow every rule bel
 References:
 
 - `references/shared/` — platform fundamentals: `governor-limits.md` (the transaction budget a flow
-  shares), `sharing-and-access.md` (the model behind run context), `platform-deltas.md`
-  (release-coupled facts). **Start with the first if you do not know why a Get Records inside a
-  Loop is fatal.**
+  shares, and why a Get Records inside a Loop is fatal), `sharing-and-access.md` (the model behind
+  run context), `platform-deltas.md` (release-coupled facts).
 - `references/invocable-apex-patterns.md` — full `@InvocableMethod` / `@InvocableVariable`
-  patterns, bulk handling, partial success, custom DTOs, the `callout=true` gotcha, `Flow.Interview`
-  in the reverse direction, and how Flow and Agentforce callers differ.
+  patterns, bulk handling, partial success, custom DTOs, `callout=true`, `Flow.Interview` in the
+  reverse direction, and how Flow and Agentforce callers differ.
 - `references/http-callout-patterns.md` — Flow HTTP Callout end to end: Named Credential, External
   Service generation, status-code branching, pagination, error handling.
 
@@ -32,30 +31,24 @@ Omni-Channel routing flows → `dya-sf-omni-channel`.
 
 Save new flows at `<apiVersion>68.0</apiVersion>` in the `.flow-meta.xml`.
 
-Two facts decide what you can promise about a flow:
+**Flow Test Mode is Beta**, so it does not run in a production org. Design testing without it.
 
-- **Flow Test Mode is Beta**, so it does not run in a production org. Design testing without it.
-- **Flow Tests earn no Apex code coverage.** An untested flow does not block a production
-  deployment, and a passing Flow Test does not raise the 75% Apex figure. Test flows because
-  untested automation breaks silently in production — no gate forces you.
-
-> Every feature the release adds, plus earlier changes that are now simply how the platform works:
-> `references/release-notes.md`.
+> Every feature the release adds, plus earlier changes now standard: `references/release-notes.md`.
 
 ---
 
 ## 1. Absolute Rule — When Flow Is the Right Tool
 
 1. **Standard configuration** — Validation Rules, Formula Fields, Rollup Summaries, Dynamic Forms. If
-   the requirement fits here, no flow is needed.
+   the requirement fits here, build no flow.
 2. **Flow** — record-triggered, schedule-triggered, screen, autolaunched, platform-event,
    orchestration. Most business automation belongs here.
 3. **Apex** — only when Flow cannot express it: complex cross-object recursive logic, objects the UI
    API does not support, performance-critical synchronous code, integrations needing custom
    marshalling.
 
-Document the type, trigger and purpose in the flow's **description** field, which a maintainer sees
-in a list view without opening the canvas.
+Document the type, trigger and purpose in the flow's **description** field, visible in a list view
+without opening the canvas.
 
 ## 2. Flow Types
 
@@ -76,8 +69,7 @@ prefer **Orchestration** over chained autolaunched flows with hand-rolled state 
 
 ## 3. Bulkification
 
-A record-triggered flow processes a batch of up to 200 records in one transaction. The risk is
-**what you put inside a Loop**.
+A record-triggered flow processes a batch of up to 200 records in one transaction.
 
 **Never put Get / Create / Update / Delete Records inside a Loop.** Flow Builder allows it, and it
 issues one SOQL or DML operation per iteration against a transaction budget of 100 queries and 150
@@ -91,20 +83,18 @@ DML statements. Instead:
 from the default 200. Use it only when you measurably hit CPU limits or `UNABLE_TO_LOCK_ROW`.
 
 > `UNABLE_TO_LOCK_ROW` means another transaction held a lock on a record yours needed — usually many
-> child records updating at once, each locking the **same shared parent** (a batch of Opportunities
-> rolling up to one Account). A batch size of 1 serialises the work and removes the contention, at
-> the cost of far more transactions and a longer run. Reordering the data so a batch touches distinct
-> parents is cheaper.
+> child records each locking the **same shared parent** (a batch of Opportunities rolling up to one
+> Account). A batch size of 1 removes the contention at the cost of far more transactions and a
+> longer run. Reordering the data so a batch touches distinct parents is cheaper.
 
 **Tight entry conditions.** A record-triggered flow fires on every DML against the object. Filter in
 the entry condition (`Industry CHANGED to "Tech"`), not with a Decision inside the flow — a run that
-starts and immediately exits still consumes an interview from the org's daily allocation (Setup ›
-Company Information).
+exits immediately still consumes an interview from the org's daily allocation (Setup › Company
+Information).
 
 ## 4. Run Context and Security
 
-The context is set in the flow's **version properties**: Edit Version Properties, "How to Run the
-Flow".
+Set the context in Edit Version Properties, "How to Run the Flow".
 
 | Context | Sharing | Object and field permissions | Default for |
 |---|---|---|---|
@@ -112,24 +102,22 @@ Flow".
 | **System Context with Sharing** | Enforced | Bypassed | Record-Triggered Flows |
 | **System Context without Sharing** | Bypassed | Bypassed | Never a default |
 
-The record-triggered default silently lets a user trigger writes they could not perform directly. For
-a flow updating fields the running user should be able to edit, switch to **User Context**
-explicitly. **Never** ship "System Context without Sharing" without a justification in the flow
-description — it is the declarative `without sharing`, almost always wrong outside a deliberate
-integration.
+The record-triggered default lets a user trigger writes they could not perform directly. For a flow
+updating fields the running user should be able to edit, switch to **User Context**. **Never** ship
+"System Context without Sharing" without a justification in the flow description — it is the
+declarative `without sharing`, almost always wrong outside a deliberate integration.
 
 > The underlying model — profiles, permission sets, OWD, sharing rules, field-level security:
 > `references/shared/sharing-and-access.md`. Design questions belong to `dya-sf-permissions`.
 
 ## 5. Screen Flows — Reactivity First
 
-Components on one screen react to each other's values without a page reload. Bind a component input
-to another's output with `{!ComponentName.output}`; the downstream component re-renders when the
-upstream value changes.
+Bind a component input to another's output with `{!ComponentName.output}`; the downstream component
+re-renders when the upstream value changes, without a page reload.
 
 - **Action Buttons** — on click, an autolaunched subflow runs without leaving the screen. It can do
-  callouts, DML and Get Records, and return values the screen reacts to. Use for explicit
-  user-initiated work: *Submit*, *Fetch Quote*, *Validate Postcode*.
+  callouts, DML and Get Records, and return values the screen reacts to. Use for user-initiated work:
+  *Submit*, *Fetch Quote*, *Validate Postcode*.
 - **Reactive Screen Actions** — the same mechanism, fired automatically when an input changes. Use for
   as-you-type enrichment: auto-lookup, real-time validation, dynamic prefill.
 
@@ -141,13 +129,12 @@ name" and "Link to record" on lookup columns).
 field below the email", "show address fields only when billing country is US"). Use it for
 prototyping; review every generated change before activation.
 
-Avoid wizards where every step is a screen with a Next button; collapse the journey into fewer
-reactive screens where possible.
+Collapse wizards where every step is a screen with a Next button into fewer reactive screens.
 
 ## 6. Calling Apex from Flow
 
-Use `@InvocableMethod` when Flow needs logic it cannot express, callouts with custom marshalling, or
-complex error handling.
+Use `@InvocableMethod` for logic Flow cannot express, callouts with custom marshalling, or complex
+error handling.
 
 - The method must be `static` and take exactly one `List<T>` parameter.
 - Return `void` or a `List<U>`; output length **and order** must match the input.
@@ -164,26 +151,26 @@ complex error handling.
 
 **`InvocableActionExtension`** shapes how an admin configures the action in Flow Builder: a custom
 property editor on one input, fixed picklist values for a `String` input instead of free text, and a
-custom header above the property panel. Worth it for reusable or packaged actions — better
-design-time UX means fewer misconfigured flows.
+custom header above the property panel. Use it for reusable or packaged actions, to prevent
+misconfigured flows.
 
-> Class shape, DTOs, partial success, the `callout=true` gotcha, `Flow.Interview` for the reverse
-> direction, testing, and the Flow-versus-agent caller table: `references/invocable-apex-patterns.md`.
+> Class shape, DTOs, partial success, `callout=true`, `Flow.Interview` for the reverse direction,
+> testing, and the Flow-versus-agent caller table: `references/invocable-apex-patterns.md`.
 
 ## 7. HTTP Callouts from Flow
 
 For REST integrations without custom marshalling, use **Flow HTTP Callout**, not Apex. Create a
 Named Credential, then Flow Builder › New Action › Create HTTP Callout: choose the credential and
-method, paste sample request and response JSON, and the platform generates the External Service and
-the Apex types.
+method, paste sample request and response JSON; the platform generates the External Service and the
+Apex types.
 
 - **Always a Named Credential.** Never a raw URL or an inline secret.
 - POST and PUT bodies need a Record variable of the generated type, populated by Assignments.
 - **Always branch on `{!ActionName.statusCode}`** in a Decision afterwards. The action returns a
-  non-2xx response rather than throwing.
+  non-2xx response without throwing.
 - Always connect a **Fault Path** for platform-level failures: network, misconfigured credential.
 - In a record-triggered flow a callout must run on the **Asynchronous Path**; the synchronous path
-  forbids a callout after committed DML.
+  forbids a callout after uncommitted DML.
 
 > Full setup, status-code branching, pagination, anti-patterns: `references/http-callout-patterns.md`.
 > Choosing between this and Apex, and the wider integration picture: `dya-sf-integration-outbound`.
@@ -198,23 +185,21 @@ Subflows — gets a Fault Path.
    exists, or — last resort — to a notification. Do not create a logging object to hold the fault.
 
 Where one error-handling subflow serves every fault path, collapse them with the chevron on the Fault
-edge to keep the canvas readable. The **Element Error Rate** column in the Automation app list view
-shows the percentage of elements that errored in the most recent run, flagging a flow without
-opening a debug log.
+edge. The **Element Error Rate** column in the Automation app list view shows the percentage of
+elements that errored in the most recent run, without opening a debug log.
 
 **Ask Agentforce** (Beta) diagnoses a failure in natural language and may offer an automatic
-"Fix Issue". Treat it as a starting point: verify the change and run the flow in Debug before
-reactivating.
+"Fix Issue". Verify the change and run the flow in Debug before reactivating.
 
 ## 9. Subflows and Reuse
 
 Extract a subflow when the same logic appears in two or more flows, when a screen flow needs business
 logic without leaving the screen, or when a piece of logic has its own meaningful name. Do not extract
-one-time logic used in a single flow, or an operation so small that the subflow overhead exceeds the
+logic used once in a single flow, or an operation so small that the subflow overhead exceeds the
 saving.
 
-Prefix subflows by domain — `Account_RecalculateScore`, `Order_ValidateLineItems` — so the
-alphabetical Automation app list is scannable. Flow Tags give a second axis.
+Prefix subflows by domain — `Account_RecalculateScore`, `Order_ValidateLineItems` — to group them in
+the alphabetical Automation app list. Flow Tags give a second axis.
 
 Define reusable **value mappings** — external status to internal picklist, country code to display
 name — once as **Global Flow Resources** and consume them through the Transform element, not
@@ -228,11 +213,12 @@ invoked — and run them from the Automation app or during `sf project deploy va
 Mode** (Beta) brings the same loop into Flow Builder, where a debug run can be saved as a reusable
 scenario with mocked action outputs.
 
-**Flow Tests earn no Apex code coverage and do not gate a production deployment.** They exist
-because untested automation fails silently against real data.
+**Flow Tests earn no Apex code coverage**: a passing one does not raise the 75% Apex figure, and an
+untested flow does not block a production deployment. Test anyway; untested automation fails
+silently against real data.
 
 Use **Debug** in Flow Builder for record-triggered and autolaunched flows; screen flows debug inline.
-The panel supports filtering, search and full per-element input/output.
+The panel offers filtering, search and full per-element input/output.
 
 Flows are metadata (`.flow-meta.xml`). Never edit a flow directly in production. Deploy from version
 control through a pipeline: validate against a sandbox, then deploy.

@@ -1,7 +1,7 @@
 # Creating and Publishing a Site Programmatically
 
 Everything between "no site exists" and "a visitor can reach it": a different set of APIs from
-building inside a site, with a step people consistently miss.
+building inside a site.
 
 ## The short version
 
@@ -84,12 +84,10 @@ Publishing is separate, with no Connect API either:
 sf community publish --name "My Site" --target-org <alias>
 ```
 
-## The login-path trap
+## The login path
 
 An Aura employee or customer site serves at the `/s`-style path and logs in at
 `…/<prefix>/login` or `…/<prefix>/s/login` — **not** at the bare `…/<prefix>`.
-
-Hitting the bare prefix is the commonest "the site is broken" report; the site is fine.
 
 ## The source layout
 
@@ -117,16 +115,13 @@ sfdc_cms__route         sfdc_cms__mobilePublisherConfig
 sfdc_cms__view
 ```
 
-**A page requires both a `route` and a `view`.** One without the other does not resolve.
-
 Object pages follow a naming convention: a custom object `Car__c` gets `Car_Detail`, `Car_List` and
 `Car_Related_list` views.
 
 ## Never reach for FlexiPage tooling
 
-**A newer LWR site with a `DigitalExperienceBundle` abstracts FlexiPage away entirely.** Retrieving,
-generating or editing a `FlexiPage` is wrong here and produces metadata the site ignores. FlexiPage is
-the reflex for "Lightning page" and silently does nothing on an LWR site.
+Retrieving, generating or editing a `FlexiPage` on a `DigitalExperienceBundle` site produces
+metadata the site ignores.
 
 ## Deploying
 
