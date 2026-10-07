@@ -1,10 +1,9 @@
 # Data Capture Forms and Mobile Configuration
 
-The programmatic surface behind forms on Field Service Mobile: how a Data Capture flow differs from
-an ordinary flow, how it is deployed, and the two configuration sObjects that control the app itself.
+The programmatic surface behind Field Service Mobile forms: how a Data Capture flow differs from an
+ordinary flow, how it is deployed, and the two configuration sObjects controlling the app.
 
-The offline matrix and Briefcase are in `references/rest-and-mobile.md`; this file is about
-authoring and deploying the forms.
+The offline matrix and Briefcase are in `references/rest-and-mobile.md`.
 
 ## A Data Capture flow is a distinct process type
 
@@ -20,14 +19,12 @@ authoring and deploying the forms.
 }
 ```
 
-`processType` and `environments` are what make it run on the device. **All three String input
-variables are mandatory** — `parentObjectType`, `parentRecordId` and `recordId` — and a flow missing
-any of them is rejected.
+`processType` and `environments` make it run on the device. **All three String input variables are
+mandatory**; a flow missing any is rejected.
 
 ## Deployment is a Tooling JSON round-trip, not XML
 
-This is the part that surprises anyone coming from ordinary flow deployment. There is **no
-`.flow-meta.xml`, no zip, and no SFDX project** in this path.
+Unlike ordinary flow deployment, there is **no `.flow-meta.xml`, no zip, and no SFDX project**.
 
 Create:
 
@@ -38,7 +35,7 @@ POST /services/data/vXX.X/tooling/sobjects/Flow
 
 The flow is created as **Draft**.
 
-Edit an existing one — three steps, because you must mutate the version rather than the definition:
+Editing takes three steps, because you mutate the version, not the definition:
 
 ```text
 1.  SELECT Id, ActiveVersionId, LatestVersionId
@@ -49,9 +46,8 @@ Edit an existing one — three steps, because you must mutate the version rather
 
 ## The component namespace
 
-Data Capture screens use `runtime_service_fieldservice:dc*` components, and each maps to a Flow
-field-type strategy. Getting the strategy wrong produces a flow that deploys and then renders
-nothing:
+Data Capture screens use `runtime_service_fieldservice:dc*` components, each mapped to a Flow
+field-type strategy. The wrong strategy deploys, then renders nothing:
 
 | Flow field type | Components |
 |---|---|
@@ -64,8 +60,8 @@ Native `Repeater` and `DisplayText` are also available.
 
 ## Prohibited patterns
 
-The platform rejects flow structures that ordinary flows tolerate. The ones that generalise beyond
-data capture are worth knowing regardless:
+The platform rejects flow structures that ordinary flows tolerate; some generalise beyond data
+capture:
 
 | Pattern | What you get |
 |---|---|
@@ -78,8 +74,7 @@ data capture are worth knowing regardless:
 
 ## `DynamicDataCapture` — the pending-form record
 
-A form does not appear on a device because it exists; it appears because a `DynamicDataCapture` row
-points at a record.
+A form appears on a device only when a `DynamicDataCapture` row points at a record.
 
 | Field | Value |
 |---|---|
@@ -97,17 +92,17 @@ Work Order rather than the appointment itself.**
 
 ## The sharing trap that blanks the Forms tab
 
-The single most confusing failure in this area, because it is invisible to the person diagnosing it.
+The most confusing failure here, because it is invisible to whoever diagnoses it.
 
 The Forms tab reads through the UI API
 (`/ui-api/related-list-records/<woId>/DynamicDataCaptures`), and **the UI API enforces sharing**. If
-`DynamicDataCapture` or `WorkPlan` has an OWD of Private — which is the platform default — the API
+`DynamicDataCapture` or `WorkPlan` has an OWD of Private — the platform default — the API
 returns `INSUFFICIENT_ACCESS` and the tab shows "No forms available".
 
-**Desktop SOQL as an administrator does not reproduce it**, because administrators bypass sharing.
-The records are there; the technician cannot see them.
+**Admin desktop SOQL does not reproduce it**, because administrators bypass sharing. The records are
+there; the technician cannot see them.
 
-The fix is a chain, and every link is required:
+The fix is a chain; every link is required:
 
 1. Set OWD to Public Read/Write on **both** `DynamicDataCapture` and `WorkPlan`.
 2. Tooling-PATCH `FieldServiceSettings` with
@@ -138,8 +133,8 @@ Fourteen hex colour fields: `NavbarBackgroundColor`, `NavbarInvertedColor`, `Pri
 `ContrastTertiaryColor`, `ContrastQuaternaryColor`, `ContrastQuinaryColor`, `ContrastInvertedColor`,
 `FeedbackPrimaryColor`, `FeedbackSecondaryColor`, `FeedbackSelectedColor`.
 
-Two operational facts: **`IsDefault` is not updateable**, and the **device metadata cache is 7 days
-by default** — so a branding change is not "not working", it is not yet fetched.
+**`IsDefault` is not updateable**, and the **device metadata cache is 7 days by default** — a branding
+change that seems not to work is not yet fetched.
 `IsShowEditFullRecord` gates the mobile Edit Work Order and Edit Service Appointment actions.
 
 ### `FieldServiceSettings` — a Tooling sObject with a JSON blob
@@ -147,14 +142,13 @@ by default** — so a branding change is not "not working", it is not yet fetche
 A singleton, reached through the Tooling API, whose configuration lives in a `Metadata` JSON object.
 Known keys include `doesShareSaParentWoWithAr`, `doesShareSaWithAr` and `enableLsdkMode`.
 
-**A partial body nulls the keys you omit.** The PATCH sends the entire `Metadata` object, so read it,
-change the one key, and send the whole thing back. Sending `{"Metadata": {"enableLsdkMode": true}}`
+**A partial body nulls the keys you omit.** The PATCH sends the entire `Metadata` object: read it,
+change the one key, send it all back. Sending `{"Metadata": {"enableLsdkMode": true}}`
 silently clears every other org preference in that blob.
 
 ## Licensing
 
-Covered in SKILL.md §7, and repeated here because it is the first thing to check when the app will
-not open: **`FieldServiceMobilePsl` gates login**, `EinsteinFieldServicePsl` gates Voice to Record
+Repeated from SKILL.md §7 as the first check when the app will not open: **`FieldServiceMobilePsl` gates login**, `EinsteinFieldServicePsl` gates Voice to Record
 Edit and Pre-Work Brief, and `AgentforceForFieldServicePsl` gates Voice to Form. The shipped
 permission set is `EinsteinFieldServiceUser`; the system permissions are
 `PermissionsFieldServiceVoiceToRecordEdit` and `PermissionsFieldServiceVoiceToForm`.
@@ -176,9 +170,9 @@ Resolve `versionId` from `GET /einstein/prompt-templates/{devName}` →
 `childRelationships.GenAiPromptTemplateVersions[].fields.Id.value` (prefix `3vN`). Available from
 API v65.0.
 
-**The endpoint is `@ConnectHidden(from=Apex)`, so it cannot be called from Apex at all.** That is why
-`ConnectApi.EinsteinLLM` and Tooling or metadata approaches fail here — not a permissions problem, a
-deliberately closed door. Drive it from the CLI or an external caller.
+**The endpoint is `@ConnectHidden(from=Apex)`, so Apex cannot call it at all.** That is why
+`ConnectApi.EinsteinLLM` and Tooling or metadata approaches fail — a deliberately closed door, not a
+permissions problem. Drive it from the CLI or an external caller.
 
 Related: **`GenAiPromptTemplate` is not SOQL- or REST-queryable.** Resolve its `0hf` Id through a
 Metadata API deep read on `type=GenAiPromptTemplate, fullName=Pre_Work_Brief`.

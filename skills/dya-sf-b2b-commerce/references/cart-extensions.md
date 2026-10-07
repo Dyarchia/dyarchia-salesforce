@@ -1,6 +1,6 @@
 # B2B/D2C Commerce — Cart Calculate API & Endpoint Extensions (Winter '27 / API v68.0)
 
-Load from `dya-sf-b2b-commerce`. The `CartExtension` framework (orchestrator + calculators) and `ConnectApi.BaseEndpointExtension` endpoint hooks, with real signatures. It's on-core Apex — `dya-sf-apex` rules apply (bulk, `with sharing`, `WITH USER_MODE`, Named Credentials). Class availability is API-version-dependent; confirm GA/Pilot status for your version.
+Load from `dya-sf-b2b-commerce`. The `CartExtension` framework (orchestrator + calculators) and `ConnectApi.BaseEndpointExtension` endpoint hooks, with real signatures. On-core Apex, so `dya-sf-apex` rules apply (bulk, `with sharing`, `WITH USER_MODE`, Named Credentials). Class availability depends on API version; confirm GA/Pilot status for yours.
 
 ## The Cart Calculate API
 
@@ -9,11 +9,11 @@ The `CartExtension` namespace exposes extensible base classes:
 - `PricingCartCalculator` (GA), `PromotionsCartCalculator` (GA), `ShippingCartCalculator` (GA), `TaxCartCalculator` (GA), `InventoryCartCalculator` (Pilot) — the **calculators**.
 - `CheckoutCreateOrder` (GA), `SplitShipmentService` — checkout-time extensions.
 
-`CartCalculate` supports these operations: **AddItemToCart, EditCartItem, DeleteCartItem, AddCoupon, DeleteCoupon, StartCheckout, PatchCheckout** (address, set delivery method).
+`CartCalculate` supports: **AddItemToCart, EditCartItem, DeleteCartItem, AddCoupon, DeleteCoupon, StartCheckout, PatchCheckout** (address, set delivery method).
 
 ## A Calculator — override `calculate(...)`
 
-Each calculator overrides `calculate(CartExtension.CartCalculateCalculatorRequest request)`. The request yields the cart and the buyer action.
+Each calculator overrides `calculate(CartExtension.CartCalculateCalculatorRequest request)`; the request yields the cart and the buyer action.
 
 ```apex
 public class CustomPriceCalculator extends CartExtension.PricingCartCalculator {
@@ -44,7 +44,7 @@ public virtual override void calculate(CartExtension.CartCalculateCalculatorRequ
 
 ## The Orchestrator — control which calculators run
 
-A custom orchestrator extends `CartExtension.CartCalculate` and is registered for `Commerce_Domain_Cart_Calculate`. When registered + available, the system invokes **your** orchestrator on every cart calculation. Inside `calculate`, you call the dispatch methods (`priceCart`, `promotionsCart`, `inventoryCart`, `shippingCart`, `taxCart`) — these **cannot be overridden**; they invoke your custom calculator if supplied, else the default.
+A custom orchestrator extends `CartExtension.CartCalculate` and is registered for `Commerce_Domain_Cart_Calculate`. Once registered and available, **your** orchestrator runs on every cart calculation. Inside `calculate`, call the dispatch methods (`priceCart`, `promotionsCart`, `inventoryCart`, `shippingCart`, `taxCart`) — these **cannot be overridden**; each invokes your custom calculator if supplied, else the default.
 
 ```apex
 public class CustomCartCalculate extends CartExtension.CartCalculate {
@@ -68,11 +68,11 @@ public class CustomCartCalculate extends CartExtension.CartCalculate {
 
 This mirrors the `CartCalculateSample.cls` default logic: a boolean gate per calculator (e.g. `runPricing` true only on item add/delete/update or checkout start). Your orchestrator can reorder or skip calculators.
 
-> If the **Cart Calculate API is off** and your store has customizations that change cart items via SObject/Apex DML/Delivery Group APIs, you must configure the **Apex Price** integration, or re-pricing won't occur at checkout.
+> If the **Cart Calculate API is off** and store customizations change cart items via SObject/Apex DML/Delivery Group APIs, configure the **Apex Price** integration, or re-pricing won't occur at checkout.
 
 ## Registering an extension (`RegisteredExternalService`)
 
-A calculator/extension is wired to a store by inserting a `RegisteredExternalService` row whose `ExternalServiceProviderId` is the Apex class Id (or the metadata equivalent), then linking it to the store from the store's Administration menu (e.g. **Tax Calculation → Integration**). Each integration type (price/promotions/inventory/shipping/tax) is linked per store.
+Wire a calculator/extension to a store by inserting a `RegisteredExternalService` row whose `ExternalServiceProviderId` is the Apex class Id (or the metadata equivalent), then linking it from the store's Administration menu (e.g. **Tax Calculation → Integration**). Each integration type (price/promotions/inventory/shipping/tax) is linked per store.
 
 ```apex
 // Illustrative registration insert (confirm field names for your version)
@@ -88,7 +88,7 @@ insert res;
 
 ## Endpoint Extensions — before/after Connect hooks
 
-Separate from calculations: customize the **Commerce endpoints** by extending `ConnectApi.BaseEndpointExtension`. Extension points include:
+Separate from calculations: customize the **Commerce endpoints** by extending `ConnectApi.BaseEndpointExtension`. Extension points:
 - `Commerce_Endpoint_Catalog_Products` / `Commerce_Endpoint_Catalog_Product`
 - `Commerce_Endpoint_Cart_Item` / `Commerce_Endpoint_Cart_ItemCollection` (v62.0+)
 - `Commerce_Endpoint_Search_Products`
@@ -113,8 +113,8 @@ Constraint: the endpoint-extension request parameter **doesn't support `StringLi
 
 ## Best Practices
 
-- **Bulk + one callout**: a calculator runs in the buyer's request path — aggregate all line items into a single external callout (Named Credential), never one per item.
-- **Resilient**: handle external timeout/failure (fallback price/availability, clear error); don't break the whole cart.
+- **Bulk + one callout**: a calculator runs in the buyer's request path — aggregate all line items into one external callout (Named Credential), never one per item.
+- **Resilient**: handle external timeout/failure (fallback price/availability, clear error) without breaking the whole cart.
 - **Don't override the dispatch methods** (`priceCart`, etc.) — override the *calculator's* `calculate()`.
 - **Register per store** and per integration type; verify with a SOQL query on `RegisteredExternalService` / store integration.
 

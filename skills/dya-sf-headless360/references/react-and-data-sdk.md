@@ -11,7 +11,7 @@ They are not competitors; they answer different questions.
 
 - **LWC** for native platform integration: automatic data binding, built-in security, and reusable
   components that compose inside Lightning Experience, Experience Builder sites and the mobile app.
-  It remains the optimal choice for components *within* Salesforce.
+  The optimal choice for components *within* Salesforce.
 - **React** for self-contained single-page applications or highly customised experiences that use
   Salesforce as host and data source.
 
@@ -22,12 +22,11 @@ They are not competitors; they answer different questions.
 | Performance | Optimised for the Salesforce UI | High for complex UIs, but depends on your API and data-retrieval design |
 | Reuse | Excellent across Lightning Experience and LWC projects | Within the React app. Embedding React components **in** Lightning Experience needs Micro-Frontend support, which is **Developer Preview** |
 
-That security row is the one to weigh honestly: choosing React moves a responsibility onto your team
-that LWC handles for you.
+Weigh the security row honestly: React moves onto your team a responsibility LWC handles for you.
 
 ## Constraints that decide feasibility
 
-Check these before designing anything. Each of them ends a project that assumed otherwise.
+Check these before designing anything; each ends a project that assumed otherwise.
 
 - **Hyperforce only.** Confirm in Setup › Company Information: an instance name with a three-letter
   prefix followed by digits (`abc123`) means Hyperforce. **Unavailable on Alibaba Cloud and on
@@ -42,7 +41,7 @@ Check these before designing anything. Each of them ends a project that assumed 
 - **Namespaces are supported**, and a managed package requires one. Cross-namespace, a bundle
   reference resolves as `ns__Name`, or `c__Name` where there is no namespace.
 
-So this *is* a path for ISV work. Two consequences worth knowing before choosing a flavour: IP
+So this *is* a path for ISV work. Two consequences for choosing a flavour: IP
 protection is managed-only — `getSourceZip()` returns null to a subscriber for a managed package and
 fully readable source for an unlocked one — and upgrades are delta-based, hashing each incoming
 `dist/` asset and skipping unchanged ones, replacing developer-owned artifacts while preserving
@@ -51,7 +50,7 @@ subscriber-owned state.
 ## Org setup
 
 **Internal apps** are served from the **Salesforce App Domain** at `.my.salesforce.app`, a separate
-top-level domain that enforces browser-native isolation. It is enabled automatically in most orgs;
+top-level domain enforcing browser-native isolation. It is enabled automatically in most orgs;
 otherwise Setup › *React Development with Salesforce Multi-Framework* › **Enable Domain**. It
 requires **Salesforce Edge Network** — Setup › My Domain › Routing and Policies. Enabling the domain
 needs **Customize Application**.
@@ -113,8 +112,8 @@ primitives are spartan-ng `hlm-*`, not Angular Material.
 it if you expected the files at the destination root. Both the project root and the bundle directory
 carry a `package.json`, and both need `npm install`.
 
-**Install dependencies inside the UI bundle directory, not at the project root.** This is the step
-that silently produces a broken app when skipped:
+**Install dependencies inside the UI bundle directory, not at the project root.** Skipping this
+silently produces a broken app:
 
 ```shell
 cd force-app/main/default/uiBundles/MyReactProject
@@ -122,7 +121,7 @@ npm install
 npm run sf-project-setup       # builds and opens the dev server at http://localhost:5173
 ```
 
-Building without a React template, add `@salesforce/vite-plugin-ui-bundle` (wires the Vite dev server
+Without a React template, add `@salesforce/vite-plugin-ui-bundle` (wires the Vite dev server
 to your org's data) and `@salesforce/ui-bundle` (Data SDK helpers).
 
 Beyond templates there are sample apps carrying real metadata, custom objects, permission sets and
@@ -140,7 +139,7 @@ const result = await dataSdk.graphql?.query<MyQueryType>({ query, variables });
 
 `createDataSDK(options?)` returns a `DataSDK` whose `graphql` and `fetch` members are **both
 optional**, because they are supported only in specific environments. **Use optional chaining
-(`graphql?.`, `fetch?.`) every time** — this is not defensive style, it is the documented contract.
+(`graphql?.`, `fetch?.`) every time** — not defensive style but the documented contract.
 Options cover surface detection, a `basePath` for API calls, and `on401` / `on403` callbacks.
 
 **Access data in this order of preference:**
@@ -158,7 +157,7 @@ authentication and CSRF validation; bypassing it means reimplementing both, inco
 ### Typed queries
 
 Queries follow the UI API shape (`uiapi` → `query` → object), the same structure as LWC's GraphQL
-wire adapter. Explore the schema before writing one — search `schema.graphql` for
+wire adapter. Before writing one, search `schema.graphql` for
 `type <ObjectName> implements Record` rather than guessing field names.
 
 ```shell
@@ -185,8 +184,8 @@ Most of the LWC toolbox is unavailable. **Not supported**: `@salesforce` scoped 
 | `createRecord`, `updateRecord`, `deleteRecord` | `dataSdk.graphql?.mutate(...)` |
 | The `@wire` decorator | `useEffect` plus `dataSdk.graphql?.query(...)`; `QueryResult.subscribe` for reactive updates |
 
-Note what the second row costs: **schema imports are gone**, so a renamed field no longer breaks the
-build — it breaks at runtime. That safety net is one of the things you trade away.
+The second row's cost: **schema imports are gone**, so a renamed field no longer breaks the build —
+it breaks at runtime.
 
 ## Anti-Patterns
 

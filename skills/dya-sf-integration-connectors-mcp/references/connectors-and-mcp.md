@@ -1,6 +1,6 @@
 # Connectors, Middleware & MCP — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-connectors-mcp` for the detail behind the "don't hand-code it" choices and the agentic surface. Data 360 internals → `dya-sf-data360`; MCP/HXL internals → `dya-sf-headless360`.
+Detail behind `dya-sf-integration-connectors-mcp`'s "don't hand-code it" choices and the agentic surface. Data 360 internals → `dya-sf-data360`; MCP/HXL internals → `dya-sf-headless360`.
 
 ## MuleSoft — Which One
 
@@ -19,7 +19,7 @@ Rule: a prebuilt connector + admin ownership → **MuleSoft for Flow**; genuine 
 - A bespoke transactional contract the standard APIs/connectors can't express.
 - Tight latency where a middleware hop is unacceptable.
 
-Past that, the cost of N point-to-point Apex callouts (coupling, retry, monitoring, secret sprawl) exceeds the cost of middleware. Move to MuleSoft.
+Past that, N point-to-point Apex callouts (coupling, retry, monitoring, secret sprawl) cost more than middleware. Move to MuleSoft.
 
 ## Heroku / AppLink
 
@@ -34,7 +34,7 @@ Past that, the cost of N point-to-point Apex callouts (coupling, retry, monitori
 | **Zero-copy federation** (Iceberg: Snowflake/Databricks/BigQuery/Redshift) | Analytics/grounding over external data without duplicating | Query-time dependency on the source; query cost |
 | **Ingestion** (Ingestion API / connectors) | Low-latency operational access to resident data | Storage + ingestion credits; copy to keep in sync |
 
-Default to **zero-copy** when the need is analytical/grounding and the data shouldn't be duplicated. See `dya-sf-data360` for credits and mechanics.
+Default to **zero-copy** for analytical/grounding needs where the data shouldn't be duplicated. Credits and mechanics: `dya-sf-data360`.
 
 ## MCP as an Integration Surface
 
@@ -44,7 +44,7 @@ Default to **zero-copy** when the need is analytical/grounding and the data shou
 - **Salesforce DX MCP Server** — developer/IDE tooling, *not* a production business surface.
 
 ### Building custom MCP tools
-A custom server can expose tools built from existing artefacts — reuse, don't rebuild:
+A custom server exposes tools built from existing artefacts — reuse, don't rebuild:
 - **Apex action** — an `@InvocableMethod` (the same one an agent uses).
 - **Flow** — an autolaunched flow.
 - **Apex REST** — a custom REST endpoint.
@@ -54,13 +54,13 @@ A custom server can expose tools built from existing artefacts — reuse, don't 
 - **Curate the smallest approved toolset.** A broad, vague tool list is a security and reliability liability (models mis-call).
 - **Descriptions are routing logic** — write tool labels/descriptions as carefully as Agentforce action descriptions.
 - **Security carries through** — every MCP call runs as the authenticated user with CRUD/FLS/sharing; auth is OAuth + PKCE via an ECA with `mcp_api`/`refresh_token` scopes (`dya-sf-integration-auth`). MCP calls count against daily API limits.
-- **When to choose MCP** — the *caller is an AI client* that should discover and compose capabilities at runtime, rather than a fixed integration you wrote in advance.
+- **When to choose MCP** — the *caller is an AI client* that should discover and compose capabilities at runtime, not a fixed integration written in advance.
 
 ## Connecting an External AI Client (e.g. Claude)
 
-1. Enable the relevant **hosted MCP server** (or stand up a **custom** one exposing only the tools you want).
+1. Enable the relevant **hosted MCP server** (or a **custom** one exposing only the tools you want).
 2. Configure an **External Client App** with OAuth + PKCE and the `mcp_api` scope; the user/token's permissions bound what the tools can do.
-3. Register the server in the client; it discovers tools (name + description + input schema), then calls them — running as that user.
+3. Register the server in the client; it discovers tools (name + description + input schema) and calls them as that user.
 
 ## Anti-Patterns
 

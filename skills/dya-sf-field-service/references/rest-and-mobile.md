@@ -4,7 +4,7 @@ Load from `dya-sf-field-service` for external/headless booking, appointment bund
 
 ## Salesforce Scheduler REST — Candidates & Slots
 
-For external customer self-service, use the **Salesforce Scheduler** REST resources (a distinct product surface sharing objects with FSL — confirm licensing). Three core operations:
+External customer self-service uses the **Salesforce Scheduler** REST resources (a distinct product sharing objects with FSL — confirm licensing):
 
 | Operation | Returns |
 |---|---|
@@ -43,13 +43,13 @@ lxscheduler.GetAppointmentCandidatesInput input =
 String response = lxscheduler.SchedulerResources.getAppointmentCandidates(input);
 ```
 
-Performance: `resourceLimitApptDistribution` (on `getAppointmentCandidates` and `available-territory-slots`) caps how many resources' calendars are evaluated — set it when a territory exceeds ~20 resources.
+Performance: `resourceLimitApptDistribution` (on `getAppointmentCandidates` and `available-territory-slots`) caps how many resource calendars are evaluated — set it when a territory exceeds ~20 resources.
 
-**Headless booking flow:** (1) call candidates/slots to show windows; (2) create `WorkOrder` + `ServiceAppointment` (Work Type, `EarliestStartTime`, `DueDate`) **only when the customer selects a slot**; (3) commit via the Scheduler save action or `FSL.ScheduleService.schedule`. Don't create throwaway SAs per quote.
+**Headless booking flow:** (1) call candidates/slots to show windows; (2) create `WorkOrder` + `ServiceAppointment` (Work Type, `EarliestStartTime`, `DueDate`) **only when the customer selects a slot**; (3) commit via the Scheduler save action or `FSL.ScheduleService.schedule`. No throwaway SAs per quote.
 
 ## Appointment Bundling REST APIs
 
-Six operations: **Automatic Bundling, Create Bundle, Remove Bundle Members, Unbundle, Unbundle Multiple, Update Bundle** (available in API v54.0+; not supported in Gov Cloud). Create Bundle takes service-appointment Ids + a manual bundling policy Id (`ApptBundlePolicy` marked for manual bundling) and returns the **bundle service appointment Id**. Bundling callouts need a Remote Site Setting/Named Credential and the Field Service bundling permission sets (Admin, Bundle for Dispatcher, Integration). Confirm the literal resource paths/HTTP methods against the six official sub-pages for your version.
+Six operations: **Automatic Bundling, Create Bundle, Remove Bundle Members, Unbundle, Unbundle Multiple, Update Bundle** (available in API v54.0+; not supported in Gov Cloud). Create Bundle takes service-appointment Ids + a manual bundling policy Id (`ApptBundlePolicy` marked for manual bundling) and returns the **bundle service appointment Id**. Bundling callouts need a Remote Site Setting/Named Credential and the Field Service bundling permission sets (Admin, Bundle for Dispatcher, Integration). Confirm resource paths/HTTP methods against the six official sub-pages for your version.
 
 Convenience wrapper (open-source `sfsAppointmentBundlingAPI`):
 
@@ -71,7 +71,7 @@ On the SA, `IsBundle` marks the bundle header and `IsBundleMember` marks members
 
 ## Field Service Mobile — Offline-First Extensibility
 
-Custom LWC run with target **`lightning__FieldServiceMobile`**; developers/users need the **Lightning SDK for Field Service Mobile** permission (create a permission set granting it). **LWC Offline** is opt-in.
+Custom LWC target **`lightning__FieldServiceMobile`**; developers/users need the **Lightning SDK for Field Service Mobile** permission (grant it via a permission set). **LWC Offline** is opt-in.
 
 ### What works offline vs. not
 
@@ -87,12 +87,12 @@ Custom LWC run with target **`lightning__FieldServiceMobile`**; developers/users
 
 Constraints & gotchas:
 - Keep **GraphQL queries small** — >32 KB or many fields hurts mobile; lint with `@salesforce/eslint-plugin-lwc-mobile`.
-- Apex error responses on mobile are returned as an **array** of error objects, not a single object — handle accordingly.
+- Apex error responses on mobile are an **array** of error objects, not a single object.
 - **Design offline-first:** client-side validation in the component; expect server rules (validation/triggers/flows) to apply at sync, and reconcile conflicts.
 
 ### Briefcase Builder (offline data priming)
 
-Define offline data sets by **object + filter criteria** to prime records (and metadata) to the device; Performance Priming and High-Volume Briefcase handle large schedules. **Files (ContentDocument/ContentVersion) and Custom Metadata Types are not primed automatically** — prime them with custom LWC/Apex-wire patterns.
+Offline data sets defined by **object + filter criteria** prime records (and metadata) to the device; Performance Priming and High-Volume Briefcase handle large schedules. **Files (ContentDocument/ContentVersion) and Custom Metadata Types are not primed automatically** — prime them with custom LWC/Apex-wire patterns.
 
 ### Actions, flows, deep links
 

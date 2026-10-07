@@ -1,6 +1,6 @@
 # Headless 360 MCP Servers — Reference (Winter '27 / API v68.0)
 
-Full detail referenced from SKILL.md §3, §6, §7. Load this when choosing, building, or securing an MCP integration with Salesforce.
+Detail for SKILL.md §3, §6, §7. Load when choosing, building, or securing an MCP integration with Salesforce.
 
 ## The Server Taxonomy — Don't Conflate These
 
@@ -12,17 +12,17 @@ Full detail referenced from SKILL.md §3, §6, §7. Load this when choosing, bui
 | **Data 360 MCP Server** | Dev Preview | Coding agents | Drive Data 360; fronts ~200 REST ops with 3 facade tools (`search`, `payload_examples`, …) |
 | **Metadata API Context MCP Server** | Beta | Coding agents | 5 granular tools for accurate metadata generation |
 
-Key distinction: **hosted = run the business; DX = build the business.** Authenticate the DX server via the Salesforce CLI; it is not a production business-user surface.
+**Hosted = run the business; DX = build the business.** The DX server authenticates via the Salesforce CLI and is not a production business-user surface.
 
 ## Connecting an External Client (e.g. Claude)
 
-Hosted MCP servers let agentic clients (Claude Desktop, Claude Code, ChatGPT, Cursor) act on records and run logic without logging into Lightning Experience. Flow:
+Hosted MCP servers let agentic clients (Claude Desktop, Claude Code, ChatGPT, Cursor) act on records and run logic without logging into Lightning Experience:
 
-1. In the org, enable/confirm the **hosted MCP server** you need (or stand up a **custom** one with the exact tools you want exposed).
-2. In the client, register the server URL and authenticate via OAuth — the user/token's permissions bound what the tools can do.
+1. In the org, enable/confirm the **hosted MCP server** you need (or stand up a **custom** one with the exact tools to expose).
+2. In the client, register the server URL and authenticate via OAuth — the user/token's permissions bound what the tools do.
 3. The client **discovers** the available tools (names + descriptions + input schemas), then **calls** them and renders results.
 
-Example use case: a hotel-management agent loads upcoming reservations, analyses nearby events, and drafts personalised campaigns — all from the chat client, via MCP tools, never opening the UI.
+Example: a hotel-management agent loads upcoming reservations, analyses nearby events, and drafts personalised campaigns — all from the chat client via MCP tools, never opening the UI.
 
 ## Building Custom MCP Tools
 
@@ -36,8 +36,8 @@ A custom hosted MCP server exposes tools built from existing platform artefacts 
 
 Design rules:
 - **One tool, one clear job.** Narrow, composable tools beat a mega-tool.
-- **Descriptions are routing logic.** Write the tool label/description (and input descriptions) as carefully as Agentforce action descriptions — the model decides whether to call a tool from its description.
-- **Least privilege.** Expose only the tools a given client needs. Curate per use case rather than dumping the whole org.
+- **Descriptions are routing logic.** Write the tool label/description (and input descriptions) as carefully as Agentforce action descriptions — the model decides from them whether to call a tool.
+- **Least privilege.** Expose only the tools a given client needs; curate per use case rather than dumping the whole org.
 - **Bulk/efficient implementations.** An MCP-exposed `@InvocableMethod` is still Apex — `with sharing`, `WITH USER_MODE`, bulkified (see `dya-sf-apex` / `dya-sf-agentforce`).
 
 ## Security
@@ -45,7 +45,7 @@ Design rules:
 - **Sharing/FLS/permissions carry through** — the calling token's user context governs every tool call.
 - **Token-scoped OAuth.** Use External Client Apps with JWT for server-to-server; scope to the minimum. The **Any API Auth** permission governs legacy SOAP `login()` (retiring Summer '27 — migrate to OAuth).
 - **Curate the toolset** — a broad, unrestricted toolset is both a security risk and a reliability problem (models mis-call from large, vague tool lists).
-- **The Einstein Trust Layer** still applies for agent paths: masking, grounding, zero-retention.
+- **The Einstein Trust Layer** applies on agent paths: masking, grounding, zero-retention.
 
 ## Anti-Patterns
 

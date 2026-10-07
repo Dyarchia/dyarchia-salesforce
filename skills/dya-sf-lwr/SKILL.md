@@ -7,25 +7,25 @@ description: Salesforce Lightning Web Runtime (LWR) Winter '27 (API v68.0) — b
 
 LWR is a **runtime**, not a kind of site: the engine that runs Lightning Web Components **without
 the Aura framework underneath**. `dya-sf-lwc` teaches the component; this skill teaches the runtime it
-lands on, and writing runtime-aware components is what avoids the "works in LEX, breaks on the site"
-bug. For Experience sites on LWR use `dya-sf-lwr-sites`; for embedding LWCs in non-Salesforce apps,
+lands on — runtime-aware components avoid the "works in LEX, breaks on the site" bug. For Experience
+sites on LWR use `dya-sf-lwr-sites`; for embedding LWCs in non-Salesforce apps,
 `dya-sf-lightning-out`. Follow every rule below.
 
 References:
 
-- `references/shared/platform-deltas.md` — the release-coupled facts, including the security
-  defaults an LWR-hosted controller inherits.
+- `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults an
+  LWR-hosted controller inherits.
 - `references/shared/metadata-and-api-versions.md` — what the `apiVersion` on a bundle decides.
-- `references/runtime-differences.md` — the full Lightning Experience (Aura runtime) versus LWR
-  comparison, the navigation APIs and PageReference shape, and a port-an-LWC-to-LWR checklist.
+- `references/runtime-differences.md` — full Lightning Experience (Aura runtime) versus LWR
+  comparison, navigation APIs and PageReference shape, and a port-an-LWC-to-LWR checklist.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-Save bundles at `<apiVersion>68.0</apiVersion>`. Winter '27 adds `lwc:external`, which uses a
-third-party custom element directly instead of through an iframe — a bigger deal on LWR, where
-third-party widgets most often need embedding. See `dya-sf-lwc`.
+Save bundles at `<apiVersion>68.0</apiVersion>`. Winter '27 adds `lwc:external`, using a third-party
+custom element directly instead of through an iframe — bigger on LWR, where third-party widgets most
+often need embedding. See `dya-sf-lwc`.
 
 - **LWR is GA and runs in several places** — Experience Cloud LWR sites, authenticated and public;
   Lightning Out 2.0; standalone LWR on Node/Heroku.
@@ -38,24 +38,24 @@ third-party widgets most often need embedding. See `dya-sf-lwc`.
   `WITH USER_MODE` — and an LWR site's guest user is often the one running it (`dya-sf-permissions`).
 - **Salesforce Multi-Framework (UI Bundles) now covers React *and* Angular, and packages as 2GP** —
   managed or unlocked, namespace supported, distributable on AppExchange. Hyperforce only. Confirm
-  the availability status for the target org before planning production on it; LWC stays the
-  lower-risk choice for a UI that only ever lives in one org. See §8.
+  availability for the target org before planning production on it; LWC stays the lower-risk choice
+  for a UI that only ever lives in one org. See §8.
 
 ---
 
 ## 1. Know Your Target Runtime Before You Write
 
 The same `.js`/`.html` LWC can target Lightning Experience (Aura runtime), an LWR site, or Lightning
-Out, and module availability, navigation and security differ across the three. **Decide the target
-first.** A component is portable only if it avoids runtime-specific APIs or guards them: one that
-must run in both LEX and LWR is restricted to the **intersection** of supported APIs.
+Out; module availability, navigation and security differ across the three. **Decide the target
+first.** A component is portable only if it avoids or guards runtime-specific APIs: one running in
+both LEX and LWR is restricted to the **intersection** of supported APIs.
 
 ---
 
 ## 2. Module & API Availability
 
-With no Aura framework underneath, part of what "just works" in Lightning Experience is absent or
-different on LWR:
+With no Aura underneath, some of what "just works" in Lightning Experience is absent or different on
+LWR:
 
 - Many `lightning/*` modules work, but **not all** — verify each against the LWR reference.
 - `@salesforce/*` scoped modules are largely available; confirm per module.
@@ -84,10 +84,10 @@ export default class GoExternal extends NavigationMixin(LightningElement) {
 }
 ```
 
-- `NavigationMixin` is the **cross-compatible** choice, working in LEX and LWR. LWR also exposes
-  `navigate()` / `generateUrl()` from the navigation module with the same capability.
-- `this[NavigationMixin.GenerateUrl](pageRef)` returns a `Promise<string>`. Use it to build a real
-  `href` wherever a link is more appropriate than programmatic navigation.
+- `NavigationMixin` is the **cross-compatible** choice (LEX and LWR). LWR also exposes `navigate()` /
+  `generateUrl()` from the navigation module with the same capability.
+- `this[NavigationMixin.GenerateUrl](pageRef)` returns a `Promise<string>`; use it to build a real
+  `href` wherever a link suits better than programmatic navigation.
 - Read the current location with the `CurrentPageReference` wire adapter; the LWR router
   (`lwr-router-container`) dispatches navigation as page references.
 - **Verify every `PageReference` type against the LWR client-side-routing reference.** A type that
@@ -101,7 +101,7 @@ export default class GoExternal extends NavigationMixin(LightningElement) {
 ## 4. Security — Lightning Web Security and CSP
 
 - An LWR site runs its **own LWS instance**, unaffected by the org's global LWS setting. Test in the
-  actual site, not in Lightning Experience.
+  site, not in Lightning Experience.
 - LWS supports the cross-namespace LWC communication Locker blocked.
 - Third-party JS, inline styles and external endpoints face a strict **Content Security Policy**.
   Register external endpoints as **CSP Trusted Sites** and load third-party scripts as **static
@@ -115,10 +115,9 @@ LWR ships **fewer** base components and templates than the Aura framework.
 
 - **`lightning-file-upload` is not supported on LWR sites.** The platform separately allows *file
   uploads up to 10 GB* to an Aura or LWR site, but that is file capacity, not this base component.
-  Handle uploads with a supported mechanism, and note that the guest user cannot use
-  authenticated-only workarounds.
+  Use a supported upload mechanism; the guest user cannot use authenticated-only workarounds.
 - Confirm any base component against the "Standard Components for LWR Templates" list before using
-  it on an LWR target. Otherwise build from supported primitives or a custom component.
+  it on an LWR target; otherwise build from supported primitives or a custom component.
 
 ---
 
@@ -126,9 +125,9 @@ LWR ships **fewer** base components and templates than the Aura framework.
 
 - The guest user is **read-only at most**, **cannot own records**, and sees only what the guest
   profile and sharing explicitly grant.
-- Never assume `@AuraEnabled` data is present — results may be empty or access-denied. Render the
-  empty and denied paths as first-class states.
-- Keep secrets and privileged operations out of guest-reachable components entirely.
+- Never assume `@AuraEnabled` data is present — results may be empty or access-denied. Render both
+  paths as first-class states.
+- Keep secrets and privileged operations out of guest-reachable components.
 
 Site-level guest hardening lives in `dya-sf-lwr-sites`; this is the component-side discipline.
 
@@ -138,34 +137,32 @@ Site-level guest hardening lives in `dya-sf-lwr-sites`; this is the component-si
 
 - Mind bundle size, lazy-load heavy work, and keep large libraries out of a guest-facing page.
 - Let LDS and GraphQL own data and caching rather than hand-rolling fetch-and-store.
-- Public LWR pages are measured on real-world load and Core Web Vitals. Treat performance as a
-  requirement.
+- Public LWR pages are measured on real-world load and Core Web Vitals; performance is a requirement.
 
 ---
 
 ## 8. UI Bundles — a Real Distribution Path, With Real Constraints
 
-Salesforce Multi-Framework runs external frameworks as **UI Bundles** on LWR, and it is no longer
-React-only: `sf template generate project` ships `reactinternalapp`, `reactexternalapp`,
-`angularinternalapp` and `angularexternalapp`, the internal templates for already-authenticated
-employees and the external ones carrying a full login, registration and profile flow.
+Salesforce Multi-Framework runs external frameworks as **UI Bundles** on LWR, no longer React-only:
+`sf template generate project` ships `reactinternalapp`, `reactexternalapp`, `angularinternalapp` and
+`angularexternalapp` — internal templates for already-authenticated employees, external ones with a
+full login, registration and profile flow.
 
 A bundle packages as **2GP** in three flavours — managed (registered namespace, source hidden, the
-AppExchange path), unlocked namespaced, and unlocked org-dependent — so packaging and namespaces are
-both supported, and IP protection is managed-only: `getSourceZip()` returns null to a subscriber for
-a managed package and readable source for an unlocked one. Installed bundles render from
-`*.salesforce.app`, isolated from core UI, which is why two same-named bundles from different
-packages coexist.
+AppExchange path), unlocked namespaced, and unlocked org-dependent. IP protection is managed-only:
+`getSourceZip()` returns null to a subscriber for a managed package and readable source for an
+unlocked one. Installed bundles render from `*.salesforce.app`, isolated from core UI, so two
+same-named bundles from different packages coexist.
 
-Feasibility is decided elsewhere: **Hyperforce only**, English as the org's default language, and the
-Dev Hub toggle *Enable Unlocked Packages and Second-Generation Managed Packages* — until that is on,
-`sf package create` returns `NOT_FOUND`. Build `dist/` before packaging or deploying or the app
+Feasibility requires **Hyperforce only**, English as the org's default language, and the Dev Hub
+toggle *Enable Unlocked Packages and Second-Generation Managed Packages* — until it is on,
+`sf package create` returns `NOT_FOUND`. Build `dist/` before packaging or deploying, or the app
 installs and renders blank. Setup › Security › **Multi-Framework Domains** disables a provisioned
 domain as a kill switch: immediate 404, metadata untouched, reversible.
 
-Salesforce publishes no GA label for this, so **confirm the availability status for the target org
-before committing a production plan** rather than inferring it from the packaging support. LWC
-remains the lower-risk choice for a UI that will only ever live in one org.
+Salesforce publishes no GA label for this, so **confirm availability for the target org before
+committing a production plan** rather than inferring it from packaging support. LWC remains the
+lower-risk choice for a UI that will only ever live in one org.
 
 ---
 
@@ -204,7 +201,7 @@ remains the lower-risk choice for a UI that will only ever live in one org.
 
 ## Summary — The Five Commandments
 
-1. **Runtime first** — decide LEX (Aura) vs LWR vs Lightning Out before you write; they are not
+1. **Runtime first** — decide LEX (Aura) vs LWR vs Lightning Out before writing; they are not
    interchangeable.
 2. **No Aura underneath** — verify module and base-component availability against LWR; do not
    assume LEX services exist.

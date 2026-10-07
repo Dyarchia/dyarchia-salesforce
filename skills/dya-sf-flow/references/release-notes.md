@@ -1,6 +1,6 @@
 # Winter '27 — What the Release Adds to Flow
 
-Consultative. The facts that **change what you may build or claim** live in `SKILL.md`'s Platform
+Consultative. Facts that **change what you may build or claim** live in `SKILL.md`'s Platform
 Context; this is the rest.
 
 | Change | Status | What it gives you |
@@ -15,14 +15,13 @@ The Flow Builder UI refresh ships GA with no opt-out.
 
 ## Earlier releases, now simply how the platform works
 
-Still worth knowing, because documentation and forum answers predating them read as if they were
-new:
+Worth knowing, because older documentation and forum answers present them as new:
 
 - Custom batch size on scheduled flows.
 - Flow Orchestration as a Standard feature.
 - The Date operator family in Decision elements: `Is Today`, `Is This Month`,
   `Is Anniversary of Today`, `Last Number of Days`. **Date type only — they do not accept
-  DateTime**, which is the one that catches people.
+  DateTime**, the usual trap.
 - Persistent Email Template references that survive deployment.
 - Global Flow Resources for reusable value mappings.
 - Collapsible fault paths and the Element Error Rate column.

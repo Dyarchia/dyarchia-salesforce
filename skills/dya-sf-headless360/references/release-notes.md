@@ -1,21 +1,21 @@
 # Winter '27 — What the Release Adds to Headless 360
 
-Consultative. The facts that **gate what you can build or ship** live in `SKILL.md`'s Platform
-Context — maturity labels, edition and region availability, and the security carry-through. This
-file is the rest of the surface.
+Consultative. The facts that **gate what you can build or ship** — maturity labels, edition and
+region availability, the security carry-through — live in `SKILL.md`'s Platform Context. This file
+is the rest.
 
 | Change | Status | What it gives you |
 |---|---|---|
-| Salesforce plugin for Claude Code | GA | Detects a DX project and supplies org context through hosted MCP servers; installed from the Claude Plugin Marketplace. The clearest example of the whole theme — a coding agent with live org grounding. See `dya-sf-cli` |
+| Salesforce plugin for Claude Code | GA | Detects a DX project and supplies org context through hosted MCP servers; installed from the Claude Plugin Marketplace. The clearest example of the theme — a coding agent with live org grounding. See `dya-sf-cli` |
 | DevOps Center MCP | GA | The same programmatic access inside a CI/CD pipeline: describe a deployment and let an agent execute it |
-| MCP interoperability for agents | GA | The direction reversed — an Agentforce agent calling *out* to external MCP servers. See `dya-sf-integration-connectors-mcp` |
-| Apex Symbol API | **Beta** | Compiler-grade Apex type metadata over the Tooling API, so an IDE or AI tool can reason about Apex accurately instead of guessing from text |
+| MCP interoperability for agents | GA | Reversed direction — an Agentforce agent calling *out* to external MCP servers. See `dya-sf-integration-connectors-mcp` |
+| Apex Symbol API | **Beta** | Compiler-grade Apex type metadata over the Tooling API, so an IDE or AI tool reasons about Apex accurately instead of guessing from text |
 
 ## Scale of the addressable surface
 
 **60+ MCP tools, 30+ preconfigured coding skills, 4,000+ APIs and 220+ CLI commands** are reachable
-by an authorised caller. The numbers move every release; treat them as an order of magnitude rather
-than a specification.
+by an authorised caller. The numbers move every release; treat them as an order of magnitude, not a
+specification.
 
 ## Hosted MCP servers
 
@@ -32,11 +32,9 @@ Material describing a "2.0" is a previous generation. The lineage **Einstein for
 Agentforce for Developers → Agentforce Vibes** survives in documentation URLs and in the extension
 id `salesforcedx-einstein-gpt`, which is why searching for the current name misses older answers.
 
-Its availability constraints are in `SKILL.md` because they decide whether a project can use it at
-all.
+Its availability constraints are in `SKILL.md` because they decide whether a project can use it.
 
 ## The Experience Layer
 
 **HXL / AXL** — define an interaction once and render it natively across Slack, Teams, Voice, mobile
-and third-party assistants, built on Lightning Types with native React support. Covered properly in
-§5.
+and third-party assistants, built on Lightning Types with native React support. Covered in §5.

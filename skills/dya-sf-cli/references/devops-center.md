@@ -1,11 +1,10 @@
 # DevOps Center — `sf devops`
 
-A top-level topic driving DevOps Center from the command line: projects, pipelines, stages, work
-items, reviews and promotions. It is the scriptable face of what DevOps Center otherwise does through
-Setup.
+A top-level topic that scripts what DevOps Center otherwise does through Setup: projects,
+pipelines, stages, work items, reviews and promotions.
 
-Two of its behaviours will mislead an automation that treats it like the rest of the CLI, and both
-are covered at the end. Read those before writing a promotion script.
+Two behaviours mislead automation that treats it like the rest of the CLI; both are covered at the
+end. Read them before writing a promotion script.
 
 ## Command surface
 
@@ -41,11 +40,9 @@ request.
 
 ## Gotcha 1 — the async id changes name between commands
 
-`sf devops promote` returns the async identifier as **`.result.requestId`**. `sf devops request
-status` echoes the same value back as **`.result.requestToken`**. A script that reads one field name
-throughout works until it does not.
-
-Capture it defensively:
+`sf devops promote` returns the async identifier as **`.result.requestId`**; `sf devops request
+status` echoes it back as **`.result.requestToken`**. Do not read one field name throughout; capture
+it defensively:
 
 ```bash
 token=$(sf devops promote --json | jq -r '
@@ -57,21 +54,21 @@ token=$(sf devops promote --json | jq -r '
 
 ## Gotcha 2 — status reports the request, not the outcome
 
-This is the one that turns a red deploy into a green pipeline.
+This one turns a red deploy into a green pipeline.
 
-`sf devops request status` tells you how the *request* is progressing. Statuses are uppercase and
-prefixed by the operation — `PROMOTE_IN_PROGRESS`, `PROMOTE_SUCCESS`, `DEPLOY_FAILED` — so match on
-the **suffix**, never on the whole string, or a new operation prefix silently stops matching.
+`sf devops request status` reports how the *request* is progressing. Statuses are uppercase and
+prefixed by the operation — `PROMOTE_IN_PROGRESS`, `PROMOTE_SUCCESS`, `DEPLOY_FAILED` — so match the
+**suffix**, never the whole string, or a new operation prefix silently stops matching.
 
 **The outcome oracle is `.result.errorDetails`,** not the status:
 
 - `null` — the operation succeeded.
-- Anything else — it failed, and the value is an **escaped JSON string** carrying `errorType` and
-  `errorMessage`, so it needs a second parse.
+- Anything else — it failed; the value is an **escaped JSON string** carrying `errorType` and
+  `errorMessage`, needing a second parse.
 
-**A `*_SUCCESS` status with a non-null `errorDetails` means the operation FAILED.** The request was
-processed successfully; what it was asking for was not. Gate on `errorDetails` and use the status
-only to decide whether to keep polling.
+**A `*_SUCCESS` status with a non-null `errorDetails` means the operation FAILED**: the request
+succeeded, the operation it asked for did not. Gate on `errorDetails`; use the status only to decide
+whether to keep polling.
 
 ```bash
 sf devops request status -i "$token" -o "$alias" --json > out.json

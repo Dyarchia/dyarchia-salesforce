@@ -1,23 +1,23 @@
 ---
 name: dya-sf-integration-inbound-apis
-description: Salesforce standard inbound APIs (Winter '27 / API v68.0) — how external systems read/write Salesforce data. REST API and the composite family, SOAP (enterprise vs partner), Bulk API 2.0, GraphQL, and the Connect/UI/Metadata/Tooling APIs; choosing among them, batching, and limits. Applies to external clients of the REST, composite, SOAP, Bulk 2.0, GraphQL, Metadata or Tooling APIs, and scripts that load or read Salesforce data through them. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-inbound-apis`).
+description: Salesforce standard inbound APIs (Winter '27 / API v68.0) — how external systems read and write Salesforce data. REST API and the composite family, SOAP (enterprise vs partner), Bulk API 2.0, GraphQL, and the Connect/UI/Metadata/Tooling APIs; choosing among them, batching, and limits. Applies to external clients of the REST, composite, SOAP, Bulk 2.0, GraphQL, Metadata or Tooling APIs, and scripts that load or read Salesforce data through them. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-inbound-apis`).
 ---
 
 # Salesforce Inbound Standard APIs
 
-These are the standard APIs external systems call to read and write Salesforce data. Custom
-endpoints you author are `dya-sf-integration-inbound-apex`; authentication is `dya-sf-integration-auth`.
-Follow every rule below.
+The standard APIs external systems call to read and write Salesforce data. Custom endpoints you
+author are `dya-sf-integration-inbound-apex`; authentication is `dya-sf-integration-auth`. Follow
+every rule below.
 
 References:
 
-- `references/shared/metadata-and-api-versions.md` — the single source of truth for API version numbers and retirement dates.
+- `references/shared/metadata-and-api-versions.md` — the single source of truth for API versions and retirement dates.
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
 - `references/shared/governor-limits.md` — the transaction budget a composite call spends cumulatively.
 - `references/rest-and-composite.md` — REST sObject operations and the full composite family (Composite, Composite Graph, Batch, sObject Collections, sObject Tree) with batching limits.
 - `references/bulk-and-graphql.md` — the Bulk API 2.0 ingest and query job lifecycle, and the GraphQL API.
 
-Who the calling integration user may be, and what their permissions let the call see, belongs to
+Who the integration user may be, and what its permissions let the call see, belongs to
 `dya-sf-permissions`.
 
 ---
@@ -26,7 +26,7 @@ Who the calling integration user may be, and what their permissions let the call
 
 | Change | Status | What it means |
 |---|---|---|
-| **`/latest` version alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Convenient for exploration; **never pin production to it** — the contract then changes three times a year with no deploy on your side |
+| **`/latest` version alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Fine for exploration; **never pin production to it** — the contract would change three times a year with no deploy on your side |
 | **Bulk API 2.0 coverage extended** | GA | More standard objects, including additional marketing objects |
 | **OAuth username-password flow retired** | Enforced **20 February 2027** | Any caller posting `grant_type=password` stops receiving a token. See `dya-sf-integration-auth` |
 | **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Callers must address the org's My Domain URL, not an instance URL. Test it now: Setup › My Domain › Redirections › *Block API traffic that uses an incorrect instanced URL* |
@@ -34,12 +34,12 @@ Who the calling integration user may be, and what their permissions let the call
 Standing facts:
 
 - **Target 68.0 for new integrations; 41.0 is the hard floor.** The version is the `vXX.X` in
-  `/services/data/vXX.X/`. Dates and status live in `references/shared/metadata-and-api-versions.md`
-  and nowhere else — do not restate them.
+  `/services/data/vXX.X/`. Dates and status live only in
+  `references/shared/metadata-and-api-versions.md` — do not restate them.
 - **SOAP `login()` retires 1 June 2027** for API 31.0–64.0, a year before the versions themselves.
   SOAP accepts a JWT OAuth access token in the session header, so nothing justifies keeping it.
 - **GraphQL mutations are GA** and can reference any field an earlier operation returned, not just
-  the record id, so a parent and child are created and linked in one round trip.
+  the record id, creating and linking a parent and child in one round trip.
 - **Connect REST API** draws on the per-org 24-hour Platform API pool, except Chatter-touching
   requests. HTTPS is mandatory.
 
@@ -78,7 +78,7 @@ GET    /services/data/v68.0/query/?q=SELECT+Id,Name+FROM+Account+WHERE+...
 
 - **Upsert by external id** for idempotency: `PATCH /sobjects/Account/External_Id__c/{value}`.
 - Page query results via `nextRecordsUrl`.
-- Every call spends daily API allocation. Collapse chatty access with the composite family below or
+- Every call spends daily API allocation. Collapse chatty access with the composite family or
   Bulk (§4).
 
 ### The composite family — choose by shape
@@ -98,10 +98,10 @@ call. Full patterns in `references/rest-and-composite.md`.
 
 ## 3. SOAP API
 
-The XML/SOAP data API, for strongly-typed or legacy consumers.
+The XML data API, for strongly-typed or legacy consumers.
 
 - **Enterprise WSDL** — typed to *your* org's schema; regenerate after every metadata change. For a
-  single-org, tightly-integrated client.
+  single-org, tightly integrated client.
 - **Partner WSDL** — generic and loosely typed, for multi-org tools and ISVs.
 - **Authenticate with OAuth.** SOAP accepts a JWT access token in the session header, and
   **`login()` retires Summer '27** — never build a new integration on it.
@@ -116,7 +116,7 @@ poll status → get results**, processed in 10k-record chunks on a separate asyn
 
 - Use it past **10,000 records**: initial loads, migrations, nightly extracts.
 - ~**15,000 batches / 24 h** shared with Bulk 1.0; **150 MB** per uploaded file.
-- Bulk query handles large extracts. Prefer 2.0 over 1.0 for all new work.
+- Bulk query handles large extracts. Use 2.0 over 1.0 for all new work.
 
 Full lifecycle in `references/bulk-and-graphql.md`.
 
@@ -124,14 +124,14 @@ Full lifecycle in `references/bulk-and-graphql.md`.
 
 ## 5. GraphQL API
 
-Graph-shaped queries and mutations. It runs over UI API, so it respects FLS and layout rules and
-covers UI-API objects.
+Graph-shaped queries and mutations over UI API, so it respects FLS and layout rules and covers
+UI-API objects.
 
 - **Queries GA; mutations GA** — create, update and delete on UI-API-supported objects.
-- A mutation can reference any field from an earlier operation in the same request (`@{ref...}`), so
-  a parent and child are created and linked in one round trip.
+- A mutation can reference any field from an earlier operation in the same request (`@{ref...}`).
 - Use it when the client wants exactly the fields it needs — mobile, bandwidth-sensitive — or reads
-  several objects at once. Child-relationship creation in a single mutation is not supported.
+  several objects at once.
+- Child-relationship creation in a single mutation is not supported.
 
 ---
 
@@ -139,7 +139,7 @@ covers UI-API objects.
 
 - **Connect REST API** — Chatter feeds, Experience Cloud and many product APIs (Commerce, Revenue).
   On the per-org 24 h pool, except Chatter.
-- **UI API** — returns records, metadata and layout together, and powers Lightning Data Service. For
+- **UI API** — returns records, metadata and layout together; powers Lightning Data Service. For
   custom UIs that must honour layouts and FLS without re-deriving metadata.
 - **Metadata API** — deploys and retrieves metadata as zipped XML; the basis for SFDX and DevOps
   Center. Coarse-grained, for releases.
@@ -173,7 +173,7 @@ covers UI-API objects.
 |---|---|
 | Looping single REST calls for many records | Composite / sObject Collections / Bulk 2.0 |
 | REST for a 50k-record load | Bulk API 2.0 |
-| Bulk API for 5 records | REST (Bulk overhead isn't worth it) |
+| Bulk API for 5 records | REST — Bulk overhead isn't worth it |
 | SOAP `login()` for auth | OAuth (JWT bearer) + External Client App |
 | Blind insert on re-sent data | Upsert by external id |
 | New build on Bulk API 1.0 | Bulk API 2.0 |

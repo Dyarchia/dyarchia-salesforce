@@ -1,6 +1,6 @@
 # REST & the Composite Family — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-inbound-apis` when building multi-operation REST integrations. Authentication is covered in `dya-sf-integration-auth`; all examples assume a valid OAuth bearer token and a current API version.
+Load from `dya-sf-integration-inbound-apis` when building multi-operation REST integrations. Authentication is `dya-sf-integration-auth`; examples assume a valid OAuth bearer token and a current API version.
 
 ## sObject Basics
 
@@ -22,7 +22,7 @@ GET /services/data/v68.0/query/?q=SELECT+Id,Name+FROM+Account+ORDER+BY+CreatedDa
 
 ## Composite — Dependent Operations, One Round Trip
 
-Up to **25 subrequests**; later subrequests can reference earlier results via `@{refId.field}`; optional `allOrNone` for atomic rollback. Counts as one API call but governor limits accumulate across subrequests.
+Up to **25 subrequests**; later ones reference earlier results via `@{refId.field}`; optional `allOrNone` for atomic rollback. Counts as one API call, but governor limits accumulate across subrequests.
 
 ```
 POST /services/data/v68.0/composite
@@ -40,7 +40,7 @@ POST /services/data/v68.0/composite
 
 ## Composite Graph — Large Dependent Graphs
 
-Up to **500 nodes**; each graph executes as its **own transaction** (one graph failing doesn't roll back another). Use for big, interdependent record sets that exceed Composite's 25-subrequest cap.
+Up to **500 nodes**; each graph is its **own transaction** (one failing doesn't roll back another). For interdependent record sets beyond Composite's 25-subrequest cap.
 
 ```
 POST /services/data/v68.0/composite/graph
@@ -49,11 +49,11 @@ POST /services/data/v68.0/composite/graph
 
 ## Composite Batch — Independent Operations
 
-Up to **25 independent subrequests**, no reference passing, no shared rollback. Use to collapse unrelated calls into one round trip.
+Up to **25 independent subrequests**, no reference passing, no shared rollback. Collapses unrelated calls into one round trip.
 
 ## sObject Collections — Same-Shape Bulk CRUD
 
-Up to **200 records** per call (create/update/delete/upsert), optional `allOrNone`. The sweet spot between single-record REST and Bulk API for moderate volumes in a synchronous context.
+Up to **200 records** per call (create/update/delete/upsert), optional `allOrNone`. Between single-record REST and Bulk API: moderate volumes, synchronous.
 
 ```
 POST /services/data/v68.0/composite/sobjects
@@ -66,7 +66,7 @@ POST /services/data/v68.0/composite/sobjects
 
 ## sObject Tree — Nested Insert
 
-Up to **200 records** across nested parent-child structures up to **5 levels**, insert only, all-or-nothing. Use to create a parent and its children in one transactional call.
+Up to **200 records** across nested parent-child structures up to **5 levels**; insert only, all-or-nothing. Creates a parent and its children in one transactional call.
 
 ## Choosing Within the Family
 
@@ -82,8 +82,8 @@ Up to **200 records** across nested parent-child structures up to **5 levels**, 
 
 - Governor limits (SOQL/DML/CPU) are **cumulative** across a composite call — a 25-subrequest Composite can still hit per-transaction limits.
 - Composite Graph isolates transactions per graph; use it when partial success across graphs is acceptable.
-- Every subrequest counts toward CPU/DML; keep payloads lean and project only needed fields on reads.
-- Prefer one composite/collection call over N single calls to conserve the daily API allocation.
+- Keep payloads lean and select only needed fields on reads.
+- One composite/collection call over N single calls conserves the daily API allocation.
 
 ## Anti-Patterns
 

@@ -1,7 +1,7 @@
 # LWR vs Lightning Experience — Runtime Differences & Porting Checklist
 
-Reference for SKILL.md §1–§5. Load when porting an LWC from Lightning Experience to an LWR
-target (Experience site or Lightning Out) or writing one for both.
+Reference for SKILL.md §1–§5. Load when porting an LWC from Lightning Experience to an LWR target
+(Experience site or Lightning Out) or writing one for both.
 
 ## The two runtimes at a glance
 
@@ -20,9 +20,9 @@ Performance          Heavier; app shell already loaded      Lean; you own bundle
 
 ## Navigation
 
-In Lightning Experience, `lightning/navigation` resolves a wide range of `PageReference`
-types through the Aura-backed navigation service. On LWR, `lightning/navigation` is a
-**client-side router** with a **narrower** set of supported `PageReference` types.
+In Lightning Experience, `lightning/navigation` resolves a wide range of `PageReference` types
+through the Aura-backed navigation service. On LWR it is a **client-side router** with a
+**narrower** set of supported types.
 
 A `PageReference` is `{ type, attributes, state }` — `type` is required; set `attributes` and
 `state` to `null` when empty. The router (`lwr-router-container`) dispatches navigation as page
@@ -54,8 +54,8 @@ export default class Nav extends NavigationMixin(LightningElement) {
   `navigate()` / `generateUrl()` from the navigation module with equivalent capability.
 - **Verify each `PageReference` type against the LWR client-side-routing reference** — a type
   that resolves in LEX may do nothing on an LWR site.
-- For simple intra-site links, an anchor whose `href` is derived from `<base href>` at runtime
-  is often simpler than programmatic navigation. Never hardcode the base path:
+- For simple intra-site links, an anchor whose `href` derives from `<base href>` at runtime is often
+  simpler than programmatic navigation. Never hardcode the base path:
 
 ```javascript
 get homeHref() {
@@ -68,8 +68,7 @@ get homeHref() {
 
 - Most `lightning/*` and `@salesforce/*` modules are available, but treat availability as
   **opt-in per module**: confirm against the LWR reference, do not assume parity with LEX.
-- Aura-runtime services that LEX provides implicitly are absent — there is no Aura to fall
-  back on.
+- Aura-runtime services that LEX provides implicitly are absent — no Aura to fall back on.
 - When a module is missing, prefer a standard web-platform approach over an Aura-era API.
 
 ## Security & CSP

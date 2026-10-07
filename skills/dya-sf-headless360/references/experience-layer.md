@@ -1,10 +1,10 @@
 # Headless 360 Experience Layer & Lightning Types — Reference (Winter '27 / API v68.0)
 
-Full detail referenced from SKILL.md §5. Load this when an interaction must render across more than one channel, or when deciding between the Experience Layer and plain LWC/Aura.
+Detail for SKILL.md §5. Load when an interaction must render across more than one channel, or when deciding between the Experience Layer and plain LWC/Aura.
 
 ## The Core Idea — Define Once, Render Everywhere
 
-The **Headless Experience Layer (HXL)** — in its agent-facing form, the **Agentforce Experience Layer (AXL)** — is a runtime that **decouples what a capability does from how it appears**. You define a UI fragment / structured interaction once; the layer renders it natively per surface:
+The **Headless Experience Layer (HXL)** — in its agent-facing form, the **Agentforce Experience Layer (AXL)** — is a runtime that **decouples what a capability does from how it appears**. Define a UI fragment / structured interaction once; the layer renders it natively per surface:
 
 - Slack block / Slack thread component
 - Microsoft Teams card
@@ -13,19 +13,19 @@ The **Headless Experience Layer (HXL)** — in its agent-facing form, the **Agen
 - A response inside ChatGPT, Claude, or Gemini
 - Web
 
-Business logic, data, and permissions stay **separate** from the rendering. You define **intent once**; each surface gets a native experience without per-channel rebuilding. Concrete examples: an approval card, a decision tile, a flight-rebooking flow — authored once, surfaced everywhere.
+Business logic, data, and permissions stay **separate** from the rendering. Define **intent once**; each surface gets a native experience without per-channel rebuilding — e.g. an approval card, a decision tile, a flight-rebooking flow.
 
 ## Built on Lightning Types
 
-The Experience Layer is built on **Lightning Types** (Custom Lightning Types, "CLT") — the metadata that describes a rich, structured response and how it maps to a rendering. This is the evolution of earlier Lightning Types work that already powered surfaces like Employee and Service agents.
+The Experience Layer is built on **Lightning Types** (Custom Lightning Types, "CLT") — the metadata describing a rich, structured response and how it maps to a rendering. It evolves earlier Lightning Types work that already powered surfaces like Employee and Service agents.
 
 - Define a **custom Lightning Type** to describe the shape of an interaction (fields, structure, the rendered component).
 - The runtime maps that type to the right native rendering on each channel.
-- You can author Lightning Types with natural language via the **Lightning Types MCP tool** (`create_lightning_type`) in the Salesforce DX MCP Server (Developer Preview), through Agentforce Vibes.
+- Author Lightning Types in natural language via the **Lightning Types MCP tool** (`create_lightning_type`) in the Salesforce DX MCP Server (Developer Preview), through Agentforce Vibes.
 
 ## Native React
 
-For teams that want full control of the visual layer, Headless 360 supports **native React**: build custom interfaces in any design language/interaction model over the same headless capabilities. Use this when the Experience Layer's native renderings aren't enough and you need a bespoke front end — for example a custom web or Experience Cloud app consuming the same APIs/MCP tools.
+For full control of the visual layer, Headless 360 supports **native React**: custom interfaces in any design language/interaction model over the same headless capabilities. Use it when the Experience Layer's native renderings aren't enough and you need a bespoke front end — e.g. a custom web or Experience Cloud app consuming the same APIs/MCP tools.
 
 ## When to Use What
 
@@ -38,11 +38,11 @@ For teams that want full control of the visual layer, Headless 360 supports **na
 | UI only ever shown in Lightning Experience | **LWC** (`dya-sf-lwc`), or Aura (`dya-sf-aura`) for the rare gap |
 | Server-rendered PDF / Classic / email template | **Visualforce** (`dya-sf-visualforce`) |
 
-The decision pivot: **how many surfaces?** One Lightning surface → plain LWC. Many/agent surfaces → Experience Layer + Lightning Types. Don't reach for HXL to build a single Lightning page; don't rebuild per-channel UIs when HXL would define it once.
+The pivot: **how many surfaces?** One Lightning surface → plain LWC. Many/agent surfaces → Experience Layer + Lightning Types.
 
 ## Maturity Note
 
-The **build-time** surface (authoring capabilities, MCP tooling, coding skills) is mature. The **runtime** Experience Layer already handles straightforward cases well — e.g. a support agent returning a case summary inside a Slack thread — and the cross-surface vision (the same capability delivered across voice, partner mobile apps, and any MCP-compatible client) is expanding through the release. Build with the "define once" model now; expect the set of natively-rendered surfaces to keep growing.
+The **build-time** surface (authoring capabilities, MCP tooling, coding skills) is mature. The **runtime** Experience Layer handles straightforward cases well — e.g. a support agent returning a case summary inside a Slack thread — and the cross-surface vision (the same capability delivered across voice, partner mobile apps, and any MCP-compatible client) is expanding through the release. Build with the "define once" model now; the set of natively-rendered surfaces will keep growing.
 
 ## Anti-Patterns
 

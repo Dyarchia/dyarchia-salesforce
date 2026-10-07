@@ -1,11 +1,11 @@
 # FSL Apex — Scheduling, Booking, Grading, Optimization (Winter '27 / API v68.0)
 
-Load from `dya-sf-field-service`. Real signatures and members for the `FSL` namespace scheduling classes, plus the scope-1 batch pattern. All `FSL.*` is managed-package code — **verify members in a sandbox** (see SKILL.md §8) as they're version-dependent. Prerequisites: Field Service enabled + an FSL permission set on the running user.
+Load from `dya-sf-field-service`. Real signatures and members for the `FSL` scheduling classes, plus the scope-1 batch pattern. All `FSL.*` is version-dependent managed-package code — **verify members in a sandbox** (SKILL.md §8). Prerequisites: Field Service enabled + an FSL permission set on the running user.
 
 ## FSL.ScheduleService
 
 ```apex
-// Schedule a single appointment under a policy. Policy FIRST, appointment SECOND.
+// Schedule one appointment under a policy. Policy FIRST, appointment SECOND.
 global static FSL.ScheduleResult schedule(Id schedulingPolicyId, Id serviceAppointmentId);
 
 // Schedule chains of dependent appointments ("complex work") — synchronous, ES&O.
@@ -15,7 +15,7 @@ global static List<FSL.ScheduleResult> scheduleExtended(...);   // confirm param
 global static ... getAppointmentInsights(...);                 // confirm signature per version
 ```
 
-`FSL.ScheduleResult` members (confirmed): `Service` (a `ServiceAppointment` — read `Service.SchedStartTime`, `Service.SchedEndTime`, `Service.Id`). `AssignedResources` and other members exist but confirm names in-sandbox. `schedule` returns `null` when the appointment can't be placed.
+`FSL.ScheduleResult` members (confirmed): `Service` (a `ServiceAppointment` — read `Service.SchedStartTime`, `Service.SchedEndTime`, `Service.Id`). `AssignedResources` and other members exist; confirm names in-sandbox. `schedule` returns `null` when the appointment can't be placed.
 
 ```apex
 FSL.ScheduleResult res = FSL.ScheduleService.schedule(policyId, saId);
@@ -43,7 +43,7 @@ global static List<FSL.AppointmentBookingSlot> GetSlots(
 - `Interval.Start` / `Interval.Finish` — Datetime arrival-window bounds.
 - `BestSlotGrades` — per-objective grade breakdown (confirm member name in-sandbox).
 
-There is an enum `FSL.AppointmentBookingService.SortResultsBy` (value `Grade` confirmed); the by-date option corresponds to the `'SORT_BY_DATE'` string.
+Enum `FSL.AppointmentBookingService.SortResultsBy` exists (value `Grade` confirmed); the by-date option corresponds to the `'SORT_BY_DATE'` string.
 
 ```apex
 OperatingHours oh = [SELECT Id FROM OperatingHours
@@ -62,7 +62,7 @@ for (FSL.AppointmentBookingSlot s : slots) {
 
 Behaviour notes:
 - Returns slots **only between the SA's `EarliestStartTime` and `DueDate`** — widen `DueDate` for more windows.
-- Returned/expected times are relative to the supplied `TimeZone`. When persisting to `ArrivalWindowStartTime/EndTime`, offset for the operating-hours timezone if it differs (`tz.getOffset(dt)`).
+- Returned/expected times are relative to the supplied `TimeZone`. When persisting to `ArrivalWindowStartTime/EndTime`, offset for a differing operating-hours timezone (`tz.getOffset(dt)`).
 
 ## FSL.GradeSlotsService
 
@@ -71,7 +71,7 @@ Behaviour notes:
 global static FSL.AdvancedGapMatrix getGradedMatrix(...);   // confirm params in-sandbox
 ```
 
-Caveat: `getGradedMatrix` returns **all** possible slots; for a resource free all day it often returns ~2 slots (start of day, and after the break), so some arrival windows can be missing. Prefer `AppointmentBookingService.GetSlots` for customer-facing slot lists.
+Caveat: `getGradedMatrix` returns **all** possible slots; for a resource free all day it often returns ~2 (start of day, after the break), so arrival windows can be missing. Prefer `AppointmentBookingService.GetSlots` for customer-facing slot lists.
 
 ## FSL.OAAS (optimization)
 
@@ -105,11 +105,11 @@ public class OptimizeTerritoryQueueable implements Queueable, Database.AllowsCal
 }
 ```
 
-Horizon: optimize **1–7 days** ahead (schedules churn) and chain requests — kick the next when the prior `FSL__Optimization_Request__c` finishes — for longer ranges. In-Day Optimization is time-boxed at **5 minutes with ESO, 10 minutes without**; a Global run works the whole horizon and takes hours, so a wide single request costs compute rather than hitting a documented ceiling.
+Horizon: optimize **1–7 days** ahead (schedules churn); for longer ranges chain requests, kicking the next when the prior `FSL__Optimization_Request__c` finishes. In-Day Optimization is time-boxed at **5 minutes with ESO, 10 without**; a Global run works the whole horizon and takes hours, so a wide single request costs compute rather than hitting a documented ceiling.
 
 ## The scope-1 Batch Pattern (full)
 
-See SKILL.md §2 for the full `FsBookingScheduling` + `FsBookingSchedulingBatch` example. The rules it encodes:
+Full `FsBookingScheduling` + `FsBookingSchedulingBatch` example: SKILL.md §2. Its rules:
 - **One SA per call** — backend constraint; run the batch with `Database.executeBatch(batch, 1)`.
 - **DML before callout is illegal in one transaction** — set the arrival window (DML) in one method, schedule (callout) in another; the batch `execute` calls them in order.
 - **`Database.AllowsCallouts`** on the batch class.
@@ -117,11 +117,11 @@ See SKILL.md §2 for the full `FsBookingScheduling` + `FsBookingSchedulingBatch`
 
 ## Other FSL utilities (developer-relevant)
 
-`FSL.PolygonUtils` (territory-by-geolocation, list polygons), `FSL.Logger`, `FSL.GanttServices`, `FSL.WorkRuleService`, `FSL.GeocodingService`. Treat signatures as version-dependent; confirm against the FSL Apex Namespace index for the installed version.
+`FSL.PolygonUtils` (territory-by-geolocation, list polygons), `FSL.Logger`, `FSL.GanttServices`, `FSL.WorkRuleService`, `FSL.GeocodingService`. Signatures are version-dependent; confirm against the FSL Apex Namespace index for the installed version.
 
 ## Invocable wrappers (Flow / Agentforce)
 
-Open-source libraries expose these as invocable actions for Flow and agent actions: `sfsGetSlotsInvocable`, `sfsGetCandidatesInvocable`, `sfsScheduleInvocable`, `sfsAppointmentInsightsInvocable` (SFS-Utils), and the community Flow Scheduler's Get Slots / Schedule actions (omit the policy Id to use the "Default for Flow Scheduler" policy; the SA needs a Service Territory).
+Open-source libraries expose these as invocable actions for Flow and agents: `sfsGetSlotsInvocable`, `sfsGetCandidatesInvocable`, `sfsScheduleInvocable`, `sfsAppointmentInsightsInvocable` (SFS-Utils), and the community Flow Scheduler's Get Slots / Schedule actions (omit the policy Id to use the "Default for Flow Scheduler" policy; the SA needs a Service Territory).
 
 ## Anti-Patterns
 

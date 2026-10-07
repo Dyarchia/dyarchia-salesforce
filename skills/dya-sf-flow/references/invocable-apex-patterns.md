@@ -1,17 +1,17 @@
 # Invocable Apex Patterns — Flow → Apex Bridge
 
-Full implementations of the `@InvocableMethod` and `@InvocableVariable` patterns referenced from SKILL.md §6. Load this file when authoring or refactoring an Apex method that will be called from Flow.
+Full implementations of the `@InvocableMethod` and `@InvocableVariable` patterns from SKILL.md §6. Load when authoring or refactoring an Apex method called from Flow.
 
 ## Why `@InvocableMethod`
 
-Flow's "Action" element calls any static Apex method annotated with `@InvocableMethod`. This is the canonical bridge from declarative Flow to imperative Apex — preferred over `@AuraEnabled` (which is for LWC) or `Flow.Interview.start()` from Apex (which is for the opposite direction: Apex orchestrating Flow).
+Flow's "Action" element calls any static Apex method annotated with `@InvocableMethod`. It is the canonical bridge from Flow to Apex — preferred over `@AuraEnabled` (for LWC) or `Flow.Interview.start()` (the opposite direction: Apex orchestrating Flow).
 
-The contract is rigid and easy to get wrong:
+The contract is rigid:
 
 - Method must be `static`.
 - Method must accept exactly **one parameter**: `List<T>`.
 - Method must return either `void` or `List<U>`.
-- When returning a list, its length and order MUST match the input list (Flow correlates input row N to output row N).
+- A returned list's length and order MUST match the input list (Flow correlates input row N to output row N).
 
 ## Basic Pattern
 
@@ -25,8 +25,8 @@ public with sharing class AccountScorer {
         callout=false
     )
     public static List<Output> recalculate(List<Input> inputs) {
-        // ALWAYS bulk-process. Flow passes a List even when invoked
-        // from a single-record context, so the input may contain 1 or 200 items.
+        // ALWAYS bulk-process: Flow passes a List even from a
+        // single-record context, so expect 1 to 200 items.
         Set<Id> accountIds = new Set<Id>();
         for (Input i : inputs) {
             accountIds.add(i.accountId);
@@ -77,10 +77,10 @@ public with sharing class AccountScorer {
 
 ### `@InvocableMethod` annotation properties
 
-- `label` — appears in Flow's Action picker. Make it user-readable.
-- `description` — appears as the action's help text. Be explicit about what the action does and what it expects.
-- `category` — groups the action in the picker (`Account`, `Order`, `Integrations`). Improves discoverability when an org has dozens of invocable methods.
-- `callout=true` — declares the action makes HTTP callouts. Flow uses this to gate where the action can be placed (cannot be on a same-transaction path of a record-triggered flow).
+- `label` — shown in Flow's Action picker. Make it user-readable.
+- `description` — the action's help text. State what the action does and expects.
+- `category` — groups the action in the picker (`Account`, `Order`, `Integrations`), aiding discovery when an org has dozens of invocable methods.
+- `callout=true` — declares HTTP callouts. Flow uses it to gate placement (not on a same-transaction path of a record-triggered flow).
 
 ### `@InvocableVariable` annotation properties
 
@@ -90,7 +90,7 @@ public with sharing class AccountScorer {
 
 ## Custom DTOs with `@InvocableVariable`
 
-Input and output types must be classes with `@InvocableVariable`-annotated public fields. Primitives, SObjects, and `List`/`Map` of these types are supported.
+Input and output types must be classes with `@InvocableVariable`-annotated public fields. Primitives, SObjects, and `List`/`Map` of these are supported.
 
 ```java
 public class OrderInput {
@@ -119,11 +119,11 @@ public class OrderOutput {
 }
 ```
 
-Lists of DTOs are supported but increase complexity for Flow authors. Prefer flat structures.
+Lists of DTOs are supported but complicate things for Flow authors. Prefer flat structures.
 
 ## Partial Success — Per-Row Error Handling
 
-When some inputs may succeed and others fail, propagate the result row-by-row in the output rather than throwing.
+When some inputs may succeed and others fail, return the result per row in the output rather than throwing.
 
 ```java
 public static List<OrderOutput> process(List<OrderInput> inputs) {
@@ -157,11 +157,11 @@ public static List<OrderOutput> process(List<OrderInput> inputs) {
 }
 ```
 
-In Flow, route on `output[].success` — if any row failed, branch to a fault-handling path. This is more robust than throwing from Apex, because a single throw aborts the entire flow batch.
+In Flow, route on `output[].success` — if any row failed, branch to a fault-handling path. This is more robust than throwing, because a single throw aborts the entire flow batch.
 
 ## Full-Batch Failure — Throwing
 
-If the entire batch should fail when anything goes wrong (e.g., a callout returns an error), throw a clear exception. Flow will route to the action's Fault Path.
+If the whole batch should fail when anything goes wrong (e.g., a callout returns an error), throw a clear exception; Flow routes to the action's Fault Path.
 
 ```java
 public static List<Output> sync(List<Input> inputs) {
@@ -186,13 +186,13 @@ The exception message appears as `{!$Flow.FaultMessage}` in the Fault Path — k
 public static List<QuoteOutput> fetch(List<QuoteInput> inputs) { /* ... */ }
 ```
 
-When `callout=true`:
+With `callout=true`, the action:
 
-- The action CANNOT be placed in a record-triggered flow's main (synchronous) path.
-- It CAN be placed in an Asynchronous Path of a record-triggered flow.
-- It CAN be placed anywhere in an autolaunched or screen flow.
+- CANNOT be placed in a record-triggered flow's main (synchronous) path.
+- CAN be placed in an Asynchronous Path of a record-triggered flow.
+- CAN be placed anywhere in an autolaunched or screen flow.
 
-Forgetting `callout=true` lets Flow place the action where it will fail at runtime with `CalloutException: You have uncommitted work pending`. Always declare it.
+Without `callout=true`, Flow lets you place the action where it fails at runtime with `CalloutException: You have uncommitted work pending`. Always declare it.
 
 ## Generic SObject Inputs
 
@@ -201,18 +201,18 @@ If the action must accept any SObject (e.g., a logging utility), use `List<SObje
 ```java
 @InvocableMethod(label='Log Record Change')
 public static void logChange(List<SObject> records) {
-    // SObject API works generically; cast inside if you need typed access
+    // Generic SObject API; cast inside for typed access
     for (SObject so : records) {
         System.debug(LoggingLevel.INFO, 'Changed: ' + so.getSObjectType() + ' ' + so.Id);
     }
 }
 ```
 
-Flow allows the author to pass any record collection. Use this sparingly — typed DTOs are clearer and catch errors earlier.
+Flow then accepts any record collection. Use sparingly — typed DTOs are clearer and catch errors earlier.
 
 ## Custom Input Types Need a No-Argument Constructor (API 67.0+)
 
-Any custom Apex type used as an invocable action input must expose a **public no-argument constructor** so the platform can instantiate it when the flow runs. A class with only a parameterised constructor fails at runtime. If you add any non-default constructor, add the no-arg one back explicitly.
+Any custom Apex type used as an invocable action input must expose a **public no-argument constructor** so the platform can instantiate it when the flow runs. A class with only a parameterised constructor fails at runtime; if you add a non-default constructor, add the no-arg one back explicitly.
 
 ```java
 public class OrderInput {
@@ -232,13 +232,13 @@ public class OrderInput {
 
 ## Configuring the Action in Flow Builder — `InvocableActionExtension`
 
-The `@InvocableMethod` / `@InvocableVariable` annotations define the action's contract; the `InvocableActionExtension` metadata type (GA; Enterprise, Performance, Unlimited and Developer editions) defines the **design-time experience** an admin sees when configuring it:
+The annotations define the action's contract; the `InvocableActionExtension` metadata type (GA; Enterprise, Performance, Unlimited and Developer editions) defines the **design-time experience** of an admin configuring it:
 
-- **Per-input custom property editor** — bind a custom LWC editor to a single input rather than the whole action, so one complex parameter gets a guided UI while the others use the standard editor.
+- **Per-input custom property editor** — bind a custom LWC editor to one input rather than the whole action, so a complex parameter gets a guided UI while the others use the standard editor.
 - **Picklist values for an input** — turn a `String` input into a fixed dropdown, eliminating typos and invalid values at design time.
-- **Custom header** — show a custom component above the inputs in the action's property panel (instructions, a link, a summary of what the action will do).
+- **Custom header** — a custom component above the inputs in the action's property panel (instructions, a link, a summary of what the action does).
 
-Use these for reusable or packaged actions where many admins configure the same action and a guided, constrained UI prevents misconfiguration. Define them as `InvocableActionExtension` metadata and deploy alongside the Apex class; consult the Metadata API reference for the exact element shape.
+Use these for reusable or packaged actions that many admins configure, where a constrained UI prevents misconfiguration. Deploy the `InvocableActionExtension` metadata alongside the Apex class; see the Metadata API reference for the exact element shape.
 
 ## Testing Invocable Methods
 
@@ -247,7 +247,7 @@ Use these for reusable or packaged actions where many admins configure the same 
 private class AccountScorerTest {
     @IsTest
     static void scoresAccountsInBulk() {
-        // Insert 200 accounts with opportunities
+        // 200 accounts with opportunities
         List<Account> accts = TestDataFactory.makeAccountsWithOpps(200);
 
         List<AccountScorer.Input> inputs = new List<AccountScorer.Input>();
@@ -269,12 +269,12 @@ private class AccountScorerTest {
 }
 ```
 
-Invocable methods test the same way as any other Apex method — the annotation is metadata for Flow's UI, the method itself is just a static method.
+Test invocable methods like any static Apex method — the annotation is only metadata for Flow's UI.
 
 ## The Reverse Direction — Calling a Flow from Apex
 
-`@InvocableMethod` is for when Flow orchestrates and Apex is a step. When Apex orchestrates and a
-Flow is the step, use `Flow.Interview`:
+`@InvocableMethod` is for Flow orchestrating with Apex as a step. When Apex orchestrates and a Flow
+is the step, use `Flow.Interview`:
 
 ```apex
 Map<String, Object> inputs = new Map<String, Object>{
@@ -286,27 +286,26 @@ interview.start();
 Object output = interview.getVariableValue('outputVariableName');
 ```
 
-The flow's API name is the string argument, and the map keys are the flow's input variable names —
-both are unchecked at compile time, so a rename in Flow Builder breaks this at runtime, not at
-deploy. Cover it with a test.
+The flow's API name and the map keys (the flow's input variable names) are unchecked at compile
+time, so a rename in Flow Builder breaks this at runtime, not at deploy. Cover it with a test.
 
-`Flow.Interview` runs autolaunched flows only; a screen flow has no interview to run headlessly.
+`Flow.Interview` runs autolaunched flows only; a screen flow cannot run headlessly.
 
 From a Lightning Web Component, embed a flow with `lightning/flowSupport`, or navigate to a screen
 flow with a `standard__flow` PageReference. See `dya-sf-lwc`.
 
 ## Who Is Calling? Flow and Agentforce Bulk Differently
 
-The same `@InvocableMethod` can be called by a Flow and by an Agentforce agent action, and the two
-callers behave differently in ways that change how you write the method:
+The same `@InvocableMethod` can be called by a Flow and by an Agentforce agent action, and the
+callers differ in ways that change how you write it:
 
 | | Called from Flow | Called as an Agentforce action |
 |---|---|---|
 | Batching | Always a `List`, even from a single-record context — a record-triggered flow passes the whole 200-record batch | One invocation per agent turn, each in its own transaction; no batching across turns |
 | On failure | Throwing surfaces the message as `{!$Flow.FaultMessage}` for a Fault Path to handle | Throwing gives the agent a raw exception it cannot explain to a user |
 
-Write the method to handle a list of any size — that satisfies Flow and costs an agent nothing. For
-error handling, decide which caller you are serving: a Flow-facing action throws on full-batch
-failure; an agent-facing action returns a structured result with a success flag and a human-readable
-message the agent can relay. If one method serves both, return the structured result **and** let the
-Flow branch on it, rather than throwing. See `dya-sf-agentforce` for the agent side.
+Handle a list of any size — that satisfies Flow and costs an agent nothing. For errors, decide which
+caller you serve: a Flow-facing action throws on full-batch failure; an agent-facing action returns
+a structured result with a success flag and a human-readable message the agent can relay. If one
+method serves both, return the structured result **and** let the Flow branch on it, rather than
+throwing. See `dya-sf-agentforce` for the agent side.

@@ -1,24 +1,24 @@
 ---
 name: dya-sf-field-service
-description: Salesforce Field Service (FSL) developer surface (Winter '27 / API v68.0) — the programmatic side only, with real signatures and compilable code. The FSL Apex namespace (ScheduleService, AppointmentBookingService, GradeSlotsService, OAAS), the scope-1 + DML-before-callout scheduling pattern, the Salesforce Scheduler REST candidates/slots resources and Appointment Bundling REST APIs, the standard + FSL__ data model and ServiceAppointment lifecycle, and Field Service Mobile (LWC Offline, Briefcase). Applies to code using the FSL namespace, ServiceAppointment and WorkOrder scheduling logic, Scheduler REST clients, Field Service Mobile components and Briefcase rules. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-field-service`).
+description: Salesforce Field Service (FSL) developer surface (Winter '27 / API v68.0) — programmatic side only, with real signatures and compilable code. The FSL Apex namespace (ScheduleService, AppointmentBookingService, GradeSlotsService, OAAS), the scope-1 + DML-before-callout scheduling pattern, the Salesforce Scheduler REST candidates/slots resources and Appointment Bundling REST APIs, the standard + FSL__ data model and ServiceAppointment lifecycle, and Field Service Mobile (LWC Offline, Briefcase). Applies to code using the FSL namespace, ServiceAppointment and WorkOrder scheduling logic, Scheduler REST clients, Field Service Mobile components and Briefcase rules. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-field-service`).
 ---
 
 # Salesforce Field Service — Developer Surface
 
-The **programmatic** surface only, with real signatures and compilable code. Admin and config — work
-rules and policies in Setup — are out of scope except where code references them. Builds on
+The **programmatic** surface only, with real signatures and compilable code. Admin config — work
+rules and policies in Setup — is out of scope except where code references it. Builds on
 `dya-sf-apex` and `dya-sf-lwc`. Follow every rule below.
 
 `FSL.*` classes and `FSL__*__c` objects are **managed-package** artifacts and **version-dependent**:
-signatures change across package upgrades, so verify against the installed version (§8).
+signatures change across package upgrades; verify against the installed version (§8).
 
 References:
-- `references/shared/platform-deltas.md` — the release-coupled facts, including the raised heap limits a scheduling call runs inside.
-- `references/shared/sharing-and-access.md` — the permission model behind the FSL permission sets.
-- `references/shared/governor-limits.md` — the transaction budget the scope-1 batch pattern exists to respect.
+- `references/shared/platform-deltas.md` — release-coupled facts, including the raised heap limits scheduling calls run inside.
+- `references/shared/sharing-and-access.md` — the permission model behind FSL permission sets.
+- `references/shared/governor-limits.md` — the transaction budget the scope-1 batch pattern respects.
 - `references/fsl-apex-scheduling.md` — full ScheduleService / AppointmentBookingService / GradeSlotsService / OAAS signatures, result-object members, and the scope-1 batch pattern.
 - `references/rest-and-mobile.md` — Salesforce Scheduler REST, Appointment Bundling REST, and Field Service Mobile (LWC Offline, Briefcase, the offline matrix).
-- `references/fsl-policy-model.md` — what a scheduling policy is made of: junction objects, RecordType typing, relevance groups, the two rule engines, the optimizer's penalty arithmetic.
+- `references/fsl-policy-model.md` — scheduling policy anatomy: junction objects, RecordType typing, relevance groups, the two rule engines, the optimizer's penalty arithmetic.
 - `references/mobile-data-capture.md` — Data Capture flows and their Tooling deployment, the `dc*` components, `DynamicDataCapture`, and the two mobile configuration sObjects.
 
 ---
@@ -26,16 +26,16 @@ References:
 ## Platform Context — Winter '27 / API v68.0
 
 Winter '27 changes **nothing** in the FSL Apex namespace, the scheduling signatures or the Scheduler
-and Bundling REST resources. It changes the budget they run in: Apex heap rises to 10 MB synchronous
-and 25 MB asynchronous, which matters when a scheduling call holds a large candidate set.
+and Bundling REST resources, only their budget: Apex heap rises to 10 MB synchronous and 25 MB
+asynchronous, which matters when a scheduling call holds a large candidate set.
 
 - The `FSL` namespace lives in the **Field Service managed package**. The running user needs an
   **FSL permission set** — Admin, Agent, Dispatcher or Resource — and Field Service enabled.
 - **The API 67.0 security defaults hit FSL wrapper code hard.** Compiled at 67.0 or above, SOQL,
   SOSL, DML and `Database.*` default to **user mode**, an omitted sharing keyword becomes
   **`with sharing`**, and **`WITH SECURITY_ENFORCED` no longer compiles**. Code querying
-  `FSL__Scheduling_Policy__c`, `OperatingHours` or `ServiceAppointment` is affected, and user-mode
-  FLS can hide fields the algorithm needs. Triggers run in system mode, so delegate to handlers.
+  `FSL__Scheduling_Policy__c`, `OperatingHours` or `ServiceAppointment` is affected; user-mode FLS
+  can hide fields the algorithm needs. Triggers run in system mode, so delegate to handlers.
 - **HTTPS and a Named Credential** (or Remote Site Setting) for the Bundling REST callouts.
 - **Mobile** extensibility is **LWC Offline** on the `lightning__FieldServiceMobile` target. Apex
   writes, callouts, triggers and validation rules do **not** run offline.
@@ -49,16 +49,14 @@ and 25 MB asynchronous, which matters when a scheduling call holds a large candi
 | **`FSL` Apex namespace** (managed package) | `ScheduleService`, `AppointmentBookingService`, `GradeSlotsService`, `OAAS` | In-session scheduling, booking, grading, optimization |
 | **Standard data model + REST** | `ServiceAppointment`/`WorkOrder`/… + Salesforce Scheduler REST + Bundling REST | Headless/external booking, bundling, integrations |
 
-The FSL Apex classes run **in-session** only. External self-service goes through Salesforce Scheduler
-REST (§5).
+FSL Apex classes run **in-session** only; external self-service uses Salesforce Scheduler REST (§5).
 
 ---
 
 ## 2. The Non-Negotiable Call Pattern: scope-1 + DML-before-callout
 
 Each FSL scheduling call processes **one** Service Appointment, and no DML may precede a callout in
-the same transaction. So: a **Batchable run with scope = 1**, DML step and callout step in separate
-methods.
+the same transaction. So: a **Batchable with scope = 1**, DML and callout steps in separate methods.
 
 ```apex
 public with sharing class FsBookingScheduling {
@@ -138,10 +136,10 @@ Id new FSL.OAAS().optimize(FSL.OAASRequest request);
   `ArrivalWindowStartTime/EndTime` if the operating-hours timezone differs.
 - **Status changes schedule too.** Setting a SA's `Status` to a scheduled or none-mapped value
   schedules or unschedules it, per the FSL Settings life-cycle mapping.
-- **Latency is decided by the policy, not the call.** Database rules filter inside the SOQL query;
-  Apex rules run afterwards over **every candidate that query returned**. A policy therefore needs at
-  least one database rule, narrowing to roughly **20 candidates** before any Apex rule or objective
-  runs. A policy of pure Apex rules is what "Field Service is slow" usually turns out to be.
+- **The policy, not the call, decides latency.** Database rules filter inside the SOQL query; Apex
+  rules then run over **every candidate it returned**. A policy needs at least one database rule,
+  narrowing to roughly **20 candidates** before any Apex rule or objective runs. A pure-Apex-rule
+  policy is what "Field Service is slow" usually turns out to be.
 
 Full members, `GradeSlotsService.getGradedMatrix` and the `OAASRequest` fields:
 `references/fsl-apex-scheduling.md`.
@@ -162,19 +160,19 @@ req.schedulingPolicyID = policyId;
 Id optimizationRequestId = new FSL.OAAS().optimize(req);  // run from async (AllowsCallouts)
 ```
 
-- **Optimize 1–7 days ahead.** Longer single passes waste compute on a schedule that keeps changing.
+- **Optimize 1–7 days ahead.** Longer passes waste compute on a schedule that keeps changing.
 - **In-Day is capped at 5 minutes with ESO, 10 without**, and reshuffles today; a Global run works
   the full horizon and takes hours. **Chain** requests rather than widening one.
 - **Commit Mode decides whether your DML survives.** `Always Commit` lets a dispatcher change, or
-  your Apex `update` on a `ServiceAppointment`, land mid-optimization; `Rollback` rejects it. Writes
-  silently disappearing during an optimization window are this.
+  your Apex `update` on a `ServiceAppointment`, land mid-optimization; `Rollback` rejects it — the
+  cause of writes silently disappearing during an optimization window.
 - Run from a Queueable or Batch with `Database.AllowsCallouts`, never inline in a per-save trigger.
 
 ---
 
 ## 5. External / Headless Booking — Salesforce Scheduler REST
 
-A distinct product surface sharing objects with FSL — confirm licensing:
+A distinct product sharing objects with FSL — confirm licensing:
 
 - **Get Appointment Candidates** — resources available for a work-type-group/work-type + territories.
 - **Get Appointment Slots** — available time slots for a resource.
@@ -182,7 +180,7 @@ A distinct product surface sharing objects with FSL — confirm licensing:
   availability per resource in a territory.
 
 ```apex
-// In-session Apex builder (no separate REST auth needed)
+// In-session Apex builder (no separate REST auth)
 lxscheduler.GetAppointmentCandidatesInput input =
     new lxscheduler.GetAppointmentCandidatesInputBuilder()
         .setWorkTypeGroupId(workTypeGroupId)
@@ -197,7 +195,7 @@ String response = lxscheduler.SchedulerResources.getAppointmentCandidates(input)
 ```
 
 Headless flow: **candidates/slots → create WorkOrder + ServiceAppointment only when the customer
-picks a slot → commit**, through the Scheduler save or `FSL.ScheduleService`. Cap evaluated resources
+picks a slot → commit** via the Scheduler save or `FSL.ScheduleService`. Cap evaluated resources
 with `resourceLimitApptDistribution` when a territory exceeds ~20. Full payloads and Bundling REST:
 `references/rest-and-mobile.md`.
 
@@ -215,7 +213,7 @@ with `resourceLimitApptDistribution` when a territory exceeds ~20. Full payloads
 **FSL managed-package custom objects:** `FSL__Scheduling_Policy__c`, `FSL__Work_Rule__c`,
 `FSL__Service_Goal__c` (service objectives), `FSL__Optimization_Request__c`, `FSL__Polygon__c`.
 
-Four `ServiceAppointment` facts constrain a booking design. **`ParentRecordId` is create-only** and
+Four `ServiceAppointment` facts constrain booking design. **`ParentRecordId` is create-only** and
 polymorphic over Account, Asset, Lead, Opportunity, WorkOrder and WorkOrderLineItem, so §5's headless
 flow must know the parent before it commits. **`DurationType`** — Minutes or Hours — governs what
 `Duration` means. **`StatusCategory`** is a restricted picklist and the mechanism behind the status
@@ -231,49 +229,49 @@ in FSL Settings, not the literal label.
 exposes native objects instead: `SchedulingPolicy`, `SchedulingConstraint`, `SchedulingRule`,
 `SchedulingObjective`, `SchedulingPolicyObjective`. Query
 `SELECT SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage` on
-the Tooling API **with no `WHERE` clause** — it rejects filters on `NamespacePrefix` — and filter
-client-side for the first prefix starting with `FSL`. Empty means FSL is not installed. Then try the
-managed object and fall back to the native one on `INVALID_TYPE`.
+the Tooling API **with no `WHERE` clause** — it rejects `NamespacePrefix` filters — and filter
+client-side for the first prefix starting with `FSL`; empty means FSL is not installed. Then try the
+managed object, falling back to the native one on `INVALID_TYPE`.
 
 Policies and objectives are referenced **by Id**, queried by Name:
 `[SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = 'Customer First']` — which throws
-`INVALID_TYPE` on an ESO-native org, so resolve first.
+`INVALID_TYPE` on an ESO-native org, so resolve the namespace first.
 
-There is **no supported "write a Work Rule in Apex" SPI**, but four declarative hooks come first:
+There is **no supported "write a Work Rule in Apex" SPI**; four declarative hooks come first:
 **Extended Match** (a junction object with *exactly two* Master-Detail relationships, to
 `ServiceResource` and the matched object — the packaged trigger fails the rule with any other
 number), **Match Fields** (any appointment field against any resource field), **Match Boolean** (any
 resource checkbox, max 5 per policy) and **Count Rule** with `countBy: Custom`. Reach for triggers,
-flows (the "Skill Iron Rule" pattern) or custom Gantt actions only once those are exhausted.
+flows (the "Skill Iron Rule" pattern) or custom Gantt actions only when those are exhausted.
 
 ---
 
 ## 7. Field Service Mobile
 
 - **Licensing first.** Every mobile worker needs the **`FieldServiceMobilePsl`** permission set
-  licence to log in at all — there is no separate mobile user-licence SKU, and this is the
-  entitlement people miss. `EinsteinFieldServicePsl` adds Voice to Record Edit and Pre-Work Brief;
+  licence to log in at all — there is no separate mobile user-licence SKU, so people miss it.
+  `EinsteinFieldServicePsl` adds Voice to Record Edit and Pre-Work Brief;
   `AgentforceForFieldServicePsl` adds Voice to Form. Confirm with
   `SELECT DeveloperName, TotalLicenses, UsedLicenses FROM PermissionSetLicense`. The **Lightning SDK
   for Field Service Mobile** permission gates custom LWC, not login.
-- **Custom LWC** target `lightning__FieldServiceMobile`. **LWC Offline**, opt-in, reads and updates
-  locally and syncs on reconnect.
+- **Custom LWC** target `lightning__FieldServiceMobile`. **LWC Offline** (opt-in) reads and updates
+  locally, syncing on reconnect.
 - **Works offline:** LDS base components, `getRecord`/LDS, the GraphQL wire
   (`lightning/uiGraphQLApi`), related-list wires, and Apex *reads* of data cached while online.
 - **Does NOT work offline:** Apex *writes*, server-hitting Apex calls, **record-triggered**
   automation — triggers, validation rules, workflow and record-triggered flows fire at sync, not on
   the device — and Lightning Message Service. **Screen flows are the exception**: they run offline
   under an offline flow cache policy, and a Data Capture flow (`processType: DataCaptureFlow`,
-  `environments: ["Offline"]`) is built to. Keep GraphQL queries under 32 KB. Apex errors arrive as
-  an **array** of error objects.
+  `environments: ["Offline"]`) is built for it. Keep GraphQL queries under 32 KB. Apex errors arrive
+  as an **array** of error objects.
 - **Briefcase Builder** primes offline data sets by object and filter; Files and Custom Metadata are
   not primed. Deep links can be **signed** with the Public Security Key to suppress the security
   dialog.
 - **An empty Forms tab is a sharing problem, not a data one.** The tab reads through the UI API,
   which enforces sharing, so a Private OWD on `DynamicDataCapture` or `WorkPlan` — the platform
-  default — returns `INSUFFICIENT_ACCESS` and the app shows "No forms available". Desktop SOQL as an
-  admin will not reproduce it, and the app caches its sharing snapshot at login, so the technician
-  must sign out and back in after the fix.
+  default — returns `INSUFFICIENT_ACCESS` and the app shows "No forms available". Admin desktop SOQL
+  will not reproduce it. The app caches its sharing snapshot at login, so the technician must sign
+  out and back in after the fix.
 - **Pre-Work Brief activation cannot be driven from Apex.** The prompt-template activation endpoint
   is `@ConnectHidden(from=Apex)`, so `ConnectApi.EinsteinLLM` and metadata approaches both fail by
   design. Drive it from the CLI or an external caller.
@@ -286,8 +284,8 @@ components and the mobile settings objects: `references/mobile-data-capture.md`.
 ## 8. Verify Before You Ship (managed-package versioning)
 
 Run anonymous Apex calling `schedule`, `GetSlots`, `getGradedMatrix` and `OAAS.optimize` against
-seeded sandbox data and `System.debug` the result objects, to lock down members for **your installed
-package version**. Re-verify whenever that version differs from where you tested.
+seeded sandbox data and `System.debug` the result objects to lock down members for **your installed
+package version**. Re-verify whenever that version differs from the tested one.
 
 ---
 
