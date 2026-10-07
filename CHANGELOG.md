@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The README says how to keep the plugin updated.** Claude Code leaves auto-update off for third-party marketplaces, and refreshing a marketplace from a shell does not update the plugin installed from it, so the upgrade step published with 0.8.0 never actually installed the new version. The new section gives both ways: enable auto-update once, or run the marketplace update followed by the plugin update.
+
 ## [0.8.0] - 2026-10-07
 
 ### Changed

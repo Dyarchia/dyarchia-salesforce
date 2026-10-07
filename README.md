@@ -149,6 +149,23 @@ The plugin and marketplace share a name because this repository is both. Sibling
 
 Skills are discovered from `skills/` automatically. No MCP servers are declared — wire your own.
 
+### Keep it updated
+
+Claude Code turns auto-update **off** for third-party marketplaces, so a new release reaches you only after one of these:
+
+- **Automatically.** Run `/plugin`, open **Marketplaces**, select `dyarchia-salesforce` and choose **Enable auto-update**. Each session then checks for a new release a few minutes after your first message and installs it; it loads on your next session, or after `/reload-plugins`.
+- **Now, by hand.** Refreshing the marketplace only refreshes its catalogue; updating the plugin is a second step. From a shell:
+
+```bash
+claude plugin marketplace update dyarchia-salesforce
+```
+
+```bash
+claude plugin update dyarchia-salesforce@dyarchia-salesforce
+```
+
+Then run `/reload-plugins` or start a new session. Inside a terminal session, `/plugin` → **Marketplaces** → **Update marketplace** does both steps at once. The Claude desktop app's **Update** button lights up only after the marketplace catalogue has been refreshed, which is why it stays grey while auto-update is off.
+
 ---
 
 ## Install on other agents
