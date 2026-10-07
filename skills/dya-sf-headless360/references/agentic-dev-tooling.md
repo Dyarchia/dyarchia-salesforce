@@ -1,7 +1,7 @@
 # Agentforce Vibes — Reference (Winter '27 / API v68.0)
 
 Load from `dya-sf-headless360` when working in or advising on Agentforce Vibes, the build-time half of
-Headless 360 (the agentic development environment); the runtime half is the Experience Layer.
+Headless 360; the runtime half is the Experience Layer.
 
 ## What it is, and what version
 
@@ -10,85 +10,73 @@ IDE**. It installs from the VS Code Marketplace and Open VSX as part of the Sale
 It is built on Salesforce's **Coding Agent Platform**, orchestrated by **Claude and Mastra**, and on
 an **Agent SDK** for building your own agents, MCP integrations and agentic workflows.
 
-The documentation attaches **no maturity label to the product** — no GA, no Beta, no Developer
-Preview — though it is installable from a marketplace today. Individual features carry their own
-labels: Metadata Experts MCP Server (Beta), Metadata API Context MCP Server (Beta), Content
-Read-Only MCP Server (Beta), Data SDK and GraphQL (Beta). Do not assign the product a status the
-source does not give it.
+The documentation gives the **product** no GA, Beta or Developer Preview label; do not assign it one.
+Individual features carry their own: Metadata Experts MCP Server (Beta), Metadata API Context MCP
+Server (Beta), Content Read-Only MCP Server (Beta), Data SDK and GraphQL (Beta).
 
-**v4.0 was reimagined from the ground up**, so material describing a "2.0" describes a different
-product generation. What carried over: Rules and Skills as concepts, inline completions for Apex and
-LWC, the Salesforce Trust Boundary, and the marketplace and cloud IDE presence. What moved: rule and
-skill files went from `.a4drules/` to **`.vibes/rules/`** and **`.vibes/skills/`**.
+**v4.0 was rebuilt from the ground up**, so material describing a "2.0" is a different product
+generation. Carried over: Rules and Skills as concepts, inline completions for Apex and LWC, the
+Salesforce Trust Boundary, and the marketplace and cloud IDE presence. Moved: rule and skill files
+went from `.a4drules/` to **`.vibes/rules/`** and **`.vibes/skills/`**.
 
-## Availability — check before recommending it
+## Availability
 
 | | Status |
 |---|---|
 | Editions | **Not available** in Group, Professional or Essentials |
-| **EU Operating Zone** | **Not available.** Stated on three pages, on data-residency grounds. EU orgs that are *not* part of EU Operating Zone are supported under standard terms |
+| **EU Operating Zone** | **Not available**, on data-residency grounds. EU orgs *not* in EU Operating Zone are supported under standard terms |
 | Government Cloud | **The documentation contradicts itself — see below** |
 
-**EU Operating Zone is the one to remember**: it is a paid data-residency offering an enterprise
-customer may hold without the developer knowing. "We're in the EU" does not settle it; whether the
-org is in EU OZ does.
+EU Operating Zone is a paid data-residency offering an enterprise customer may hold without the
+developer knowing. Being in the EU does not settle it; whether the org is in EU Operating Zone does.
 
-**On Government Cloud the docs disagree with themselves.** Three pages — admin settings, extension
-setup and the FAQ — list Government Cloud alongside EU Operating Zone as unavailable, for data
-residency reasons. A fourth page is a dedicated guide to *using Agentforce Vibes with Government
-Cloud orgs*, stating FedRAMP High and DoD Impact Level 5 authorization, automatic routing of AI
-requests to a dedicated Government Cloud endpoint, and step-by-step authentication instructions.
+**On Government Cloud the docs disagree.** Three pages — admin settings, extension setup and the
+FAQ — list Government Cloud as unavailable, for data-residency reasons. A fourth is a dedicated guide
+to *using Agentforce Vibes with Government Cloud orgs*, stating FedRAMP High and DoD Impact Level 5
+authorization, automatic routing of AI requests to a dedicated Government Cloud endpoint, and
+authentication steps. Treat Government Cloud as **unconfirmed** and verify against the org and with
+Salesforce before promising it either way.
 
-Both cannot be current. Treat Government Cloud as **unconfirmed** and verify against the org and
-with Salesforce before promising it either way — never by picking the answer that suits the
-conversation.
-
-Do not conflate this with **Salesforce Multi-Framework**, which is separately and unambiguously
-unavailable on Government Cloud and Alibaba Cloud — see `references/react-and-data-sdk.md`.
+**Salesforce Multi-Framework** is separately and unambiguously unavailable on Government Cloud and
+Alibaba Cloud — see `references/react-and-data-sdk.md`.
 
 ## The name fossil
 
 The extension identifier is still **`salesforcedx-einstein-gpt`**, and the older documentation path
-`platform/einstein-for-devs/` now redirects to the Agentforce Vibes guide. The product went Einstein
-for Developers → Agentforce for Developers → Agentforce Vibes; the URLs and identifiers did not
-follow. Expect all three names in the wild; they are one lineage.
+`platform/einstein-for-devs/` redirects to the Agentforce Vibes guide. The product went Einstein for
+Developers → Agentforce for Developers → Agentforce Vibes; the URLs and identifiers did not follow.
 
 ## Autonomous sub-agents
 
-A coordinating lead agent delegates to specialised sub-agents working **in parallel** — Apex logic,
-LWC, Jest testing, SOQL. Each runs in an isolated context and **its own Git worktree**, so concurrent
-work avoids workspace conflicts without serialising.
+Sub-agents cover Apex logic, LWC, Jest testing and SOQL. Each runs in an isolated context and **its
+own Git worktree**, so parallel work does not serialise.
 
 ## Plan Mode — the approval gate
 
 With Plan Mode off the agent acts directly on your prompt. With it on, it produces a structured plan
-and **changes no files until you click Approve Plan**. On approval the mode switches to Agent mode and
+and changes nothing until you click **Approve Plan**; the mode then switches to Agent mode and
 execution begins.
-
-A plan has a fixed anatomy — what you review:
 
 | Section | Holds |
 |---|---|
 | **Context** | A summary of what you asked for |
 | **Goals** | What the plan aims to achieve |
-| **Non-Goals** | What it explicitly does not touch — the part most worth reading |
+| **Non-Goals** | What it does not touch — the part most worth reading |
 | **Approach** | Task count, overall strategy, and which sub-agent roles are assigned (Logic Builder for Apex, Component Builder for LWC, QA Validator for coverage) |
 | **Tasks** | Numbered steps with expected outcomes and file paths |
 
-Iterate on the plan in conversation before approving. **To change scope, give feedback rather
-than approving** — approval is the commit point. The agent can also *suggest* a plan when it judges a
-request complex enough, without Plan Mode enabled.
+**To change scope, give feedback rather than approving** — approval is the commit point. The agent
+can also *suggest* a plan for a complex request without Plan Mode enabled.
 
-Use it for multi-file changes with an order of operations, deployments needing a validation
-pass, metadata migrations between orgs, and anything where you want to see the approach first.
+Use it for multi-file changes with an order of operations, deployments needing a validation pass,
+metadata migrations between orgs, and anything where you want to see the approach first.
 
-Plan Mode consumes context while building the plan, so split very large tasks. A plan references the
-project state when it was made — manual changes between approval and execution can invalidate it.
+Plan Mode consumes context while building the plan, so split very large tasks. Manual changes
+between approval and execution can invalidate a plan.
 
 ## Rules — always-on standards
 
-**Rules are persistent instructions applied to every interaction**, unlike Skills, which activate on
-demand, so conventions need not be repeated in every prompt.
+**Rules apply to every interaction**, so conventions need not be repeated in every prompt.
 
 | Scope | Stored | Use for |
 |---|---|---|
@@ -99,16 +87,16 @@ demand, so conventions need not be repeated in every prompt.
 Create one from Toolkit › Rules › **+ Add Rule**: a kebab-case name, a scope, an application mode,
 and markdown content.
 
-**Two application modes; the choice matters for cost:**
+Application modes:
 
 - **Always** — active in every interaction. Use for broad standards ("never deploy to production
   without running tests").
 - **File pattern** — active only when the agent touches files matching a glob, e.g. `**/*.cls`. Use
   for language-specific conventions.
 
-**Every rule consumes context in every interaction it applies to.** Hence file patterns: an Apex
-naming rule has no business loading while the agent edits an LWC template. Keep
-each rule to a single concern.
+**Every rule consumes context in every interaction it applies to**, so an Apex naming rule belongs
+behind a file pattern, not loaded while the agent edits an LWC template. Keep each rule to a single
+concern.
 
 Salesforce rules cannot be edited or deleted, only toggled. Project rules override global rules when
 both cover the same ground.
@@ -127,8 +115,7 @@ Settings › **Permissions & Safety**. The session mode sets the agent's autonom
 
 **Safety guardrails apply only in Run safe defaults.** They list the shell commands that run without
 prompting, defaulting to filesystem reads, shell basics, git reads, Node/npm/pnpm and the Salesforce
-CLI. In *Ask every time* everything prompts regardless; in *Bypass* everything runs regardless — the
-guardrails are inert in both. This catches people who tune the list and then switch mode.
+CLI. In the other two modes they are inert.
 
 Scope guardrail entries to verified commands. A broad pattern like `git *` widens autonomy far more
 than it appears to.
@@ -136,9 +123,8 @@ than it appears to.
 **Auto-approve Salesforce MCP write tools** is off by default. Enabling it auto-approves
 *non-destructive* MCP writes; deploy and delete still ask.
 
-As the documentation stresses, **permission modes are not code review.** The agent can produce code
-that compiles and is wrong. Modes manage filesystem access; correctness is still
-yours.
+**Permission modes are not code review.** They manage filesystem access; the agent can produce code
+that compiles and is wrong.
 
 ## MCP inside Vibes
 
@@ -146,18 +132,18 @@ Vibes connects to MCP servers through a user-level **`mcp.json`**, with a platfo
 bundle, trust controls, and per-row reconnect. Salesforce Platform servers include **Salesforce DX**
 and the **Salesforce Hosted MCP Servers**; third-party and custom servers can be added alongside.
 
-Two servers must be activated by an admin before Vibes can use them — Setup › MCP Servers, then
-activate **`metadata-experts`** and **`salesforce-api-context`**. Once activated they are enabled in Vibes
-automatically.
+An admin must activate **`metadata-experts`** and **`salesforce-api-context`** in Setup › MCP Servers
+before Vibes can use them; once activated they are enabled in Vibes automatically.
 
 > Building and serving the org-side tools: `references/building-mcp-tools.md`.
 
 ## Model selection
 
 The model picker sits in the bottom-left of the chat. Models are grouped by provider and depend on
-what the org has configured; switching mid-conversation does **not** reset context. The tiers: most capable for multi-file work and architectural planning, balanced for everyday
-development, fastest for questions and simple generation. Token consumption differs by tier — the reason not to
-default to the largest model.
+what the org has configured; switching mid-conversation does **not** reset context. Tiers: most
+capable for multi-file work and architectural planning, balanced for everyday development, fastest
+for questions and simple generation. Token consumption differs by tier, so do not default to the
+largest model.
 
 ## Anti-Patterns
 

@@ -1,58 +1,30 @@
 # B2C Commerce — SCAPI, SLAS, Custom APIs & Composable Storefront
 
-Load from `dya-sf-b2c-commerce` for headless/API development. **OCAPI is deprecated as of April 2026** (2 years security-only, no new features); all new work uses SCAPI.
+Load from `dya-sf-b2c-commerce` for headless/API development.
 
-## SCAPI Base URL & Request Formation
-
-```
-https://{shortCode}.api.commercecloud.salesforce.com/{apiFamily}/{apiName}/{version}/organizations/{organizationId}/{resource}?siteId={siteId}
-```
+## SCAPI Base URL Parameters
 
 - `{shortCode}` — instance short code (e.g. `kv7kzm78`); the 3-char string after the 3rd underscore region of your config.
 - `{organizationId}` — e.g. `f_ecom_zzte_053`.
 - `{version}` — **`v1`** for everything **except Shopper Baskets**, which is `v1` or `v2` (use `v2` for newer features).
 - `{siteId}` — e.g. `RefArchGlobal`.
 
-Product fetch:
-
-```
-GET https://kv7kzm78.api.commercecloud.salesforce.com/product/shopper-products/v1/organizations/f_ecom_zzte_053/products/25518823M?siteId=RefArchGlobal
-Authorization: Bearer {slas_access_token}
-```
-
 Most-used API families/names: `product/shopper-products`, `product/shopper-search`, `checkout/shopper-baskets`, `checkout/shopper-orders`, `customer/shopper-customers`, `pricing/shopper-promotions`, `shopper/auth` (SLAS), `shopper/shopper-context`.
 
 ## SLAS — the Mandatory Gatekeeper
 
-Shopper APIs require a SLAS token; SLAS uses OAuth 2.1 grant types. **Public client** = browser/PWA (PKCE, no secret). **Private client** = server/BFF that can store a secret (full-stack apps and any BFF must be private clients).
+Public clients hold no secret. Full-stack apps and any BFF must be private clients.
 
-Guest token (private client, `client_credentials`, Basic auth header = `base64(clientId:clientSecret)`):
-
-```bash
-curl "$BASE/shopper/auth/v1/organizations/$ORG/oauth2/token" \
-  -su "$SLAS_CLIENT_ID:$SLAS_CLIENT_SECRET" \
-  -d 'grant_type=client_credentials'
-# → { "access_token": "...", "refresh_token": "...", "usid": "...", "customer_id": "..." }
-```
+The guest-token call returns `access_token`, `refresh_token`, `usid` and `customer_id`.
 
 Login (public client) uses the **authorization code grant + PKCE**: the app generates `code_verifier`/`code_challenge`, the shopper authenticates (optionally via a third-party IDP / SSO), then the app exchanges the code at `/token` and validates the JWT against the key set.
 
-Rules:
-- **Refresh-token reuse is prohibited for public clients** (OAuth 2.1): each `/token` call returns a new refresh token; reusing an old one → `400 invalid refresh token` (enforced since Sept 9, 2025). Persist and rotate the latest token (typically on a BFF).
-- A SLAS access token works on **any** Shopper API endpoint and can bridge to legacy OCAPI hooks during migration.
-- **Apr 28, 2026 JWT changes:** `ssc` claim (short code), CRM claim on the access token, richer `id_token` (email/name, tenant-key signed, `typ: JWT`), `/jwks` endpoint to fetch the public key.
+- Refresh-token rotation has been enforced since Sept 9, 2025. Persist and rotate the latest token, typically on a BFF.
+- The JWT changes landed on Apr 28, 2026; `/jwks` serves the public key.
 
-## Create a Basket (full headless flow start)
+## After Creating a Basket
 
-```bash
-# 1) guest token (above) → $TOKEN
-# 2) create basket
-curl "$BASE/checkout/shopper-baskets/v1/organizations/$ORG/baskets?siteId=$SITE" \
-  -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{ "productItems": [{ "productId": "682875090845M", "quantity": 1 }] }'
-# → { "basketId": "...", ... }
-# subsequent: add items, set shipping/billing, place order via shopper-baskets / shopper-orders
-```
+The create call returns `{ "basketId": "...", ... }`. Then add items, set shipping and billing, and place the order via `shopper-baskets` and `shopper-orders`.
 
 ## SDKs
 
@@ -74,11 +46,8 @@ GET https://{shortCode}.api.commercecloud.salesforce.com/custom/loyalty-info/v1/
 Authorization: Bearer {token}
 ```
 
-- Define the contract in an **OpenAPI 3.0** document (paths, params, `securitySchemes: ShopperToken`); implement each `operationId` in a **Script API** script in the cartridge. Verify cartridge structure, activate the code version, and assign the cartridge to the site.
-
-## Shopper Context (personalization without custom code)
-
-Instead of an OCAPI "Modify Response" hook, send shopper attributes (e.g. Member Level, Region) to the **Shopper Context API**; SCAPI then returns matching prices/promotions natively, preserving **object-level caching**.
+- Define the contract in an **OpenAPI 3.0** document (paths, params, `securitySchemes: ShopperToken`); implement each `operationId` in a **Script API** script in the cartridge.
+- Verify cartridge structure, activate the code version, and assign the cartridge to the site.
 
 ## Composable Storefront (PWA Kit + Managed Runtime)
 
@@ -86,24 +55,9 @@ Instead of an OCAPI "Modify Response" hook, send shopper attributes (e.g. Member
 - **Managed Runtime (MRT)** — serverless host (autoscaling, eCDN, ~100 environments out of the box, UI/API deploys + rollback). PWA Kit runs as a serverless app on MRT; an SFRA storefront can run alongside (hybrid) talking to the same instance.
 - Customize the front end in React + the commerce SDK; the backend via SCAPI hooks and Custom APIs.
 
-## SCAPI vs OCAPI
-
-| | SCAPI | OCAPI |
-|---|---|---|
-| Status | Modern, mandatory for new work | Deprecated Apr 2026 (2 yrs security-only) |
-| Caching | Object-level | Full-response |
-| Auth | SLAS (OAuth 2.1) | OAuth/JWT |
-| Personalized price | Shopper Context API | Modify Response hook |
-| Custom endpoints | Custom APIs | — |
-
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| New build on OCAPI | SCAPI |
-| Reusing a SLAS refresh token (public client) | One-time use; rotate to the new token |
-| Private-client secret in the browser | Server-side BFF |
-| Response-modifying hook for personalized price | Shopper Context API |
-| Wrong version on Shopper Baskets | `v1` or `v2` (v1 for everything else) |
 | Hand-rolling SCAPI calls | commerce-sdk / commerce-sdk-isomorphic |
 | Treating SCAPI as a stateful session API | Stateless REST |

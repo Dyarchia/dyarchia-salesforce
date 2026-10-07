@@ -1,10 +1,8 @@
 # Aura Server-Side Apex & Lightning Data Service — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations behind SKILL.md §4–§5. Load when accessing data from an Aura component. Evaluate LDS first; use `@AuraEnabled` Apex only for genuine server-side logic. Aura controllers are Apex — deep server rules live in `dya-sf-apex`.
+Load when accessing data from an Aura component. Deeper server rules live in `dya-sf-apex`.
 
 ## Lightning Data Service — `force:recordData`
-
-Load, create, save, and delete one record with no Apex, through a shared client cache that keeps other LEX components in sync.
 
 ```html
 <aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
@@ -43,11 +41,9 @@ Load, create, save, and delete one record with no Apex, through a shared client 
 })
 ```
 
-Prefer `lightning:recordForm` when you don't need custom field arrangement — even less code. Use `force:recordData` for programmatic control over load/save/delete.
+Use `force:recordData` for programmatic control over load, save and delete; otherwise `lightning:recordForm` needs less code.
 
 ## `@AuraEnabled` Controller — When LDS Can't Do It
-
-Use Apex only for multi-object queries, aggregates, cross-object logic, callouts, async, or non-UI-API objects. Declare `with sharing`, query `WITH USER_MODE`, throw `AuraHandledException`.
 
 ```java
 public with sharing class OpportunityController {
@@ -102,13 +98,12 @@ public with sharing class OpportunityController {
 })
 ```
 
-- `cacheable=true` reads → call `action.setStorable()` to serve from the client cache after the first request. Cacheable methods cannot do DML and must be `static`.
-- Writes → no `cacheable`, no `setStorable()`.
-- Always branch on `SUCCESS` / `ERROR` / `INCOMPLETE`.
+- Cacheable methods cannot do DML and must be `static`.
+- Writes take neither `cacheable` nor `setStorable()`.
 
 ## Promise Wrapper — Cleaner Async
 
-A Promise around `enqueueAction` enables `async/await` in helpers. Resolve/reject inside the action callback so the framework still controls the boundary; wrap UI mutations after `await` in `$A.getCallback` if needed.
+A Promise around `enqueueAction` enables `async/await` in helpers. Resolve/reject inside the action callback so the framework still controls the boundary; wrap UI mutations after `await` in `$A.getCallback`.
 
 ```javascript
 ({
@@ -171,12 +166,7 @@ A Promise around `enqueueAction` enables `async/await` in helpers. Resolve/rejec
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| `@AuraEnabled` Apex for single-record CRUD | `lightning:recordForm` / `force:recordData` |
-| `WITH SECURITY_ENFORCED` | `WITH USER_MODE` (removed in API 67+) |
-| `@AuraEnabled` class with no sharing keyword | `with sharing` + `WITH USER_MODE` |
 | `cacheable=true` method that does DML | Remove `cacheable`; cacheable is read-only |
 | Cacheable read without `action.setStorable()` | Add `setStorable()` to hit the client cache |
-| Handling only `SUCCESS` | Branch on `SUCCESS` / `ERROR` / `INCOMPLETE` |
 | Setting attributes after `await` without `$A.getCallback` | Wrap the mutation in `$A.getCallback` |
 | Non-bulk DML in `@AuraEnabled` | Bulk `Database.*` with `AccessLevel.USER_MODE` |
-| Returning raw exceptions to the client | `AuraHandledException` + Platform Event log |

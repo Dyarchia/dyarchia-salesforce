@@ -5,7 +5,7 @@ description: Salesforce Aura Components Winter '27 (API v68.0) modern developmen
 
 # Salesforce Aura Components — Modern Development
 
-Aura is **maintenance-mode**: you first check whether LWC is the right tool, use `lightning`-namespace
+Aura is **maintenance-mode**: first check whether LWC is the right tool, use `lightning`-namespace
 base components and never the deprecated `ui` namespace, prefer Lightning Data Service over Apex, and
 save controllers under the modern Apex security model. Follow every rule below.
 
@@ -29,8 +29,6 @@ new Aura framework capability** — Aura receives platform changes, not features
 **No retirement date has been announced.** Maintenance mode is a reason to build new work in LWC, not
 a deadline. Do not imply one.
 
-Four platform changes reach Aura:
-
 - **An `@AuraEnabled` controller is Apex**, so the API 67.0 defaults apply: an omitted sharing
   declaration becomes `with sharing`, and SOQL, SOSL and DML default to `USER_MODE`. §5, `dya-sf-apex`,
   `dya-sf-permissions`.
@@ -43,7 +41,7 @@ relevant only for telephony.
 
 ---
 
-## 1. The First Question — Should This Be Aura At All?
+## 1. Aura or LWC
 
 Stop at the first row that fits.
 
@@ -54,18 +52,18 @@ Stop at the first row that fits.
 | Maintaining / extending an **existing** Aura component | Aura | YES |
 | Need to **wrap an LWC** so it can sit in an Aura-only context | Aura wrapper around LWC | YES |
 
-LWC has closed almost every historical reason to choose Aura — quick actions, utility bar, Flow and
-Community contexts, dynamic component creation. Assume LWC unless you can name the specific gap, and
-when you do build Aura, comment why LWC was insufficient.
+LWC has closed almost every reason to choose Aura — quick actions, utility bar, Flow and Community
+contexts, dynamic component creation. Assume LWC unless you can name the gap, and when you build
+Aura, comment why LWC was insufficient.
 
-**Aura can contain LWC; LWC cannot contain Aura.** Migration is therefore always "wrap or replace
-Aura with LWC", never the reverse.
+**Aura can contain LWC; LWC cannot contain Aura.** Migration therefore wraps or replaces Aura with
+LWC, never the reverse.
 
 ---
 
 ## 2. Base Components — `lightning` Namespace Only
 
-`lightning`-namespace components implement SLDS, accessibility and internationalisation for you.
+`lightning`-namespace components implement SLDS, accessibility and internationalisation.
 
 ```html
 <!-- ✅ -->
@@ -104,7 +102,7 @@ legacy; Aura has supported hooks since Summer '24.
 <aura:attribute name="recordId" type="Id" />
 ```
 
-Always declare a `type`. Use `access="private"` for internal state, `access="public"` (the default)
+Declare a `type`. Use `access="private"` for internal state, `access="public"` (the default)
 only for the component's API, and `description` on every public attribute.
 
 ### Bound vs unbound expressions
@@ -165,8 +163,7 @@ Stop at the first that fits.
 
 The first three share the Lightning Data Service cache with LWC and the rest of Lightning
 Experience, so an edit through them refreshes every other component on the page. **Hand-rolled Apex
-CRUD does not** — the strongest reason to exhaust LDS first. Full `force:recordData` pattern
-in `references/server-and-lds.md`.
+CRUD does not.** Full `force:recordData` pattern in `references/server-and-lds.md`.
 
 ---
 
@@ -229,7 +226,7 @@ the first call. Full `$A.enqueueAction` and Promise-wrapper patterns in
 
 ## 6. Events — Component Events Before Application Events
 
-Choosing wrong here is the most common Aura architecture mistake. Prefer in this order:
+Prefer in this order:
 
 ```text
 1. aura:method            parent calls a child's method synchronously (parent → child)
@@ -239,8 +236,7 @@ Choosing wrong here is the most common Aura architecture mistake. Prefer in this
                           hierarchy. Expensive, hard to trace, easy to over-fire
 ```
 
-For cross-technology or cross-tree communication, use **Lightning Message Service**, not an
-application event. Full register/fire/handle implementations, `aura:method` and LMS-from-Aura:
+Full register/fire/handle implementations, `aura:method` and LMS-from-Aura:
 `references/events-and-communication.md`.
 
 ---
@@ -289,20 +285,18 @@ handlers.
 })
 ```
 
-Build the child in LWC and keep the Aura wrapper thin — that is the migration direction. Embedding
-Aura inside LWC is not supported.
+Build the child in LWC and keep the Aura wrapper thin.
 
 ---
 
 ## 9. Security and Error Handling
 
 - **Lightning Web Security** superseded Locker Service and is enforced. It distorts or blocks risky
-  browser APIs, so avoid non-standard ones and test under LWS.
-- **`@AuraEnabled`**: `with sharing`, CRUD/FLS through `WITH USER_MODE`, and
-  `Security.stripInaccessible` for variable-FLS reads. See `dya-sf-apex` §3.
+  browser APIs: avoid non-standard ones and test under LWS.
+- **`@AuraEnabled`** reads with variable FLS use `Security.stripInaccessible`; see `dya-sf-apex` §3.
 - **Never return a raw exception to the client.** Throw `AuraHandledException` with a clean message
   and report the real cause through whatever the org already uses (`dya-sf-apex` §11).
-- **Handle `INCOMPLETE`** — offline or lost connection — as well as `ERROR`.
+- **`INCOMPLETE`** means offline or a lost connection.
 
 ```java
 // ✅ — clean message to the client, real cause kept server-side

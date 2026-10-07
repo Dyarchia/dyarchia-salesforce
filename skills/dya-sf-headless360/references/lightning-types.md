@@ -1,16 +1,13 @@
 # Lightning Types — Reference (Winter '27 / API v68.0)
 
 Load from `dya-sf-headless360` when building the structured interactions the Experience Layer renders.
-Lightning Types are what "define once, render natively everywhere" is made of.
 
 ## What they are
 
-**JSON-based data types that structure, validate and display data.** A Lightning type describes the
-shape of what an agent or app returns and carries the UI for editing and rendering it, so one
-definition can surface as a Slack block, a mobile card or an in-app component without a
-per-channel rebuild.
+A Lightning type describes the shape of what an agent or app returns and carries the UI for editing
+and rendering it.
 
-**Standard types** ship with the platform, each with a default editor and renderer:
+**Standard types**, each with a default editor and renderer:
 
 ```text
 lightning__booleanType     lightning__numberType
@@ -26,8 +23,8 @@ lightning__urlType
 Each has type-specific keywords, much like JSON Schema. **Support varies by application** — check
 before assuming a type renders everywhere.
 
-**Custom types** override the default interface for complex interactions. They are metadata:
-**`LightningTypeBundle`**, available from **API version 64.0**.
+**Custom types** (`LightningTypeBundle`, **API version 64.0**+) override the default interface for
+complex interactions.
 
 ## Bundle structure
 
@@ -54,20 +51,20 @@ before assuming a type renders everywhere.
   **`renderer.json` is not supported in `experienceBuilder`.**
 
 **HXL widgets (Beta) invert this.** When a custom type references a widget, put `renderer.json` at
-the **root**, parallel to `schema.json`, with **no channel folder and no `editor.json`**. The channel-folder
-pattern here fails quietly.
+the **root**, parallel to `schema.json`, with **no channel folder and no `editor.json`**. The
+channel-folder pattern fails quietly there.
 
 The Connect REST resource `/connect/lightning-types` lists the custom and standard types deployed
 in an org.
 
-## Apex-backed custom types — the requirements that bite
+## Apex-backed custom types
 
 These exist because of namespaced orgs and managed packages; skipping them fails at invocation, not
 at deploy.
 
 - **Top-level classes only.** Every class in its own file; **no inner classes**.
-- **`global` visibility on all of them.** `public` or `private` causes failures in namespaced orgs and
-  managed packages.
+- **`global` visibility on all of them.** `public` or `private` fails in namespaced orgs and managed
+  packages.
 - **`@AuraEnabled` on every field** required in the response, including fields inside objects used as
   an `@InvocableVariable`.
 - **`@JsonAccess(serializable='always' deserializable='always')` on every class**, so the internal
@@ -81,13 +78,12 @@ classes.
 
 > **If an agent action was created before the Apex met these requirements, delete and recreate the
 > action after fixing the classes.** Updating the Apex alone does not re-register the change; the
-> symptom is an action that keeps its old behaviour.
+> action keeps its old behaviour.
 
 ## When to use them
 
-Use Lightning Types when the **same capability must appear across several channels** — the point of
-separating definition from rendering. When the target is only Lightning Experience, a plain LWC is
-simpler and better supported; see `dya-sf-lwc`.
+When the target is only Lightning Experience, a plain LWC is simpler and better supported; see
+`dya-sf-lwc`.
 
 ## Anti-Patterns
 

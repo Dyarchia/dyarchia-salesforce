@@ -22,16 +22,6 @@ an admin can enable one but cannot change its contents.
 Each custom server has its **own URL**, so different teams point at different tool sets without
 separate OAuth apps or orgs.
 
-## Why curation is the design, not housekeeping
-
-MCP clients have practical limits on how many tools they handle. **Past a few dozen tools an AI
-client starts choosing badly.** In the documentation's analogy, every MCP tool across the platform is
-a **buffet**; a server is the **plate** curated for one persona. Every dish does not fit on one
-plate, and would not be useful there.
-
-It is the same shape as Lightning page composition: contributors add capability without knowing who
-will use it, and admins assemble a focused experience from it.
-
 ## The five backing types for a custom tool
 
 | Backing type | Requirement | Use it for |
@@ -42,34 +32,22 @@ will use it, and admins assemble a focused experience from it.
 | **Apex REST** | A `@RestResource` class | Existing custom REST endpoints on the platform |
 | **API Catalog endpoint** | Registered in the API Catalog | Standard platform APIs and a growing subset of Connect APIs — coverage is still expanding |
 
-The `@AuraEnabled` route is the one people miss: if the org has Lightning controllers, much of its
-capability is already agent-addressable.
+### The tool schema
 
-### What the tool schema is made of
+The method's input and output variables define the tool's parameter schema:
 
-**The method's input and output variables define the tool's parameter schema.** Two consequences:
-
-- **Complex or nested types make a tool hard for an agent to call correctly.** Flatten the signature
-  for reliable use.
+- **Flatten complex or nested types** so an agent can call the tool reliably.
 - **Changing the underlying Apex — adding a parameter, changing a type — requires updating the tool
-  configuration in Setup.** It does not resync; the failure is an agent calling with a stale
-  schema.
+  configuration in Setup.** Otherwise the agent calls with a stale schema.
 
 For a Flow-backed tool, the server generates the schema from the flow's input and output variables,
 launches the flow server-side, and returns the outputs.
 
-### Security is not special-cased
+### Security
 
-Tools **run as the authenticated user**. Governor limits, sharing rules and field permissions apply
-exactly as for any execution by that user — see `dya-sf-permissions` and
-`references/shared/governor-limits.md`. Exposing something as an MCP tool neither widens nor narrows
-it: if the user can do it, the agent can.
-
-## Tool descriptions are the routing logic
-
-A tool's name and description matter as much as the implementation: an AI client reads them to
-decide whether to call it. Same discipline as an Agentforce action description — see
-`dya-sf-agentforce`.
+Governor limits, sharing rules and field permissions apply exactly as for any execution by the
+authenticated user — see `dya-sf-permissions` and `references/shared/governor-limits.md`. Exposing
+something as an MCP tool neither widens nor narrows it: if the user can do it, the agent can.
 
 ## Connecting a client
 
@@ -83,7 +61,7 @@ External Client App), with OAuth enabled and a callback URL that depends on the 
 | Postman | `https://oauth.pstmn.io/v1/callback`, or `https://oauth.pstmn.io/v1/browser-callback` in the browser version |
 | ChatGPT | Copy it from ChatGPT's Advanced settings |
 
-A failed authorisation is usually a callback-URL mismatch, not a scope problem — check that first.
+A failed authorisation is usually a callback-URL mismatch, not a scope problem; check that first.
 
 For production, the app supports requiring client secrets (web-based clients), restricting to
 specific users, restricting by IP, shortening the token lifecycle, and single logout. See
@@ -93,7 +71,6 @@ specific users, restricting by IP, shortening the token lifecycle, and single lo
 
 | Anti-Pattern | Correct approach |
 |---|---|
-| Exposing everything on one server | Curate per persona; past a few dozen tools the client chooses badly |
 | Trying to edit a standard server | They are immutable — build a custom server |
 | Assuming only Flow, Apex Action and Apex REST can back a tool | `@AuraEnabled` methods and API Catalog endpoints also can |
 | A screen or scheduled flow as a tool | Autolaunched only, with defined inputs and outputs |

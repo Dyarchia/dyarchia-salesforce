@@ -1,16 +1,16 @@
 # B2C Commerce — SFRA, Script API, Hooks, Jobs (server-side)
 
-Load from `dya-sf-b2c-commerce`. Server-side development: cartridges, controllers, `dw.*` Script API, ISML, hooks, jobs. The runtime is JavaScript on the Rhino-based Script API — **not** Node.js, **not** Apex.
+Load from `dya-sf-b2c-commerce`.
 
 ## Cartridges & the Cartridge Path
 
 - A **cartridge** packages controllers, scripts, templates, static assets, and config.
-- The **cartridge path** (per site, left-to-right; leftmost wins) layers your cartridge **before** `app_storefront_base`. **Never edit the base cartridge** — override it with a file in your cartridge.
+- Override a base-cartridge file with a same-path file in your cartridge.
 - Scaffold with `sgmf-scripts` (`sgmf-scripts --help`; `createCartridge`). Deploy by uploading and activating a **code version** (B2C CLI / `dw.json`).
 
 ## Controllers (SFRA)
 
-CommonJS modules exposing routes via `server.get/post(name, ...middleware)`. Build view data and `res.render('template', data)` or `res.json(data)`.
+Routes take `server.get/post(name, ...middleware)`; respond with `res.render('template', data)` or `res.json(data)`.
 
 ```javascript
 'use strict';
@@ -25,8 +25,6 @@ server.get('Show', function (req, res, next) {
 });
 module.exports = server.exports();
 ```
-
-Extend base controllers — never copy them:
 
 ```javascript
 'use strict';
@@ -43,19 +41,17 @@ server.append('Show', function (req, res, next) {      // augment view data afte
 module.exports = server.exports();
 ```
 
-> Caution: `server.append` can re-execute logic — don't run the controller twice when appending and rendering.
+> `server.append` can re-execute logic; do not run the controller twice when appending and rendering.
 
 ## Script API (`dw.*`)
 
-`Mgr` classes retrieve business objects. Common packages/classes:
+`Mgr` classes retrieve business objects.
 - `dw/catalog` — `ProductMgr.getProduct(id)`, `CatalogMgr`, `Product`, price/availability models.
 - `dw/order` — `BasketMgr.getCurrentBasket()` / `getCurrentOrNewBasket()`, `OrderMgr`, `Basket`, `Order`.
 - `dw/customer` — `CustomerMgr`, `Customer`, `Profile`.
 - `dw/system` — `Transaction`, `Site`, `Logger`, `HookMgr`, `Status`, `CacheMgr`.
 - `dw/web` — `URLUtils`, `Resource` (i18n).
 - `dw/util` — collections, `Calendar`, `HashMap`.
-
-Wrap DML in a transaction:
 
 ```javascript
 var Transaction = require('dw/system/Transaction');
@@ -67,15 +63,15 @@ Transaction.wrap(function () {
 });
 ```
 
-> Hybrid sites: do **not** use `getCurrentOrNewBasket()` for basket creation; create via SCAPI `POST .../baskets`. `getCurrentBasket()` inside a read-only hook (`beforeGet`/`modifyResponse`) won't update the last-modified date.
+> `getCurrentBasket()` inside a read-only hook (`beforeGet`/`modifyResponse`) won't update the last-modified date.
 
 ## ISML Templates
 
-Server-rendered `.isml`; keep **logic-light** — compute in controllers/models, render in ISML. Use `<isloop>`, `<isif>`, `<isset>`, `<isinclude>`, `<isscript>`, and `${...}`. Embedding Script API calls in ISML via `<isscript>`/`<isset>` is possible but **not recommended**.
+Server-rendered `.isml`; compute in controllers/models, render in ISML. Tags: `<isloop>`, `<isif>`, `<isset>`, `<isinclude>`, `<isscript>`, and `${...}`. Script API calls via `<isscript>`/`<isset>` work but are **not recommended**.
 
 ## Hooks
 
-CommonJS modules registered for extension points; logic applies to controller and API paths. Functions must be exported.
+Hook functions must be exported.
 
 ```json
 // hooks.json
@@ -103,11 +99,9 @@ exports.beforePUT = function (basket, doc) {
 };
 ```
 
-Rules: all registered modules for an extension point run across the cartridge path; **order isn't guaranteed**, and **only the last hook returns a value** (all still execute). Use `HookMgr.callHook(extensionPoint, function, args...)` to invoke custom hooks.
+Signature: `HookMgr.callHook(extensionPoint, function, args...)`. Every registered hook still executes even though only the last returns a value.
 
 ## Jobs Framework
-
-Custom job steps for batch/scheduled work. Two module shapes:
 
 **Task-oriented** — one function runs the step:
 
@@ -134,8 +128,6 @@ exports.write = function (chunkList) { /* persist the chunk */ };
 exports.afterStep = function (success, parameters, stepExecution) { return new Status(Status.OK); };
 ```
 
-Register in **`steptypes.json`** at the cartridge root (one per cartridge):
-
 ```json
 { "step-types": {
   "chunk-script-module-step": [{
@@ -153,18 +145,11 @@ Register in **`steptypes.json`** at the cartridge root (one per cartridge):
 }}
 ```
 
-Constraints and practices: explicit transactions are limited to **1,000 modified business objects**; design loops so memory doesn't grow with result-set size; use `getTotalCount` to show progress; use standard imports over custom logic; iterate/run from the B2C CLI `job` commands. `steptypes.json` is parsed at server startup, on code-version change, and (on sandboxes) each run.
+Use `getTotalCount` to show progress; prefer standard imports over custom logic. `steptypes.json` is parsed at server startup, on code-version change, and (on sandboxes) each run.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Editing `app_storefront_base` | Override via cartridge path |
-| Copying a base controller | `server.append/prepend/replace` |
 | Re-running the controller via append+render | Append only view data, render once |
-| Business logic in ISML | Controllers/models compute; ISML renders |
 | DML without `Transaction.wrap` | Wrap data changes in a transaction |
-| `getCurrentOrNewBasket()` in hybrid | SCAPI `POST .../baskets` |
-| Relying on hook order / multiple return values | Order undefined; only the last returns |
-| Row-by-row job over huge data | Chunk module; ≤1,000 objects/transaction |
-| Treating this like Node.js/Apex | It's the B2C Commerce Script API runtime |

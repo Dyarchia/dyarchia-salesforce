@@ -21,12 +21,11 @@ References:
 - **Two storefront architectures coexist:** **SFRA** (Storefront Reference Architecture — controller
   and cartridge MVC, successor to SiteGenesis) and the **Composable Storefront** (headless **PWA
   Kit** on **Managed Runtime**, React, talking to SCAPI).
-- **OCAPI is deprecated since April 2026.** Under the deprecation policy it keeps security updates,
-  without new features, for two years (until roughly April 2028). **New implementations use SCAPI
-  exclusively**; existing OCAPI integrations need a migration plan.
-- **SCAPI is the modern API; SLAS is its mandatory gatekeeper.** Shopper APIs require a **SLAS**
-  token. SLAS grants (OAuth 2.1): guest uses client credentials; login and federated use auth code
-  plus PKCE.
+- **OCAPI is deprecated since April 2026.** It keeps security updates, without new features, for
+  two years (until roughly April 2028). **New implementations use SCAPI exclusively**; existing
+  OCAPI integrations need a migration plan.
+- **SCAPI is the modern API; its Shopper APIs require a SLAS token.** SLAS grants (OAuth 2.1): guest
+  uses client credentials; login and federated use auth code plus PKCE.
 - **SLAS refresh-token reuse is prohibited** for public clients under OAuth 2.1 (enforced since
   September 2025). Each `/token` call issues a new refresh token; reusing an old one returns
   `400 invalid refresh token`.
@@ -34,8 +33,8 @@ References:
   token, an improved `id_token` (email and name, tenant-key signed, `typ: JWT`), and a `/jwks`
   endpoint for signature verification. Verify signatures against `/jwks`; never trust a token because
   it parsed.
-- **The server-side language is JavaScript** on the Rhino-based B2C Commerce Script API — not
-  Node.js, not Apex.
+- **The server-side language is JavaScript** on the Rhino-based Script API — not Node.js, not
+  Apex.
 
 ---
 
@@ -47,18 +46,17 @@ References:
 | **Composable Storefront** | Headless React (PWA Kit) on Managed Runtime, via SCAPI | Modern headless, custom front-end |
 | **Hybrid** | SFRA for some pages (e.g. checkout), PWA Kit for others (PDP/PLP); **Hybrid Auth** keeps the `dwsid` and SLAS JWT in sync (25.3+) | Incremental migration to headless |
 
-Salesforce invests most in the **Composable Storefront**; SFRA remains fully supported. In hybrid,
-**never** use `BasketMgr.getCurrentOrNewBasket()` (§3).
+Salesforce invests most in the **Composable Storefront**; SFRA remains fully supported.
 
 ---
 
 ## 2. SFRA / Cartridges (server-side, `dw.*`)
 
 - **Cartridges** are the unit of code and deployment. The per-site **cartridge path** resolves left
-  to right, leftmost wins: place your cartridge **before** `app_storefront_base`. **Never modify the
+  to right, leftmost wins: place yours **before** `app_storefront_base`. **Never modify the
   base cartridge**; override on the path.
 - **Controllers** are CommonJS modules exposing routes via `server.get/post(...)`. Extend base
-  controllers with `server.append`, `server.prepend` or `server.replace`, never by copying one whole.
+  controllers with `server.append`, `server.prepend` or `server.replace`, never by copying one.
 - **Script API** (`dw.*`): `dw/catalog/ProductMgr`, `dw/order/BasketMgr`, `dw/customer/CustomerMgr`,
   `dw/system/{Transaction, Site, Logger, HookMgr, Status}`, `dw/web/{URLUtils, Resource}`. Wrap data
   changes in `dw.system.Transaction`.
@@ -102,7 +100,7 @@ Full controller, Script API, hook and job patterns: `references/sfra-cartridges.
 ## 3. Hooks — Extend Without Forking
 
 Hooks are CommonJS modules registered in `hooks.json` or `package.json` that run at extension points,
-so the logic applies to **both** controller and API paths:
+on **both** controller and API paths:
 
 ```json
 { "hooks": [
@@ -114,8 +112,8 @@ so the logic applies to **both** controller and API paths:
 - `dw.order.calculate` — custom basket and order calculation: tax, promotions.
 - **OCAPI hooks** (`dw.ocapi.shop.*`) and **SCAPI hooks** customise API request and response; call
   custom hooks with `dw.system.HookMgr.callHook(...)`.
-- **All** modules registered for an extension point run, across the cartridge path. You **cannot
-  control the order**; **only the last hook returns a value**.
+- **All** modules registered for an extension point run, across the cartridge path, in an order you
+  **cannot control**; **only the last hook returns a value**.
 
 > **Hybrid note:** on Phased Launch sites (SFRA + PWA Kit), never create baskets with
 > `BasketMgr.getCurrentOrNewBasket()`. Create them via SCAPI `POST .../baskets`; retrieve with
@@ -125,10 +123,9 @@ so the logic applies to **both** controller and API paths:
 
 ## 4. Jobs Framework
 
-Batch and scheduled work — imports, feeds, indexing — runs as **custom job steps**:
+Batch and scheduled work (imports, feeds, indexing) runs as **custom job steps**:
 
-- Write a **task-oriented** or **chunk-oriented** CommonJS module, best placed in
-  `cartridge/scripts/steps`.
+- Write a **task-oriented** or **chunk-oriented** CommonJS module, ideally in `cartridge/scripts/steps`.
 - Register it in **`steptypes.json`** at the cartridge root (one per cartridge), describing the step,
   its parameters and exit statuses. Upload on the cartridge path, then create the job in Business
   Manager or run it with the B2C CLI `job` commands.
@@ -144,8 +141,6 @@ Full job module shapes: `references/sfra-cartridges.md`.
 
 ## 5. SCAPI — Real Endpoint Structure (and SLAS)
 
-Base URL pattern:
-
 ```
 https://{shortCode}.api.commercecloud.salesforce.com/{apiFamily}/{apiName}/{version}/organizations/{organizationId}/{resource}?siteId={siteId}
 ```
@@ -157,7 +152,7 @@ GET https://kv7kzm78.api.commercecloud.salesforce.com/product/shopper-products/v
 Authorization: Bearer {slas_access_token}
 ```
 
-Guest token from a SLAS private client — the secret stays server-side — then create a basket:
+Guest token from a SLAS private client (secret stays server-side), then a basket:
 
 ```bash
 # 1) Guest token (client_credentials, Basic auth = base64(clientId:clientSecret))
@@ -171,9 +166,9 @@ curl "$BASE/checkout/shopper-baskets/v1/organizations/$ORG/baskets?siteId=$SITE"
   -d '{ "productItems": [{ "productId": "682875090845M", "quantity": 1 }] }'
 ```
 
-- **SLAS is mandatory** for Shopper APIs; one token works across every Shopper API endpoint.
-- **Public client** means browser or PWA with PKCE; **private client** means a server or BFF holding
-  the secret. Never ship the secret to the browser.
+- One SLAS token works across every Shopper API endpoint.
+- **Public client**: browser or PWA with PKCE. **Private client**: a server or BFF holding the
+  secret, which never reaches the browser.
 - A SLAS access token can bridge to legacy OCAPI hooks during migration.
 
 Full endpoint families, Custom APIs, Shopper Context and Composable Storefront:
@@ -191,8 +186,8 @@ Full endpoint families, Custom APIs, Shopper Context and Composable Storefront:
 | Families | Shopper APIs + Admin APIs + **Custom APIs** | Shop + Data APIs |
 | Personalized price | **Shopper Context API** (no custom code) | "Modify Response" hook (server script) |
 
-Personalise price and promotions by member level or region with **Shopper Context** rather than
-response-modifying hooks: it preserves object-level caching.
+**Shopper Context** personalises price and promotions by member level or region and, unlike
+response-modifying hooks, preserves object-level caching.
 
 ---
 

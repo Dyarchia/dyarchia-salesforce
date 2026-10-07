@@ -5,9 +5,9 @@ description: Salesforce Omni-Channel and Service Cloud routing (Winter '27 / API
 
 # Salesforce Omni-Channel
 
-Omni-Channel decides **which agent gets which piece of work**. Its job starts where a conversation,
-case or call needs a human and ends when that human accepts it. Designing the agent that handles the
-conversation before then is `dya-sf-agentforce`; this skill is the routing layer underneath. Digital Engagement channel setup, ITSM object models and the
+Omni-Channel decides **which agent gets which piece of work**. Its job starts when a conversation,
+case or call needs a human and ends when that human accepts it. The agent that handles the
+conversation before then is `dya-sf-agentforce`'s. Digital Engagement channel setup, ITSM object models and the
 Service Console's UI are out of scope. Follow every rule below.
 
 References:
@@ -22,8 +22,8 @@ References:
 
 ## Platform Context — Winter '27 / API v68.0
 
-Omni-Channel's programmatic surface is metadata and Tooling API, not Apex: you configure it and
-rarely code against it. The one place code lives is the routing flow.
+Omni-Channel's programmatic surface is metadata and Tooling API, not Apex. The only code lives in
+the routing flow.
 
 | Change | Status | Notes |
 |---|---|---|
@@ -37,9 +37,7 @@ The `AiAgentDefinition` / `AiAgentDefinitionVersion` metadata types that carry a
 
 ---
 
-## 1. The Routing Chain — Learn It In Order
-
-Every Omni-Channel question resolves to "where in this chain is it stuck".
+## 1. The Routing Chain
 
 ```text
 a work item        a Case, Lead, Order, MessagingSession, VoiceCall, or custom object record
@@ -55,21 +53,21 @@ PendingServiceRouting  a transient record: this item is waiting to be assigned
 AgentWork             the assignment itself, and the audit trail of it
 ```
 
-On the agent's side, two objects decide whether they can receive anything:
+Two agent-side objects decide whether an agent can receive work:
 
 ```text
 ServicePresenceStatus   the statuses an agent can select (Available - Chat, Busy, …)
 PresenceUserConfig      which statuses this agent may use, and their capacity
 ```
 
-**Diagnosis follows the chain.** Work not routing is one of, checked in this order: no
+**Diagnose along the chain.** Work not routing is one of, in this order: no
 `ServiceChannel` for the sObject, the queue does not accept it (`QueueSobject`), no
 `QueueRoutingConfig` on the queue, no agent in an available status, or every eligible agent at
 capacity.
 
 ---
 
-## 2. Turn It On First, Or Everything Below Fails
+## 2. Enable Omni-Channel First
 
 `Settings:OmniChannel` carries five toggles:
 
@@ -82,8 +80,8 @@ capacity.
 | `enableOmniAutoLoginPrompt` | Prompting an agent to go online at login |
 
 **With `enableOmniChannel = false`, every downstream metadata type rejects with `INVALID_TYPE`.**
-The error names the type being deployed, not the setting, so it reads as a malformed deploy. Deploy
-the setting first, in its own step, and confirm it.
+The error names the deployed type, not the setting. Deploy the setting first, in its own step, and
+confirm it.
 
 `enableOmniAutoLoginPrompt` deploys and round-trips cleanly but **does not currently drive the UI
 radio**. Do not debug why the prompt is absent.
@@ -92,11 +90,11 @@ radio**. Do not debug why the prompt is absent.
 
 ## 3. `routeWork` — the Agentforce Seam
 
-The `routeWork` Flow action pushes a record into routing from automation; it is the boundary between
-`dya-sf-agentforce` and this skill. An agent that cannot help calls it; a queue that an agent rather
+The `routeWork` Flow action pushes a record into routing from automation; it is the boundary with
+`dya-sf-agentforce`. An agent that cannot help calls it; a queue that an agent rather
 than a person should handle routes through it too.
 
-Its targets are mutually exclusive — pass exactly one:
+Pass exactly one target:
 
 | Target | Routes to |
 |---|---|
@@ -108,42 +106,40 @@ Its targets are mutually exclusive — pass exactly one:
 | **`digitalWorkerId`** | An Agentforce Orchestrator digital worker |
 | `externalConversationBotId` | An external conversation bot |
 
-The last three matter for modern design: routing is no longer only human-to-human, so **escalation
-from an agent to a person and delegation from a person to an agent use the same action**. Model both
-directions; the agent is not a terminal node.
+**Escalation from an agent to a person and delegation from a person to an agent use the same
+action.** Model both directions; the agent is not a terminal node.
 
 > Full parameter list, the flow process types that carry it, and the error taxonomy:
 > `references/omni-flow-deploy.md`.
 
 ---
 
-## 4. Capacity — the Model Changed, and the Field Moved
+## 4. Capacity
 
-Capacity decides when an agent is full. Two models:
+Capacity decides when an agent is full.
 
 - **Tab-based** (`capacityModel: TAB_BASED`) — each open work item costs its channel's weight.
 - **Status-based** (`STATUS_BASED`, needs `enableOmniStatusCapModel`) — capacity is per presence
-  status, which handles an agent who can take three chats *or* one call but not both.
+  status, for an agent who can take three chats *or* one call but not both.
 
 **Per-agent capacity totals live on `PresenceUserConfig.Capacity`,** not on the channel. The channel
-declares the *cost* of one item; the user config declares the *budget*. `capacityWeight` no longer
-exists on `ServiceChannel` — see `references/omni-gotchas.md`.
+declares the *cost* of one item; the user config declares the *budget*. `capacityWeight` is gone from
+`ServiceChannel` — see `references/omni-gotchas.md`.
 
 ---
 
 ## 5. Skills-Based Routing
 
 Attribute-based routing matches a work item's required skills against agents' skills instead of
-routing to whoever is next.
+taking whoever is next.
 
 - `QueueRoutingConfig.IsAttributeBased = true` switches a queue to it.
 - `WorkSkillRouting` declares which skills a work item needs.
 - `SkillUser` grants a skill, at a level, to a user.
 
 Use it where the wrong agent means a transfer rather than a slower answer — language, product line,
-regulatory certification. It is not a general quality mechanism: each required skill narrows the
-eligible pool, and an item matching nobody currently available waits rather than routing to a
-competent generalist.
+regulatory certification. It is not a quality mechanism: each required skill narrows the eligible
+pool, and an item matching nobody available waits rather than routing to a competent generalist.
 
 ---
 
