@@ -32,8 +32,8 @@ Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
 
 - **`AiAgentDefinition` / `AiAgentDefinitionVersion` are GA at 68.0, and both orgs must be on 68.0.**
   A deploy from a 68.0 sandbox into a 67.0 org carries neither, silently.
-- **The 24 additional conversation languages are Beta.** Check the list before promising a
-  language.
+- **The 24 additional conversation languages are Beta**, not for production. Check the list
+  before promising a language.
 - **An Apex action is Apex**, so it inherits the 67.0+ security defaults: `with sharing` and
   `USER_MODE`, and `WITH SECURITY_ENFORCED` no longer compiles. See §4 and `dya-sf-apex`.
 - **Since April 2026 a Topic is a subagent.** Functionality is unchanged; older documentation,
@@ -228,7 +228,7 @@ ungrounded answers.
 An **orchestrator** agent routes to **specialist subagents** by reading their descriptions and
 actions — reasoning, not a hard-coded map.
 
-- Make agent and subagent descriptions precise.
+- Make agent and subagent descriptions precise and non-overlapping.
 - Keep each subagent to one domain; overlapping scopes cause mis-routing, the seam problem.
 - Subagents can be backed by Apex, Flow and Prompt Template actions independently.
 - Interop standards A2A and MCP let agents coordinate with tools and other agents.
@@ -284,7 +284,7 @@ actions — reasoning, not a hard-coded map.
 ## Summary — The Five Commandments
 
 1. **Descriptions are the program** — Atlas routes by reading subagent and action descriptions; write them like code.
-2. **Determinism where it matters** — Agent Script and Apex actions for business-critical logic; the LLM handles only the fuzzy, conversational parts.
+2. **Determinism where it matters** — Agent Script and Apex actions for business-critical logic; let the LLM handle only the fuzzy, conversational parts.
 3. **Ground everything** — Data 360 / retrievers / MCP for trusted, permission-aware context; prefer grounding over fine-tuning.
 4. **Actions are Apex citizens** — bulkified, `with sharing`, `WITH USER_MODE`, structured errors; narrow and single-purpose.
 5. **Test, evaluate, observe, and trust** — batch tests + Custom Scoring Evals before launch, Session Tracing after; the Einstein Trust Layer and least-privilege profiles on every path.

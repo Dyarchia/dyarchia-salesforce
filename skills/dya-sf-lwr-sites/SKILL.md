@@ -15,7 +15,7 @@ References:
   runs under. **Read before hardening anything.**
 - `references/shared/platform-deltas.md` — release-coupled facts behind the rules here.
 - `references/site-provisioning.md` — creating a site through the Connect API, the source layout,
-  and the activate-then-publish sequence before anyone can reach it.
+  and the activate-then-publish sequence a new site needs before anyone can reach it.
 - `references/guest-and-seo.md` — guest-user hardening procedure and SEO setup (slugs, sitemaps,
   robots.txt) for a production LWR site.
 
@@ -68,8 +68,8 @@ Existing Aura template site                   Stays Aura — migration is a rebu
 React or Angular SPA hosted on Salesforce     UI Bundle (Hyperforce only; packages as 2GP)
 ```
 
-Aura-to-LWR is a **rebuild** of components, theme and
-navigation, not a setting.
+Pick **enhanced LWR** for new builds unless there is a reason not to. Aura-to-LWR is a **rebuild**
+of components, theme and navigation, not a setting.
 
 ---
 

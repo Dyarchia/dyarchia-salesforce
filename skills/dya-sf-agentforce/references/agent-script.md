@@ -113,8 +113,8 @@ access:
     default_agent_user: "service@example.com"
 ```
 
-**This is the security boundary**: the agent runs in that
-user's context, and their permissions decide what it can reach. See `dya-sf-permissions`.
+**This is the security boundary**: the agent runs in that user's context, and their permissions
+decide what it can reach. See `dya-sf-permissions`.
 
 ### `variables` — state that does not depend on LLM memory
 

@@ -87,7 +87,8 @@ sf community publish --name "My Site" --target-org <alias>
 ## The login path
 
 An Aura employee or customer site serves at the `/s`-style path and logs in at
-`…/<prefix>/login` or `…/<prefix>/s/login` — **not** at the bare `…/<prefix>`.
+`…/<prefix>/login` or `…/<prefix>/s/login` — **not** at the bare `…/<prefix>`. A bare prefix that
+returns nothing useful does not mean the site is broken.
 
 ## The source layout
 

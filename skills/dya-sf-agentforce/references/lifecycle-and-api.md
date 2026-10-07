@@ -10,8 +10,9 @@ In Apex, call the agent's **Invocable Action** (its API name is on the agent's d
 
 ## Agent API — Headless Conversations (REST)
 
-Every endpoint below is against `https://api.salesforce.com/einstein/ai-agent/v1` — a Salesforce-wide host, **not** your My
-Domain URL, which appears separately inside the session payload.
+Every endpoint below is against `https://api.salesforce.com/einstein/ai-agent/v1` — a
+Salesforce-wide host, **not** your My Domain URL, which appears separately inside the session
+payload.
 
 ### 0. Get the agent id
 
@@ -118,7 +119,7 @@ sf agent preview end   --session-id <id>
 | **Testing Center** | UI (Agent Builder) | Simulate scenarios with initial state + custom/standard context variables |
 | **Testing API** | REST | Batch-test many utterances programmatically; automate before activation |
 | **Evaluations** | CLI (Beta) | YAML/JSON-defined eval suites run headlessly |
-| **Custom Scoring Evals** | UI/API | Grade *decision quality*, not just whether an action ran |
+| **Custom Scoring Evals** | UI/API | Grade *decision quality*, not only whether an action ran |
 | **A/B Testing API** | REST | Compare agent versions against real production traffic |
 
 What to test, separately:

@@ -296,7 +296,7 @@ Build the child in LWC and keep the Aura wrapper thin.
 - **`@AuraEnabled`** reads with variable FLS use `Security.stripInaccessible`; see `dya-sf-apex` §3.
 - **Never return a raw exception to the client.** Throw `AuraHandledException` with a clean message
   and report the real cause through whatever the org already uses (`dya-sf-apex` §11).
-- **`INCOMPLETE`** means offline or a lost connection.
+- **Handle `INCOMPLETE`** (offline or a lost connection) as well as `ERROR`.
 
 ```java
 // ✅ — clean message to the client, real cause kept server-side

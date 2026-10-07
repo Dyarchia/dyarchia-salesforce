@@ -7,9 +7,9 @@ The order in which you build an agent's parts.
 Nothing works until Agentforce is on, and the symptom is a missing button rather than an error.
 
 1. **Pick an environment.** A **sandbox** copies production's metadata, so it tests against real
-   configuration; Developer and Developer Pro refresh often. A **scratch org** is
-   empty and fast to create, suiting source-driven work on one feature. A **Developer Edition** org is
-   the free permanent option for learning.
+   configuration; Developer and Developer Pro refresh often. A **scratch org** is empty and fast to
+   create, suiting source-driven work on one feature. A **Developer Edition** org is the free
+   permanent option for learning.
 2. **Turn on Data 360 first, if the agent will be grounded in it.** Setup › Data Cloud Setup Home.
    **This can take up to 60 minutes**; proceed only once it finishes — see `dya-sf-data360`.
 3. **Enable Einstein.** Setup › Einstein Setup › *Turn on Einstein*.
@@ -49,16 +49,15 @@ file is the Agent Script — the agent's blueprint — beside a `<ApiName>.bundl
 must match the directory. Bundles land in `aiAuthoringBundles/` in your package directory; the
 capital **B** matters: a Linux CI runner will not find `aiAuthoringbundles/`.
 
-**Deploying stages the bundle into the
-authoring domain and creates no runtime entity**; `sf agent publish authoring-bundle` compiles the
-Agent Script and creates the `Bot`, `BotVersion`, `GenAiPlannerBundle` and `GenAiPlugin` records
-that serve conversations. At **API 68.0** those runtime components deploy and retrieve as
-`AiAgentDefinition` and `AiAgentDefinitionVersion`, so an agent is source-controllable like other
-metadata. Below 68.0 you
-move the bundle and republish instead.
+**Deploying stages the bundle into the authoring domain and creates no runtime entity**;
+`sf agent publish authoring-bundle` compiles the Agent Script and creates the `Bot`, `BotVersion`,
+`GenAiPlannerBundle` and `GenAiPlugin` records that serve conversations. At **API 68.0** those
+runtime components deploy and retrieve as `AiAgentDefinition` and `AiAgentDefinitionVersion`, so an
+agent is source-controllable like other metadata. Below 68.0 you move the bundle and republish
+instead.
 
-`sf agent create --spec …` creates an agent without Agent Script. Salesforce recommends against it: script-based agents are more flexible and easier to
-modify and maintain.
+`sf agent create --spec …` creates an agent without Agent Script. Salesforce recommends against it:
+script-based agents are more flexible and easier to modify and maintain.
 
 ### Code the script
 
@@ -80,8 +79,7 @@ sf agent preview --api-name My_Agent --output-dir ./transcripts
 ```
 
 **Unimplemented actions return mocked responses**, so you can test routing and conversation shape
-before writing any Apex. The Apex Replay Debugger works during a
-preview, and the transcripts show how the agent classified and routed.
+before writing any Apex. The Apex Replay Debugger works during a preview, and the transcripts show how the agent classified and routed.
 
 ### Publish
 
@@ -132,8 +130,7 @@ sf agent generate agent-user
 ```
 
 An agent runs as a user, and **that user's permissions decide what the agent can reach and surface**.
-This is the security boundary; scope it before activation. See
-`dya-sf-permissions`.
+This is the security boundary; scope it before activation. See `dya-sf-permissions`.
 
 ## Anti-Patterns
 

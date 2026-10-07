@@ -40,7 +40,7 @@ ingestion → `dya-sf-data360`; MCP and the experience layer → `dya-sf-headles
 | **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Instance-based endpoints must become the org's My Domain URL. Testable today with the My Domain blocking setting |
 | **MCP interoperability for agents** | GA | Agents discover external tools through governed connections. See `dya-sf-integration-connectors-mcp` |
 
-- **API 67.0 Apex security defaults.** SOQL, SOSL and DML default
+- **The API 67.0 Apex security defaults hit integration code hardest.** SOQL, SOSL and DML default
   to `USER_MODE`; an omitted sharing keyword defaults to `with sharing`. Server-to-server code that
   assumed system-mode access silently returns fewer rows once its class is raised to 67.0 or above.
   Behaviour keys off **each class's compiled version**, not the org's. See
@@ -93,9 +93,9 @@ Cross-cutting on every path: authentication → dya-sf-integration-auth
 next step depends on the result. Costs: tight coupling, a blocked caller, both systems up
 simultaneously, and the transaction's governor and timeout limits applying hard.
 
-**Asynchronous** for everything else, including all system-to-system data movement by default. It
-decouples availability, absorbs volume, and survives the other system being down. Costs: eventual
-consistency, and designing idempotency and reconciliation yourself.
+**Asynchronous or event-driven** for everything else, including all system-to-system data
+movement. It decouples availability, absorbs volume, and survives the other system being down.
+Costs: eventual consistency, and designing idempotency and reconciliation yourself.
 
 ## 4. Cross-Cutting Non-Negotiables
 

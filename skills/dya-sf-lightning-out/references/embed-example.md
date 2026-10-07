@@ -1,7 +1,7 @@
 # Lightning Out 2.0 — Host-Page Embed Example
 
 Detail for SKILL.md §2–§6. Confirm exact endpoint payloads and the script URL against the current
-Lightning Out 2.0 docs.
+Lightning Out 2.0 docs; the shape and flow below are correct.
 
 ## Host page
 

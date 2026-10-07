@@ -14,7 +14,7 @@ References:
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
 - `references/shared/sharing-and-access.md` — what the brokered session identity may see once the
   component renders.
-- `references/embed-example.md` — a full host-page embed: app registration, the singleaccess token
+- `references/embed-example.md` — a full host-page embed: the host script, the singleaccess token
   exchange, `lightning-out-application`, lifecycle events, and receiving component events.
 
 ---
@@ -104,8 +104,8 @@ const { frontdoor_uri } = await res.json();
 document.querySelector('lightning-out-application').frontdoorUrl = frontdoor_uri;
 ```
 
-Confirm the exact request and response shape against the current docs; it is auth-flow-specific. The principle is fixed: **token in, short-lived frontdoor URL out, set at
-runtime.**
+Confirm the exact request and response shape against the current docs; it is auth-flow-specific.
+The principle is fixed: **token in, short-lived frontdoor URL out, set at runtime.**
 
 ---
 

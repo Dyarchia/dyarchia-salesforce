@@ -32,7 +32,8 @@ sf agent publish               compiles the Agent Script to Agent DSL and create
 ```
 
 A deploy alone leaves an agent that exists in source and cannot be talked to. At **API 68.0** the
-runtime side deploys and retrieves as `AiAgentDefinition` and `AiAgentDefinitionVersion`.
+runtime side deploys and retrieves as `AiAgentDefinition` and `AiAgentDefinitionVersion`, which
+makes an agent source-controllable like any other metadata.
 
 ## Naked versus version-suffixed bundles
 
@@ -53,7 +54,8 @@ sf project retrieve start --metadata AiAuthoringBundle:Local_Info_Agent --target
 ```
 
 `Agent:X` does **not** include the `AiAuthoringBundle`. Ask for it, or you retrieve the runtime
-metadata and none of the source you edit.
+metadata and none of the source you edit. The command in `references/building-an-agent.md` passes
+both types for this reason; trimming it to one loses the source silently.
 
 ## Validate locally, without an org
 
@@ -96,5 +98,5 @@ the publish workflow above.
 
 Floor: `sf` **2.139.6 or newer**.
 
-**`sf agent generate test-spec` is an interactive REPL.** It stalls under automation with no
+**`sf agent generate test-spec` is an interactive REPL.** It prompts per case and stalls under automation with no
 output. Write the spec YAML directly or copy one from an existing agent.

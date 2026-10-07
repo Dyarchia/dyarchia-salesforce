@@ -304,7 +304,7 @@ DOM.
 </apex:page>
 ```
 
-The message channel (`*.messageChannel-meta.xml`) is one metadata record shared by LWC, Aura and VF.
+The message channel (`*.messageChannel-meta.xml`) is one metadata component shared by LWC, Aura and VF.
 Keep payloads small and serialisable, and always unsubscribe when done. For the other side, see
 `dya-sf-lwc` and `dya-sf-aura`.
 

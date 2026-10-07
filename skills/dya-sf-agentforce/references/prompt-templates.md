@@ -46,8 +46,7 @@ AiJobRun jobRun = new AiJobRun(
 insert as user jobRun;
 ```
 
-`Status` is required on insert; start at `New` so items can be
-added before anything runs.
+`Status` is required on insert; start at `New` so items can be added before anything runs.
 
 ### Step 2 — one item per record
 
@@ -94,8 +93,7 @@ batch before flipping the switch.
 | Recommended daily volume from Apex | 5,000 | 50,000 |
 
 Create as many jobs as you need; extras sit in `Queued` until capacity frees. Exceeding the
-recommended daily volume does not fail; jobs take longer than 24 hours, which looks
-like a hang. The model provider sets native-batch completion time, typically 24 hours.
+recommended daily volume does not fail; jobs take longer than 24 hours, which looks like a hang. The model provider sets native-batch completion time, typically 24 hours.
 
 Jobs at `ReadyToStart` process in `CreatedDate` order, though several flipped within a few seconds of
 each other may not strictly hold it — do not depend on sequencing between jobs.
