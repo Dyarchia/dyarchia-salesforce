@@ -5,8 +5,8 @@ description: Salesforce Visualforce (Winter '27, API v68.0) — when not to use 
 
 # Salesforce Visualforce — Modern Development
 
-Visualforce is **maintenance-mode**: you check first whether LWC or Aura fits, save controllers
-under the modern Apex security model, minimise view state and encode output. Follow every rule below.
+Visualforce is **maintenance-mode**. Check first whether LWC or Aura fits; save controllers under
+the modern Apex security model, minimise view state and encode output. Follow every rule below.
 
 References:
 
@@ -15,8 +15,8 @@ References:
 - `references/controller-patterns.md` — controller extension skeleton, view state and `transient` discipline, bulkified getters and actions, injection-safe dynamic SOQL, CRUD and FLS in custom controllers.
 - `references/javascript-remoting.md` — `@RemoteAction` patterns, Remoting vs `<apex:actionFunction>` vs Remote Objects, bulkified remoting, error handling.
 
-Controllers are Apex: for Service/Selector/Domain layering, async, observability and testing, load
-`dya-sf-apex`. For new Lightning UI, load `dya-sf-lwc` or `dya-sf-aura`.
+Load `dya-sf-apex` for controller Service/Selector/Domain layering, async, observability and
+testing; controllers are Apex. Load `dya-sf-lwc` or `dya-sf-aura` for new Lightning UI.
 
 ---
 
@@ -118,8 +118,8 @@ public List<Contact> getContacts() {
 
 ### CRUD / FLS in controllers
 
-**Custom controllers do not enforce CRUD, FLS and sharing**; you do. The API 67.0 defaults help;
-state them explicitly anyway.
+**Custom controllers do not enforce CRUD, FLS and sharing**; enforce them yourself. State sharing
+and user mode explicitly even where the API 67.0 defaults apply them.
 
 ```apex
 // ✅ — explicit sharing + USER_MODE; CRUD/FLS enforced by the query
@@ -207,8 +207,9 @@ before shipping any non-trivial form page.
 
 ## 5. JavaScript Remoting Over `<apex:actionFunction>`
 
-**JavaScript Remoting** (`@RemoteAction`) is the default for async, partial-page server interaction:
-stateless, no view state, faster, with direct control over request and response in JS.
+Use **JavaScript Remoting** (`@RemoteAction`) by default for async, partial-page server
+interaction: it is stateless, carries no view state, is faster, and gives direct control over request
+and response in JS.
 
 ```apex
 public with sharing class AccountRemote {
@@ -253,7 +254,7 @@ whole view state. Bulkified signatures and error handling: `references/javascrip
 
 ## 6. Styling — SLDS, Not Hand-Rolled CSS
 
-Opt into the Salesforce Lightning Design System to look native in Lightning Experience.
+Opt into the Salesforce Lightning Design System so the page looks native in Lightning Experience.
 
 ```html
 <!-- ✅ — platform applies SLDS + LEX look-and-feel -->
@@ -312,7 +313,8 @@ Keep payloads small and serialisable, and always unsubscribe when done. For the 
 
 ## 8. Client-Side File Downloads — `blob:`, not `data:`
 
-A VF page in LEX that builds a download in JavaScript uses a `blob:` URL.
+Build a JavaScript download in a VF page in LEX with a `blob:` URL; LWS blocks `data:` URIs on
+anchors.
 
 ```javascript
 // ✅

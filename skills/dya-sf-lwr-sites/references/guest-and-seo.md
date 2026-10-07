@@ -48,8 +48,8 @@ Reference for SKILL.md §4–§5. Load when configuring a production public LWR 
 
 ## Component-side expectations
 
-Guest-facing components treat empty / access-denied results as a normal state and render cleanly —
-never assume data is present (`dya-sf-lwr` §6).
+Treat empty / access-denied results in a guest-facing component as a normal state and render
+cleanly; never assume data is present (`dya-sf-lwr` §6).
 
 ## SEO setup
 

@@ -5,7 +5,7 @@ description: Salesforce Aura components (Winter '27, API v68.0) — when not to 
 
 # Salesforce Aura Components — Modern Development
 
-Aura is **maintenance-mode**: first check whether LWC is the right tool, use `lightning`-namespace
+Aura is **maintenance-mode**. First check whether LWC is the right tool; use `lightning`-namespace
 base components and never the deprecated `ui` namespace, prefer Lightning Data Service over Apex, and
 save controllers under the modern Apex security model. Follow every rule below.
 
@@ -16,8 +16,8 @@ References:
 - `references/events-and-communication.md` — full component-event and application-event register/fire/handle patterns, `aura:method`, and Lightning Message Service from Aura.
 - `references/server-and-lds.md` — full `@AuraEnabled` controller, `$A.enqueueAction` + storable actions + Promise wrapper, `force:recordData`, and `lightning:recordForm` patterns.
 
-Aura server-side controllers are Apex: for Service/Selector/Domain layering, async, observability and
-testing, load `dya-sf-apex`. For new UI, load `dya-sf-lwc` first.
+Load `dya-sf-apex` for server-side controller Service/Selector/Domain layering, async, observability
+and testing; Aura server-side controllers are Apex. Load `dya-sf-lwc` first for new UI.
 
 ---
 
@@ -33,7 +33,7 @@ a deadline. Do not imply one.
   declaration becomes `with sharing`, and SOQL, SOSL and DML default to `USER_MODE`. §5, `dya-sf-apex`,
   `dya-sf-permissions`.
 - **`WITH SECURITY_ENFORCED` no longer compiles.** Use `WITH USER_MODE`.
-- **Lightning Web Security blocks `data:` URIs**, so client-side downloads use `blob:`. §10.
+- **Lightning Web Security blocks `data:` URIs**; use `blob:` for client-side downloads. §10.
 - **The `ui` namespace has been unsupported since 1 May 2021.** Never use it. §2.
 
 The Voice Toolkit API adds voice-enabled component support, extended to Agentforce Contact Center —
@@ -52,9 +52,9 @@ Stop at the first row that fits.
 | Maintaining / extending an **existing** Aura component | Aura | YES |
 | Need to **wrap an LWC** so it can sit in an Aura-only context | Aura wrapper around LWC | YES |
 
-LWC has closed almost every reason to choose Aura — quick actions, utility bar, Flow and Community
-contexts, dynamic component creation. Assume LWC unless you can name the gap, and when you build
-Aura, comment why LWC was insufficient.
+Assume LWC unless you can name the gap, and when you build Aura, comment why LWC was insufficient.
+LWC covers almost every former reason to choose Aura — quick actions, utility bar, Flow and Community
+contexts, dynamic component creation.
 
 **Aura can contain LWC; LWC cannot contain Aura.** Migration therefore wraps or replaces Aura with
 LWC, never the reverse.
@@ -63,7 +63,7 @@ LWC, never the reverse.
 
 ## 2. Base Components — `lightning` Namespace Only
 
-`lightning`-namespace components implement SLDS, accessibility and internationalisation.
+Use `lightning`-namespace components; they implement SLDS, accessibility and internationalisation.
 
 ```html
 <!-- ✅ -->
@@ -258,8 +258,8 @@ Initialise in `init`, never in markup. Do not override `render` / `rerender` / `
 })
 ```
 
-Controllers are event entry points only. Reusable logic goes in the **helper**; server calls and
-business logic never go in markup.
+Use controllers as event entry points only. Put reusable logic in the **helper**; never put server
+calls or business logic in markup.
 
 ---
 
@@ -291,9 +291,9 @@ Build the child in LWC and keep the Aura wrapper thin.
 
 ## 9. Security and Error Handling
 
-- **Lightning Web Security** superseded Locker Service and is enforced. It distorts or blocks risky
-  browser APIs: avoid non-standard ones and test under LWS.
-- **`@AuraEnabled`** reads with variable FLS use `Security.stripInaccessible`; see `dya-sf-apex` §3.
+- **Avoid non-standard browser APIs and test under Lightning Web Security.** LWS superseded Locker
+  Service, is enforced, and distorts or blocks risky browser APIs.
+- Use `Security.stripInaccessible` for **`@AuraEnabled`** reads with variable FLS; see `dya-sf-apex` §3.
 - **Never return a raw exception to the client.** Throw `AuraHandledException` with a clean message
   and report the real cause through whatever the org already uses (`dya-sf-apex` §11).
 - **Handle `INCOMPLETE`** (offline or a lost connection) as well as `ERROR`.

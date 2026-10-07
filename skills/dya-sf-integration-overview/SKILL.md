@@ -5,8 +5,8 @@ description: Salesforce integration decision hub (Winter '27, API v68.0), routin
 
 # Salesforce Integration — Decision Hub
 
-This skill does not teach protocols; it **routes** to the right one and the right authoring
-surface. Follow every rule below.
+Use this skill to **route** an integration to the right protocol and authoring surface; it does not
+teach protocols. Follow every rule below.
 
 The `dya-sf-integration-*` family (load the one the decision points to):
 
@@ -24,7 +24,7 @@ References:
 - `references/shared/governor-limits.md` — the transaction budget every synchronous integration shares.
 - `references/patterns-and-versions.md` — each of the six patterns in depth: implementation and constraints.
 
-This family sits **on top of** the core skills and defers to them: async and governor detail →
+Defer to the core skills this family sits **on top of**: async and governor detail →
 `dya-sf-apex`; Flow mechanics → `dya-sf-flow`; Lightning Web Security and CSP → `dya-sf-lwc`; who the
 integration user is allowed to be → `dya-sf-permissions`; agent actions → `dya-sf-agentforce`; Data 360
 ingestion → `dya-sf-data360`; MCP and the experience layer → `dya-sf-headless360`.
@@ -58,8 +58,8 @@ ingestion → `dya-sf-data360`; MCP and the experience layer → `dya-sf-headles
 
 ## 1. The Six Patterns
 
-Salesforce's Integration Patterns and Practices defines the canonical set. **Name the pattern first;
-the technology follows.**
+**Name the pattern first; the technology follows.** Salesforce's Integration Patterns and Practices
+defines the canonical set.
 
 | Pattern | Direction | Sync? | Canonical technology |
 |---|---|---|---|
@@ -89,11 +89,11 @@ Cross-cutting on every path: authentication → dya-sf-integration-auth
 
 ## 3. Sync vs Async
 
-**Synchronous** only when the caller needs the answer *now* to proceed — a user is waiting, or the
+Use **synchronous** only when the caller needs the answer *now* to proceed — a user is waiting, or the
 next step depends on the result. Costs: tight coupling, a blocked caller, both systems up
 simultaneously, and the transaction's governor and timeout limits applying hard.
 
-**Asynchronous or event-driven** for everything else, including all system-to-system data
+Use **asynchronous or event-driven** for everything else, including all system-to-system data
 movement. It decouples availability, absorbs volume, and survives the other system being down.
 Costs: eventual consistency, and designing idempotency and reconciliation yourself.
 

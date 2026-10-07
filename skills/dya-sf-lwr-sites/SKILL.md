@@ -5,9 +5,9 @@ description: Salesforce Experience Cloud LWR sites (Winter '27, API v68.0) — e
 
 # Salesforce Experience Cloud — LWR Sites
 
-**Public and authenticated sites on the Lightning Web Runtime**, the LWC-native site type, not legacy
-Aura template sites. For how components behave on the LWR runtime use `dya-sf-lwr`; for the components
-themselves, `dya-sf-lwc`. Follow every rule below.
+Build **public and authenticated sites on the Lightning Web Runtime**, the LWC-native site type, not
+legacy Aura template sites. Use `dya-sf-lwr` for how components behave on the LWR runtime and
+`dya-sf-lwc` for the components themselves. Follow every rule below.
 
 References:
 
@@ -19,7 +19,7 @@ References:
 - `references/guest-and-seo.md` — guest-user hardening procedure and SEO setup (slugs, sitemaps,
   robots.txt) for a production LWR site.
 
-Designing the guest profile and its sharing rules is `dya-sf-permissions`.
+Load `dya-sf-permissions` to design the guest profile and its sharing rules.
 
 ---
 
@@ -58,15 +58,13 @@ Standing facts:
 
 ## 1. Choose the Right Site Type
 
-```
-Need                                          Site type
---------------------------------------------  -------------------------------------------
-New, performance/SEO-sensitive public site    Enhanced LWR site (LWC)
-Content-driven site using enhanced CMS        Enhanced LWR site (required for CMS collections)
-Simple list-view-only data display            Non-enhanced LWR site (Grid, list views only)
-Existing Aura template site                   Stays Aura — migration is a rebuild, not a flip
-React or Angular SPA hosted on Salesforce     UI Bundle (Hyperforce only; packages as 2GP)
-```
+| Need | Site type |
+|---|---|
+| New, performance/SEO-sensitive public site | Enhanced LWR site (LWC) |
+| Content-driven site using enhanced CMS | Enhanced LWR site (required for CMS collections) |
+| Simple list-view-only data display | Non-enhanced LWR site (Grid, list views only) |
+| Existing Aura template site | Stays Aura — migration is a rebuild, not a flip |
+| React or Angular SPA hosted on Salesforce | UI Bundle (Hyperforce only; packages as 2GP) |
 
 Pick **enhanced LWR** for new builds unless there is a reason not to. Aura-to-LWR is a **rebuild**
 of components, theme and navigation, not a setting.
@@ -110,15 +108,15 @@ records**.
   the public.
 - Route any "create" through an Apex service in a controlled context that assigns a real owner, or
   behind an authenticated step.
-- Every guest-facing component renders a clean **empty / access-denied** state, enforced
+- Render a clean **empty / access-denied** state in every guest-facing component, enforced
   component-side in `dya-sf-lwr`.
 
 ---
 
 ## 5. SEO — Mandatory for Public Sites
 
-- **SEO-friendly URL slugs** (GA) replace record Ids in URLs for Accounts, Contacts and custom
-  objects.
+- Use **SEO-friendly URL slugs** (GA) in place of record Ids in URLs for Accounts, Contacts and
+  custom objects.
 - **Never hand-write a custom sitemap.** The platform generates `sitemap.xml`, and the guest
   profile's read access scopes what it contains.
 - Maintain `robots.txt` with the paths to every sitemap for the domain.
@@ -141,10 +139,10 @@ Source-track the metadata (`DigitalExperienceBundle` for enhanced, plus `Network
 `DigitalExperienceConfig`), deploy through CI/CD, use **partial deployment** for incremental changes
 on enhanced sites, and validate against a sandbox. Never activate or edit a production site by hand.
 
-- **A newer LWR site abstracts FlexiPage away entirely.** Never reach for FlexiPage tooling —
-  retrieving, generating or editing one — on a `DigitalExperienceBundle` site; it silently does
-  nothing here.
-- **A page needs both a `route` and a `view`** under `digitalExperiences/site/<name>1/sfdc_cms__*/`,
+- **Never reach for FlexiPage tooling** — retrieving, generating or editing one — on a
+  `DigitalExperienceBundle` site. A newer LWR site abstracts FlexiPage away entirely, so the tooling
+  silently does nothing here.
+- **Give every page both a `route` and a `view`** under `digitalExperiences/site/<name>1/sfdc_cms__*/`,
   each with its own `_meta.json` and `content.json`. One without the other does not resolve.
 
 ---
