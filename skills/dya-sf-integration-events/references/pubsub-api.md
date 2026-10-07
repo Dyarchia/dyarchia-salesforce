@@ -6,8 +6,8 @@ Load from `dya-sf-integration-events` when an external system must publish or su
 
 - **gRPC / HTTP-2**, **Avro** binary payloads — compact and fast versus the legacy CometD Streaming API.
 - **One interface** for Platform Events, CDC, and RTEM.
-- **Bidirectional streaming** with **pull-based flow control**: the subscriber asks for a number of events (`num_requested`, **max 100 per fetch**) and the server delivers up to that many, so the client never gets flooded.
-- Client libraries across ~11 languages; you generate stubs from the published `.proto`.
+- **Bidirectional streaming** with **pull-based flow control**: the subscriber requests a number of events (`num_requested`, **max 100 per fetch**) and the server delivers up to that many, so the client is never flooded.
+- Client libraries across ~11 languages; generate stubs from the published `.proto`.
 
 ## Core RPCs
 
@@ -28,7 +28,7 @@ Load from `dya-sf-integration-events` when an external system must publish or su
    - `EARLIEST` — from the start of the 72 h retention window.
    - `CUSTOM` — from a specific stored **replay id**.
 4. For each received event, **decode the Avro payload** using the schema, process it **idempotently**, and **persist the replay id**.
-5. Send another `FetchRequest` to pull more (flow control) — keep the stream topped up.
+5. Send another `FetchRequest` to pull more (flow control), keeping the stream topped up.
 
 ## Replay & Recovery
 
@@ -37,10 +37,9 @@ Load from `dya-sf-integration-events` when an external system must publish or su
 
 ### Or let the platform hold the position
 
-`ManagedSubscribe` consumes a **`ManagedEventSubscription`**, identified by its DeveloperName or Id,
-and the replay position lives on the platform. That removes the single most common source of
-duplicate or skipped events — a consumer that crashed between processing an event and persisting its
-replay id.
+`ManagedSubscribe` consumes a **`ManagedEventSubscription`**, identified by DeveloperName or Id, and
+the replay position lives on the platform. That removes the most common source of duplicate or
+skipped events — a consumer crashing between processing an event and persisting its replay id.
 
 Prefer it for a long-lived subscriber. Keep `Subscribe` with manual replay bookkeeping when the
 consumer already has durable state and wants the position committed in the same transaction as the
@@ -50,9 +49,9 @@ Two operational facts that look like bugs:
 
 - A create, update or delete of the subscription can take **around two minutes** to reach the
   Pub/Sub API. `NOT_FOUND` straight after a deploy means wait and retry.
-- A subscription whose `defaultReplay` is `EARLIEST` replays **up to the full 72-hour window** the
-  moment it activates. On a busy channel that is three days of backlog arriving as fast as the
-  consumer will take it.
+- A subscription whose `defaultReplay` is `EARLIEST` replays **up to the full 72-hour window** on
+  activation. On a busy channel that is three days of backlog arriving as fast as the consumer takes
+  it.
 
 Full element inventory and the `topicName` formats: `references/cdc-metadata.md`.
 
@@ -71,7 +70,7 @@ Full element inventory and the `topicName` formats: `references/cdc-metadata.md`
                                              +-- persist replay id
 ```
 
-This is the standard way to keep an external database/warehouse in near-real-time sync without polling.
+The standard way to keep an external database/warehouse in near-real-time sync without polling.
 
 ## Anti-Patterns
 

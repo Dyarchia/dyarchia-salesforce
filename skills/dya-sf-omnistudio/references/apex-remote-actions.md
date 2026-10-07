@@ -1,6 +1,6 @@
 # OmniStudio — Apex Remote Actions (real contract)
 
-Load from `dya-sf-omnistudio`. The exact contract for calling custom Apex from FlexCards, OmniScripts, and Integration Procedures, for both flavors. It's Apex — `dya-sf-apex` rules apply (bulk, `with sharing`, `WITH USER_MODE`, no SOQL/DML in loops).
+Load from `dya-sf-omnistudio`. The contract for calling custom Apex from FlexCards, OmniScripts and Integration Procedures, for both flavors. `dya-sf-apex` rules apply (bulk, `with sharing`, `WITH USER_MODE`, no SOQL/DML in loops).
 
 ## Standard vs Managed Package — which interface
 
@@ -10,7 +10,7 @@ Load from `dya-sf-omnistudio`. The exact contract for calling custom Apex from F
 | Apex contract | implement **`Callable`** (Salesforce standard) | extend **`VlocityOpenInterface`** or **`VlocityOpenInterface2`** |
 | Entry method | `Object call(String action, Map<String,Object> args)` | `Boolean invokeMethod(String methodName, Map<String,Object> input, Map<String,Object> outMap, Map<String,Object> options)` |
 
-Confirm the org's flavor first — using the wrong interface/namespace is the most common failure.
+Confirm the org's flavor first — the wrong interface/namespace is the most common failure.
 
 ## Standard — `Callable`
 
@@ -81,7 +81,7 @@ global with sharing class AccountRemoteActions implements vlocity_cmt.VlocityOpe
 }
 ```
 
-(`VlocityOpenInterface` is the older single-method variant; `VlocityOpenInterface2` is preferred. The namespace prefix — `vlocity_cmt` (Comms/Media), `vlocity_ins` (Insurance), `vlocity_ps` (Public Sector) — varies by the installed industry package.)
+(`VlocityOpenInterface` is the older single-method variant; prefer `VlocityOpenInterface2`. The namespace prefix — `vlocity_cmt` (Comms/Media), `vlocity_ins` (Insurance), `vlocity_ps` (Public Sector) — depends on the installed industry package.)
 
 ## Registering & Calling
 
@@ -96,7 +96,7 @@ global with sharing class AccountRemoteActions implements vlocity_cmt.VlocityOpe
 - **Read `input`, write `output`/`outMap`, read `options`**; return `Boolean` success.
 - **Bulk-safe**, **`WITH USER_MODE`** SOQL / `AccessLevel.USER_MODE` or `as user` DML (no `WITH SECURITY_ENFORCED` from API 67.0).
 - **Structured errors** in the output map; don't throw raw exceptions to the runtime.
-- **Test** the class as normal Apex plus through the component.
+- **Test** the class as normal Apex and through the component.
 
 ## Anti-Patterns
 

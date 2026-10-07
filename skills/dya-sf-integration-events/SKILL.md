@@ -12,19 +12,19 @@ below.
 
 References:
 
-- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults publish and subscribe code inherits.
+- `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults publish and subscribe code inherits.
 - `references/shared/governor-limits.md` — the transaction budget a publisher shares, and why one event beats one callout per record.
 - `references/pubsub-api.md` — the Pub/Sub API (gRPC) subscribe and publish flow, Avro schemas, replay and flow control, external-subscriber patterns.
 - `references/platform-events-cdc.md` — defining and publishing Platform Events, CDC channels, Apex and Flow publish and subscribe, delivery and replay semantics.
-- `references/cdc-metadata.md` — the metadata behind CDC and durable subscriptions: `PlatformEventChannelMember` and `PlatformEventChannel` element inventories, the naming rules, enrichment and filter constraints, and `ManagedEventSubscription`.
+- `references/cdc-metadata.md` — the metadata behind CDC and durable subscriptions: `PlatformEventChannelMember` and `PlatformEventChannel` element inventories, naming rules, enrichment and filter constraints, and `ManagedEventSubscription`.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 changes little here directly. It changes the surrounding surface: **agents now discover
-external tools through governed MCP connections**, which makes an event-driven backbone the natural
-way to feed them without polling. See `dya-sf-integration-connectors-mcp`.
+Winter '27 changes little here directly, but changes the surrounding surface: **agents now discover
+external tools through governed MCP connections**, making an event-driven backbone the natural way to
+feed them without polling. See `dya-sf-integration-connectors-mcp`.
 
 Standing facts that decide designs here:
 
@@ -34,7 +34,7 @@ Standing facts that decide designs here:
 - **PushTopic and Generic Streaming are legacy** — no longer enhanced, limited support. Migrate
   PushTopic to CDC and Generic Streaming to Platform Events.
 - **Events are retained 72 hours** on the event bus. A subscriber replays from a stored replay id
-  within that window and no further; beyond it, only a reconciliation batch recovers the gap.
+  within that window only; beyond it, only a reconciliation batch recovers the gap.
 - **From API 67.0** publish and subscribe code defaults to `with sharing` and `USER_MODE`. CDC and
   Platform Event Apex triggers run in **system mode**, like every trigger, so they see records the
   subscribing user could not.
@@ -63,7 +63,7 @@ time, at most 100 per fetch.
 - **One interface for all three event types** — Platform Events, CDC and RTEM.
 - **Replay:** events live on the bus for **72 hours**; resubscribe from `LATEST`, `EARLIEST` or a
   specific **replay id** to recover missed events.
-- **Efficient:** Avro binary plus flow control make it far lighter than the old CometD Streaming API.
+- **Efficient:** Avro binary plus flow control make it far lighter than the CometD Streaming API.
   Prefer it for every new external subscriber or publisher.
 
 Subscribe/publish flow and replay handling: `references/pubsub-api.md`.
@@ -84,7 +84,7 @@ EventBus.publish(new Order_Placed__e(Order_Id__c = ordId, Amount__c = amt));
   After Commit* fires only on commit. Choose deliberately.
 - **Fire-and-forget decoupling:** the publisher neither knows nor waits for subscribers — ideal for
   "order placed → tell N systems".
-- **High volume:** designed for throughput; pair it with Pub/Sub for external consumers.
+- **High volume:** built for throughput; pair with Pub/Sub for external consumers.
 
 Definitions and subscribe patterns: `references/platform-events-cdc.md`.
 
@@ -92,10 +92,10 @@ Definitions and subscribe patterns: `references/platform-events-cdc.md`.
 
 ## 4. Change Data Capture (CDC)
 
-Salesforce emits a change event whenever a record is created, updated, deleted or undeleted on a
-CDC-enabled object, with no code to produce it.
+Salesforce emits a change event, with no producer code, whenever a record on a CDC-enabled object
+is created, updated, deleted or undeleted.
 
-- Subscribe externally via the **Pub/Sub API**, the common ETL and replication pattern, or in-org via
+- Subscribe externally via the **Pub/Sub API** (the common ETL and replication pattern) or in-org via
   an **Apex CDC trigger**.
 - The payload carries a **change event header** — change type, changed fields, record ids — plus the
   changed field values.
@@ -106,7 +106,7 @@ metadata type, no `.changeDataCapture-meta.xml`, no `changeDataCapture/` directo
 name fails the deploy with "Could not infer a metadata type". One member per subscribed entity; a
 `PlatformEventChannel` alongside it only when the channel is custom.
 
-Two naming rules trip up every first attempt, and they disagree with each other on purpose:
+Two naming rules trip up every first attempt, and disagree on purpose:
 
 - **`<selectedEntity>` is the ChangeEvent type, not the source object.** `Account` becomes
   `AccountChangeEvent`; `Order__c` becomes **`Order__ChangeEvent`**, keeping the double underscore.
@@ -133,7 +133,7 @@ The default channel value is exactly **`ChangeEvents`** — not `data/ChangeEven
 | **Generic Streaming** | Legacy, not enhanced | Platform Events |
 | **CometD Streaming API** | Superseded for external subscribers | Pub/Sub API |
 
-Where you find these in an org, plan the migration. Never start new work on them.
+Where an org has these, plan the migration. Never start new work on them.
 
 ---
 
@@ -148,7 +148,7 @@ Where you find these in an org, plan the migration. Never start new work on them
 | **Platform Event → external subscriber** | Publish PE; external app subscribes via Pub/Sub | Decoupled, durable, many consumers |
 | **Outbound Message** | Workflow-based SOAP push | Legacy only |
 
-Prefer **Platform Event → Pub/Sub** for durable, multi-consumer, decoupled webhooks, and Flow HTTP
+Prefer **Platform Event → Pub/Sub** for durable, multi-consumer, decoupled webhooks; Flow HTTP
 Callout for the simple single target. Outbound paths: `dya-sf-integration-outbound`.
 
 ---
@@ -157,15 +157,15 @@ Callout for the simple single target. Outbound paths: `dya-sf-integration-outbou
 
 - **At-least-once delivery.** Consumers may see an event more than once, so every handler is
   **idempotent** — dedupe on a business key or the replay id.
-- **72 h retention.** Store the last processed replay id and resume from it, and design a
-  reconciliation batch for gaps beyond the window. **Or do not hand-roll it at all:** a
-  `ManagedEventSubscription` makes the platform track the replay position, and the Pub/Sub API
-  consumes it through the **`ManagedSubscribe`** RPC instead of `Subscribe`. That is the right
-  default for a long-lived in-platform consumer; keep manual replay bookkeeping for an external
-  subscriber that already has durable state of its own.
+- **72 h retention.** Store the last processed replay id and resume from it; design a
+  reconciliation batch for gaps beyond the window. **Or do not hand-roll it:** a
+  `ManagedEventSubscription` makes the platform track the replay position, consumed through the
+  Pub/Sub **`ManagedSubscribe`** RPC instead of `Subscribe`. That is the default for a long-lived
+  in-platform consumer; keep manual replay bookkeeping for an external subscriber with durable state
+  of its own.
 - **Order.** Events are delivered in publish order per channel. Never assume cross-channel ordering.
-- **Allocations.** Event publishing and delivery carry daily allocations; a high-volume design
-  accounts for them.
+- **Allocations.** Event publishing and delivery carry daily allocations; high-volume designs budget
+  for them.
 
 ---
 

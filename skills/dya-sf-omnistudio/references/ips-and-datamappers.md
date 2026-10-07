@@ -4,7 +4,7 @@ Load from `dya-sf-omnistudio`. Server-side orchestration (IPs), data shaping (Da
 
 ## Integration Procedures (IPs)
 
-A declarative, **server-side** process that runs **multiple actions in a single server call** — the controller behind OmniScripts/FlexCards and a reusable orchestration unit. Build in the Integration Procedure Designer; reference by **Type_SubType**.
+A declarative, **server-side** process running **multiple actions in a single server call** — the controller behind OmniScripts/FlexCards and a reusable orchestration unit. Build in the Integration Procedure Designer; reference by **Type_SubType**.
 
 ### Common actions
 - **DataRaptor Extract / Load / Transform** — read/write/reshape Salesforce data.
@@ -15,7 +15,7 @@ A declarative, **server-side** process that runs **multiple actions in a single 
 - **Integration Procedure Action** — call another IP (compose).
 
 ### Invoke modes
-- **Non-blocking** runs the IP while the OmniScript continues; the response returns when done — you must map the **Response JSON Node / Path** or default-value elements won't receive it.
+- **Non-blocking** runs the IP while the OmniScript continues; the response returns when done — map the **Response JSON Node / Path** or default-value elements won't receive it.
 - **Blocking** waits.
 - **Chainable / Queueable Chainable** for long-running work (async).
 
@@ -24,9 +24,9 @@ Mind the `VlocityMetadata` / API-response cache partitions for read-heavy IPs; a
 
 ## `PropertySetConfig` — What Each Element Is Actually Configured With
 
-An Integration Procedure element is configured through a `PropertySetConfig` JSON block. Everything
-the skill body describes as "map the response node" is one of these keys, and knowing them is what
-lets you read or generate an IP rather than click one.
+An Integration Procedure element is configured through a `PropertySetConfig` JSON block. What the
+skill body calls "map the response node" is one of these keys; knowing them lets you read or
+generate an IP rather than click one.
 
 | Element | Keys |
 |---|---|
@@ -36,8 +36,7 @@ lets you read or generate an IP rather than click one.
 
 ### Reading another element's output
 
-**Merge syntax is `%ElementName:fieldName%`.** That is the actual mechanism behind everything
-described abstractly as passing data between steps:
+**Merge syntax is `%ElementName:fieldName%`** — the mechanism behind passing data between steps:
 
 ```json
 { "AccountId": "%GetAccountDetails:Id%" }
@@ -47,20 +46,19 @@ Each element's output is stored in the IP response **under the element's own nam
 `{"GetAccountDetails": { … }}` — which is why `responseJSONNode` exists and why renaming an element
 breaks every downstream reference to it.
 
-`sendOnlyAdditionalInput: true` suppresses the accumulated data context entirely and sends only what
-`additionalInput` declares. Use it when an element should not see upstream data, which is both a
-payload-size and a least-privilege decision.
+`sendOnlyAdditionalInput: true` suppresses the accumulated data context and sends only what
+`additionalInput` declares. Use it when an element should not see upstream data — a payload-size and
+a least-privilege decision.
 
 ### The two async flags
 
 - **`useQueueableApexRemoting`** runs the Remote Action as a Queueable. The IP continues and the
   result is available.
-- **`useFuture`** runs it as a `@future` method, which **returns no value**. An element with
-  `useFuture` cannot contribute to the response, so anything downstream reading its output gets
-  nothing.
+- **`useFuture`** runs it as a `@future` method, which **returns no value**: the element cannot
+  contribute to the response, and anything downstream reading its output gets nothing.
 
-Reach for `chainable` on an Integration Procedure Action when the whole IP is long-running, rather
-than making individual elements async and losing their outputs.
+When the whole IP is long-running, use `chainable` on an Integration Procedure Action rather than
+making individual elements async and losing their outputs.
 
 ## Invoking an IP from Apex
 
@@ -75,7 +73,7 @@ Map<String, Object> output = (Map<String, Object>) omnistudio.IntegrationProcedu
 // Managed Package equivalent: vlocity_cmt.IntegrationProcedureService.runIntegrationService(...)
 ```
 
-Use this to reuse an IP's orchestration from server code. For long-running IPs, configure Chainable/Queueable Chainable and invoke accordingly.
+This reuses an IP's orchestration from server code. For long-running IPs, configure Chainable/Queueable Chainable and invoke accordingly.
 
 ## Invoking from LWC / REST
 

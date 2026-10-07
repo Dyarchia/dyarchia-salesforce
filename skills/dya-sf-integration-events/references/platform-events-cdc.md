@@ -4,7 +4,7 @@ Load from `dya-sf-integration-events` when defining/publishing Platform Events o
 
 ## Platform Events
 
-A Platform Event is a custom message with a schema you define (API name ends in `__e`). Define fields in Setup (or metadata); choose the **publish behaviour**.
+A custom message with a schema you define (API name ends in `__e`). Define fields in Setup (or metadata); choose the **publish behaviour**.
 
 ### Publish (Apex)
 
@@ -30,7 +30,7 @@ for (Database.SaveResult sr : results) {
 
 - **Apex trigger** on the `__e` event — in-org reaction (runs in system mode like all triggers; bulk-safe; can re-publish or do DML).
 - **Flow** — record/platform-event-triggered Flow subscribes declaratively.
-- **`lightning/empApi`** — an LWC subscribes for live UI updates (CometD under the hood, in-org only).
+- **`lightning/empApi`** — an LWC subscribes for live UI updates (CometD underneath, in-org only).
 - **Pub/Sub API** — external subscribers (`pubsub-api.md`).
 
 ### Publish (Flow)
@@ -39,7 +39,7 @@ A Flow can publish a Platform Event with a Create Records-style element on the `
 
 ## Change Data Capture (CDC)
 
-Salesforce automatically emits a change event when a record on a **CDC-enabled** object is created, updated, deleted, or undeleted. No producer code.
+Salesforce emits a change event, with no producer code, when a record on a **CDC-enabled** object is created, updated, deleted, or undeleted.
 
 - **Enable** per object in Setup (Change Data Capture) or via the standard channel; custom channels can group objects.
 - **Payload** = a **ChangeEventHeader** (`changeType`, `changedFields`, `recordIds`, `commitTimestamp`, …) plus the changed field values.
@@ -62,16 +62,16 @@ Use CDC to keep an external store in sync **without polling**; use the changed-f
 - **At-least-once** delivery — design idempotent consumers.
 - **72 h** retention on the bus; resume from a stored replay id.
 - **Order** preserved per channel in publish order; no cross-channel ordering guarantee.
-- **Allocations** apply to publishing and to CDC/PE delivery — high-volume designs must budget them.
+- **Allocations** apply to publishing and to CDC/PE delivery — high-volume designs budget them.
 
 ## Choosing Platform Events vs CDC
 
 | Situation | Use |
 |---|---|
-| You want to broadcast a *business fact* with your own shape | Platform Event |
-| You want to react to *record changes* you didn't instrument | Change Data Capture |
-| You need to notify many decoupled consumers | Platform Event |
-| You need an external replica of Salesforce data | CDC over Pub/Sub |
+| Broadcast a *business fact* with your own shape | Platform Event |
+| React to *record changes* you didn't instrument | Change Data Capture |
+| Notify many decoupled consumers | Platform Event |
+| External replica of Salesforce data | CDC over Pub/Sub |
 
 ## Anti-Patterns
 
