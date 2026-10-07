@@ -64,7 +64,7 @@ queuing, move from point-to-point Apex callouts to **MuleSoft**.
 | **API Catalog for Salesforce** | Central hub to manage APIs + MCP servers (MuleSoft/Heroku/Apex), convert ops to invocable actions for Flow, Apex and Agentforce | Discoverability + governance across surfaces |
 
 Default to **MuleSoft for Flow** where a prebuilt connector exists and an admin owns the flow. Use
-**Anypoint** for real orchestration, DataWeave transformation, API management, or a façade over many
+**Anypoint** for real orchestration, DataWeave transformation, API management, throttling, or a façade over many
 backends.
 
 ---

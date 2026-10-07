@@ -138,7 +138,7 @@ its description: write descriptions as routing logic, with the same discipline a
 descriptions.
 
 > Standard versus custom servers, the backing-type requirements, and the External Client App
-> callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and security:
+> callback URL per client: `references/building-mcp-tools.md`. Wider taxonomy and design rules:
 > `references/mcp-servers.md`.
 > Vibes itself — Plan Mode, Rules, permission modes: `references/agentic-dev-tooling.md`.
 
@@ -213,7 +213,7 @@ These accelerate *building on* Salesforce, distinct from the hosted servers that
 Headless 360 changes the surface, **not** the security model:
 
 - **Your existing model carries through.** Sharing rules, FLS and permission sets are enforced
-  however the data is reached — API, MCP or CLI.
+  automatically however the data is reached — API, MCP or CLI.
 - **The Einstein Trust Layer** applies on every agent path: masking, dynamic grounding, FLS,
   zero-data-retention with LLM providers.
 - **Token-scoped, least-privilege access.** Authenticate with OAuth — External Client Apps, or JWT

@@ -48,8 +48,9 @@ Developers → Agentforce for Developers → Agentforce Vibes; the URLs and iden
 
 ## Autonomous sub-agents
 
-Sub-agents cover Apex logic, LWC, Jest testing and SOQL. Each runs in an isolated context and **its
-own Git worktree**, so parallel work does not serialise.
+A lead agent delegates to specialised sub-agents working **in parallel**: Apex logic, LWC, Jest
+testing and SOQL. Each runs in an isolated context and **its own Git worktree**, so parallel work
+neither conflicts nor serialises.
 
 ## Plan Mode — the approval gate
 

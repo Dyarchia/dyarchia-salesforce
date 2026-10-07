@@ -72,8 +72,8 @@ Hard limits, per Apex transaction:
 - **100 callouts** maximum.
 - **Timeout 1 ms–120,000 ms (120 s)** per callout, and **120 s cumulative** across all of them.
 - Callout request or response payload **6 MB synchronous / 12 MB asynchronous**.
-- The limit of 10 concurrent synchronous requests running longer than 5 seconds is *different*, not
-  the per-transaction maximum.
+- The limit of 10 concurrent synchronous requests running longer than 5 seconds is a *different*
+  limit from the per-transaction maximum.
 
 ### The callout-after-DML rule
 A callout **cannot** run while uncommitted DML sits in the transaction: "You have uncommitted work

@@ -48,7 +48,7 @@ External Credentials support **custom headers** computed with formulas (e.g. an 
 
 ## Why Not Remote Site Settings / Hard-Coding
 
-- Remote Site Settings only allowlist a URL — no auth, secrets, or rotation.
+- Remote Site Settings only allowlist a URL; they manage no auth, secrets or rotation.
 - Hard-coded tokens leak in code, version control, and logs, and can't be rotated centrally.
 
 ## Anti-Patterns

@@ -42,7 +42,7 @@ The pivot is **how many surfaces**: one Lightning surface → plain LWC; many or
 
 ## Maturity
 
-The **build-time** surface covers authoring capabilities, MCP tooling and coding skills. The cross-surface **runtime** vision — the same capability delivered across voice, partner mobile apps and any MCP-compatible client — is expanding through the release. Build with the "define once" model now; the set of natively-rendered surfaces will grow.
+The **build-time** surface — authoring capabilities, MCP tooling and coding skills — is mature. The cross-surface **runtime** vision — the same capability delivered across voice, partner mobile apps and any MCP-compatible client — is expanding through the release. Build with the "define once" model now; the set of natively-rendered surfaces will grow.
 
 ## Anti-Patterns
 

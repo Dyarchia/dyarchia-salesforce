@@ -33,11 +33,11 @@ Setup:
 External Objects carry the `__x` suffix.
 
 Adapters:
-- **OData 2.0 / 4.0** — for systems exposing an OData producer. Without the 20,000-callouts/hour cap, **OData 4.01** allows effectively unlimited rows.
+- **OData 2.0 / 4.0** — for systems exposing an OData producer. **OData 4.01** removes the 20,000-callouts/hour cap, allowing effectively unlimited rows.
 - **Cross-Org** — Salesforce-to-Salesforce over REST, succeeding the retiring native Salesforce-to-Salesforce feature.
 - **Apex Custom Adapter** — implement `DataSource.Connection` / `DataSource.Provider`.
 
-External objects appear in related lists, lookups and reports; external and indirect lookups relate external rows to standard records. Avoid them for high-frequency access too.
+External objects appear in related lists, lookups and reports; external and indirect lookups relate external rows to standard records. Avoid them for high-frequency access too; replicate via Bulk or events instead.
 
 ```apex
 // Apex custom adapter skeleton (virtualize any REST API)

@@ -34,7 +34,7 @@ apply.
   the **Context Service** (Context Definitions and Mappings).
 - **Naming:** RLM (Spring '24) → Revenue Cloud (Dreamforce '24) → **Agentforce Revenue
   Management** (Dreamforce '25, current). The developer guide is still titled *Revenue Lifecycle
-  Management Developer Guide*, and objects and namespaces carry the older names. Treat all as one product; use the current name in new work.
+  Management Developer Guide*, and objects and namespaces carry the older names. Treat all three as one product; use the current name in new work.
 - **Migration:** RCA is a **re-implementation, not an upgrade** from legacy CPQ — a new data model.
 - **From API 67.0 custom Apex defaults to `with sharing` and `USER_MODE`**, and
   `WITH SECURITY_ENFORCED` no longer compiles — use `WITH USER_MODE`. Assign the **Revenue Cloud
@@ -86,7 +86,7 @@ Pricing is **configured**, not coded:
 - **Context Service** — **Context Definitions and Mappings** assemble the runtime data a procedure
   consumes and write results back.
 - **Apex Hooks for Pricing Procedures** (Summer '25) — inject Apex for logic the declarative tools
-  cannot express, or to pass attribute values. The **supported** custom-pricing extension point, not
+  cannot express, or to pass attribute values into or out of the procedure. The **supported** custom-pricing extension point, not
   a Quote Calculator Plugin.
 
 ```
@@ -116,7 +116,7 @@ POST /services/data/v68.0/connect/commerce/sales-transactions/actions/place   # 
 
 In Apex, **`PlaceQuoteRLMApexProcessor`** and the wider PlaceQuote Apex surface process quote
 placement; standard **invocable actions** serve Flow and Agentforce, such as creating an order
-from a quote. Full Apex, endpoints and actions: `references/transaction-billing-apis.md`.
+from an existing quote. Full Apex, endpoints and actions: `references/transaction-billing-apis.md`.
 
 ---
 
