@@ -1,6 +1,6 @@
 # FSL Apex — Scheduling, Booking, Grading, Optimization (Winter '27 / API v68.0)
 
-Load from `dya-sf-field-service`. Real signatures and members for the `FSL` scheduling classes, plus the scope-1 batch pattern. All `FSL.*` is version-dependent managed-package code — **verify members in a sandbox** (SKILL.md §8). Prerequisites: Field Service enabled + an FSL permission set on the running user.
+Load from `dya-sf-field-service`.
 
 ## FSL.ScheduleService
 
@@ -15,7 +15,7 @@ global static List<FSL.ScheduleResult> scheduleExtended(...);   // confirm param
 global static ... getAppointmentInsights(...);                 // confirm signature per version
 ```
 
-`FSL.ScheduleResult` members (confirmed): `Service` (a `ServiceAppointment` — read `Service.SchedStartTime`, `Service.SchedEndTime`, `Service.Id`). `AssignedResources` and other members exist; confirm names in-sandbox. `schedule` returns `null` when the appointment can't be placed.
+`FSL.ScheduleResult` members (confirmed): `Service` (a `ServiceAppointment` — read `Service.SchedStartTime`, `Service.SchedEndTime`, `Service.Id`). `AssignedResources` and other members exist; confirm names in-sandbox.
 
 ```apex
 FSL.ScheduleResult res = FSL.ScheduleService.schedule(policyId, saId);
@@ -60,9 +60,7 @@ for (FSL.AppointmentBookingSlot s : slots) {
 }
 ```
 
-Behaviour notes:
-- Returns slots **only between the SA's `EarliestStartTime` and `DueDate`** — widen `DueDate` for more windows.
-- Returned/expected times are relative to the supplied `TimeZone`. When persisting to `ArrivalWindowStartTime/EndTime`, offset for a differing operating-hours timezone (`tz.getOffset(dt)`).
+When persisting to `ArrivalWindowStartTime/EndTime`, offset for a differing operating-hours timezone with `tz.getOffset(dt)`.
 
 ## FSL.GradeSlotsService
 
@@ -105,15 +103,11 @@ public class OptimizeTerritoryQueueable implements Queueable, Database.AllowsCal
 }
 ```
 
-Horizon: optimize **1–7 days** ahead (schedules churn); for longer ranges chain requests, kicking the next when the prior `FSL__Optimization_Request__c` finishes. In-Day Optimization is time-boxed at **5 minutes with ESO, 10 without**; a Global run works the whole horizon and takes hours, so a wide single request costs compute rather than hitting a documented ceiling.
+To chain requests, start the next when the prior `FSL__Optimization_Request__c` finishes. A wide single request costs compute rather than hitting a documented ceiling.
 
-## The scope-1 Batch Pattern (full)
+## The scope-1 Batch Pattern
 
-Full `FsBookingScheduling` + `FsBookingSchedulingBatch` example: SKILL.md §2. Its rules:
-- **One SA per call** — backend constraint; run the batch with `Database.executeBatch(batch, 1)`.
-- **DML before callout is illegal in one transaction** — set the arrival window (DML) in one method, schedule (callout) in another; the batch `execute` calls them in order.
-- **`Database.AllowsCallouts`** on the batch class.
-- **User-mode** SOQL and DML (`WITH USER_MODE` / `as user`) from API 67.0.
+Full `FsBookingScheduling` + `FsBookingSchedulingBatch` example and rules: SKILL.md §2.
 
 ## Other FSL utilities (developer-relevant)
 
@@ -122,15 +116,3 @@ Full `FsBookingScheduling` + `FsBookingSchedulingBatch` example: SKILL.md §2. I
 ## Invocable wrappers (Flow / Agentforce)
 
 Open-source libraries expose these as invocable actions for Flow and agents: `sfsGetSlotsInvocable`, `sfsGetCandidatesInvocable`, `sfsScheduleInvocable`, `sfsAppointmentInsightsInvocable` (SFS-Utils), and the community Flow Scheduler's Get Slots / Schedule actions (omit the policy Id to use the "Default for Flow Scheduler" policy; the SA needs a Service Territory).
-
-## Anti-Patterns
-
-| Anti-Pattern | Correct Approach |
-|---|---|
-| `schedule(appointmentId, policyId)` | `schedule(policyId, appointmentId)` |
-| Many SAs per sync transaction | scope-1 Batchable |
-| DML then callout in one transaction | Split DML step / callout step |
-| `getGradedMatrix` for a customer slot list | `AppointmentBookingService.GetSlots` |
-| Widening one Optimization Request to cover weeks | 1–7 day horizon; chain for longer |
-| Inline optimization in a trigger | Queueable/Batch with `AllowsCallouts` |
-| Trusting member names without checking | Verify in a sandbox |

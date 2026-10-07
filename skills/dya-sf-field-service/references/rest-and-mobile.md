@@ -4,13 +4,7 @@ Load from `dya-sf-field-service` for external/headless booking, appointment bund
 
 ## Salesforce Scheduler REST — Candidates & Slots
 
-External customer self-service uses the **Salesforce Scheduler** REST resources (a distinct product sharing objects with FSL — confirm licensing):
-
-| Operation | Returns |
-|---|---|
-| **Get Appointment Candidates** | Service resources available for a work-type-group/work-type + territories |
-| **Get Appointment Slots** | Available time slots for a resource |
-| **Available Territory Slots** (`available-territory-slots`, POST Connect) | Consolidated per-resource availability in a territory |
+The operations and the in-session `lxscheduler` builder are in SKILL.md §5.
 
 `getAppointmentCandidates` response shape (illustrative — values are shape, not current data):
 
@@ -27,29 +21,13 @@ External customer self-service uses the **Salesforce Scheduler** REST resources 
 }
 ```
 
-In-session Apex builder (no separate REST auth):
+`resourceLimitApptDistribution` (on `getAppointmentCandidates` and `available-territory-slots`) caps how many resource calendars are evaluated; set it when a territory exceeds ~20 resources.
 
-```apex
-lxscheduler.GetAppointmentCandidatesInput input =
-    new lxscheduler.GetAppointmentCandidatesInputBuilder()
-        .setWorkTypeGroupId(workTypeGroupId)
-        .setTerritoryIds(new List<String>{ territoryId })
-        .setStartTime(startDt.format('yyyy-MM-dd\'T\'HH:mm:ssZ'))
-        .setEndTime(startDt.addDays(3).format('yyyy-MM-dd\'T\'HH:mm:ssZ'))
-        .setAccountId(accountId)
-        .setSchedulingPolicyId(policyId)
-        .setApiVersion(68.0)
-        .build();
-String response = lxscheduler.SchedulerResources.getAppointmentCandidates(input);
-```
-
-Performance: `resourceLimitApptDistribution` (on `getAppointmentCandidates` and `available-territory-slots`) caps how many resource calendars are evaluated — set it when a territory exceeds ~20 resources.
-
-**Headless booking flow:** (1) call candidates/slots to show windows; (2) create `WorkOrder` + `ServiceAppointment` (Work Type, `EarliestStartTime`, `DueDate`) **only when the customer selects a slot**; (3) commit via the Scheduler save action or `FSL.ScheduleService.schedule`. No throwaway SAs per quote.
+**Headless booking flow:** (1) call candidates/slots to show windows; (2) create `WorkOrder` + `ServiceAppointment` (Work Type, `EarliestStartTime`, `DueDate`) **only when the customer selects a slot**; (3) commit via the Scheduler save action or `FSL.ScheduleService.schedule`.
 
 ## Appointment Bundling REST APIs
 
-Six operations: **Automatic Bundling, Create Bundle, Remove Bundle Members, Unbundle, Unbundle Multiple, Update Bundle** (available in API v54.0+; not supported in Gov Cloud). Create Bundle takes service-appointment Ids + a manual bundling policy Id (`ApptBundlePolicy` marked for manual bundling) and returns the **bundle service appointment Id**. Bundling callouts need a Remote Site Setting/Named Credential and the Field Service bundling permission sets (Admin, Bundle for Dispatcher, Integration). Confirm resource paths/HTTP methods against the six official sub-pages for your version.
+Six operations: **Automatic Bundling, Create Bundle, Remove Bundle Members, Unbundle, Unbundle Multiple, Update Bundle** (available in API v54.0+; not supported in Gov Cloud). Create Bundle takes service-appointment Ids + a manual bundling policy Id (`ApptBundlePolicy` marked for manual bundling) and returns the **bundle service appointment Id**. Bundling callouts need a Remote Site Setting/Named Credential and the Field Service bundling permission sets (Admin, Bundle for Dispatcher, Integration). Confirm resource paths and HTTP methods against the six official sub-pages for your version.
 
 Convenience wrapper (open-source `sfsAppointmentBundlingAPI`):
 
@@ -67,11 +45,9 @@ sfsAppointmentBundlingAPI bApi = new sfsAppointmentBundlingAPI(
 sfsAppointmentBundlingAPI.bundleResponse bRes = (sfsAppointmentBundlingAPI.bundleResponse) bApi.run();
 ```
 
-On the SA, `IsBundle` marks the bundle header and `IsBundleMember` marks members.
-
 ## Field Service Mobile — Offline-First Extensibility
 
-Custom LWC target **`lightning__FieldServiceMobile`**; developers/users need the **Lightning SDK for Field Service Mobile** permission (grant it via a permission set). **LWC Offline** is opt-in.
+Grant the **Lightning SDK for Field Service Mobile** permission via a permission set.
 
 ### What works offline vs. not
 
@@ -85,27 +61,13 @@ Custom LWC target **`lightning__FieldServiceMobile`**; developers/users need the
 
 \* Related-list wires won't reflect records created/deleted while offline.
 
-Constraints & gotchas:
-- Keep **GraphQL queries small** — >32 KB or many fields hurts mobile; lint with `@salesforce/eslint-plugin-lwc-mobile`.
-- Apex error responses on mobile are an **array** of error objects, not a single object.
+- Lint GraphQL query size with `@salesforce/eslint-plugin-lwc-mobile`; many fields also hurt.
 - **Design offline-first:** client-side validation in the component; expect server rules (validation/triggers/flows) to apply at sync, and reconcile conflicts.
 
 ### Briefcase Builder (offline data priming)
 
-Offline data sets defined by **object + filter criteria** prime records (and metadata) to the device; Performance Priming and High-Volume Briefcase handle large schedules. **Files (ContentDocument/ContentVersion) and Custom Metadata Types are not primed automatically** — prime them with custom LWC/Apex-wire patterns.
+Offline data sets defined by **object + filter criteria** prime records and metadata to the device; Performance Priming and High-Volume Briefcase handle large schedules. Prime Files (ContentDocument/ContentVersion) and Custom Metadata Types with custom LWC/Apex-wire patterns.
 
 ### Actions, flows, deep links
 
-Supported: quick/global actions, LWC quick actions, screen flows (with offline flow cache policies), App Extensions, and deep links. **Deep links can be signed** with the Public Security Key (Field Service Settings) to suppress the security dialog. The legacy "Field Service Mobile Extension" toolkit (HTML/JS bundles) does **not** support native Apex calls — expose Apex as Apex REST there; native LDS/Lightning elements weren't supported in that toolkit.
-
-## Anti-Patterns
-
-| Anti-Pattern | Correct Approach |
-|---|---|
-| Throwaway SAs per quote for external booking | Scheduler REST candidates/slots; persist SA on selection |
-| Evaluating all resources in a big territory | `resourceLimitApptDistribution` |
-| Bundling without the RSS/permission sets | Configure Named Credential + Field Service bundling permission sets |
-| Assuming Apex writes/triggers run offline | Offline-first; reconcile at sync |
-| Huge GraphQL queries on mobile | Keep <32 KB; lint with the mobile ESLint plugin |
-| Expecting Files/CMDT in a Briefcase automatically | Prime them via custom wire/Apex |
-| Native Apex calls from the legacy mobile extension toolkit | Expose as Apex REST |
+Supported: quick/global actions, LWC quick actions, screen flows (with offline flow cache policies), App Extensions, and deep links. The Public Security Key for signed deep links is in Field Service Settings. The legacy "Field Service Mobile Extension" toolkit (HTML/JS bundles) does **not** support native Apex calls — expose Apex as Apex REST there; native LDS/Lightning elements weren't supported in that toolkit.

@@ -1,16 +1,14 @@
 # The Scheduling Policy Model and the Optimizer's Arithmetic
 
-What a scheduling policy is made of, how work rules and objectives attach to it, and how the
-optimizer turns a weight into a number. For building or reading a policy rather than calling
-`schedule` or `GetSlots` — the Apex surface is in `references/fsl-apex-scheduling.md`.
+For building or reading a policy. The Apex surface (`schedule`, `GetSlots`) is in
+`references/fsl-apex-scheduling.md`.
 
-`<NS>` is the resolved package namespace: `FSL` in production, `FSLQA` / `FSLMPTEST` / `FSLMPPERF`
-elsewhere. Resolve it rather than hardcoding, per SKILL.md §6.
+`<NS>` is the resolved package namespace (SKILL.md §6).
 
 ## The object graph
 
-A policy does not contain its rules and objectives; two junction objects join them. Their shape lets
-you read a policy from Apex or a query rather than the Setup UI.
+Two junction objects join a policy to its rules and objectives, so a policy can be read by query
+rather than in Setup.
 
 | Junction | Joins | Notes |
 |---|---|---|
@@ -18,10 +16,7 @@ you read a policy from Apex or a query rather than the Setup UI.
 | `<NS>__Scheduling_Policy_Goal__c` | `Scheduling_Policy__c` ↔ `Service_Goal__c` | Carries **`Weight__c`** |
 
 `Weight__c` is a `double` with precision 9, **scale 0** — whole numbers only, schema-enforced — and
-`nillable=false`. Given the penalty arithmetic below: fractional weights are not merely discouraged,
-they cannot be stored.
-
-Reading a policy's rules:
+`nillable=false`.
 
 ```sql
 SELECT Name,
@@ -49,8 +44,6 @@ Objective_Skill_Preferences     Objective_Custom_Logic
 
 ### Configuration fields on `Service_Goal__c`
 
-Meaning depends on the RecordType:
-
 | Field | Type | Used by |
 |---|---|---|
 | `Custom_Type__c` | Picklist (14 values) | Custom Logic |
@@ -62,13 +55,13 @@ Meaning depends on the RecordType:
 | `Object_Group_Field__c` / `Resource_Group_Field__c` | — | Relevance-group scoping |
 | `Custom_Logic_Data__c` | Long textarea | Custom Logic |
 
-## Rules the package writes for you, and the one it does not
+## Auto-created rules
 
 Creating a policy **auto-creates** the `Earliest Start Permitted` and `Due Date` Match Time rules.
 Do not write them; a deploy that includes them collides with the package's own.
 
-It does **not** create `Service Resource Availability`, mandatory on every policy — the most common
-cause of a policy that schedules nothing and reports no useful error.
+It does **not** create `Service Resource Availability`, mandatory on every policy; without it the
+policy schedules nothing and reports no useful error.
 
 Shipped starter policies: `Customer First`, `High Intensity`, `Soft Boundaries`, `Emergency`.
 
@@ -78,24 +71,19 @@ On an ESO-enabled org the same starters are queried natively:
 SELECT Id, MasterLabel, DeveloperName, SchedulingCategory FROM SchedulingPolicy
 ```
 
-## Database rules versus Apex rules — the latency lever
+## Database rules versus Apex rules
 
-Work rules run in two engines; the choice is a policy's biggest performance decision:
+The engine choice is a policy's biggest performance decision:
 
 - **Database rules** filter at the SOQL level, aggregated into one query, so their cost is roughly
   constant regardless of how many resources the org has.
 - **Apex rules** run *after* that query over **every candidate it returned**; cost is linear in the
   candidate pool.
 
-So: **every policy needs at least one database rule, narrowing to roughly 20 candidates before any
-Apex rule or objective runs.** A pure-Apex-rule policy evaluates custom logic against the whole
-resource population on every `GetSlots` and `getAppointmentCandidates` call — usually what a "Field
-Service is slow" report turns out to be.
+A pure-Apex-rule policy evaluates custom logic against the whole resource population on every
+`GetSlots` and `getAppointmentCandidates` call.
 
-Hard caps:
-
-- **Match Boolean: maximum 5 per policy.**
-- **Count Rule: up to 10 custom-field rules per policy.** Time resolution is always Daily; it always
+**Count Rule: up to 10 custom-field rules per policy.** Time resolution is always Daily; it always
   counts `ServiceAppointment`.
 
 ## Relevance groups
@@ -106,8 +94,6 @@ A relevance group scopes a rule to a subset of work or resources via a **Boolean
 **Groups must be mutually exclusive.** Where two relevance-grouped rules overlap the more
 restrictive wins — except for **Service Resource Availability, where an overlap throws an error**.
 Every resource must be covered by exactly one Service Resource Availability rule.
-
-Overlap tolerance by rule type:
 
 | Additive — may overlap | Single-coverage — must not |
 |---|---|
@@ -129,14 +115,12 @@ and Work Capacity among rules; Group Nearby and Same Site among objectives.
 The supported no-Apex way to match one appointment field against many resource values — serviceable
 postal codes, product lines, anything one-to-many.
 
-A junction object with **exactly two Master-Detail relationships**: to `ServiceResource` and to the
-matched object; the packaged trigger fails the rule with any other number. It also needs a Lookup
-field on `ServiceAppointment` driving the match and a reference field on the junction to compare
-against. Configured at Setup → Field Service Settings → Scheduling → Work Rules.
+Besides the junction (SKILL.md §6), it needs a Lookup field on `ServiceAppointment` driving the
+match and a reference field on the junction to compare against. Configured at Setup → Field Service Settings → Scheduling → Work Rules.
 
-## The FSL fields that actually sit on ServiceAppointment
+## FSL fields on ServiceAppointment
 
-Thirteen package Boolean fields, read and written by trigger and flow code around a scheduling call:
+Thirteen package Boolean fields:
 
 ```text
 Auto_Schedule__c                Same_Day__c
@@ -156,12 +140,11 @@ Plus five standard Booleans: `IsBundle`, `IsBundleMember`, `IsDeleted`, `IsManua
 human one inside a trigger.
 
 **A fresh FSL install has no custom Boolean fields on `ServiceTerritoryMember`** — only the standard
-`IsDeleted`. An STM-scoped relevance group therefore depends on a customer-authored field; check for
-it before designing one.
+`IsDeleted`. An STM-scoped relevance group therefore needs a customer-authored field.
 
-## Objects the data model section does not list
+## Objects beyond SKILL.md §6
 
-Standard, and routinely needed: `Shift` (a Master-Detail child of `ServiceResource`),
+Standard: `Shift` (a Master-Detail child of `ServiceResource`),
 `TimeSheet` / `TimeSheetEntry`, `ProductConsumed` / `ProductRequired` / `ProductItem`, `Visit`,
 `WorkPlan`, `DynamicDataCapture`, and the work-capacity trio `WorkCapacityLimit` /
 `WorkCapacityUsage` / `WorkCapacityAvailability` (a prerequisite for the Work Capacity rule).
@@ -189,14 +172,10 @@ total_penalty       = ceil(violations / granularity) × penaltyPerViolation
 minutes, `round5` rounding, a ×1/60 final multiplier, giving 138.88889 points per second at
 whole-second granularity.
 
-Two consequences for setting weights:
-
 - **ASAP weights 1 to 21 are all identical.** Its scale is 43,200 minutes with integer rounding, so
   `round(1000 × 21 / 43200)` is 0, clamped up to 1: exactly 1 point per minute across the band.
-  Setting ASAP to 15 rather than 5 does nothing; the number moves only past 21.
 - **Same Site is the exception to the uniform ×1000.** Its ×0.01 final multiplier nets an effective
   ×10, so deriving its weight proportionally from another objective's is off by an order of
   magnitude.
 
-These formulas come from the package's own behaviour and override the public help where they differ.
-Do not "correct" them against help.salesforce.com.
+These formulas come from the package's behaviour and override help.salesforce.com where they differ.

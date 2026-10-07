@@ -1,6 +1,6 @@
 # sf CLI — Org, Auth, Scratch & Sandbox (2026)
 
-Load from `dya-sf-cli`. Catalog for the `org`, `config` and `alias` topics. All `sf` v2; flags are kebab-case; `-o/--target-org` selects the org.
+Load from `dya-sf-cli`. Catalog for the `org`, `config` and `alias` topics.
 
 ## Install / Update / Info
 
@@ -49,8 +49,7 @@ sf org assign permset --name <PermSet> --target-org <a>
 sf org list limits --target-org <a>
 ```
 
-**Three mutually exclusive creation sources**, each with a definition-file key and a matching flag.
-A flag may override its own def-file key; mixing two *kinds* is not supported:
+**Three mutually exclusive creation sources.** A flag may override its own def-file key; mixing two *kinds* is not supported:
 
 | Source | Def-file key | Flag |
 |---|---|---|
@@ -61,8 +60,6 @@ A flag may override its own def-file key; mixing two *kinds* is not supported:
 Editions are `developer`, `enterprise`, `group`, `professional`, plus the hyphenated partner forms
 (`partner-developer`), which need a Partner Business Org as Dev Hub. A wrong value fails with
 `edition value must be one of`.
-
-Facts that change how a script is written:
 
 - **`--duration-days` maxes at 30**; the CLI default is 7.
 - **The command blocks.** Once it returns `username` and `orgId` the org is ready — do not poll
@@ -75,7 +72,7 @@ Facts that change how a script is written:
   `cd` even with a hub authenticated. Resolve it to a username *before* changing directory and pass
   `--target-dev-hub` explicitly.
 - **A Dev Hub can appear in any bucket of `sf org list --json`** — `devHubs`, `nonScratchOrgs`,
-  `other`, `sandboxes` or `scratchOrgs`. Checking one bucket silently misses it:
+  `other`, `sandboxes` or `scratchOrgs`; check them all:
 
   ```bash
   sf org list --json | jq -r '[.result.devHubs[]?, .result.nonScratchOrgs[]?, .result.other[]?,
@@ -86,7 +83,7 @@ Facts that change how a script is written:
   `--definition-file`. Nested `settings` have no CLI flags, so a def file is needed even outside a
   DX project.
 
-Error strings worth recognising: `NotADevHubError`, `NoDefaultDevHubError`, `NamedOrgNotFoundError`,
+Error strings: `NotADevHubError`, `NoDefaultDevHubError`, `NamedOrgNotFoundError`,
 `Definition file not found`, `Snapshot not found`.
 
 ## Org Shapes and Snapshots
@@ -99,8 +96,6 @@ sf org delete shape --target-org <sourceOrg>
 sf org create snapshot --source-org <a> --snapshot-name <n>
 sf org list snapshot
 ```
-
-Two flag facts easy to get wrong:
 
 - On `sf org create shape`, **`--target-org` is the org being shaped, not a Dev Hub.** There is no
   `--target-dev-hub`, no `--name` and no `--description`; a shape is identified by its source org's
@@ -149,10 +144,7 @@ sf alias unset MyOrg
 
 - Scratch orgs require a **Dev Hub** (`--set-default-dev-hub` at login, or `target-dev-hub` config).
 - **Never run `sf org display --verbose` on the user's behalf.** It returns `sfdxAuthUrl`, a
-  **refresh token**, pulling a live, long-lived credential into whatever transcript or log the output
-  lands in. Use plain `sf org display`; current CLIs redact the access token from it and point at
+  long-lived **refresh token**, into whatever transcript or log captures the output. Use plain `sf org display`; current CLIs redact the access token from it and point at
   `sf org auth show-access-token`. If the user needs the auth URL, they run the verbose form in their
   own terminal. The same applies to `sf org open --url-only`, whose front-door URL carries a one-time
   token.
-- Add `--json` to any command for automation — **except `sf code-analyzer run`**, which rejects it.
-  See `references/dev-and-agent.md`.

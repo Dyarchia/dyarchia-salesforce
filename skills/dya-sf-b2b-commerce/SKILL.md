@@ -7,7 +7,7 @@ description: Salesforce B2B (and D2C) Commerce on Core developer surface (Winter
 
 B2B and D2C Commerce are one stack: the **on-core** product, built from **LWC, Apex, SOQL**, the
 **`CartExtension`** framework and the **`ConnectApi` Commerce** classes, so it builds on
-`dya-sf-apex` and `dya-sf-lwc`. It is **not** legacy CloudCraze, and **not** B2C Commerce
+`dya-sf-apex` and `dya-sf-lwc`. It is **not** legacy CloudCraze (a managed-package product), and **not** B2C Commerce
 (`dya-sf-b2c-commerce`, a separate platform). Programmatic surface only. Follow every rule below.
 
 References:
@@ -26,7 +26,7 @@ contract below**: the CartExtension base classes, the endpoint-extension hooks a
 `ConnectApi.CommerceCart` API are unchanged. Merchandising and admin features are in the Commerce
 release notes.
 
-- B2B and D2C Commerce run **on core**: storefronts are **LWR Experience Cloud** sites, UI is
+- Storefronts are **LWR Experience Cloud** sites, UI is
   **LWC**, logic is **Apex**, data is the standard **Commerce objects** — WebStore, WebCart,
   CartItem, ProductCatalog.
 - **Two distinct extension surfaces**, never conflated:
@@ -35,15 +35,13 @@ release notes.
   - **Commerce endpoint extensions** — before and after hooks on the Connect *endpoints* (products,
     cart item, search) via **`ConnectApi.BaseEndpointExtension`**.
 - **From API 67.0 extension and calculator code defaults to `with sharing` and `USER_MODE`**, and
-  `WITH SECURITY_ENFORCED` no longer compiles — use `WITH USER_MODE`. This matters most here: the
-  storefront runs as the **guest or authenticated buyer**, whose profile governs what your calculator
-  can read. Scope those profiles deliberately: see `dya-sf-permissions` and
+  `WITH SECURITY_ENFORCED` no longer compiles — use `WITH USER_MODE`. The storefront runs as the
+  **guest or authenticated buyer**, whose profile governs what your calculator can read. Scope those
+  profiles narrowly: see `dya-sf-permissions` and
   `references/shared/sharing-and-access.md`.
-- **Entitlements are king.** What a buyer may see and buy is governed by the **buyer group →
-  entitlement policy** relationship, not CRUD and FLS alone. A product the user "has access to" stays
-  unviewable in commerce when no entitlement applies.
-- Legacy **CloudCraze** B2B Commerce is a different managed-package product, out of scope. New work
-  is Commerce on Core.
+- **The buyer group → entitlement policy relationship governs what a buyer may see and buy**, not
+  CRUD and FLS alone. A product the user can access stays unviewable in commerce when no entitlement
+  applies.
 
 ---
 
@@ -57,15 +55,11 @@ release notes.
 | Programmatic cart ops | **`ConnectApi.CommerceCart`** + related Connect classes (Apex) / Commerce Connect REST |
 | Data | Standard Commerce objects; **buyer groups + entitlement policies** govern visibility |
 
-LWC and Apex knowledge carries most of the way; what remains is the Commerce objects, the
-`CartExtension` framework and entitlements.
-
 ---
 
 ## 2. Cart Calculate API — the Core Extension Point
 
-Pricing-side cart and checkout logic is customised by extending **`CartExtension`** base classes. An
-**orchestrator** (`CartExtension.CartCalculate`) decides which **calculators** run and when; each
+An **orchestrator** (`CartExtension.CartCalculate`) decides which **calculators** run and when; each
 calculator is separately overridable.
 
 | Concern | Base Apex class | Extension point | Status |
@@ -77,8 +71,6 @@ calculator is separately overridable.
 | Shipping | `CartExtension.ShippingCartCalculator` | `Commerce_Domain_Shipping_CartCalculator` | GA |
 | Tax | `CartExtension.TaxCartCalculator` | `Commerce_Domain_Tax_CartCalculator` | GA |
 | Create order (checkout) | `CartExtension.CheckoutCreateOrder` | `Commerce_Domain_Checkout_CreateOrder` | GA |
-
-A calculator overrides `calculate(...)`, taking a `CartCalculateCalculatorRequest`:
 
 ```apex
 public class CustomPriceCalculator extends CartExtension.PricingCartCalculator {
@@ -98,9 +90,6 @@ orchestrator pattern, change-event handling and registration: `references/cart-e
 
 ## 3. Endpoint Extensions — before/after Connect Hooks
 
-Separately from calculations, the **Commerce endpoints** — products, cart item, search, addresses —
-take before and after hooks by extending **`ConnectApi.BaseEndpointExtension`**:
-
 | Extension point | Endpoint | Since |
 |---|---|---|
 | `Commerce_Endpoint_Catalog_Products` / `_Product` | Products / Product | — |
@@ -109,8 +98,7 @@ take before and after hooks by extending **`ConnectApi.BaseEndpointExtension`**:
 | `Commerce_Endpoint_Account_Addresses` / `_Account_Address` | Account address(es) | — |
 
 These run in the `connectapi` namespace and wrap the request and response. The request parameter
-does not support `StringList` values. Use them to shape API I/O; use **Cart Calculate** for
-pricing-side math.
+does not support `StringList` values.
 
 ---
 
@@ -130,7 +118,6 @@ ConnectApi.CartItem item =
 ```
 
 `ConnectApi.CommerceCart` covers get, create, update, calculate and delete for carts and cart items.
-**The most common failure is entitlement-related, not access-related.**
 `"You can't view 'ProductId'"` despite record access usually means the buyer's **account is not in a
 buyer group tied to an entitlement policy** granting the product. Full class and type list, and
 entitlements: `references/connectapi-commerce.md`.

@@ -4,16 +4,9 @@ Load from `dya-sf-b2b-commerce`. The `CartExtension` framework (orchestrator + c
 
 ## The Cart Calculate API
 
-The `CartExtension` namespace exposes extensible base classes:
-- `CartCalculate` (GA) — the **orchestrator**.
-- `PricingCartCalculator` (GA), `PromotionsCartCalculator` (GA), `ShippingCartCalculator` (GA), `TaxCartCalculator` (GA), `InventoryCartCalculator` (Pilot) — the **calculators**.
-- `CheckoutCreateOrder` (GA), `SplitShipmentService` — checkout-time extensions.
-
-`CartCalculate` supports: **AddItemToCart, EditCartItem, DeleteCartItem, AddCoupon, DeleteCoupon, StartCheckout, PatchCheckout** (address, set delivery method).
+`CartExtension.CheckoutCreateOrder` (GA) and `CartExtension.SplitShipmentService` are checkout-time extensions.
 
 ## A Calculator — override `calculate(...)`
-
-Each calculator overrides `calculate(CartExtension.CartCalculateCalculatorRequest request)`; the request yields the cart and the buyer action.
 
 ```apex
 public class CustomPriceCalculator extends CartExtension.PricingCartCalculator {
@@ -66,7 +59,7 @@ public class CustomCartCalculate extends CartExtension.CartCalculate {
 }
 ```
 
-This mirrors the `CartCalculateSample.cls` default logic: a boolean gate per calculator (e.g. `runPricing` true only on item add/delete/update or checkout start). Your orchestrator can reorder or skip calculators.
+This mirrors the `CartCalculateSample.cls` default logic. Your orchestrator can reorder or skip calculators.
 
 > If the **Cart Calculate API is off** and store customizations change cart items via SObject/Apex DML/Delivery Group APIs, configure the **Apex Price** integration, or re-pricing won't occur at checkout.
 
@@ -88,7 +81,6 @@ insert res;
 
 ## Endpoint Extensions — before/after Connect hooks
 
-Separate from calculations: customize the **Commerce endpoints** by extending `ConnectApi.BaseEndpointExtension`. Extension points:
 - `Commerce_Endpoint_Catalog_Products` / `Commerce_Endpoint_Catalog_Product`
 - `Commerce_Endpoint_Cart_Item` / `Commerce_Endpoint_Cart_ItemCollection` (v62.0+)
 - `Commerce_Endpoint_Search_Products`
@@ -109,13 +101,12 @@ public class CartItemEndpointExtension extends ConnectApi.BaseEndpointExtension 
 }
 ```
 
-Constraint: the endpoint-extension request parameter **doesn't support `StringList`** values. Confirm exact method signatures for your API version.
+Confirm exact method signatures for your API version.
 
 ## Best Practices
 
 - **Bulk + one callout**: a calculator runs in the buyer's request path — aggregate all line items into one external callout (Named Credential), never one per item.
 - **Resilient**: handle external timeout/failure (fallback price/availability, clear error) without breaking the whole cart.
-- **Don't override the dispatch methods** (`priceCart`, etc.) — override the *calculator's* `calculate()`.
 - **Register per store** and per integration type; verify with a SOQL query on `RegisteredExternalService` / store integration.
 
 ## Anti-Patterns

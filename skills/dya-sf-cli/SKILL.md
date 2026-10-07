@@ -5,12 +5,11 @@ description: Salesforce CLI command catalog (sf, Winter '27 / API v68.0 era) —
 
 # Salesforce CLI — Command Catalog
 
-A **command catalog** for picking the correct `sf` command and flags. This file holds the model,
-the conventions and the most-used commands; the exhaustive lists by topic live in `references/`.
-Follow every rule below.
+A **command catalog** for picking the correct `sf` command and flags: the model, conventions and
+most-used commands here, the exhaustive lists by topic in `references/`. Follow every rule below.
 
 References:
-- `references/shared/org-model.md` — **what an org, a sandbox, a scratch org and a DX project are.** Every command assumes this vocabulary.
+- `references/shared/org-model.md` — **what an org, a sandbox, a scratch org and a DX project are.**
 - `references/shared/metadata-and-api-versions.md` — what the CLI deploys, and why an API version is not a CLI version.
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the deploy and agent commands.
 - `references/org-and-auth.md` — install/update, `sf org login/logout`, orgs, scratch orgs, sandboxes, users, `org open/display/list`.
@@ -28,13 +27,13 @@ References:
 - Commands are grouped into **topics** (`sf <topic> <command>`); the CLI is plugin-based, so topics
   map to plugins.
 - Most commands accept `--json`, `--target-org` (`-o`) and `--flags-dir`.
-- **The CLI versions on its own weekly cadence.** A `sf` version is not an API version and the two
-  move independently, so this heading carries no platform version.
+- **The CLI versions on its own weekly cadence.** A `sf` version is not an API version, so this
+  heading carries no platform version.
 
-What Winter '27 changes for CLI work:
+Winter '27 changes for CLI work:
 
 - **Only invalid Apex classes and triggers recompile on deploy** (GA): faster deploys on large orgs,
-  with nothing to change.
+  with no action needed.
 - **`AiAgentDefinition` and `AiAgentDefinitionVersion` are metadata types at API 68.0** (GA), so
   agents deploy and retrieve like any other source. **Both orgs must be on 68.0.**
 - **A Salesforce plugin for Claude Code** (GA), installed from the Claude Plugin Marketplace,
@@ -70,11 +69,8 @@ sf org list                                                   # connected orgs
 sf org display --target-org DevHub                            # details + access token
 sf org open --target-org myorg                                # open in browser
 sf config set target-org=myorg                                # set default org
-```
 
-Create dev environments:
-
-```bash
+# Dev environments
 sf org create scratch --definition-file config/project-scratch-def.json \
   --alias scratch1 --set-default --duration-days 7
 sf org create sandbox --definition-file sandbox-def.json --alias uat
@@ -133,10 +129,10 @@ Full catalog: `references/dev-and-agent.md`.
   `--metadata ApexClass --metadata ApexTrigger`. Space-separating after one flag also works
   (`--metadata ApexClass ApexTrigger`), but **never quote the group**: `--metadata "A B"` is read as
   one nonexistent type.
-- Common shared flags: `-o/--target-org`, `--json`, `--flags-dir`, `-w/--wait` (minutes),
+- Shared flags: `-o/--target-org`, `--json`, `--flags-dir`, `-w/--wait` (minutes),
   `--api-version`.
 - Legacy `sfdx force:topic:action --camelCaseFlag` maps to `sf topic action --kebab-flag`; translate
-  old scripts you meet.
+  old scripts.
 
 ---
 

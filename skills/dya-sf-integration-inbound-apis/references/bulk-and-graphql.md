@@ -4,8 +4,6 @@ Load from `dya-sf-integration-inbound-apis` for large loads/extracts (Bulk) or f
 
 ## Bulk API 2.0 — Ingest Job Lifecycle
 
-Asynchronous, CSV-based, for **>10,000 records**. Salesforce chunks data into 10k-record batches on a separate async limit pool.
-
 ```
 # 1) Create an ingest job
 POST /services/data/v68.0/jobs/ingest
@@ -30,21 +28,17 @@ GET /services/data/v68.0/jobs/ingest/{jobId}/failedResults
 GET /services/data/v68.0/jobs/ingest/{jobId}/unprocessedrecords
 ```
 
-Rules:
 - **Prefer `upsert` with an external id** — idempotent and restartable.
-- Limits: ~**15,000 batches / 24 h** shared with Bulk 1.0; **150 MB** per file. Split larger loads into multiple jobs.
+- Split a load past the **150 MB** file limit into multiple jobs.
 - Always process `failedResults` and reconcile; `JobComplete` does not mean every row succeeded.
 - Use **Bulk query** (`/jobs/query`) for large extracts, not REST query paging over hundreds of thousands of rows.
-- Use Bulk 2.0 (not 1.0) for all new work — 2.0 manages batching.
 
 ## When NOT to use Bulk
 
-- <10,000 records → REST (single, Composite or sObject Collections). Bulk's job overhead and async polling aren't worth it.
+- <10,000 records → REST (single, Composite or sObject Collections).
 - Real-time, answer-now → synchronous REST.
 
 ## GraphQL API
-
-Graph-shaped queries and mutations over UI API (honours FLS and UI-API object support).
 
 ### Query — fetch exactly what you need
 
@@ -71,13 +65,6 @@ mutation {
   }
 }
 ```
-
-A later mutation can reference any field an earlier operation in the same request returned (e.g. the new Account's Id), not just the record id as before, to create and link records in one round trip.
-
-Constraints:
-- UI-API-supported objects only.
-- Creating a child relationship inside a single mutation is not supported.
-- Suits bandwidth-sensitive clients (mobile) and multi-object reads in one call.
 
 ## Choosing Bulk vs GraphQL vs REST
 

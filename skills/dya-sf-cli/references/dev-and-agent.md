@@ -1,6 +1,6 @@
 # sf CLI — Apex, Lightning, Logic, Agent, Package, Analysis (2026)
 
-Load from `dya-sf-cli`. Catalog for `apex`, `lightning`, `logic`, `agent`, `package`, `code-analyzer` and `community`. All `sf` v2.
+Load from `dya-sf-cli`. Catalog for `apex`, `lightning`, `logic`, `agent`, `package`, `code-analyzer` and `community`.
 
 ## Apex (`sf apex`)
 
@@ -36,7 +36,7 @@ sf logic run test                                               # Apex + Flow te
 ## Agentforce DX (`sf agent`)
 
 The lifecycle runs on an **authoring bundle**: generate, validate, publish, activate. `sf agent
-generate agent-spec` and `sf agent create --spec` are gone — do not reach for them.
+generate agent-spec` and `sf agent create --spec` are gone.
 
 ```bash
 sf agent generate authoring-bundle --name My_Agent        # scaffold; --no-spec to skip the spec
@@ -55,11 +55,7 @@ sf agent test run | list | results --job-id <id> | resume --job-id <id>
 
 # Related: create the run-as user
 sf org create agent-user --alias <a>
-```
 
-Two sub-topics beyond the core lifecycle:
-
-```bash
 sf agent mcp create | get | list | update | delete | fetch     # MCP servers from the CLI
 sf agent mcp asset list | replace -i <id>
 sf agent adl create | get | list | update | delete | status    # Agentforce Data Libraries
@@ -96,15 +92,11 @@ sf code-analyzer config --rule-selector Security          # writes code-analyzer
 sf code-analyzer ast-dump --file MyClass.cls --output-file ast.xml
 ```
 
-`sf scanner run` is the deprecated v3 command; use `sf code-analyzer run`. **Seven engines**, not
-three: PMD, ESLint, CPD, RetireJS, Flow, SFGE and ApexGuru, plus a `regex` selector.
+**Seven engines**: PMD, ESLint, CPD, RetireJS, Flow, SFGE and ApexGuru, plus a `regex` selector.
 
-Three flag facts behind silent or confusing failures:
-
-- **There is no `--format`.** The output file's extension decides the format — `.json`, `.html`,
-  `.sarif`, `.csv`, `.xml` — via `--output-file`.
-- **`--json` is rejected here**, as are the v3 flags `--format`, `--engine` and `--category` — the
-  one documented exception to `--json` everywhere for automation.
+- **There is no `--format`.** The `--output-file` extension — `.json`, `.html`, `.sarif`, `.csv`,
+  `.xml` — decides the format.
+- **`--json` is rejected here**, as are the v3 flags `--format`, `--engine` and `--category`.
 - **`--rule-selector` needs the exact full rule name and takes no wildcards.** Compose it as
   `<engine>:<category>:<severity>`, e.g. `all:Security:(1,2)`; severities run 1 (Critical) to
   5 (Info). Look names up with `sf code-analyzer rules --rule-selector all`. A misspelled or partial
@@ -113,7 +105,7 @@ Three flag facts behind silent or confusing failures:
 
 Prerequisites: `@salesforce/plugin-code-analyzer` v5+, Java 11+ (PMD, CPD, SFGE), Node 18+ (ESLint,
 RetireJS), Python 3 (Flow), and an authenticated org for ApexGuru. `sfge` wants `--workspace` and
-takes 10–20 minutes, so scope it deliberately rather than run it on every commit.
+takes 10–20 minutes, so do not run it on every commit.
 
 ## Experience Cloud (`sf community`)
 
@@ -127,4 +119,3 @@ sf community publish --name "My Site" --target-org <a>
 
 - Use `sf apex run test ... --code-coverage` to gate deploys on coverage; production deploys require ≥75% org-wide.
 - `sf agent preview` is the primary local test loop for Agentforce agents (see `dya-sf-agentforce`).
-- Add `--json` to anything for automation output.

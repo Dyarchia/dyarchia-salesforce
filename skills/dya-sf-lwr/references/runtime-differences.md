@@ -1,6 +1,6 @@
 # LWR vs Lightning Experience — Runtime Differences & Porting Checklist
 
-Reference for SKILL.md §1–§5. Load when porting an LWC from Lightning Experience to an LWR target
+Load when porting an LWC from Lightning Experience to an LWR target
 (Experience site or Lightning Out) or writing one for both.
 
 ## The two runtimes at a glance
@@ -20,13 +20,7 @@ Performance          Heavier; app shell already loaded      Lean; you own bundle
 
 ## Navigation
 
-In Lightning Experience, `lightning/navigation` resolves a wide range of `PageReference` types
-through the Aura-backed navigation service. On LWR it is a **client-side router** with a
-**narrower** set of supported types.
-
-A `PageReference` is `{ type, attributes, state }` — `type` is required; set `attributes` and
-`state` to `null` when empty. The router (`lwr-router-container`) dispatches navigation as page
-references; read the current one with the `CurrentPageReference` wire adapter.
+In a `PageReference`, `type` is required. The rest of the model is in SKILL.md §3.
 
 ```javascript
 import { NavigationMixin } from 'lightning/navigation';
@@ -50,12 +44,8 @@ export default class Nav extends NavigationMixin(LightningElement) {
 }
 ```
 
-- `NavigationMixin` is the **cross-compatible** choice (LEX + LWR). LWR also exposes
-  `navigate()` / `generateUrl()` from the navigation module with equivalent capability.
-- **Verify each `PageReference` type against the LWR client-side-routing reference** — a type
-  that resolves in LEX may do nothing on an LWR site.
-- For simple intra-site links, an anchor whose `href` derives from `<base href>` at runtime is often
-  simpler than programmatic navigation. Never hardcode the base path:
+For simple intra-site links, an anchor whose `href` derives from `<base href>` is often simpler than
+programmatic navigation:
 
 ```javascript
 get homeHref() {
@@ -63,20 +53,6 @@ get homeHref() {
     return `${base.replace(/\/$/, '')}/home`;
 }
 ```
-
-## Module availability
-
-- Most `lightning/*` and `@salesforce/*` modules are available, but treat availability as
-  **opt-in per module**: confirm against the LWR reference, do not assume parity with LEX.
-- Aura-runtime services that LEX provides implicitly are absent — no Aura to fall back on.
-- When a module is missing, prefer a standard web-platform approach over an Aura-era API.
-
-## Security & CSP
-
-- LWR uses Lightning Web Security; an LWR site has its own LWS instance independent of the org
-  setting. Test in the site, not only in LEX.
-- Register external endpoints as **CSP Trusted Sites**; ship third-party JavaScript as a
-  **static resource**, not from an arbitrary URL.
 
 ## Porting checklist — LWC from Lightning Experience to LWR
 
@@ -87,5 +63,5 @@ get homeHref() {
    alternative or a custom component.
 4. Assume a guest user: handle empty / access-denied data; remove anything privileged.
 5. Externalise nothing to arbitrary URLs — static resources + CSP Trusted Sites.
-6. Re-test under the site's own LWS instance and as the guest user, not just in LEX.
+6. Re-test under the site's own LWS instance and as the guest user, not only in LEX.
 7. Check bundle weight and Core Web Vitals on the real page.

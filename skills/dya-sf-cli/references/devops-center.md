@@ -3,8 +3,7 @@
 A top-level topic that scripts what DevOps Center otherwise does through Setup: projects,
 pipelines, stages, work items, reviews and promotions.
 
-Two behaviours mislead automation that treats it like the rest of the CLI; both are covered at the
-end. Read them before writing a promotion script.
+Read the two gotchas at the end before writing a promotion script.
 
 ## Command surface
 
@@ -35,14 +34,14 @@ sf devops request status -i <requestToken> -o <a>
 sf devops conflict …
 ```
 
-Id prefixes worth recognising in output: **`1Qg…`** a DevOps Center project, **`0Xt…`** a promotion
+Id prefixes in output: **`1Qg…`** a DevOps Center project, **`0Xt…`** a promotion
 request.
 
 ## Gotcha 1 — the async id changes name between commands
 
 `sf devops promote` returns the async identifier as **`.result.requestId`**; `sf devops request
-status` echoes it back as **`.result.requestToken`**. Do not read one field name throughout; capture
-it defensively:
+status` echoes it back as **`.result.requestToken`**. Capture it
+defensively:
 
 ```bash
 token=$(sf devops promote --json | jq -r '
@@ -54,8 +53,6 @@ token=$(sf devops promote --json | jq -r '
 
 ## Gotcha 2 — status reports the request, not the outcome
 
-This one turns a red deploy into a green pipeline.
-
 `sf devops request status` reports how the *request* is progressing. Statuses are uppercase and
 prefixed by the operation — `PROMOTE_IN_PROGRESS`, `PROMOTE_SUCCESS`, `DEPLOY_FAILED` — so match the
 **suffix**, never the whole string, or a new operation prefix silently stops matching.
@@ -66,9 +63,8 @@ prefixed by the operation — `PROMOTE_IN_PROGRESS`, `PROMOTE_SUCCESS`, `DEPLOY_
 - Anything else — it failed; the value is an **escaped JSON string** carrying `errorType` and
   `errorMessage`, needing a second parse.
 
-**A `*_SUCCESS` status with a non-null `errorDetails` means the operation FAILED**: the request
-succeeded, the operation it asked for did not. Gate on `errorDetails`; use the status only to decide
-whether to keep polling.
+**A `*_SUCCESS` status with a non-null `errorDetails` means the operation FAILED.** Use the status
+only to decide whether to keep polling.
 
 ```bash
 sf devops request status -i "$token" -o "$alias" --json > out.json

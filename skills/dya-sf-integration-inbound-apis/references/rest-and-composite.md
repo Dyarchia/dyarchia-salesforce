@@ -18,11 +18,9 @@ GET /services/data/v68.0/query/?q=SELECT+Id,Name+FROM+Account+ORDER+BY+CreatedDa
 # → response has "done": false and "nextRecordsUrl"; GET that URL for the next page
 ```
 
-**Always upsert by external id on inbound writes** so a re-sent message updates rather than duplicates.
-
 ## Composite — Dependent Operations, One Round Trip
 
-Up to **25 subrequests**; later ones reference earlier results via `@{refId.field}`; optional `allOrNone` for atomic rollback. Counts as one API call, but governor limits accumulate across subrequests.
+Up to **25 subrequests**; later ones reference earlier results via `@{refId.field}`; optional `allOrNone` for atomic rollback. Counts as one API call.
 
 ```
 POST /services/data/v68.0/composite
@@ -49,7 +47,7 @@ POST /services/data/v68.0/composite/graph
 
 ## Composite Batch — Independent Operations
 
-Up to **25 independent subrequests**, no reference passing, no shared rollback. Collapses unrelated calls into one round trip.
+Up to **25 independent subrequests**, no reference passing, no shared rollback.
 
 ## sObject Collections — Same-Shape Bulk CRUD
 
@@ -66,7 +64,7 @@ POST /services/data/v68.0/composite/sobjects
 
 ## sObject Tree — Nested Insert
 
-Up to **200 records** across nested parent-child structures up to **5 levels**; insert only, all-or-nothing. Creates a parent and its children in one transactional call.
+Up to **200 records** across nested parent-child structures up to **5 levels**; insert only, all-or-nothing.
 
 ## Choosing Within the Family
 
@@ -74,14 +72,13 @@ Up to **200 records** across nested parent-child structures up to **5 levels**; 
 |---|---|
 | Steps depend on each other, want atomic | Composite (`allOrNone`) |
 | Big dependent graph (>25 ops) | Composite Graph |
-| Unrelated ops, just save round trips | Composite Batch |
+| Unrelated ops, fewer round trips | Composite Batch |
 | Many records of one shape | sObject Collections |
 | Parent + nested children insert | sObject Tree |
 
 ## Limits & Hygiene
 
-- Governor limits (SOQL/DML/CPU) are **cumulative** across a composite call — a 25-subrequest Composite can still hit per-transaction limits.
-- Composite Graph isolates transactions per graph; use it when partial success across graphs is acceptable.
+- Use Composite Graph when partial success across graphs is acceptable.
 - Keep payloads lean and select only needed fields on reads.
 - One composite/collection call over N single calls conserves the daily API allocation.
 

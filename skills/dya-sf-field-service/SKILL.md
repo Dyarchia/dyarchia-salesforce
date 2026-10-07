@@ -31,7 +31,7 @@ asynchronous, which matters when a scheduling call holds a large candidate set.
 
 - The `FSL` namespace lives in the **Field Service managed package**. The running user needs an
   **FSL permission set** — Admin, Agent, Dispatcher or Resource — and Field Service enabled.
-- **The API 67.0 security defaults hit FSL wrapper code hard.** Compiled at 67.0 or above, SOQL,
+- **API 67.0 security defaults apply to FSL wrapper code.** Compiled at 67.0 or above, SOQL,
   SOSL, DML and `Database.*` default to **user mode**, an omitted sharing keyword becomes
   **`with sharing`**, and **`WITH SECURITY_ENFORCED` no longer compiles**. Code querying
   `FSL__Scheduling_Policy__c`, `OperatingHours` or `ServiceAppointment` is affected; user-mode FLS
@@ -49,14 +49,12 @@ asynchronous, which matters when a scheduling call holds a large candidate set.
 | **`FSL` Apex namespace** (managed package) | `ScheduleService`, `AppointmentBookingService`, `GradeSlotsService`, `OAAS` | In-session scheduling, booking, grading, optimization |
 | **Standard data model + REST** | `ServiceAppointment`/`WorkOrder`/… + Salesforce Scheduler REST + Bundling REST | Headless/external booking, bundling, integrations |
 
-FSL Apex classes run **in-session** only; external self-service uses Salesforce Scheduler REST (§5).
-
 ---
 
-## 2. The Non-Negotiable Call Pattern: scope-1 + DML-before-callout
+## 2. The Call Pattern: scope-1 + DML-before-callout
 
 Each FSL scheduling call processes **one** Service Appointment, and no DML may precede a callout in
-the same transaction. So: a **Batchable with scope = 1**, DML and callout steps in separate methods.
+the same transaction. Use a **Batchable with scope = 1**, with DML and callout steps in separate methods.
 
 ```apex
 public with sharing class FsBookingScheduling {
@@ -111,7 +109,7 @@ public class FsBookingSchedulingBatch implements Database.Batchable<SObject>, Da
 
 ---
 
-## 3. FSL Apex — The Signatures You'll Use
+## 3. FSL Apex Signatures
 
 ```apex
 // Schedule one appointment under a policy. NOTE: policy first, appointment second.
@@ -139,7 +137,7 @@ Id new FSL.OAAS().optimize(FSL.OAASRequest request);
 - **The policy, not the call, decides latency.** Database rules filter inside the SOQL query; Apex
   rules then run over **every candidate it returned**. A policy needs at least one database rule,
   narrowing to roughly **20 candidates** before any Apex rule or objective runs. A pure-Apex-rule
-  policy is what "Field Service is slow" usually turns out to be.
+  policy is the usual cause of slow scheduling.
 
 Full members, `GradeSlotsService.getGradedMatrix` and the `OAASRequest` fields:
 `references/fsl-apex-scheduling.md`.
@@ -164,8 +162,8 @@ Id optimizationRequestId = new FSL.OAAS().optimize(req);  // run from async (All
 - **In-Day is capped at 5 minutes with ESO, 10 without**, and reshuffles today; a Global run works
   the full horizon and takes hours. **Chain** requests rather than widening one.
 - **Commit Mode decides whether your DML survives.** `Always Commit` lets a dispatcher change, or
-  your Apex `update` on a `ServiceAppointment`, land mid-optimization; `Rollback` rejects it — the
-  cause of writes silently disappearing during an optimization window.
+  your Apex `update` on a `ServiceAppointment`, land mid-optimization; `Rollback` rejects it, so
+  writes disappear silently during an optimization window.
 - Run from a Queueable or Batch with `Database.AllowsCallouts`, never inline in a per-save trigger.
 
 ---
@@ -201,7 +199,7 @@ with `resourceLimitApptDistribution` when a territory exceeds ~20. Full payloads
 
 ---
 
-## 6. Data Model — What You Build Against
+## 6. Data Model
 
 **Standard objects:** `ServiceAppointment` (the schedulable unit; `ParentRecordId`,
 `ServiceTerritoryId`, `SchedStartTime/EndTime`, `ArrivalWindowStartTime/EndTime`,
@@ -213,7 +211,7 @@ with `resourceLimitApptDistribution` when a territory exceeds ~20. Full payloads
 **FSL managed-package custom objects:** `FSL__Scheduling_Policy__c`, `FSL__Work_Rule__c`,
 `FSL__Service_Goal__c` (service objectives), `FSL__Optimization_Request__c`, `FSL__Polygon__c`.
 
-Four `ServiceAppointment` facts constrain booking design. **`ParentRecordId` is create-only** and
+**`ServiceAppointment.ParentRecordId` is create-only** and
 polymorphic over Account, Asset, Lead, Opportunity, WorkOrder and WorkOrderLineItem, so §5's headless
 flow must know the parent before it commits. **`DurationType`** — Minutes or Hours — governs what
 `Duration` means. **`StatusCategory`** is a restricted picklist and the mechanism behind the status
@@ -235,7 +233,7 @@ managed object, falling back to the native one on `INVALID_TYPE`.
 
 Policies and objectives are referenced **by Id**, queried by Name:
 `[SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = 'Customer First']` — which throws
-`INVALID_TYPE` on an ESO-native org, so resolve the namespace first.
+`INVALID_TYPE` on an ESO-native org.
 
 There is **no supported "write a Work Rule in Apex" SPI**; four declarative hooks come first:
 **Extended Match** (a junction object with *exactly two* Master-Detail relationships, to
@@ -249,7 +247,7 @@ flows (the "Skill Iron Rule" pattern) or custom Gantt actions only when those ar
 ## 7. Field Service Mobile
 
 - **Licensing first.** Every mobile worker needs the **`FieldServiceMobilePsl`** permission set
-  licence to log in at all — there is no separate mobile user-licence SKU, so people miss it.
+  licence to log in at all — there is no separate mobile user-licence SKU.
   `EinsteinFieldServicePsl` adds Voice to Record Edit and Pre-Work Brief;
   `AgentforceForFieldServicePsl` adds Voice to Form. Confirm with
   `SELECT DeveloperName, TotalLicenses, UsedLicenses FROM PermissionSetLicense`. The **Lightning SDK
@@ -273,8 +271,7 @@ flows (the "Skill Iron Rule" pattern) or custom Gantt actions only when those ar
   will not reproduce it. The app caches its sharing snapshot at login, so the technician must sign
   out and back in after the fix.
 - **Pre-Work Brief activation cannot be driven from Apex.** The prompt-template activation endpoint
-  is `@ConnectHidden(from=Apex)`, so `ConnectApi.EinsteinLLM` and metadata approaches both fail by
-  design. Drive it from the CLI or an external caller.
+  is `@ConnectHidden(from=Apex)`, so `ConnectApi.EinsteinLLM` and metadata approaches both fail. Drive it from the CLI or an external caller.
 
 Full offline matrix and Bundling REST: `references/rest-and-mobile.md`. Data Capture flows, the `dc*`
 components and the mobile settings objects: `references/mobile-data-capture.md`.

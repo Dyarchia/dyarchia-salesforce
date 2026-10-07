@@ -7,7 +7,7 @@ description: Salesforce Lightning Web Runtime (LWR) Winter '27 (API v68.0) — b
 
 LWR is a **runtime**, not a kind of site: the engine that runs Lightning Web Components **without
 the Aura framework underneath**. `dya-sf-lwc` teaches the component; this skill teaches the runtime it
-lands on — runtime-aware components avoid the "works in LEX, breaks on the site" bug. For Experience
+lands on. For Experience
 sites on LWR use `dya-sf-lwr-sites`; for embedding LWCs in non-Salesforce apps,
 `dya-sf-lightning-out`. Follow every rule below.
 
@@ -31,19 +31,16 @@ often need embedding. See `dya-sf-lwc`.
   Lightning Out 2.0; standalone LWR on Node/Heroku.
 - **Lightning Experience desktop is NOT on LWR.** The internal CRM app runs on the **Aura runtime**,
   where an LWC executes *inside* Aura. Never assume an LWC in Lightning Experience runs on LWR.
-- **LWR uses Lightning Web Security (LWS)**, never Lightning Locker, and an LWR site has its **own
-  LWS instance** independent of the org-wide LWS setting.
+- **LWR uses Lightning Web Security (LWS)**, never Lightning Locker.
 - **Cross-cutting security:** LWS **blocks `data:` URIs**, so client-side downloads use `blob:` URLs
   (`dya-sf-lwc`). From API 67.0 `WITH SECURITY_ENFORCED` no longer compiles in an Apex controller — use
   `WITH USER_MODE` — and an LWR site's guest user is often the one running it (`dya-sf-permissions`).
 - **Salesforce Multi-Framework (UI Bundles) now covers React *and* Angular, and packages as 2GP** —
-  managed or unlocked, namespace supported, distributable on AppExchange. Hyperforce only. Confirm
-  availability for the target org before planning production on it; LWC stays the lower-risk choice
-  for a UI that only ever lives in one org. See §8.
+  managed or unlocked, namespace supported, distributable on AppExchange. Hyperforce only. See §8.
 
 ---
 
-## 1. Know Your Target Runtime Before You Write
+## 1. Know Your Target Runtime
 
 The same `.js`/`.html` LWC can target Lightning Experience (Aura runtime), an LWR site, or Lightning
 Out; module availability, navigation and security differ across the three. **Decide the target
@@ -54,8 +51,7 @@ both LEX and LWR is restricted to the **intersection** of supported APIs.
 
 ## 2. Module & API Availability
 
-With no Aura underneath, some of what "just works" in Lightning Experience is absent or different on
-LWR:
+With no Aura underneath, some Lightning Experience behaviour is absent or different on LWR:
 
 - Many `lightning/*` modules work, but **not all** — verify each against the LWR reference.
 - `@salesforce/*` scoped modules are largely available; confirm per module.
@@ -94,7 +90,7 @@ export default class GoExternal extends NavigationMixin(LightningElement) {
   resolves in LEX — some `standard__*Page` types — may do nothing on an LWR site.
 - Never hardcode the base path. Derive it from the document `<base href>` at runtime.
 
-> Navigation API details and the supported-type checklist: see `references/runtime-differences.md`.
+Navigation API details and the supported-type checklist: `references/runtime-differences.md`.
 
 ---
 
@@ -109,7 +105,7 @@ export default class GoExternal extends NavigationMixin(LightningElement) {
 
 ---
 
-## 5. Base Components — Not All Are Supported
+## 5. Base Components
 
 LWR ships **fewer** base components and templates than the Aura framework.
 
@@ -129,19 +125,19 @@ LWR ships **fewer** base components and templates than the Aura framework.
   paths as first-class states.
 - Keep secrets and privileged operations out of guest-reachable components.
 
-Site-level guest hardening lives in `dya-sf-lwr-sites`; this is the component-side discipline.
+Site-level guest hardening: `dya-sf-lwr-sites`.
 
 ---
 
-## 7. Performance Posture
+## 7. Performance
 
 - Mind bundle size, lazy-load heavy work, and keep large libraries out of a guest-facing page.
 - Let LDS and GraphQL own data and caching rather than hand-rolling fetch-and-store.
-- Public LWR pages are measured on real-world load and Core Web Vitals; performance is a requirement.
+- Public LWR pages are measured on real-world load and Core Web Vitals.
 
 ---
 
-## 8. UI Bundles — a Real Distribution Path, With Real Constraints
+## 8. UI Bundles
 
 Salesforce Multi-Framework runs external frameworks as **UI Bundles** on LWR, no longer React-only:
 `sf template generate project` ships `reactinternalapp`, `reactexternalapp`, `angularinternalapp` and
@@ -154,7 +150,7 @@ AppExchange path), unlocked namespaced, and unlocked org-dependent. IP protectio
 unlocked one. Installed bundles render from `*.salesforce.app`, isolated from core UI, so two
 same-named bundles from different packages coexist.
 
-Feasibility requires **Hyperforce only**, English as the org's default language, and the Dev Hub
+It requires **Hyperforce only**, English as the org's default language, and the Dev Hub
 toggle *Enable Unlocked Packages and Second-Generation Managed Packages* — until it is on,
 `sf package create` returns `NOT_FOUND`. Build `dist/` before packaging or deploying, or the app
 installs and renders blank. Setup › Security › **Multi-Framework Domains** disables a provisioned

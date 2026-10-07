@@ -1,11 +1,10 @@
 # sf CLI — Metadata & Data (2026)
 
-Load from `dya-sf-cli`. Catalog for `project` (deploy/retrieve/generate), `data`, `sobject`/`generate metadata` and `schema`. All `sf` v2.
+Load from `dya-sf-cli`. Catalog for `project` (deploy/retrieve/generate), `data`, `sobject`/`generate metadata` and `schema`.
 
 ## Project Scaffolding
 
-**`sf project generate` is deprecated as a project scaffolder** — use `sf template generate project`.
-`sf project generate manifest` is a different subcommand and is current.
+Only the project scaffolder is deprecated; `sf project generate manifest` is current.
 
 ```bash
 sf template generate project --name <proj> [--default-package-dir force-app] [--manifest]
@@ -97,4 +96,4 @@ sf api request graphql --body query.graphql --target-org <a>
 
 - Prefer **`--bulk`** / `import|export bulk` for large data sets (Bulk API 2.0); `tree` for related sample data with relationships.
 - `upsert bulk --external-id` is the idempotent load pattern.
-- `--json` for automation; `--result-format csv|human|json` on queries.
+- `--result-format csv|human|json` on queries.

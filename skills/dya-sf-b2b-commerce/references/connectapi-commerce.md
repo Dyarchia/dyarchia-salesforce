@@ -4,7 +4,7 @@ Load from `dya-sf-b2b-commerce`. The `ConnectApi.CommerceCart` Apex API, the buy
 
 ## ConnectApi.CommerceCart
 
-`ConnectApi.CommerceCart` (static methods) covers get/create/update/calculate/delete cart, get cart items, and add/update/delete cart item. Use it instead of raw DML — it applies commerce rules, pricing and entitlements.
+`ConnectApi.CommerceCart` (static methods) covers get/create/update/calculate/delete cart, get cart items, and add/update/delete cart item.
 
 ```apex
 // Add an item to the active cart
@@ -15,10 +15,9 @@ input.type      = ConnectApi.CartItemType.PRODUCT;
 
 ConnectApi.CartItem item =
     ConnectApi.CommerceCart.addItemToCart(webStoreId, effectiveAccountId, 'active', input);
-// 'active' is the activeCartOrId; effectiveAccountId is the buyer account context
 ```
 
-Notes on parameters (overloads vary by version — verify):
+Parameters (overloads vary by version — verify):
 - `webStoreId` — the WebStore Id.
 - `effectiveAccountId` — the buyer **account** context (must be a buyer account entitled to the product).
 - `activeCartOrId` — `'active'` or a specific cart Id.
@@ -27,8 +26,6 @@ Other operations: `getCartSummary`, `getCartItems`, `updateCartItem`, `deleteCar
 
 ## Entitlements — why a buyer can/can't see a product
 
-The most common Commerce error is entitlement-related, not access-related:
-
 > `ConnectApi.ConnectApiException: Could not add cart item because: You can't view 'ProductId'` — even though the user has access to the product record.
 
 Product visibility is governed by:
@@ -36,7 +33,7 @@ Product visibility is governed by:
 2. The Buyer Group is tied to an **Entitlement Policy**.
 3. The Entitlement Policy grants the product (and a **Price Book** entry exists for the store).
 
-When a `ConnectApi.CommerceCart` call says "can't view product," check the **buyer group → entitlement policy → product** chain (and the product's entry in the store's price book), **not** CRUD/FLS. For custom buyer-group evaluation, extend `CommerceBuyGrp.BuyerGroupEvaluationService` (`Commerce_Domain_BuyerGroup_EvaluationService`).
+For custom buyer-group evaluation, extend `CommerceBuyGrp.BuyerGroupEvaluationService` (`Commerce_Domain_BuyerGroup_EvaluationService`).
 
 ## Pricing data
 
@@ -45,8 +42,6 @@ Pricing uses **Salesforce price books** by default. If the store uses **Faster A
 ## Storefront LWC
 
 B2B/D2C **LWR** stores support **Storefront APIs** for custom LWC (headers, footers, cart widgets, PLP/PDP components). Rules (`dya-sf-lwc`):
-- Use the Storefront APIs / wire adapters for store data; `@AuraEnabled` Apex or `ConnectApi` for commerce operations.
-- Keep secrets server-side (Apex + Named Credentials); never in component JS.
 - Respect the guest vs authenticated-buyer security context; entitlements still apply.
 
 ## Headless / external

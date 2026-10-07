@@ -31,14 +31,12 @@ Who the integration user may be, and what its permissions let the call see, belo
 | **OAuth username-password flow retired** | Enforced **20 February 2027** | Any caller posting `grant_type=password` stops receiving a token. See `dya-sf-integration-auth` |
 | **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Callers must address the org's My Domain URL, not an instance URL. Test it now: Setup › My Domain › Redirections › *Block API traffic that uses an incorrect instanced URL* |
 
-Standing facts:
-
 - **Target 68.0 for new integrations; 41.0 is the hard floor.** The version is the `vXX.X` in
   `/services/data/vXX.X/`. Dates and status live only in
   `references/shared/metadata-and-api-versions.md` — do not restate them.
 - **SOAP `login()` retires 1 June 2027** for API 31.0–64.0, a year before the versions themselves.
-  SOAP accepts a JWT OAuth access token in the session header, so nothing justifies keeping it.
-- **GraphQL mutations are GA** and can reference any field an earlier operation returned, not just
+  SOAP accepts a JWT OAuth access token in the session header instead.
+- **GraphQL mutations are GA** and can reference any field an earlier operation returned, not only
   the record id, creating and linking a parent and child in one round trip.
 - **Connect REST API** draws on the per-org 24-hour Platform API pool, except Chatter-touching
   requests. HTTPS is mandatory.
@@ -59,8 +57,7 @@ Standing facts:
 | Deploy/retrieve org configuration | **Metadata API** |
 | Fine-grained metadata, IDE-style live edits | **Tooling API** |
 
-Default to **REST**; **Bulk 2.0** past 10k records; **Composite** to cut round trips; **GraphQL**
-when payload shape matters.
+Default to **REST**.
 
 ---
 
@@ -98,25 +95,23 @@ call. Full patterns in `references/rest-and-composite.md`.
 
 ## 3. SOAP API
 
-The XML data API, for strongly-typed or legacy consumers.
-
 - **Enterprise WSDL** — typed to *your* org's schema; regenerate after every metadata change. For a
   single-org, tightly integrated client.
 - **Partner WSDL** — generic and loosely typed, for multi-org tools and ISVs.
-- **Authenticate with OAuth.** SOAP accepts a JWT access token in the session header, and
-  **`login()` retires Summer '27** — never build a new integration on it.
+- **Authenticate with OAuth.** **`login()` retires Summer '27** — never build a new integration
+  on it.
 - Prefer REST for new work unless a consumer requires WSDL/SOAP.
 
 ---
 
 ## 4. Bulk API 2.0
 
-Asynchronous, CSV-based, for large volumes. Lifecycle: **create job → upload CSV → mark complete →
+Asynchronous and CSV-based. Lifecycle: **create job → upload CSV → mark complete →
 poll status → get results**, processed in 10k-record chunks on a separate async limit pool.
 
 - Use it past **10,000 records**: initial loads, migrations, nightly extracts.
 - ~**15,000 batches / 24 h** shared with Bulk 1.0; **150 MB** per uploaded file.
-- Bulk query handles large extracts. Use 2.0 over 1.0 for all new work.
+- Use 2.0 over 1.0 for all new work.
 
 Full lifecycle in `references/bulk-and-graphql.md`.
 
@@ -127,8 +122,8 @@ Full lifecycle in `references/bulk-and-graphql.md`.
 Graph-shaped queries and mutations over UI API, so it respects FLS and layout rules and covers
 UI-API objects.
 
-- **Queries GA; mutations GA** — create, update and delete on UI-API-supported objects.
-- A mutation can reference any field from an earlier operation in the same request (`@{ref...}`).
+- **Queries and mutations GA** — mutations create, update and delete on UI-API-supported objects.
+- A mutation references an earlier operation's field with `@{ref...}`.
 - Use it when the client wants exactly the fields it needs — mobile, bandwidth-sensitive — or reads
   several objects at once.
 - Child-relationship creation in a single mutation is not supported.
@@ -138,13 +133,12 @@ UI-API objects.
 ## 6. Connect, UI, Metadata, Tooling
 
 - **Connect REST API** — Chatter feeds, Experience Cloud and many product APIs (Commerce, Revenue).
-  On the per-org 24 h pool, except Chatter.
 - **UI API** — returns records, metadata and layout together; powers Lightning Data Service. For
   custom UIs that must honour layouts and FLS without re-deriving metadata.
 - **Metadata API** — deploys and retrieves metadata as zipped XML; the basis for SFDX and DevOps
   Center. Coarse-grained, for releases.
-- **Tooling API** — fine-grained and per-component: compile a class, run anonymous Apex. Used by
-  IDEs and Workbench for live, surgical edits.
+- **Tooling API** — fine-grained and per-component: compile a class, run anonymous Apex. IDEs and
+  Workbench use it for live edits.
 
 ---
 
