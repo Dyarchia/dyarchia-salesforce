@@ -1,12 +1,12 @@
 # Jest Testing for LWC — Reference (Winter '27 / API v68.0)
 
-Full implementations of the LWC Jest testing patterns referenced from SKILL.md §13. Load this file when writing or refactoring Jest tests for a Lightning web component.
+Full implementations of the LWC Jest testing patterns from SKILL.md §10. Load when writing or refactoring Jest tests for a Lightning web component.
 
-`@salesforce/sfdx-lwc-jest` is the **only** test runner Salesforce supports for LWC. It runs Jest over the components with `jsdom` — no browser, no org, no network. The package tracks its own release cadence independently of the Salesforce release — check the installed major version and match it with an active Node LTS. These tests are pure unit tests of a single component's rendered output and behaviour, not end-to-end tests.
+`@salesforce/sfdx-lwc-jest` is the **only** test runner Salesforce supports for LWC. It runs Jest over the components with `jsdom` — no browser, org or network. The package has its own release cadence, independent of the Salesforce release — check the installed major version and match it with an active Node LTS. These are unit tests of one component's rendered output and behaviour, not end-to-end tests.
 
 ## Install & npm Scripts
 
-Install once per Salesforce DX project — either via the CLI helper or as a dev dependency.
+Install once per Salesforce DX project — via the CLI helper or as a dev dependency.
 
 ```bash
 # Recommended: installs the package and seeds the package.json scripts
@@ -35,7 +35,7 @@ sf force lightning lwc test run
 
 ## jest.config.js (Project Root)
 
-Extend the default config the package ships; never hand-roll a Jest config from scratch. Add `moduleNameMapper` entries to point `@salesforce/*` imports that have no platform default (Apex methods, custom labels, custom permissions, etc.) at local mocks.
+Extend the package's default config; never hand-roll one. Add `moduleNameMapper` entries pointing `@salesforce/*` imports with no platform default (Apex methods, custom labels, custom permissions, etc.) at local mocks.
 
 ```javascript
 const { jestConfig } = require('@salesforce/sfdx-lwc-jest/config');
@@ -56,11 +56,11 @@ module.exports = {
 };
 ```
 
-Base `lightning/*` components and the standard LDS / GraphQL adapters are stubbed automatically by `jestConfig` — only map the modules that have no built-in stub.
+`jestConfig` stubs base `lightning/*` components and the standard LDS / GraphQL adapters automatically — map only modules with no built-in stub.
 
 ## Test File Layout
 
-- One `__tests__` folder inside each component bundle (next to the `.js`/`.html`).
+- One `__tests__` folder in each component bundle (next to the `.js`/`.html`).
 - Test file named after the component plus `.test.js` — `helloWorld/__tests__/helloWorld.test.js`.
 - Top-level `describe` whose label matches the rendered element name (`c-hello-world`).
 - Store mock payloads as JSON beside the test, e.g. `__tests__/data/getRecord.json`.
@@ -110,7 +110,7 @@ describe('c-hello-world', () => {
 
 ### The async-render rule
 
-Component re-rendering after a property change, a wire emit, or a resolved promise is **asynchronous**. Always `await flushPromises()` (equivalently `await Promise.resolve()`) between the act step and the assert step. Chaining `.then()` and returning the promise works too, but `async/await` reads cleaner and is the project default. For chained updates (promise → state → render) await once per microtask boundary.
+Re-rendering after a property change, wire emit or resolved promise is **asynchronous**. Always `await flushPromises()` (equivalently `await Promise.resolve()`) between act and assert. Returning a `.then()` chain also works, but `async/await` reads cleaner and is the project default. For chained updates (promise → state → render) await once per microtask boundary.
 
 ## Querying & Interacting With the Shadow DOM
 
@@ -143,11 +143,11 @@ input.dispatchEvent(new CustomEvent('change'));
 await flushPromises();
 ```
 
-Base `lightning/*` mocks render as custom elements with the real public API but no internal behaviour — you can read their properties and dispatch events against them, but they emit nothing on their own.
+Base `lightning/*` mocks render as custom elements with the real public API but no internal behaviour — you can read their properties and dispatch events on them, but they emit nothing themselves.
 
 ## Wire Service — Modern `.emit()` / `.error()` API
 
-Import the adapter under test directly; the configured test environment turns it into a test wire adapter that exposes `.emit(data)` and `.error()`. **Do not** call `registerTestWireAdapter` / `registerLdsTestWireAdapter` / `registerApexTestWireAdapter` — that registration style is legacy (Spring '21 and earlier) and no longer recommended.
+Import the adapter under test directly; the test environment turns it into a test wire adapter exposing `.emit(data)` and `.error()`. **Do not** call `registerTestWireAdapter` / `registerLdsTestWireAdapter` / `registerApexTestWireAdapter` — that registration style is legacy (Spring '21 and earlier).
 
 ### LDS adapter (getRecord, getRelatedListRecords, …)
 
@@ -234,7 +234,7 @@ it('renders accounts from the GraphQL wire', async () => {
 
 ## Imperative Apex — `jest.mock` + Resolved/Rejected Values
 
-Imperative Apex calls are not wires, so mock the module with a Jest fn and control the returned promise per test.
+Imperative Apex calls are not wires: mock the module with a Jest fn and control the returned promise per test.
 
 ```javascript
 import { createElement } from 'lwc';
@@ -292,8 +292,8 @@ describe('c-record-editor', () => {
 
 - **Custom labels** — `@salesforce/label/c.MyLabel` resolves to the label name string by default; override with a `moduleNameMapper` mock only when a test needs a specific value.
 - **Schema** — `@salesforce/schema/Account.Name` resolves to `{ objectApiName, fieldApiName }`; usable as-is.
-- **`lightning/navigation`** — provide a mock module (mapped in `jest.config.js`) so `NavigationMixin.Navigate` is a `jest.fn()` you can assert against. The `lwc-recipes` repo ships a reusable mock.
-- **Toast events** — assert by listening for the platform event the component dispatches:
+- **`lightning/navigation`** — map a mock module in `jest.config.js` so `NavigationMixin.Navigate` is an assertable `jest.fn()`. The `lwc-recipes` repo ships a reusable mock.
+- **Toast events** — listen for the platform event the component dispatches:
 
 ```javascript
 it('fires a success toast after save', async () => {
@@ -315,25 +315,25 @@ it('fires a success toast after save', async () => {
 ## Accessibility Tests with Sa11y
 
 `@sa11y/jest` runs axe assertions inside the Jest suite, so accessibility regressions fail the build
-rather than waiting for a manual audit.
+instead of waiting for a manual audit.
 
 ```bash
 npm install --save-dev @sa11y/jest
 npm test -- --testMatch="**/*.accessibility.test.js"
 ```
 
-Convention is a separate `*.accessibility.test.js` file per component, so the a11y suite can be run
-and reported independently of the unit suite.
+Convention is a separate `*.accessibility.test.js` file per component, so the a11y suite runs and
+reports independently of the unit suite.
 
-**Do not prefix the command with `SA11Y_*` environment variables.** Once `@sa11y/jest` is wired into
-the project's Jest setup it runs automatically; `SA11Y_AUTO`,
+**Do not prefix the command with `SA11Y_*` environment variables.** Once wired into the project's Jest
+setup, `@sa11y/jest` runs automatically; `SA11Y_AUTO`,
 `SA11Y_ENABLE_DOM_MUTATION_OBSERVER` and `SA11Y_ENABLE_RENDERED_DOM_SAVE` belong to Salesforce's
 internal Bazel builds and do nothing in a DX project. Exit codes are Jest's usual 0 or 1.
 
 ## Coverage & CI
 
 - `npm run test:unit:coverage` writes an Istanbul report; gate the build with `coverageThreshold` in `jest.config.js`.
-- Test behaviour through rendered output and emitted events, not private implementation details — refactors should not break green tests.
+- Test behaviour through rendered output and emitted events, not private implementation details — refactors should not break passing tests.
 - Keep each `it` focused on one observable behaviour; one `expect` per concept reads best.
 
 ## Anti-Patterns

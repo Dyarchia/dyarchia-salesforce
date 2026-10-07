@@ -1,23 +1,23 @@
 ---
 name: dya-sf-lwr-sites
-description: Salesforce Experience Cloud LWR sites Winter '27 (API v68.0) — building production sites on the Lightning Web Runtime: enhanced vs non-enhanced LWR sites, standard components and the Grid, CMS collections, guest-user hardening, SEO, CSP/LWS, partial deployment via DigitalExperienceBundle, embedded reports and dashboards, and the Experience Delivery discontinuation. Applies to DigitalExperienceBundle and DigitalExperienceConfig metadata, LWR site components, CMS collections, site CSP and guest-user settings. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-lwr-sites`).
+description: Salesforce Experience Cloud LWR sites Winter '27 (API v68.0) — production sites on the Lightning Web Runtime: enhanced vs non-enhanced LWR sites, standard components and the Grid, CMS collections, guest-user hardening, SEO, CSP/LWS, partial deployment via DigitalExperienceBundle, embedded reports and dashboards, and the Experience Delivery discontinuation. Applies to DigitalExperienceBundle and DigitalExperienceConfig metadata, LWR site components, CMS collections, site CSP and guest-user settings. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-lwr-sites`).
 ---
 
 # Salesforce Experience Cloud — LWR Sites
 
-This skill covers **public and authenticated sites on the Lightning Web Runtime**, the modern
-LWC-native site type, as opposed to legacy Aura template sites. For how components behave on the LWR
-runtime use `dya-sf-lwr`; for the components themselves, `dya-sf-lwc`. Follow every rule below.
+**Public and authenticated sites on the Lightning Web Runtime**, the LWC-native site type, not legacy
+Aura template sites. For how components behave on the LWR runtime use `dya-sf-lwr`; for the components
+themselves, `dya-sf-lwc`. Follow every rule below.
 
 References:
 
 - `references/shared/sharing-and-access.md` — the guest user and the access model a public site
-  runs under. **Read this before hardening anything.**
-- `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
+  runs under. **Read before hardening anything.**
+- `references/shared/platform-deltas.md` — release-coupled facts behind the rules here.
 - `references/site-provisioning.md` — creating a site through the Connect API, the source layout,
-  and the activate-then-publish sequence a new site needs before anyone can reach it.
-- `references/guest-and-seo.md` — the full guest-user hardening procedure and the SEO setup
-  (slugs, sitemaps, robots.txt) for a production LWR site.
+  and the activate-then-publish sequence before anyone can reach it.
+- `references/guest-and-seo.md` — guest-user hardening procedure and SEO setup (slugs, sitemaps,
+  robots.txt) for a production LWR site.
 
 Designing the guest profile and its sharing rules is `dya-sf-permissions`.
 
@@ -28,9 +28,9 @@ Designing the guest profile and its sharing rules is `dya-sf-permissions`.
 **LWR sites are GA and the recommended site type for new builds.**
 
 - **LWR sites are LWC-native** — HTML/CSS/JS through Lightning Web Components, built for
-  performance and developer control. Legacy **Aura template sites** still exist and are not this
-  skill. Never migrate one blindly: it is a rebuild.
-- **Enhanced vs non-enhanced LWR sites matter.** Enhanced sites (enhanced workspace,
+  performance and developer control. Legacy **Aura template sites** still exist and are out of scope.
+  Never migrate one blindly: it is a rebuild.
+- **Enhanced vs non-enhanced matters.** Enhanced sites (enhanced workspace,
   `DigitalExperienceBundle`) are the forward path and unlock **partial deployment**,
   **expression-based visibility and variations**, a **component-specific Style tab** for custom CSS,
   and **site content search**. CMS collections from enhanced workspaces display **only** in enhanced
@@ -42,10 +42,10 @@ Winter '27 changes two things here:
 
 - **Embedded reports and dashboards come to LWR sites (Beta)** — charts and tables with conditional
   formatting and inline record editing, previously Aura-template-only. That removes one of the last
-  genuine reasons to stay on Aura, so raise it whenever someone justifies an Aura site by reporting.
-  Beta: not production, and not a delivery you can plan around yet.
+  reasons to stay on Aura; raise it whenever someone justifies an Aura site by reporting. Beta: not
+  production, not yet a delivery to plan around.
 - **Experience Delivery (Beta) is discontinued**, with **auto-migration on republish through October
-  2026**. Republishing is the migration, but confirm what the site looks like afterwards rather than
+  2026**. Republishing is the migration; confirm what the site looks like afterwards rather than
   assuming it was transparent.
 
 Standing facts:
@@ -55,8 +55,8 @@ Standing facts:
   from a site; Chatter can be enabled in new orgs for Aura and LWR sites.
 - **UI Bundles now cover React and Angular and package as 2GP** (managed or unlocked, namespace
   supported, AppExchange-distributable). A framework-hosted site is a thin `appContainer` over the
-  bundle. It is Hyperforce-only and needs the Dev Hub packaging toggle; confirm the availability
-  status for the target org before planning production on it. See `dya-sf-lwr` §8.
+  bundle. Hyperforce-only, and needs the Dev Hub packaging toggle; confirm availability for the
+  target org before planning production on it. See `dya-sf-lwr` §8.
 
 Sites deploy as metadata — `DigitalExperienceBundle`, `Network`, `CustomSite`,
 `DigitalExperienceConfig` — never hand-edited in production.
@@ -75,19 +75,19 @@ Existing Aura template site                   Stays Aura — migration is a rebu
 React or Angular SPA hosted on Salesforce     UI Bundle (Hyperforce only; packages as 2GP)
 ```
 
-Pick **enhanced LWR** for new builds unless there is a reason not to. Aura-to-LWR is a **rebuild** of
-components, theme and navigation, not a setting.
+Default to **enhanced LWR** for new builds. Aura-to-LWR is a **rebuild** of components, theme and
+navigation, not a setting.
 
 ---
 
 ## 2. Build with Standard Components + the Grid
 
-Compose the page from the **Standard Components for LWR Templates** first, and drop to custom LWC
-only where the standard set cannot do it.
+Compose from the **Standard Components for LWR Templates** first; drop to custom LWC only where they
+cannot do it.
 
 - **Grid** — displays collections and list views: pick a **data source, layout and pagination**. In
-  an **enhanced** site the data source is an object list view **or** a CMS collection from an
-  enhanced workspace; in a **non-enhanced** site, **only** object list views.
+  an **enhanced** site the source is an object list view **or** a CMS collection from an enhanced
+  workspace; in a **non-enhanced** site, **only** object list views.
 - Custom LWCs on the site run on the **LWR runtime**, so all of `dya-sf-lwr` applies: module and
   base-component availability, LWR navigation, designing for the guest. A component tested only in
   Lightning Experience is not known to work here.
@@ -96,12 +96,12 @@ only where the standard set cannot do it.
 
 ## 3. Use the Enhanced-Site Capabilities
 
-On enhanced LWR sites, take the platform feature over the hand-rolled equivalent:
+On enhanced sites, take the platform feature over a hand-rolled equivalent:
 
 - **Expression-based visibility & variations** — show, hide and vary components by audience or data
   condition declaratively, instead of forking components.
-- **Component-specific Style tab** — scope custom CSS to a component rather than dumping global CSS.
-- **Site content search** — built in; do not build a custom search where this fits.
+- **Component-specific Style tab** — scope custom CSS to a component, not global CSS.
+- **Site content search** — built in; no custom search where this fits.
 - **Partial deployment** — deploy only what changed in the `DigitalExperienceBundle`.
 
 ---
@@ -112,15 +112,15 @@ A public LWR site is browsed by the **guest user**: unauthenticated, **read-only
 records**. Misconfigured guest access is the #1 Experience Cloud security incident.
 
 - **Audit the guest user profile before activating**: the **minimum** object and field read access
-  the site needs, nothing more.
+  the site needs.
 - Expose specific records through **guest user sharing rules**. Never relax org-wide defaults for
   the public.
-- The guest cannot own records, so route any "create" through an Apex service in a controlled
-  context that assigns a real owner, or behind an authenticated step.
+- Route any "create" through an Apex service in a controlled context that assigns a real owner, or
+  behind an authenticated step.
 - Every guest-facing component renders a clean **empty / access-denied** state, enforced
   component-side in `dya-sf-lwr`.
 
-> Full guest-user hardening procedure: see `references/guest-and-seo.md`.
+> Full hardening procedure: `references/guest-and-seo.md`.
 
 ---
 
@@ -135,35 +135,35 @@ Unlike Lightning Experience, a public LWR site must be crawlable:
 - Maintain `robots.txt` with the paths to every sitemap for the domain.
 - Keep pages lean (`dya-sf-lwr` §7); Core Web Vitals affect ranking.
 
-> Full SEO setup: see `references/guest-and-seo.md`.
+> Full SEO setup: `references/guest-and-seo.md`.
 
 ---
 
 ## 6. Security — CSP and LWS
 
 - The site runs its **own LWS instance**. Verify behaviour in the site, not in LEX.
-- Register every external endpoint as a **CSP Trusted Site**, and load third-party scripts as
-  **static resources** rather than from arbitrary URLs.
-- Lock down head markup, CSP directives and trusted URLs before go-live. A public site is attack
+- Register every external endpoint as a **CSP Trusted Site**; load third-party scripts as **static
+  resources**, not from arbitrary URLs.
+- Lock down head markup, CSP directives and trusted URLs before go-live: a public site is attack
   surface.
 
 ---
 
 ## 7. Deployment
 
-LWR sites are metadata: `DigitalExperienceBundle` (enhanced), plus `Network`, `CustomSite` and
-`DigitalExperienceConfig`. Source-track them, deploy through CI/CD, use **partial deployment** for
-incremental changes on enhanced sites, and validate against a sandbox. Activating or editing a
-production site by hand is an incident waiting to happen.
+Source-track the metadata (`DigitalExperienceBundle` for enhanced, plus `Network`, `CustomSite` and
+`DigitalExperienceConfig`), deploy through CI/CD, use **partial deployment** for incremental changes
+on enhanced sites, and validate against a sandbox. Activating or editing a production site by hand is
+an incident waiting to happen.
 
 - **A newer LWR site abstracts FlexiPage away entirely.** Never reach for FlexiPage tooling —
   retrieving, generating or editing one — on a `DigitalExperienceBundle` site. It is the reflex for
-  "Lightning page" and it silently does nothing here.
+  "Lightning page" and silently does nothing here.
 - **A page needs both a `route` and a `view`** under `digitalExperiences/site/<name>1/sfdc_cms__*/`,
   each with its own `_meta.json` and `content.json`. One without the other does not resolve.
 
-> The full source layout, creating a site through the Connect API, and the activate-then-publish
-> sequence: `references/site-provisioning.md`.
+> Source layout, Connect API site creation, and the activate-then-publish sequence:
+> `references/site-provisioning.md`.
 
 ---
 

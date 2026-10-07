@@ -4,20 +4,20 @@ Load from `dya-sf-integration-outbound` for the no-code/declarative outbound pat
 
 ## Flow HTTP Callout (No-Code)
 
-Declarative outbound HTTP from Flow Builder. Behind the scenes it creates an External Service + an invocable action. Requires the **Customize Application** permission and a **Named Credential**.
+Declarative outbound HTTP from Flow Builder, creating an External Service + invocable action behind the scenes. Requires the **Customize Application** permission and a **Named Credential**.
 
-Setup flow:
+Setup:
 1. In Flow Builder add an **HTTP Callout** action; choose/create the Named Credential for the base URL.
 2. Define the method (**GET/POST/PUT/PATCH/DELETE**, all GA), path, query params, and headers.
-3. Provide a **sample response** — Salesforce infers the response structure into Apex-defined types you can reference downstream.
+3. Provide a **sample response** — Salesforce infers its structure into Apex-defined types referenceable downstream.
 4. Map inputs from Flow variables; consume the parsed response in later elements.
 
 Critical limitations:
-- **Only 2xx responses are auto-parsed.** For 4xx/5xx you must define the error response structure and branch with a **Decision** element on the HTTP status — otherwise failures are swallowed or fault the Flow.
-- Subject to the same platform callout governor limits as Apex (100/transaction, 120 s, 6/12 MB) — **not adjustable** from Flow.
-- No built-in retry/backoff — add fault paths, or drop to Apex when you need resilient retry.
+- **Only 2xx responses are auto-parsed.** For 4xx/5xx define the error response structure and branch with a **Decision** element on the HTTP status — otherwise failures are swallowed or fault the Flow.
+- Apex's platform callout governor limits apply (100/transaction, 120 s, 6/12 MB) — **not adjustable** from Flow.
+- No built-in retry/backoff — add fault paths, or drop to Apex for resilient retry.
 
-Use it for: simple, well-described REST APIs that an admin should own end-to-end. Drop to Apex (`apex-callouts-async.md`) when you need retry, complex transformation, large/streamed payloads, or callout-after-DML orchestration.
+Use it for: simple, well-described REST APIs an admin owns end-to-end. Drop to Apex (`apex-callouts-async.md`) for retry, complex transformation, large/streamed payloads, or callout-after-DML orchestration.
 
 ## External Services
 
@@ -28,7 +28,7 @@ Setup:
 2. Register an External Service, supplying the OpenAPI schema (or a URL to it).
 3. Salesforce generates invocable actions per operation; use them in Flow or call from Apex.
 
-Best for: a third-party API with a clean OpenAPI spec you want to reuse declaratively across many Flows. The generated actions inherit the bound Named Credential's auth.
+Best for: a third-party API with a clean OpenAPI spec reused declaratively across many Flows. The generated actions inherit the bound Named Credential's auth.
 
 ## Outbound Messages (Legacy)
 
@@ -36,7 +36,7 @@ Workflow/flow-triggered **SOAP** messages to a fixed endpoint with **guaranteed 
 
 - **Legacy** and tied to workflow rules (being retired toward Flow). Avoid for new builds.
 - Migration: **Platform Events** (modern, decoupled, replayable) for fire-and-forget notification, or **Flow HTTP Callout** for a REST push with logic.
-- Where it still shines: legacy middleware that already consumes the Outbound Message SOAP envelope and needs guaranteed-delivery semantics you haven't yet re-platformed.
+- Still fits: legacy middleware that already consumes the Outbound Message SOAP envelope and needs guaranteed-delivery semantics not yet re-platformed.
 
 ## Salesforce Connect / External Objects (Data Virtualization)
 
@@ -47,7 +47,7 @@ Adapters:
 - **Cross-Org** — Salesforce-to-Salesforce over REST (a successor path for the retiring native Salesforce-to-Salesforce feature).
 - **Apex Custom Adapter** (Apex Connector Framework) — implement `DataSource.Connection` / `DataSource.Provider` to virtualize *any* REST API as External Objects.
 
-Use when: large external datasets must *appear* as Salesforce records (related lists, lookups, reports) but must not be stored. Supports external lookups and indirect lookups to relate external rows to standard records.
+Use when: large external datasets must *appear* as Salesforce records (related lists, lookups, reports) but not be stored. Supports external lookups and indirect lookups to relate external rows to standard records.
 
 Avoid when: write-heavy, low-latency-critical, or high-frequency access — every access is a synchronous callout.
 

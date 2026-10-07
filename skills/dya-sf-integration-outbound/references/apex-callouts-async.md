@@ -1,6 +1,6 @@
 # Apex Callouts & Async Patterns — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-outbound` for the callout mechanics, the callout-after-DML rule, and async callout patterns. The canonical async framework (Queueable, Finalizers) lives in `dya-sf-apex`; this file is the integration-specific slice. All examples use Named Credentials (`callout:`) — see `dya-sf-integration-auth`.
+Load from `dya-sf-integration-outbound` for the callout mechanics, the callout-after-DML rule, and async callout patterns. The canonical async framework (Queueable, Finalizers) lives in `dya-sf-apex`; this is the integration-specific slice. Examples use Named Credentials (`callout:`) — see `dya-sf-integration-auth`.
 
 ## Synchronous Callout
 
@@ -39,7 +39,7 @@ Limits (per transaction): **100 callouts**; **timeout 1–120000 ms** per callou
 
 ## The Callout-After-DML Rule
 
-You cannot call out once the transaction has uncommitted DML. Resolve in this order:
+No callout once the transaction has uncommitted DML. Resolve in this order:
 
 1. **Reorder** — do the callout before the DML.
 2. **Queueable** — commit DML, then enqueue a Queueable that calls out in its own transaction (preferred for "save record, then notify external").
@@ -74,7 +74,7 @@ Rules: implement `Database.AllowsCallouts`; **aggregate** — one callout for th
 
 ## Continuation (long-running, sync-feeling)
 
-Use when an external call is slow but you want to return a result to the user without holding a synchronous thread. Up to **3 parallel** callouts, **120 s** max. Common in Visualforce/Aura controllers and long LWC-driven operations.
+For a slow external call whose result returns to the user without holding a synchronous thread. Up to **3 parallel** callouts, **120 s** max. Common in Visualforce/Aura controllers and long LWC-driven operations.
 
 ## Batch Callout
 
@@ -94,7 +94,7 @@ public class SyncBatch implements Database.Batchable<SObject>, Database.AllowsCa
 
 - Make the remote operation **idempotent** (send a client-generated request id) so retries don't double-charge/double-create.
 - Retry only **429/5xx**; back off (exponential where possible); cap attempts.
-- Record failures for reconciliation through whatever the org already uses — never swallow a `CalloutException` silently, and never stand up a logging object to catch it.
+- Record failures for reconciliation through the org's existing mechanism — never swallow a `CalloutException` silently, and never stand up a logging object to catch it.
 
 ## Anti-Patterns
 

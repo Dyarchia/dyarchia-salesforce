@@ -1,19 +1,18 @@
 # LWR Sites — Guest-User Hardening & SEO Setup
 
-Reference for SKILL.md §2–§3. Load when configuring a production public LWR site.
+Reference for SKILL.md §4–§5. Load when configuring a production public LWR site.
 
 ## Guest-user hardening — order of operations
 
-The guest user is an unauthenticated, read-only identity that cannot own records. Configure it
-with least privilege **before** activating the site.
+The guest user is unauthenticated, read-only, and cannot own records. Configure least privilege
+**before** activating the site.
 
-1. **Guest user profile** — grant read access only to the objects and fields the site actually
-   renders. Remove everything else. No create/edit/delete; the guest cannot own records anyway.
-2. **Org-wide defaults** — leave them as restrictive as the rest of the org needs. Never relax
-   an org-wide default to expose data to the public.
+1. **Guest user profile** — read access only to the objects and fields the site renders; remove
+   everything else. No create/edit/delete.
+2. **Org-wide defaults** — as restrictive as the rest of the org needs. Never relax one to expose
+   data to the public.
 3. **Guest user sharing rules** — expose the specific records the public should see through
-   guest sharing rules scoped to criteria, not through broad access. This is the only safe way
-   to widen guest visibility.
+   criteria-scoped guest sharing rules, the only safe way to widen guest visibility.
 
    The metadata type is `sharingGuestRules`, inside the object's
    `sharingRules/<ObjectName>.sharingRules-meta.xml` — all rules for one object share one file:
@@ -33,38 +32,37 @@ with least privilege **before** activating the site.
    </sharingGuestRules>
    ```
 
-   Three authoring rules, each of which fails the deploy when broken:
+   Three authoring rules; breaking any fails the deploy:
 
    - **`<guestUser>` takes the guest user's `CommunityNickname`** — not the site's URL path prefix,
      and not a `<role>` or `<group>` as an ordinary sharing rule would.
-   - **`<includeHVUOwnedRecords>` is required.** Set it `false` unless records owned by high-volume
-     site users should be included. Omitting it is the commonest mistake here.
+   - **`<includeHVUOwnedRecords>` is required** — the commonest omission. Set it `false` unless
+     records owned by high-volume site users should be included.
    - `<includeRecordsOwnedByAll>` belongs to `sharingCriteriaRules` and **fails** inside a guest
      rule.
 
    See `dya-sf-permissions` for the sharing model these sit in.
-4. **"Let Guest Users See Other Members"** — keep off unless the site genuinely requires it.
-5. **Create flows** — the guest cannot own records. Route any public "submit"/"create" through
-   an Apex service that runs in a controlled context (with the record assigned to a real owner),
-   or behind an authenticated step. Validate and rate-limit such entry points.
-6. **Verify before activation** — review the guest profile's object read access; it directly
-   determines what `sitemap.xml` can contain and what the public can reach.
+4. **"Let Guest Users See Other Members"** — keep off unless the site requires it.
+5. **Create flows** — route any public "submit"/"create" through an Apex service in a controlled
+   context (record assigned to a real owner), or behind an authenticated step. Validate and
+   rate-limit such entry points.
+6. **Verify before activation** — review the guest profile's object read access; it determines
+   what `sitemap.xml` can contain and what the public can reach.
 
 ## Component-side expectations
 
-Guest-facing components must treat empty / access-denied results as a normal state and render
-cleanly — never assume data is present (see `dya-sf-lwr` §6).
+Guest-facing components treat empty / access-denied results as a normal state and render cleanly —
+never assume data is present (`dya-sf-lwr` §6).
 
 ## SEO setup
 
 - **URL slugs (GA)** — enable SEO-friendly slugs to replace record Ids in URLs for Accounts,
   Contacts, and custom objects. Readable URLs index better and drive organic traffic.
-- **Sitemaps** — the platform generates `sitemap.xml`; do **not** author a custom sitemap for
-  an LWR (or Aura) site. The guest user profile's read access scopes what the sitemap includes,
-  so least-privilege and SEO coverage are linked: only what the guest can read gets indexed.
+- **Sitemaps** — the platform generates `sitemap.xml`; **never** author a custom sitemap for an
+  LWR (or Aura) site. Only what the guest profile can read gets indexed, so least-privilege and
+  SEO coverage are linked.
 - **robots.txt** — include the paths to all sitemaps for the domain.
-- **Performance** — keep pages lean (see `dya-sf-lwr` §7); Core Web Vitals influence ranking
-  for public sites.
+- **Performance** — keep pages lean (`dya-sf-lwr` §7); Core Web Vitals influence ranking.
 
 ## Pre-go-live checklist
 

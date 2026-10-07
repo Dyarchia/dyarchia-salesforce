@@ -1,13 +1,12 @@
 ---
 name: dya-sf-integration-overview
-description: Salesforce integration decision hub (Winter '27 / API v68.0) — the router and decision framework for the dya-sf-integration-* family. The six integration patterns, sync vs async, idempotency/retry/governor concerns, the master "I need X with Y in manner Z" decision matrix, the authoring-surface map (Apex/Flow/LWC/no-code), and the API-version-retirement facts. Applies to designing a new integration or changing the pattern an existing one uses. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-overview`).
+description: Salesforce integration decision hub (Winter '27 / API v68.0) — router for the dya-sf-integration-* family. The six integration patterns, sync vs async, idempotency/retry/governor concerns, the master "I need X with Y in manner Z" decision matrix, the authoring-surface map (Apex/Flow/LWC/no-code), and the API-version-retirement facts. Applies to designing a new integration or changing the pattern an existing one uses. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-overview`).
 ---
 
 # Salesforce Integration — Decision Hub
 
-This skill does not teach individual protocols — it **routes** you to the right one and the right
-authoring surface, then hands off to a sibling. Use it to choose; use the siblings to build. Follow
-every rule below.
+This skill does not teach protocols — it **routes** to the right one and the right authoring
+surface. Use it to choose; use the siblings to build. Follow every rule below.
 
 The `dya-sf-integration-*` family (load the one the decision points to):
 
@@ -20,10 +19,10 @@ The `dya-sf-integration-*` family (load the one the decision points to):
 
 References:
 
-- `references/shared/metadata-and-api-versions.md` — the single source of truth for API version semantics and retirement status across this library.
-- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults integration code trips over.
+- `references/shared/metadata-and-api-versions.md` — the library's single source of truth for API version semantics and retirement status.
+- `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults integration code trips over.
 - `references/shared/governor-limits.md` — the transaction budget every synchronous integration shares.
-- `references/patterns-and-versions.md` — each of the six patterns in depth, with the implementation and constraints behind the one-line summary here.
+- `references/patterns-and-versions.md` — each of the six patterns in depth: implementation and constraints.
 
 This family sits **on top of** the core skills and defers to them: async and governor detail →
 `dya-sf-apex`; Flow mechanics → `dya-sf-flow`; Lightning Web Security and CSP → `dya-sf-lwc`; who the
@@ -36,24 +35,24 @@ ingestion → `dya-sf-data360`; MCP and the experience layer → `dya-sf-headles
 
 | Change | Status | Why it matters here |
 |---|---|---|
-| **REST API `/latest` alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Fine for exploration; **pin an explicit version in production**, or the integration's behaviour changes three times a year with no deploy |
+| **REST API `/latest` alias** | GA | `/services/data/latest/sobjects/Account` resolves to the newest version. Fine for exploration; **pin an explicit version in production**, or behaviour changes three times a year with no deploy |
 | **OAuth username-password flow retired** | Enforced **20 February 2027** | Anything posting `grant_type=password` stops receiving a token on that date. See `dya-sf-integration-auth` |
 | **Update Instanced URLs in API Traffic** | Postponed to Spring '27 | Instance-based endpoints must become the org's My Domain URL. Testable today with the My Domain blocking setting |
 | **MCP interoperability for agents** | GA | Agents discover external tools through governed connections — a first-class integration surface. See `dya-sf-integration-connectors-mcp` |
 
-Standing facts that decide designs, not just prose:
+Standing facts that decide designs:
 
-- **The Apex security defaults from API 67.0 hit integration code hardest.** SOQL, SOSL and DML
-  default to `USER_MODE`, and an omitted sharing keyword defaults to `with sharing`. Server-to-server
-  code that assumed system-mode access silently returns fewer rows once its class is raised to 67.0
-  or above. Behaviour keys off **each class's compiled version**, not the org's. See
+- **The API 67.0 Apex security defaults hit integration code hardest.** SOQL, SOSL and DML default
+  to `USER_MODE`; an omitted sharing keyword defaults to `with sharing`. Server-to-server code that
+  assumed system-mode access silently returns fewer rows once its class is raised to 67.0 or above.
+  Behaviour keys off **each class's compiled version**, not the org's. See
   `references/shared/platform-deltas.md` and `dya-sf-apex`.
-- **API endpoint versions**: 41.0 is the floor and 31.0–40.0 are deprecated and scheduled for
-  retirement. This concerns the `vXX.X` in standard endpoint URLs only — it does **not** retire your
+- **API endpoint versions**: 41.0 is the floor; 31.0–40.0 are deprecated and scheduled for
+  retirement. This concerns only the `vXX.X` in standard endpoint URLs — it does **not** retire your
   Apex REST or SOAP services, classes, triggers or Visualforce. Full status in
   `references/shared/metadata-and-api-versions.md`.
 - **Hosted MCP servers are GA.** HTTPS is mandatory for every external endpoint. Connect REST API
-  draws on the per-org 24-hour Platform API limit pool, except for Chatter-touching calls.
+  draws on the per-org 24-hour Platform API limit pool, except Chatter-touching calls.
 - **Salesforce-to-Salesforce** ended support in Summer '26 and stops functioning in Spring '27 —
   migrate to MuleSoft, Data Cloud One, or the cross-org adapter.
 
@@ -62,8 +61,7 @@ Standing facts that decide designs, not just prose:
 ## 1. The Six Patterns — the Vocabulary
 
 Salesforce's Integration Patterns and Practices defines the canonical set. **Name the pattern first;
-the technology follows.** Picking a technology before naming the pattern is how point-to-point
-spaghetti gets built.
+the technology follows.** Picking the technology first is how point-to-point spaghetti gets built.
 
 | Pattern | Direction | Sync? | Canonical technology |
 |---|---|---|---|
@@ -74,7 +72,7 @@ spaghetti gets built.
 | **UI Update Based on Data Changes** | SF → UI/external | Async | CDC or Platform Events over Pub/Sub |
 | **Data Virtualization** | SF reads external | Sync | Salesforce Connect and External Objects |
 
-> Each pattern in depth, with its implementation and constraints: `references/patterns-and-versions.md`.
+> Each pattern in depth: `references/patterns-and-versions.md`.
 
 ## 2. First Cut — Direction and Who Initiates
 
@@ -95,33 +93,30 @@ Cross-cutting on every path: authentication → dya-sf-integration-auth
 
 ## 3. Sync vs Async — the Load-Bearing Choice
 
-**Synchronous** when the caller genuinely needs the answer *now* to proceed — a user is waiting, or
-the next step depends on the result. The costs are real: tight coupling, a blocked caller, both
-systems up simultaneously, and the transaction's governor and timeout limits applying hard.
+**Synchronous** only when the caller needs the answer *now* to proceed — a user is waiting, or the
+next step depends on the result. Costs: tight coupling, a blocked caller, both systems up
+simultaneously, and the transaction's governor and timeout limits applying hard.
 
-**Asynchronous** for everything else, and prefer it. It decouples availability, absorbs volume, and
-survives the other system being down. The costs are eventual consistency and the obligation to design
-idempotency and reconciliation yourself.
-
-Default to **async or event-driven** for system-to-system data movement. Reserve **synchronous** for
-user-facing, answer-now dependencies.
+**Asynchronous** for everything else, including all system-to-system data movement by default. It
+decouples availability, absorbs volume, and survives the other system being down. Costs: eventual
+consistency, and designing idempotency and reconciliation yourself.
 
 ## 4. Cross-Cutting Non-Negotiables
 
 - **Idempotency.** Any retried or fire-and-forget message must be safe to process twice. Upsert on an
-  external id, or dedupe on a replay id; never blind insert. A retry that duplicates data is worse
-  than a retry that fails.
+  external id or dedupe on a replay id; never blind insert. A retry that duplicates data is worse
+  than one that fails.
 - **Bulkification and limits.** 100 callouts per transaction, 120 seconds cumulative. Collapse calls
   with Composite or Bulk; never call out inside a loop. Full budget in
   `references/shared/governor-limits.md`.
 - **Error handling and retry.** Platform Events give 72 hours of replay; Outbound Messages retry
-  automatically; Apex callouts need explicit retry and backoff. Make failures visible through what
-  the org already has — one seen only in a debug log is one nobody will see.
+  automatically; Apex callouts need explicit retry and backoff. Surface failures where the org
+  already looks — one seen only in a debug log is one nobody sees.
 - **Security.** OAuth over passwords; External Client Apps over Connected Apps; Named and External
   Credentials over hard-coded secrets and Remote Site Settings; HTTPS always; a purpose-built
   least-privilege integration user, whose own object and field access now governs what its code reads.
 - **Version hygiene.** Target the current API version; 41.0 is the floor. Never build new on a version
-  already scheduled for retirement.
+  scheduled for retirement.
 
 ## 5. Master Decision Matrix
 
@@ -153,7 +148,7 @@ user-facing, answer-now dependencies.
 | **No-code** | — | Flow HTTP Callout, External Services, Salesforce Connect, MuleSoft for Flow | Platform Events in Flow | Prefer for simple, well-described APIs |
 
 An LWC **cannot** call arbitrary Salesforce APIs from JavaScript — only Lightning Data Service and
-`lightning/graphql`. For an external API use an Apex proxy unless you have a specific reason to
+`lightning/graphql`. For an external API use an Apex proxy unless there is a specific reason to
 `fetch` directly. See `dya-sf-integration-outbound` and `dya-sf-lwc`.
 
 ## 7. Decision Thresholds — the Numbers That Flip the Choice

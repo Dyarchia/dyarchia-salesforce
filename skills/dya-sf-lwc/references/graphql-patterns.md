@@ -1,8 +1,8 @@
 # GraphQL Wire Adapter — Reference (Winter '27 / API v68.0)
 
-Full implementations of the GraphQL patterns referenced from SKILL.md §4. Load this file when writing a new GraphQL-backed component or refactoring an Apex-backed one.
+Full implementations of the GraphQL patterns from SKILL.md §4. Load when writing a GraphQL-backed component or refactoring an Apex-backed one.
 
-Always use `lightning/graphql` (v2), never the deprecated `lightning/uiGraphQLApi` (v1). The v2 adapter uses `errors` (plural), not `error` like the other wire adapters.
+Use `lightning/graphql` (v2), never the deprecated `lightning/uiGraphQLApi` (v1). The v2 adapter returns `errors` (plural), not `error` like the other wire adapters.
 
 ## Basic Query
 
@@ -47,7 +47,7 @@ export default class AccountList extends LightningElement {
 
 ## Query With Reactive Variables
 
-Use `variables` with a getter for reactivity — never hardcode dynamic values inside the query string.
+Use `variables` with a getter for reactivity — never hardcode dynamic values in the query string.
 
 ```javascript
 import { LightningElement, wire } from 'lwc';
@@ -93,7 +93,7 @@ export default class FilteredAccounts extends LightningElement {
 
 ## Cursor-Based Pagination
 
-Default page size is 10. Use `first` to set explicitly, `after` with `endCursor` to paginate forward.
+Default page size is 10. Set it with `first`; paginate forward with `after` and `endCursor`.
 
 ```javascript
 get variables() {
@@ -156,26 +156,26 @@ export default class CreateAccount extends LightningElement {
 }
 ```
 
-Two shapes here are easy to get wrong and fail in different ways:
+Two shapes are easy to get wrong, and fail differently:
 
-- The mutation payload field is **`Record`**, capitalised. The lowercase `record` does not exist in
-  the schema, so the query is rejected rather than returning null. Selecting it needs API 64.0 or
-  above, which is below our floor.
-- **`executeMutation` takes the document first and the options second** — `executeMutation(document,
-  { variables })`. Passing a single `{ query, variables }` object leaves the document undefined and
-  the call fails with nothing useful to read.
+- The mutation payload field is **`Record`**, capitalised. Lowercase `record` does not exist in the
+  schema, so the query is rejected rather than returning null. Selecting it needs API 64.0 or above,
+  below our floor.
+- **`executeMutation` takes the document first and options second** — `executeMutation(document,
+  { variables })`. A single `{ query, variables }` object leaves the document undefined and the call
+  fails with nothing useful to read.
 
-Update uses `<Object>Update` and Delete uses `<Object>Delete` with the same shape, with two
-restrictions: `Create` and `Update` payloads must not select child relationships and may reach a
-`REFERENCE` field only through its `ApiName`, and **`Delete` may select only `Id`**. Fields the user
-cannot see arrive in the payload's `errors` array instead of failing the request.
+Update (`<Object>Update`) and Delete (`<Object>Delete`) take the same shape, with two restrictions:
+`Create` and `Update` payloads must not select child relationships and may reach a `REFERENCE` field
+only through its `ApiName`, and **`Delete` may select only `Id`**. Fields the user cannot see arrive
+in the payload's `errors` array instead of failing the request.
 
 ## Filtering Beyond a Single Object
 
 **Operators:** `eq`, `ne`, `in`, `nin`, `gt`, `gte`, `lt`, `lte`, `like`, `contains`.
 
-**Semi-join and anti-join** — filter a parent by a condition on its children, which is otherwise the
-reason people fall back to Apex:
+**Semi-join and anti-join** — filter a parent by a condition on its children, otherwise a common
+reason to fall back to Apex:
 
 ```graphql
 Account(where: {
@@ -191,13 +191,13 @@ Use `Id: { ne: null }` when the only condition is that a matching child exists.
 **The running user** is `uiapi.currentUser`, which takes no arguments and returns a `User`.
 
 **Polymorphic references** need inline fragments (`... on Account`). A field is polymorphic when its
-`referenceToInfos` has more than one entry. Navigate references by their **`relationshipName`**; when
-that is null you can only return the raw `Id`.
+`referenceToInfos` has more than one entry. Navigate references by **`relationshipName`**; when that
+is null only the raw `Id` can be returned.
 
 ### Discovering the schema
 
 There is **no `/graphql/sdl` route**. Introspect through `/services/data/vXX.X/graphql` with a
-standard GraphQL introspection query. The SDL runs past 265,000 lines, so grep it rather than reading
+standard GraphQL introspection query. The SDL runs past 265,000 lines, so grep it rather than read
 it:
 
 ```text
@@ -216,7 +216,7 @@ it:
 
 ## Multi-Object Query in One Call
 
-Multiple queries can run in one operation. Use aliases when querying the same object twice.
+Multiple queries can run in one operation. Alias an object queried twice.
 
 ```javascript
 get accountsAndContactsQuery() {
@@ -237,13 +237,13 @@ get accountsAndContactsQuery() {
 }
 ```
 
-Dependent queries (query B depends on the result of query A) require separate calls — the second `@wire` reacts to the first's result via a getter.
+Dependent queries (B needs A's result) require separate calls — the second `@wire` reacts to the first's result via a getter.
 
 ## Chained Mutations
 
-There is **no `allOrNone` flag on a GraphQL mutation**, and aliasing the `uiapi` field itself does
-not batch anything. What the API does support is **reference chaining**: a later mutation consumes
-an Id produced by an earlier one through the `@{alias}` token.
+There is **no `allOrNone` flag on a GraphQL mutation**, and aliasing the `uiapi` field does not batch
+anything. The API supports **reference chaining**: a later mutation consumes an Id produced by an
+earlier one through the `@{alias}` token.
 
 ```javascript
 const mutation = gql`
@@ -262,14 +262,13 @@ const mutation = gql`
 `;
 ```
 
-Three constraints, all load-bearing:
+Three constraints:
 
-- **The producing mutation must appear first** in the document. Order is the dependency, not the
-  alias name.
+- **The producing mutation must appear first** in the document. Order, not alias name, is the
+  dependency.
 - **Only `Create` and `Delete` can be chained from.** Referencing `@{A}` where `A` is an `Update`
   fails.
 - The token is the whole value — `"@{A}"`, not interpolated into a larger string.
 
-For mutations with no dependency between them, issue separate calls. Nothing rolls them back
-together, so make each one idempotent rather than assuming transactional behaviour that is not
-there.
+Issue independent mutations as separate calls. Nothing rolls them back together, so make each
+idempotent rather than assuming transactional behaviour.

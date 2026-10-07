@@ -1,6 +1,6 @@
 # Named Credentials & External Credentials — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-auth` for outbound authentication. This is the modern, mandatory model for any Salesforce-initiated callout — it replaces hard-coded endpoints/secrets and Remote Site Settings.
+Load from `dya-sf-integration-auth` for outbound authentication. The modern, mandatory model for any Salesforce-initiated callout — it replaces hard-coded endpoints/secrets and Remote Site Settings.
 
 ## The Two-Part Model
 
@@ -9,13 +9,13 @@ Load from `dya-sf-integration-auth` for outbound authentication. This is the mod
 | **Named Credential** | Base URL + which External Credential + callout options (HTTP headers, allow formulas, generate auth header) | *Where* do I call? |
 | **External Credential** | Auth protocol + **Principals** (+ custom headers via formula) | *How* do I authenticate? |
 
-Runtime tokens are stored encrypted in **`UserExternalCredential`**. You reference the whole thing in code/Flow as `callout:Named_Credential_Name/path`.
+Runtime tokens are stored encrypted in **`UserExternalCredential`**. Reference the whole thing in code/Flow as `callout:Named_Credential_Name/path`.
 
 ```apex
 HttpRequest req = new HttpRequest();
-req.setEndpoint('callout:Payments_API/v1/charge');  // resolves base URL + injects auth automatically
+req.setEndpoint('callout:Payments_API/v1/charge');  // resolves base URL + injects auth
 req.setMethod('POST');
-// No Authorization header to set by hand, no secret in code, no Remote Site Setting.
+// No hand-set Authorization header, no secret in code, no Remote Site Setting.
 HttpResponse res = new Http().send(req);
 ```
 
@@ -26,7 +26,7 @@ HttpResponse res = new Http().send(req);
 | **Named Principal** | One shared identity for all users | System-to-system integration (most common) |
 | **Per-User Principal** | Each user authenticates individually; mapped via a permission set | When the external system must attribute actions to a specific user |
 
-Grant access to a Principal by assigning the **permission set** that references the External Credential Principal — that's how a user/integration user is allowed to use it.
+A user or integration user may use a Principal once assigned the **permission set** that references the External Credential Principal.
 
 ## Auth Protocols
 
@@ -40,7 +40,7 @@ Grant access to a Principal by assigning the **permission set** that references 
 | **Basic** | Legacy username/password to the *external* system (avoid where possible) |
 | **Custom** | Set the auth header yourself via a formula (API keys, bespoke schemes) |
 
-Prefer **OAuth Client Credentials with JWT** for modern machine-to-machine; use **Custom** for simple API-key headers; reserve **Basic** for legacy targets.
+Prefer **OAuth Client Credentials with JWT** for modern machine-to-machine; **Custom** for simple API-key headers; reserve **Basic** for legacy targets.
 
 ## Setup Outline
 
@@ -51,11 +51,11 @@ Prefer **OAuth Client Credentials with JWT** for modern machine-to-machine; use 
 
 ## Custom Headers via Formula
 
-External Credentials support **custom headers** computed with formulas (e.g. an API key, a computed signature, a tenant id) so you don't hand-build them in Apex. Keep secrets in the credential, reference them in the formula.
+External Credentials support **custom headers** computed with formulas (e.g. an API key, a computed signature, a tenant id), so you don't hand-build them in Apex. Keep secrets in the credential and reference them in the formula.
 
 ## Why Not Remote Site Settings / Hard-Coding
 
-- Remote Site Settings only allowlist a URL — they don't manage auth, secrets, or rotation. Named Credentials supersede them; a `callout:` endpoint needs no RSS.
+- Remote Site Settings only allowlist a URL — no auth, secrets, or rotation. Named Credentials supersede them; a `callout:` endpoint needs no RSS.
 - Hard-coded tokens leak in code, version control, and logs, and can't be rotated centrally.
 
 ## Anti-Patterns

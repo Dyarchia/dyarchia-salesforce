@@ -1,10 +1,10 @@
 # Visualforce Controller Patterns — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §2–§4. Load this when writing or refactoring a Visualforce controller, extension, or list controller on Winter '27 (API v68.0). Visualforce controllers are Apex, so the deep Apex rules in `dya-sf-apex` (Service/Selector/Domain layering, async, testing, observability) apply on top of everything here.
+Implementations for SKILL.md §2–§4, for writing or refactoring a controller, extension or list controller. Controllers are Apex, so `dya-sf-apex` (Service/Selector/Domain layering, async, testing, observability) applies on top.
 
 ## Standard Controller + Extension Skeleton
 
-The extension constructor receives an `ApexPages.StandardController`. Query once, cache in fields, expose actions that return `PageReference` (or `null` to stay on the page).
+The constructor receives an `ApexPages.StandardController`. Query once, cache in fields, expose actions returning `PageReference` (or `null` to stay on the page).
 
 ```java
 public with sharing class AccountDashboardExt {
@@ -40,13 +40,13 @@ public with sharing class AccountDashboardExt {
     }
 
     public PageReference refresh() {
-        loadData();              // re-query on demand instead of holding huge view state
-        return null;             // stay on the same page
+        loadData();              // re-query instead of holding huge view state
+        return null;             // stay on the page
     }
 
     public PageReference saveAndReturn() {
-        // Delegate real persistence to a Service class; StandardController.save()
-        // handles the parent record with CRUD/FLS + sharing enforced.
+        // Real persistence goes to a Service class; StandardController.save()
+        // saves the parent record with CRUD/FLS + sharing enforced.
         this.stdCtrl.save();
         return new PageReference('/' + accountId);
     }
@@ -69,7 +69,7 @@ Page wiring:
 
 ## View State Discipline
 
-The view state hard limit is 135 KB. Every non-`transient` member field is serialised on each postback.
+Hard limit: 135 KB. Every non-`transient` member field is serialised on each postback.
 
 | Field role | Declaration |
 |---|---|
@@ -82,11 +82,11 @@ Rules:
 
 - Re-query in an action method (`refresh()` above) rather than carrying a big collection across postbacks.
 - Bind `<apex:inputField>` directly to SObject fields; don't shadow every field into scalar properties.
-- Use the View State Inspector (enable Development Mode) to verify size before shipping.
+- Verify size with the View State Inspector (enable Development Mode) before shipping.
 
 ## Custom Controller — CRUD/FLS Is Your Job
 
-A standard controller enforces CRUD/FLS/sharing automatically. A custom controller does not. Declare `with sharing` and enforce field access via `WITH USER_MODE` queries and `Security.stripInaccessible`.
+A standard controller enforces CRUD/FLS/sharing automatically; a custom controller does not. Declare `with sharing` and enforce field access with `WITH USER_MODE` queries and `Security.stripInaccessible`.
 
 ```java
 public with sharing class CaseConsoleController {
@@ -94,7 +94,7 @@ public with sharing class CaseConsoleController {
     public transient List<Case> cases { get; private set; }
 
     public CaseConsoleController() {
-        // USER_MODE enforces object + field permissions for the running user.
+        // USER_MODE enforces the running user's object + field permissions.
         this.cases = [
             SELECT Id, CaseNumber, Subject, Status, Priority FROM Case
             WHERE IsClosed = false WITH USER_MODE
@@ -138,7 +138,7 @@ public with sharing class SearchController {
 }
 ```
 
-If you genuinely cannot bind (e.g. a dynamic field/object name), validate against a `Schema.describe` allow-list and `String.escapeSingleQuotes` the literal — never trust raw input.
+If you cannot bind (e.g. a dynamic field/object name), validate against a `Schema.describe` allow-list and `String.escapeSingleQuotes` the literal — never trust raw input.
 
 ## Anti-Patterns
 

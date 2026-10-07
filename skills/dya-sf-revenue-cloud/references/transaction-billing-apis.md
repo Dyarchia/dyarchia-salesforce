@@ -1,10 +1,10 @@
 # Revenue Cloud Advanced — Transaction Management, Assets & Billing (Winter '27 / API v68.0)
 
-Load from `dya-sf-revenue-cloud`. The transactional and post-sale domains with real Connect endpoints, Apex, and invocable actions. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request/response bodies per version.
+Load from `dya-sf-revenue-cloud`. The transactional and post-sale domains: Connect endpoints, Apex, and invocable actions. Source: Revenue Lifecycle Management Developer Guide v68.0. Confirm exact request/response bodies per version.
 
 ## The consistent surface (recap)
 
-Each domain exposes: **Connect REST business APIs** (external), **standard invocable actions** (Flow/Agentforce), **built-in Apex classes/namespaces** (on-platform), **Metadata API types** (deploy), and **platform events** (react). Never hand-roll DML when a business API/action exists.
+Each domain exposes **Connect REST business APIs** (external), **standard invocable actions** (Flow/Agentforce), **built-in Apex classes/namespaces** (on-platform), **Metadata API types** (deploy), and **platform events** (react). Never hand-roll DML when a business API/action exists.
 
 ## Transaction Management (Quote & Order Capture)
 
@@ -20,10 +20,10 @@ POST /services/data/v68.0/connect/commerce/sales-transactions/actions/place
 ```
 
 Apex:
-- **`PlaceQuoteRLMApexProcessor`** (placequote namespace) — processes quote placement on-platform; the PlaceQuote Apex surface lets you create/price quotes from Apex.
+- **`PlaceQuoteRLMApexProcessor`** (placequote namespace) — processes quote placement on-platform; the PlaceQuote Apex surface creates/prices quotes from Apex.
 - Built-in Apex reference under **Transaction Management** (quote/order capture) classes.
 
-Invocable actions: standard actions for Flow/Agentforce — e.g. **create an order from an existing quote**, place a quote, etc. New invocable actions ship each release; check the current list.
+Invocable actions: standard actions for Flow/Agentforce — e.g. **create an order from an existing quote**, place a quote. New actions ship each release; check the current list.
 
 ```apex
 // Illustrative PlaceQuote via Apex (confirm request/response types in the current developer guide)
@@ -34,7 +34,7 @@ Invocable actions: standard actions for Flow/Agentforce — e.g. **create an ord
 
 ## Asset Lifecycle
 
-Manage the installed base: **amend** (change qty/terms), **renew**, **cancel** — the RCA equivalent of CPQ contract amendment. Exposed as **business APIs + invocable actions + Apex**; they produce correctly-priced change transactions against existing assets. Don't mutate asset records directly.
+Manage the installed base: **amend** (change qty/terms), **renew**, **cancel** — the RCA equivalent of CPQ contract amendment. Exposed as **business APIs + invocable actions + Apex**, producing correctly-priced change transactions against existing assets. Don't mutate asset records directly.
 
 ## Billing (ConnectApi namespace)
 
@@ -48,7 +48,7 @@ Surfaces:
 - **Metadata API types** for billing settings/Flows.
 
 ```apex
-// Billing is driven through the ConnectApi namespace + invocable actions;
+// Billing runs through the ConnectApi namespace + invocable actions;
 // confirm exact class/method names (e.g. credit application / invoice classes) in the current Billing Apex reference.
 ```
 

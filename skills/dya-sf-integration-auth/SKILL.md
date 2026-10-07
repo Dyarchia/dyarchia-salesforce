@@ -5,47 +5,47 @@ description: Salesforce integration authentication & identity (Winter '27 / API 
 
 # Salesforce Integration Authentication & Identity
 
-Authentication runs in **both** directions: how external systems authenticate *into* Salesforce, and
-how Salesforce authenticates *out* to external systems. This is the cross-cutting identity skill
-every other integration skill defers to. Follow every rule below.
+Authentication runs in **both** directions: external systems authenticating *into* Salesforce, and
+Salesforce authenticating *out* to external systems. Every other integration skill defers to this
+one for identity. Follow every rule below.
 
 References:
 
-- `references/shared/platform-deltas.md` — the release-coupled facts, including the retirements below.
+- `references/shared/platform-deltas.md` — release-coupled facts, including the retirements below.
 - `references/shared/metadata-and-api-versions.md` — endpoint version retirement, and where SOAP `login()` sits in it.
 - `references/oauth-and-eca.md` — the OAuth 2.0 flows in depth, External Client Apps vs Connected Apps, JWT bearer setup, MCP and agent auth.
 - `references/named-external-credentials.md` — the Named Credential + External Credential model, principal types, auth protocols, and the `callout:` pattern.
 
-Who can *do* what once authenticated is a different question and belongs to `dya-sf-permissions`.
-Routing between integration patterns is `dya-sf-integration-overview`.
+What an authenticated caller may *do* belongs to `dya-sf-permissions`. Routing between integration
+patterns is `dya-sf-integration-overview`.
 
 ---
 
 ## Platform Context — Winter '27 / API v68.0
 
-Two retirements dominate this release for authentication. Both are **dated**, and the dates are what
-make them actionable — an integration that works today stops working on a specific day.
+Two **dated** retirements dominate authentication this release — an integration that works today
+stops working on a specific day.
 
 | Change | When | What breaks |
 |---|---|---|
-| **OAuth 2.0 username-password flow retired for connected apps** | Release Update in Winter '27, **enforced 20 February 2027** | Anything posting `grant_type=password` with a username, password and security token stops receiving a token. Not at the release upgrade — on that date |
+| **OAuth 2.0 username-password flow retired for connected apps** | Release Update in Winter '27, **enforced 20 February 2027** | Anything posting `grant_type=password` with a username, password and security token stops receiving a token — on that date, not at the release upgrade |
 | **SOAP `login()` retirement** for API 31.0–64.0 | Summer '27; already unavailable at 65.0+ | Username/password SOAP authentication. The **"Any API Auth"** user permission already gates who may use it, enforced by default in new orgs |
 | **Update Instanced URLs in API Traffic** | Postponed to **Spring '27** | API calls to instance-based endpoints rather than the org's My Domain URL |
 
 If an org does not see the username-password Release Update in Setup, the flow is already blocked
-there and it is unaffected. New orgs block it by default.
+there. New orgs block it by default.
 
 **Migrating off username-password.** The **client credentials flow** is the smaller change: the
-external client app runs as one designated integration user and no password is stored anywhere.
-**JWT bearer** uses a signed certificate instead of any shared secret, and is the better answer for
-anything high value. The **web server flow with PKCE** is the answer when a real human is
-authorising. Do not migrate to another password-carrying scheme.
+external client app runs as one designated integration user and no password is stored. **JWT
+bearer** uses a signed certificate instead of a shared secret — the better answer for anything high
+value. The **web server flow with PKCE** fits when a real human authorises. Never migrate to another
+password-carrying scheme.
 
-**Update Instanced URLs in API Traffic** can be tested now: Setup › My Domain › Redirections ›
+**Update Instanced URLs in API Traffic** is testable now: Setup › My Domain › Redirections ›
 *Block API traffic that uses an incorrect instanced URL*. Turn it on in a sandbox and see what
-breaks before the date chooses for you.
+breaks before the date.
 
-Standing context: **External Client Apps are the default** for inbound integration identity, and new
+Standing context: **External Client Apps are the default** for inbound integration identity; new
 Connected App creation has been disabled by default since Spring '26. **Named Credentials plus
 External Credentials** are the outbound model; legacy Named Credentials are deprecated. **Hosted MCP
 servers** authenticate with OAuth plus PKCE through an ECA carrying the `mcp_api` and `refresh_token`
@@ -64,15 +64,15 @@ OUTBOUND  Salesforce authenticates OUT to an external system
 ```
 
 Never hard-code a secret in either direction. Inbound identity lives in an **External Client App**,
-outbound credentials in **External Credentials**, encrypted and principal-scoped. Both exist to keep
-secrets out of code *and* metadata: a secret in a `.cls` file is a secret in version control.
+outbound credentials in **External Credentials**, encrypted and principal-scoped. Both keep secrets
+out of code *and* metadata: a secret in a `.cls` file is a secret in version control.
 
 ## 2. Inbound — Choosing the OAuth Flow
 
 | Flow | Use it for | Notes |
 |---|---|---|
 | **JWT Bearer** | Server-to-server, no human involved | Certificate-based, no stored secret. The modern default for system integrations |
-| **Client Credentials** | Server-to-server tied to one run-as user | Simplest migration off username-password. Pick a least-privilege integration user deliberately — everything the integration can do, it does as them |
+| **Client Credentials** | Server-to-server tied to one run-as user | Simplest migration off username-password. Choose a least-privilege integration user deliberately — the integration does everything as them |
 | **Web Server (authorization code + PKCE)** | A human authorises an application | PKCE is required for public clients and harmless for confidential ones — always use it |
 | **Refresh Token** | Long-lived access after an interactive grant | Pairs with the web server flow; store the refresh token as a secret |
 | **Device** | Input-constrained devices | Kiosks, IoT |
@@ -91,14 +91,14 @@ Default to **JWT Bearer** for backend integrations, **web server plus PKCE** for
 | Security posture | **Closed by default**; blocks legacy password flows outright | Historically open by default |
 | Secret rotation | Staged Credentials API — rotate with no downtime | Manual, with a gap |
 
-Build new integration identities as ECAs. Keep existing Connected Apps running but migrate when you
-touch one, and **inventory everything using username-password or SOAP `login()` now** — both have
+Build new integration identities as ECAs. Keep existing Connected Apps running but migrate one when
+you touch it, and **inventory everything using username-password or SOAP `login()` now** — both have
 dates attached.
 
 ## 4. Inbound — Other Mechanisms
 
 - **Session-based** — for a caller already in session, such as Visualforce or Aura calling Apex
-  REST. A harvested session id is not a long-lived API credential and is never treated as one.
+  REST. A harvested session id is never a long-lived API credential.
 - **Mutual TLS** — certificate-based transport authentication where the counterparty requires it,
   configured for inbound traffic in Setup.
 - **"Any API Auth"** — the user permission gating SOAP `login()` eligibility, enforced by default in
@@ -122,8 +122,8 @@ Site Setting.
 
 - **Named Principal** — one shared identity for every user, the usual choice for a system
   integration.
-- **Per-User Principal** — each user authenticates individually, mapped through a permission set. Use
-  it when the external system must know *which* user acted, for its own audit or authorisation.
+- **Per-User Principal** — each user authenticates individually, mapped through a permission set.
+  Use it when the external system must know *which* user acted, for its own audit or authorisation.
 
 **Protocols**: OAuth 2.0 (browser flow, web server, client credentials with a secret, client
 credentials with a JWT assertion), JWT, **AWS Signature v4**, Basic (legacy), and Custom (a header

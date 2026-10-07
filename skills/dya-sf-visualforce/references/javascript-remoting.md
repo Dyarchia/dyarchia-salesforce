@@ -1,13 +1,13 @@
 # Visualforce JavaScript Remoting — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §5. Load this when building asynchronous, partial-page server interaction on a Visualforce page. JavaScript Remoting is the modern default: it is stateless (carries **no view state**), fast, and gives you direct control over the request and response in JavaScript.
+Implementations for SKILL.md §5, for async, partial-page server interaction. Remoting is the default: stateless (**no view state**), fast, with direct control over request and response in JavaScript.
 
 ## `@RemoteAction` Contract
 
 - The method MUST be `static` and annotated `@RemoteAction`.
-- Parameters and return types must be primitives, SObjects, collections, or `@RemoteAction`-serialisable Apex types (no `Blob`, no `Object`).
-- It runs in its own transaction with its own governor limits — bulkify the same way you would a controller.
-- It does NOT automatically enforce CRUD/FLS — use `WITH USER_MODE` / `Security.stripInaccessible` and declare `with sharing` on the class.
+- Parameters and return types: primitives, SObjects, collections, or `@RemoteAction`-serialisable Apex types (no `Blob`, no `Object`).
+- It runs in its own transaction with its own governor limits — bulkify as you would a controller.
+- It does NOT enforce CRUD/FLS automatically — use `WITH USER_MODE` / `Security.stripInaccessible` and declare `with sharing` on the class.
 
 ```java
 public with sharing class ContactRemote {
@@ -49,7 +49,7 @@ public with sharing class ContactRemote {
 
 ## Invoking From the Page
 
-The callback receives `(result, event)`. Always check `event.status` before using `result`; remoting errors arrive on the `event`, not as a thrown JS exception.
+The callback receives `(result, event)`. Check `event.status` before using `result`; errors arrive on the `event`, not as a thrown JS exception.
 
 ```html
 <apex:page controller="ContactRemote" lightningStylesheets="true">
@@ -76,7 +76,7 @@ The callback receives `(result, event)`. Always check `event.status` before usin
         }
 
         function render(contacts) {
-            // contacts is a plain JS array of the SObject shape returned above
+            // plain JS array of the SObject shape returned above
             const app = document.getElementById('app');
             app.textContent = contacts.length + ' contacts';
         }
@@ -84,7 +84,11 @@ The callback receives `(result, event)`. Always check `event.status` before usin
 </apex:page>
 ```
 
-Options object: `escape: true` HTML-escapes string fields in the response (default true — keep it on unless you are deliberately rendering trusted HTML); `timeout` is in ms (max 120000); `buffer: false` disables request batching when calls must fire independently.
+Options object:
+
+- `escape: true` HTML-escapes response string fields (default true — keep it on unless deliberately rendering trusted HTML).
+- `timeout` is in ms (max 120000).
+- `buffer: false` disables request batching when calls must fire independently.
 
 ## Choosing the Interaction Technique
 
@@ -95,11 +99,11 @@ Options object: `escape: true` HTML-escapes string fields in the response (defau
 | Basic record CRUD from JS without Apex | **Remote Objects** (`<apex:remoteObjects>`) | none | NO |
 | Declarative rerender on a component event | `<apex:actionSupport>` + `rerender` | full round-trip | maybe |
 
-Prefer Remoting for anything data-heavy. Reserve `<apex:actionFunction>`/`<apex:actionSupport>` for small, record-scoped interactions where the view-state round-trip is negligible and you want declarative rerender.
+Prefer Remoting for anything data-heavy. Reserve `<apex:actionFunction>`/`<apex:actionSupport>` for small, record-scoped interactions where the view-state round-trip is negligible and declarative rerender is wanted.
 
 ## Remote Objects — CRUD Without Apex
 
-When the page only needs basic CRUD on accessible objects and you'd rather not write a controller:
+For basic CRUD on accessible objects without writing a controller:
 
 ```html
 <apex:page>
@@ -124,7 +128,7 @@ When the page only needs basic CRUD on accessible objects and you'd rather not w
 </apex:page>
 ```
 
-Remote Objects enforce the running user's CRUD/FLS automatically (they go through the same access layer as the UI). They cannot do complex server logic — for that, drop to `@RemoteAction`.
+Remote Objects enforce the running user's CRUD/FLS automatically (same access layer as the UI). For complex server logic, drop to `@RemoteAction`.
 
 ## Anti-Patterns
 

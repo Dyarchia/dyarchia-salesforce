@@ -5,13 +5,13 @@ description: Salesforce outbound integration (Winter '27 / API v68.0) — Salesf
 
 # Salesforce Outbound Integration
 
-This skill covers Salesforce calling out to external systems. The question it answers is **"code or
-no-code, and sync or async?"** Follow every rule below.
+Salesforce calling out to external systems. The question is **"code or no-code, and sync or
+async?"** Follow every rule below.
 
 References:
 
 - `references/shared/governor-limits.md` — the transaction budget a callout is spending, and why callouts never go in a loop.
-- `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults callout classes inherit.
+- `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults callout classes inherit.
 - `references/apex-callouts-async.md` — `Http`/`HttpRequest`/`HttpResponse`, the callout-after-DML rule, Queueable/future/Batch/Continuation patterns, retry and backoff.
 - `references/flow-external-services-connect.md` — Flow HTTP Callout, External Services (OpenAPI to invocable actions), Outbound Messages (legacy), Salesforce Connect and External Objects.
 
@@ -23,22 +23,21 @@ Lightning Web Security and CSP in `dya-sf-lwc`; what the calling user is allowed
 
 ## Platform Context — Winter '27 / API v68.0
 
-Winter '27 changes little here directly. It changes the budget a callout runs inside: **Apex heap
-rises to 10 MB synchronous and 25 MB asynchronous**, which affects how much response you can hold,
-not how large a single callout payload may be — that limit is separate and unchanged. See
-`references/shared/governor-limits.md`.
+Winter '27 changes the budget a callout runs inside: **Apex heap rises to 10 MB synchronous and
+25 MB asynchronous**. That affects how much response you can hold, not the size of a single callout
+payload — a separate, unchanged limit. See `references/shared/governor-limits.md`.
 
 Standing facts that govern every outbound call:
 
 - **Named Credentials plus External Credentials are the only correct mechanism.** They replace
-  hard-coded endpoints, hard-coded secrets and Remote Site Settings. Reference them as
+  hard-coded endpoints, secrets and Remote Site Settings. Reference them as
   `callout:My_Named_Credential/path`. Detail in `dya-sf-integration-auth`.
 - **HTTPS is mandatory.** No supported path calls an `http://` endpoint.
 - **Flow HTTP Callout is GA** for GET, POST, PUT, PATCH and DELETE — genuine no-code outbound built
-  on External Services. It handles only 2xx automatically.
+  on External Services. It auto-handles only 2xx.
 - **From API 67.0 a callout class defaults to `with sharing` and `USER_MODE`.** An async callout
-  class must still declare `Database.AllowsCallouts`: the marker interface is what permits the
-  callout at all, and omitting it fails at run time, not compile time.
+  class must still declare `Database.AllowsCallouts`: the marker interface permits the callout at
+  all, and omitting it fails at run time, not compile time.
 - **Salesforce Connect** with the OData 4.01 adapter removes the legacy 20,000-callouts-per-hour cap
   and supports incremental syncs and external change data capture.
 - **Lightning Web Security blocks `data:` URIs** in the browser, so client-generated downloads use
@@ -60,7 +59,7 @@ Does Salesforce need the answer right now to continue?
 └─ Push from a button/screen in the UI ............... LWC → Apex proxy → callout
 ```
 
-Prefer **no-code (Flow HTTP Callout)** for simple, well-described REST APIs an admin can own. Drop to
+Prefer **no-code (Flow HTTP Callout)** for simple, well-described REST APIs an admin can own;
 **Apex** for complex logic, async, retry or large payloads.
 
 ---
@@ -81,10 +80,10 @@ if (res.getStatusCode() == 200) { /* parse */ } else { /* handle/log/retry */ }
 Hard limits, per Apex transaction:
 - **100 callouts** maximum.
 - **Timeout 1 ms–120,000 ms (120 s)** per callout, and **120 s cumulative** across all of them.
-- Callout request or response payload **6 MB synchronous / 12 MB asynchronous**. This is its own
-  limit; the Winter '27 heap increase does not raise it.
+- Callout request or response payload **6 MB synchronous / 12 MB asynchronous** — its own limit;
+  the Winter '27 heap increase does not raise it.
 - The "10" seen elsewhere is a *different* limit — concurrent synchronous requests running longer
-  than 5 seconds — not the per-transaction maximum, which is 100.
+  than 5 seconds — not the per-transaction maximum.
 
 ### The callout-after-DML rule
 A callout **cannot** run while uncommitted DML sits in the transaction: "You have uncommitted work
@@ -107,22 +106,21 @@ Full async callout patterns: `references/apex-callouts-async.md`.
 | **Batch** | Callout per chunk over large data | `Database.Batchable, Database.AllowsCallouts` (≤100 callouts/execute) |
 | **`@future(callout=true)`** | Legacy fire-and-forget | avoid in new code |
 
-Default to **Queueable** for new async callouts and reserve `@future` for legacy. The canonical async
+Default to **Queueable** for new async callouts; reserve `@future` for legacy. The canonical async
 framework is in `dya-sf-apex`.
 
 ---
 
 ## 4. Flow HTTP Callout (No-Code)
 
-Declarative outbound HTTP in Flow Builder, generating an External Service and invocable action behind
-the scenes. It needs the Customize Application permission and a Named Credential.
+Declarative outbound HTTP in Flow Builder, generating an External Service and invocable action
+behind the scenes. Needs the Customize Application permission and a Named Credential.
 
 - Methods: **GET, POST, PUT, PATCH, DELETE**, all GA.
-- It **auto-handles only 2xx**. For anything else, define the error schema and branch with a Decision
+- **Auto-handles only 2xx**. For anything else, define the error schema and branch with a Decision
   element.
-- The same platform callout governor limits as Apex apply, and Flow cannot adjust them.
-- Use it for simple, well-described APIs an admin owns; drop to Apex for retry and backoff, complex
-  transformation, or large and streamed payloads.
+- Apex's platform callout governor limits apply, and Flow cannot adjust them.
+- Drop to Apex for retry and backoff, complex transformation, or large and streamed payloads.
 
 ---
 
@@ -131,7 +129,7 @@ the scenes. It needs the Customize Application permission and a Named Credential
 Register an API by its **OpenAPI/JSON schema** and Salesforce generates **invocable actions plus
 Apex-defined types** usable from Flow and Apex, with no hand-written callout code.
 
-- Best where the external API has a clean OpenAPI spec and you want declarative reuse across Flows.
+- Best where the external API has a clean OpenAPI spec and Flows need declarative reuse.
 - The generated actions honour the Named Credential you bind.
 
 ---
@@ -141,8 +139,7 @@ Apex-defined types** usable from Flow and Apex, with no hand-written callout cod
 Workflow- or flow-triggered **SOAP** messages to a fixed endpoint, with guaranteed delivery and
 automatic retry: ack within 24 h, extendable to 7 days.
 
-- **Legacy**, tied to workflow rules, which are themselves being retired toward Flow. Avoid for new
-  builds.
+- **Legacy**, tied to workflow rules, themselves being retired toward Flow. Avoid for new builds.
 - Migrate to **Platform Events** for decoupling, or **Flow HTTP Callout** for REST flexibility.
 
 ---
@@ -155,7 +152,7 @@ callout on access.
 - **Adapters:** OData 2.0 and 4.0 — the 4.01 adapter removes the 20,000-callouts-per-hour cap and
   supports external change data capture — **Cross-Org** over REST, and the **Apex Custom Adapter**
   (Apex Connector Framework) for any REST API.
-- Use it when large external datasets must *appear* as records but must not be stored. It supports
+- Use it when large external datasets must *appear* as records but not be stored. Supports
   indirect and external lookups, and incremental syncs.
 - Never for write-heavy or latency-critical flows: every access is a live callout.
 
@@ -163,12 +160,12 @@ callout on access.
 
 ## 8. Calling External APIs From LWC
 
-The browser cannot call arbitrary Salesforce APIs from JS — only LDS and `lightning/graphql`. For
-*external* APIs there are two paths:
+The browser cannot call arbitrary Salesforce APIs from JS — only LDS and `lightning/graphql`.
+*External* APIs have two paths:
 
 1. **Apex proxy (recommended)** — the LWC calls an `@AuraEnabled` Apex method that makes the callout
-   through a Named Credential. Secrets stay server-side, no CORS is needed, and all Apex governance
-   is reused.
+   through a Named Credential. Secrets stay server-side, no CORS is needed, and Apex governance is
+   reused.
 2. **Direct `fetch()`** — only where the third party explicitly supports browser calls. It requires a
    **CSP Trusted Site** (`connect-src`) **and** the third party's CORS allowlisting, and it would
    expose any credential. Never put credentials in JS.

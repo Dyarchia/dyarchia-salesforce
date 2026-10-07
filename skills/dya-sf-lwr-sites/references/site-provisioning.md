@@ -1,14 +1,13 @@
 # Creating and Publishing a Site Programmatically
 
-Everything between "no site exists" and "a visitor can reach it". The skill body covers building
-inside a site; this file covers bringing one into existence, which is a different set of APIs and has
-a step people consistently miss.
+Everything between "no site exists" and "a visitor can reach it": a different set of APIs from
+building inside a site, with a step people consistently miss.
 
 ## The short version
 
-A freshly created site is **not reachable**. It comes up with `status: UnderConstruction`, only the
-creating admin as a member, and unpublished Builder pages. Creation, activation and publication are
-three different operations on three different surfaces, and only the first is a Connect API call.
+A freshly created site is **not reachable**: `status: UnderConstruction`, only the creating admin as a
+member, unpublished Builder pages. Creation, activation and publication are three operations on three
+surfaces; only the first is a Connect API call.
 
 ```text
 create    →  Connect API      POST /connect/communities
@@ -25,28 +24,27 @@ POST /services/data/vXX.X/connect/communities
 
 `urlPathPrefix` must be **alphanumeric only** — no hyphens, no spaces.
 
-Discover the template rather than hardcoding it, because the accepted strings vary by org edition and
-version:
+Discover the template rather than hardcoding it; accepted strings vary by org edition and version:
 
 ```text
 GET /services/data/vXX.X/connect/communities/templates
 → { "templates": [ { "publisher": "...", "templateName": "..." } ], "total": n }
 ```
 
-Names you will commonly see:
+Common names:
 
 | Runtime | Templates |
 |---|---|
 | LWR | **`Build Your Own (LWR)`**, **`Microsite (LWR)`** |
 | Aura | `Customer Service`, `Help Center`, `Customer Account Portal`, `Partner Central`, `Employee Portal`, `Agentforce Employee Center`, `Build Your Own` |
 
-**Never create a `Salesforce Tabs + Visualforce` site.** It is legacy, has no Builder, and cannot be
-migrated to one.
+**Never create a `Salesforce Tabs + Visualforce` site.** It is legacy, has no Builder, and cannot
+migrate to one.
 
 ### Two purpose-built alternatives
 
-**Self-service** — asynchronous, and it sets the URL path prefix itself from the site name, so it
-takes no `templateName`:
+**Self-service** — asynchronous; derives the URL path prefix from the site name and takes no
+`templateName`:
 
 ```text
 POST /services/data/vXX.X/connect/self-service/site
@@ -72,9 +70,7 @@ POST /services/data/vXX.X/connect/prm/setup/sites
 ## Activating — and why there is no API for it
 
 **`PATCH /connect/communities/<id>` returns 405 METHOD_NOT_ALLOWED.** The resource is GET and HEAD
-only. Looking for the activation endpoint is a detour; there isn't one.
-
-Activation goes through the Metadata API:
+only; there is no activation endpoint. Activate through the Metadata API:
 
 ```bash
 sf project retrieve start --metadata "Network:My Site" --target-org <alias>
@@ -82,7 +78,7 @@ sf project retrieve start --metadata "Network:My Site" --target-org <alias>
 sf project deploy start --metadata "Network:My Site" --target-org <alias>
 ```
 
-Publishing is separate again, and there is no Connect API for it either:
+Publishing is separate, with no Connect API either:
 
 ```bash
 sf community publish --name "My Site" --target-org <alias>
@@ -93,12 +89,11 @@ sf community publish --name "My Site" --target-org <alias>
 An Aura employee or customer site serves at the `/s`-style path and logs in at
 `…/<prefix>/login` or `…/<prefix>/s/login` — **not** at the bare `…/<prefix>`.
 
-Hitting the bare prefix and getting nothing useful is the single commonest "the site is broken"
-report, and the site is fine.
+Hitting the bare prefix is the commonest "the site is broken" report; the site is fine.
 
 ## The source layout
 
-An LWR site is a set of related metadata types, and knowing the shape saves guessing at a retrieve:
+An LWR site is a set of related metadata types:
 
 ```text
 digitalExperienceConfigs/{siteName}1.digitalExperienceConfig-meta.xml
@@ -107,8 +102,8 @@ networks/{siteName}.network-meta.xml
 sites/{siteName}.site-meta.xml
 ```
 
-**Note the `1` suffix** on the config and bundle names — it is a convention, not a typo, and it is
-absent from the `Network` and `CustomSite` files.
+**The `1` suffix** on the config and bundle names is a convention, not a typo; the `Network` and
+`CustomSite` files lack it.
 
 Supported LWR template devName: `talon-template-byo` (Build Your Own).
 
@@ -122,18 +117,16 @@ sfdc_cms__route         sfdc_cms__mobilePublisherConfig
 sfdc_cms__view
 ```
 
-**Creating a page requires both a `route` and a `view`.** One without the other produces a page that
-does not resolve.
+**A page requires both a `route` and a `view`.** One without the other does not resolve.
 
 Object pages follow a naming convention: a custom object `Car__c` gets `Car_Detail`, `Car_List` and
 `Car_Related_list` views.
 
 ## Never reach for FlexiPage tooling
 
-**A newer LWR site with a `DigitalExperienceBundle` abstracts FlexiPage away entirely.** Any
-FlexiPage-shaped instinct — retrieving `FlexiPage`, generating one, editing one — is wrong here and
-produces metadata the site ignores. This is worth stating because FlexiPage is the reflex for
-"Lightning page" and it silently does nothing on an LWR site.
+**A newer LWR site with a `DigitalExperienceBundle` abstracts FlexiPage away entirely.** Retrieving,
+generating or editing a `FlexiPage` is wrong here and produces metadata the site ignores. FlexiPage is
+the reflex for "Lightning page" and silently does nothing on an LWR site.
 
 ## Deploying
 
@@ -142,6 +135,5 @@ sf project deploy start --metadata DigitalExperienceBundle DigitalExperience \
     DigitalExperienceConfig Network CustomSite --target-org <alias>
 ```
 
-Metadata types are **space-delimited after a single flag**. Never quote the group and never
-comma-join it: `--metadata "DigitalExperienceBundle DigitalExperience"` is read as one nonexistent
-type name.
+Metadata types are **space-delimited after a single flag**. Never quote or comma-join the group:
+`--metadata "DigitalExperienceBundle DigitalExperience"` is read as one nonexistent type name.

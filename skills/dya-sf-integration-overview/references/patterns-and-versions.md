@@ -1,31 +1,31 @@
 # Integration Patterns & Version Retirement — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-overview` when you need the pattern detail behind a choice, or the precise API-version-retirement facts.
+Load from `dya-sf-integration-overview` for the pattern detail behind a choice, or the API-version-retirement facts.
 
 ## The Six Patterns in Depth
 
 ### 1. Remote Process Invocation — Request and Reply
-Salesforce calls a remote system and **waits** for a response, then continues in the same transaction. Use for real-time validation, address lookup, payment authorisation. Implement with synchronous Apex HTTP callout or Flow HTTP Callout. Constraints: callout-after-DML rule, 120 s cumulative timeout, the user/transaction blocks. Keep the remote call fast and the failure path explicit.
+Salesforce calls a remote system, **waits** for the response, and continues in the same transaction. Use for real-time validation, address lookup, payment authorisation. Implement with a synchronous Apex HTTP callout or Flow HTTP Callout. Constraints: callout-after-DML rule, 120 s cumulative timeout, the user/transaction blocks. Keep the remote call fast and the failure path explicit.
 
 ### 2. Remote Process Invocation — Fire and Forget
-Salesforce notifies a remote system and does **not** wait. Use for "order placed → tell the warehouse." Implement with a Platform Event (preferred — decoupled, durable) or an async Queueable callout. The remote system must be idempotent because delivery may retry.
+Salesforce notifies a remote system and does **not** wait. Use for "order placed → tell the warehouse." Implement with a Platform Event (preferred — decoupled, durable) or an async Queueable callout. The remote system must be idempotent: delivery may retry.
 
 ### 3. Batch Data Synchronization
-Bulk movement of data on a schedule. Use for nightly syncs, initial loads, data warehousing. Implement with Bulk API 2.0 (in/out), ETL tools, or MuleSoft. Design for restartability and dedupe by external id.
+Scheduled bulk data movement. Use for nightly syncs, initial loads, data warehousing. Implement with Bulk API 2.0 (in/out), ETL tools, or MuleSoft. Design for restartability and dedupe by external id.
 
 ### 4. Remote Call-In
-An external system creates/reads/updates/deletes Salesforce data. Use for "the ERP pushes invoices into SF." Implement with REST/SOAP/Bulk for standard ops, or Apex REST for bespoke transactional contracts. Govern with External Client Apps + OAuth and least-privilege permission sets.
+An external system creates/reads/updates/deletes Salesforce data. Use for "the ERP pushes invoices into SF." Implement with REST/SOAP/Bulk for standard ops, Apex REST for bespoke transactional contracts. Govern with External Client Apps + OAuth and least-privilege permission sets.
 
 ### 5. UI Update Based on Data Changes
 A user's UI (or an external subscriber) updates when data changes, without polling. Use for live dashboards, "another user changed this record." Implement with Change Data Capture / Platform Events over the Pub/Sub API (or `lightning/empApi` in LWC for in-org UI).
 
 ### 6. Data Virtualization
-Salesforce reads external data **in place**, on demand, without storing it. Use for large external datasets that must appear as records but shouldn't be copied. Implement with Salesforce Connect (External Objects) over OData or an Apex custom adapter.
+Salesforce reads external data **in place**, on demand, without storing it. Use for large external datasets that must appear as records but not be copied. Implement with Salesforce Connect (External Objects) over OData or an Apex custom adapter.
 
 ## Choosing Sync vs Async — Checklist
 
 Choose **synchronous** only if ALL hold:
-- A human or the next transaction step genuinely needs the result now.
+- A human or the next transaction step needs the result now.
 - The remote system is reliably fast (well under the timeout budget).
 - You can tolerate the caller failing if the remote system is down.
 
@@ -36,13 +36,12 @@ Otherwise choose **asynchronous / event-driven** and design:
 
 ## API Version Retirement — Precise Facts
 
-The version numbers and dates live in **`references/shared/metadata-and-api-versions.md`**, which is
-the single source of truth for them across the whole library. Do not restate them here or in any
-skill body — a date written in two places is a date that will eventually disagree with itself. Read
-the fragment; it carries the floor, the deprecated range, and the two separate retirement dates
-(the versions themselves, and SOAP `login()` a year earlier).
+The version numbers and dates live only in **`references/shared/metadata-and-api-versions.md`**, the
+library's single source of truth. Never restate them here or in a skill body — a date written in two
+places eventually disagrees with itself. The fragment carries the floor, the deprecated range, and
+the two separate retirement dates (the versions themselves, and SOAP `login()` a year earlier).
 
-Integration-specific items that sit alongside those dates:
+Integration-specific items alongside those dates:
 
 | Item | Status |
 |---|---|
@@ -52,10 +51,10 @@ Integration-specific items that sit alongside those dates:
 | Apex classes, triggers, Visualforce pages | **Not retired** — they keep their saved version |
 | Salesforce-to-Salesforce native feature | Support ended Summer '26; stops functioning Spring '27 |
 
-**The critical distinction:** version retirement targets the numeric version in the *standard platform
-endpoint* URLs, plus the SOAP *login* method. It does not deprecate the ability to build custom Apex
-services. A `@RestResource` class keeps working. What changes when you raise a class to 67.0 or above
-is its *behaviour* — user mode and default sharing — which is a security change, not a retirement.
+**The critical distinction:** version retirement targets the numeric version in *standard platform
+endpoint* URLs, plus the SOAP *login* method. It does not deprecate custom Apex services; a
+`@RestResource` class keeps working. Raising a class to 67.0 or above changes its *behaviour* — user
+mode and default sharing — a security change, not a retirement.
 
 ## Governor Limits That Shape Integration Design
 

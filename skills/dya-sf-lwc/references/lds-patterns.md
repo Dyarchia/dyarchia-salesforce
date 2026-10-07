@@ -5,19 +5,18 @@ Load from `dya-sf-lwc` when writing a component that reads or writes records wit
 ## What LDS actually is
 
 **Lightning Data Service** is a client-side layer that reads and writes Salesforce records through the
-**UI API** and keeps a shared cache in the browser. Two components asking for the same record get one
-network request and one cached copy, and both re-render when it changes. This is why the skill's first
-rule is to avoid Apex: an `@AuraEnabled` controller bypasses that cache entirely, so it costs a round
-trip every time and updates nothing else on the page.
+**UI API** and keeps a shared browser cache. Two components asking for the same record get one network
+request and one cached copy, and both re-render when it changes. Hence the skill's first rule, avoid
+Apex: an `@AuraEnabled` controller bypasses that cache, costing a round trip every time and updating
+nothing else on the page.
 
-**UI API** is the REST API behind it. It returns record data *plus* the metadata and layout
-information a UI needs, with field-level security already applied. Its one significant limitation is
-coverage: it supports most standard and custom objects but **not all of them**, and an object it does
-not support cannot be reached by any LDS adapter, `lightning-record-form`, or GraphQL. Check the *UI
-API Developer Guide* object list before designing around it — an unsupported object is the single most
-common legitimate reason to fall back to Apex.
+**UI API** is the REST API behind it, returning record data *plus* the metadata and layout information
+a UI needs, with field-level security applied. Its one significant limitation is coverage: it supports
+most standard and custom objects but **not all**, and an unsupported object is unreachable by any LDS
+adapter, `lightning-record-form` or GraphQL. Check the *UI API Developer Guide* object list before
+designing around it — an unsupported object is the most common legitimate reason to fall back to Apex.
 
-A **wire adapter** is a function you attach to a component property with `@wire`. The framework calls
+A **wire adapter** is a function attached to a component property with `@wire`. The framework calls
 it, hands back `{ data, error }`, and calls it again whenever a reactive input changes. You never
 invoke it yourself.
 
@@ -43,15 +42,14 @@ export default class AccountDetail extends LightningElement {
 }
 ```
 
-**The `$` prefix is the single most common LWC mistake.** `'$recordId'` — a string, with a dollar
-sign — means "the value of `this.recordId`, and re-run this wire whenever it changes". Writing
-`recordId: this.recordId` passes the value *once*, at construction, when it is usually still
-`undefined`; the wire then never re-fires and the component renders empty forever. If a wire looks
-like it never runs, check this first.
+**The `$` prefix is the most common LWC mistake.** `'$recordId'` — a string, with a dollar sign —
+means "the value of `this.recordId`; re-run this wire whenever it changes". `recordId: this.recordId`
+passes the value *once*, at construction, usually while still `undefined`; the wire never re-fires and
+the component renders empty forever. If a wire seems never to run, check this first.
 
-Importing fields from `@salesforce/schema/...` rather than writing `'Account.Name'` as a string means
-the reference breaks at compile time if the field is renamed or deleted, instead of silently at run
-time in production.
+Importing fields from `@salesforce/schema/...` instead of the string `'Account.Name'` makes the
+reference break at compile time if the field is renamed or deleted, not silently at run time in
+production.
 
 ## Reading a related list
 
@@ -85,19 +83,19 @@ async handleCreate() {
 }
 ```
 
-`updateRecord` and `deleteRecord` take the same shape. For multi-record writes use GraphQL mutations —
-see `references/graphql-patterns.md`.
+`updateRecord` and `deleteRecord` take the same shape. For multi-record writes use GraphQL mutations
+(`references/graphql-patterns.md`).
 
 ## Object metadata and picklists
 
 `getObjectInfo` and `getPicklistValues` from `lightning/uiObjectInfoApi` return object metadata and
-record-type-aware picklist values. Deriving picklist values by hand, or hardcoding them in JavaScript,
-guarantees they drift from the org.
+record-type-aware picklist values. Picklist values derived by hand or hardcoded in JavaScript are
+guaranteed to drift from the org.
 
 ## The full adapter directory
 
-Four modules. Reaching for Apex or GraphQL because you did not know an adapter existed is the most
-common way a component ends up heavier than it needs to be.
+Four modules. Reaching for Apex or GraphQL without knowing an adapter existed is the most common way
+a component ends up heavier than needed.
 
 | Module | Adapters |
 |---|---|
@@ -108,13 +106,13 @@ common way a component ends up heavier than it needs to be.
 
 ### `optionalFields` versus `fields`
 
-The single most common cause of a `getRecord` wire erroring in a multi-profile org:
+The most common cause of a `getRecord` wire erroring in a multi-profile org:
 
 - A field the user cannot access, listed in **`fields`**, makes the whole wire **error**.
 - The same field in **`optionalFields`** is silently omitted from the result.
 
-Put anything the running user might not have FLS on into `optionalFields` and handle its absence, or
-the component breaks for one profile and works for yours.
+Put any field the running user might lack FLS on into `optionalFields` and handle its absence, or
+the component breaks for one profile while working for yours.
 
 ### List views
 
@@ -143,10 +141,10 @@ await updateRecord(
 );
 ```
 
-Passing `ifUnmodifiedSince` turns a silent last-write-wins into a detectable conflict. The
-`recordInput` itself also accepts `triggerOtherEmail`, `triggerUserEmail`, `useDefaultRule` (case and
-lead assignment rules) and `allowSaveOnDuplicate` — all defaulting to `false`, which is why
-assignment rules appear not to fire from an LWC until you ask for them.
+`ifUnmodifiedSince` turns a silent last-write-wins into a detectable conflict. The `recordInput`
+also accepts `triggerOtherEmail`, `triggerUserEmail`, `useDefaultRule` (case and lead assignment
+rules) and `allowSaveOnDuplicate` — all defaulting to `false`, which is why assignment rules seem not
+to fire from an LWC until requested.
 
 ## Telling the cache something changed
 
@@ -156,16 +154,15 @@ import { notifyRecordUpdateAvailable } from 'lightning/uiRecordApi';
 await notifyRecordUpdateAvailable([{ recordId: this.recordId }]);
 ```
 
-Call it after something outside LDS has changed a record — an Apex callout, an imperative Apex write —
-so the cache refreshes and every component bound to that record re-renders. `getRecordNotifyChange` is
-the deprecated predecessor; do not use it.
+Call it after something outside LDS changed a record — an Apex callout, an imperative Apex write —
+so the cache refreshes and every component bound to that record re-renders. Do not use the deprecated
+predecessor, `getRecordNotifyChange`.
 
 ## Refreshing a wired Apex method — a different mechanism
 
 `notifyRecordUpdateAvailable` refreshes the **LDS** cache. A component reading through `@wire` on an
-Apex method is not going through LDS, so that call does nothing for it and the stale data stays on
-screen with no error anywhere. Use `refreshApex`, which needs the **raw wire result** — keep it
-instead of destructuring:
+Apex method bypasses LDS, so that call does nothing and stale data stays on screen with no error. Use
+`refreshApex`, which needs the **raw wire result** — keep it instead of destructuring:
 
 ```javascript
 import { refreshApex } from '@salesforce/apex';
@@ -211,9 +208,9 @@ showError(error) {
 }
 ```
 
-LDS, GraphQL (`errors`, plural) and `AuraHandledException` each return errors in a different shape.
-`reduceErrors` from the standard `ldsUtils` community utility normalises all three. Rolling your own
-means handling only the shape you happened to test against.
+LDS, GraphQL (`errors`, plural) and `AuraHandledException` each return a different error shape.
+`reduceErrors` from the standard `ldsUtils` community utility normalises all three. A hand-rolled one
+handles only the shape you happened to test.
 
 ## Anti-Patterns
 
