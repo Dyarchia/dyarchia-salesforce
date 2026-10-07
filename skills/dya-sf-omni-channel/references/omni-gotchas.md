@@ -1,8 +1,7 @@
 # Where Omni-Channel Deploys and Queries Fail
 
-Two categories, and almost every wasted hour in this area is one of them: a read path that works for
-one type and not its neighbour, and an element name that changed while the old one still appears in
-older documentation.
+Almost every wasted hour here is one of two things: a read path that works for one type and not its
+neighbour, or an element name that changed while older documentation still shows the old one.
 
 ## The read-path asymmetry
 
@@ -13,12 +12,11 @@ SELECT Id, Metadata FROM ServiceChannel          -- INVALID_FIELD
 SELECT Id, CapacityWeight FROM ServiceChannel    -- INVALID_FIELD
 ```
 
-`GET /tooling/sobjects/ServiceChannel/<id>` returns `{ "Metadata": null }` — a successful response
-carrying nothing, which is worse than an error because it looks like the channel is unconfigured.
+`GET /tooling/sobjects/ServiceChannel/<id>` returns `{ "Metadata": null }` — a successful, empty
+response, worse than an error because the channel looks unconfigured.
 
-**`WorkSkillRouting` does expose a queryable `Metadata` field.** Two adjacent types in the same
-feature behave differently, so a helper written against one and reused for the other silently returns
-empty.
+**`WorkSkillRouting` does expose a queryable `Metadata` field.** Adjacent types in one feature
+behave differently, so a helper written against one and reused for the other silently returns empty.
 
 To read a `ServiceChannel`'s configuration, retrieve the metadata:
 
@@ -28,9 +26,8 @@ sf project retrieve start --metadata "ServiceChannel:Cases" --target-org <alias>
 
 ## The v66 renames
 
-Several `ServiceChannel` elements changed name. The old ones appear in documentation and in
-StackExchange answers that still rank well, and a deploy using them fails on a field that "obviously
-exists":
+Several `ServiceChannel` elements were renamed. The old names persist in documentation and
+well-ranked StackExchange answers, and a deploy using them fails on a field that "obviously exists":
 
 | Before | Now |
 |---|---|
@@ -39,10 +36,10 @@ exists":
 | `capacityWeight` | **`capacityModel`** (`TAB_BASED` \| `STATUS_BASED`) |
 | `isCustomerVisible` | *removed* |
 
-The `capacityWeight` change is the one with a design consequence rather than a mechanical one. It did
-not move — it was **replaced**. The per-item cost is now expressed through the capacity model, and
-the **per-agent total lives on `PresenceUserConfig.Capacity`**. Code or documentation looking for an
-agent's capacity on the channel is looking at the wrong object, not an older field name.
+The `capacityWeight` change has a design consequence, not only a mechanical one: it was **replaced**,
+not moved. The capacity model now expresses the per-item cost, and the **per-agent total lives on
+`PresenceUserConfig.Capacity`**. Looking for an agent's capacity on the channel is looking at the
+wrong object, not an older field name.
 
 ## `enableOmniChannel` gates everything
 
@@ -55,16 +52,15 @@ one deploy does not reliably order them.
 
 ## `enableOmniAutoLoginPrompt` deploys and does nothing
 
-It accepts a value, round-trips through retrieve unchanged, and **does not drive the corresponding
-UI radio**. It is documented, it is deployable, and it is currently inert. Do not spend an afternoon
-on it.
+It accepts a value and round-trips through retrieve unchanged, but **does not drive the corresponding
+UI radio**: documented, deployable, currently inert. Do not spend an afternoon on it.
 
 ## The queue that accepts nothing
 
 A `Group` with `Type = 'Queue'` and no `QueueSobject` row for the entity being routed is a valid,
 deployable, completely inert queue. Work never arrives and nothing errors.
 
-Check `QueueSobject` before checking anything else when a specific queue is the one not receiving.
+When a specific queue is not receiving, check `QueueSobject` first.
 
 ## Diagnosis order
 

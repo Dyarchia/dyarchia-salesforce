@@ -8,23 +8,23 @@ Load from `dya-sf-b2c-commerce` for headless/API development. **OCAPI is depreca
 https://{shortCode}.api.commercecloud.salesforce.com/{apiFamily}/{apiName}/{version}/organizations/{organizationId}/{resource}?siteId={siteId}
 ```
 
-- `{shortCode}` — instance short code (e.g. `kv7kzm78`); it's the 3-char string after the 3rd underscore region of your config.
+- `{shortCode}` — instance short code (e.g. `kv7kzm78`); the 3-char string after the 3rd underscore region of your config.
 - `{organizationId}` — e.g. `f_ecom_zzte_053`.
 - `{version}` — **`v1`** for everything **except Shopper Baskets**, which is `v1` or `v2` (use `v2` for newer features).
 - `{siteId}` — e.g. `RefArchGlobal`.
 
-Real product fetch:
+Product fetch:
 
 ```
 GET https://kv7kzm78.api.commercecloud.salesforce.com/product/shopper-products/v1/organizations/f_ecom_zzte_053/products/25518823M?siteId=RefArchGlobal
 Authorization: Bearer {slas_access_token}
 ```
 
-API families/names you'll use most: `product/shopper-products`, `product/shopper-search`, `checkout/shopper-baskets`, `checkout/shopper-orders`, `customer/shopper-customers`, `pricing/shopper-promotions`, `shopper/auth` (SLAS), `shopper/shopper-context`.
+Most-used API families/names: `product/shopper-products`, `product/shopper-search`, `checkout/shopper-baskets`, `checkout/shopper-orders`, `customer/shopper-customers`, `pricing/shopper-promotions`, `shopper/auth` (SLAS), `shopper/shopper-context`.
 
 ## SLAS — the Mandatory Gatekeeper
 
-Shopper APIs require a SLAS token. SLAS uses OAuth 2.1 grant types. **Public client** = browser/PWA (PKCE, no secret). **Private client** = server/BFF that can store a secret (full-stack apps and any BFF must be private clients).
+Shopper APIs require a SLAS token; SLAS uses OAuth 2.1 grant types. **Public client** = browser/PWA (PKCE, no secret). **Private client** = server/BFF that can store a secret (full-stack apps and any BFF must be private clients).
 
 Guest token (private client, `client_credentials`, Basic auth header = `base64(clientId:clientSecret)`):
 
@@ -35,7 +35,7 @@ curl "$BASE/shopper/auth/v1/organizations/$ORG/oauth2/token" \
 # → { "access_token": "...", "refresh_token": "...", "usid": "...", "customer_id": "..." }
 ```
 
-Login (public client) uses the **authorization code grant + PKCE**: the app generates `code_verifier`/`code_challenge`, the shopper authenticates (optionally via a third-party IDP / SSO), and the app exchanges the code at `/token` and validates the JWT via the key set.
+Login (public client) uses the **authorization code grant + PKCE**: the app generates `code_verifier`/`code_challenge`, the shopper authenticates (optionally via a third-party IDP / SSO), then the app exchanges the code at `/token` and validates the JWT against the key set.
 
 Rules:
 - **Refresh-token reuse is prohibited for public clients** (OAuth 2.1): each `/token` call returns a new refresh token; reusing an old one → `400 invalid refresh token` (enforced since Sept 9, 2025). Persist and rotate the latest token (typically on a BFF).
@@ -67,24 +67,24 @@ const product = await products.getProduct({ parameters: { id: "25518823M" } });
 
 ## Custom APIs (SCAPI) — your own endpoints
 
-Expose your own RESTful endpoint under the `custom` family, implemented by a Script API script + an OpenAPI schema in a cartridge.
+Your own REST endpoint under the `custom` family: a Script API script plus an OpenAPI schema in a cartridge.
 
 ```
 GET https://{shortCode}.api.commercecloud.salesforce.com/custom/loyalty-info/v1/organizations/{org}/customers?c_customerId={id}&siteId={site}&locale={locale}
 Authorization: Bearer {token}
 ```
 
-- Define the contract in an **OpenAPI 3.0** document (paths, params, `securitySchemes: ShopperToken`), and implement each `operationId` in a **Script API** script file in the cartridge. Verify cartridge structure, activate the code version, and assign the cartridge to the site.
+- Define the contract in an **OpenAPI 3.0** document (paths, params, `securitySchemes: ShopperToken`); implement each `operationId` in a **Script API** script in the cartridge. Verify cartridge structure, activate the code version, and assign the cartridge to the site.
 
 ## Shopper Context (personalization without custom code)
 
-Instead of an OCAPI "Modify Response" hook to personalize price/promotions, send shopper attributes (e.g. Member Level, Region) to the **Shopper Context API**; SCAPI returns context-appropriate prices/promotions natively while preserving **object-level caching**.
+Instead of an OCAPI "Modify Response" hook, send shopper attributes (e.g. Member Level, Region) to the **Shopper Context API**; SCAPI then returns matching prices/promotions natively, preserving **object-level caching**.
 
 ## Composable Storefront (PWA Kit + Managed Runtime)
 
 - **PWA Kit** — React storefront; uses SCAPI for products, search, baskets, promotions, inventory, shipping, billing.
 - **Managed Runtime (MRT)** — serverless host (autoscaling, eCDN, ~100 environments out of the box, UI/API deploys + rollback). PWA Kit runs as a serverless app on MRT; an SFRA storefront can run alongside (hybrid) talking to the same instance.
-- Customize in React + the commerce SDK; backend customization via SCAPI hooks and Custom APIs.
+- Customize the front end in React + the commerce SDK; the backend via SCAPI hooks and Custom APIs.
 
 ## SCAPI vs OCAPI
 

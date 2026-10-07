@@ -5,10 +5,9 @@ description: Salesforce B2C Commerce developer surface (2026) — the programmat
 
 # Salesforce B2C Commerce — Developer Surface
 
-B2C Commerce is the Commerce Cloud product of Demandware lineage. **Critical:** this platform is
-**not** Salesforce core — there is **no Apex, no LWC, no SOQL**. Server-side code is **JavaScript on
-the B2C Commerce Script API (`dw.*`)**, packaged in **cartridges**, with **ISML** templates, and the
-APIs are **SCAPI** (REST). Never apply `dya-sf-apex` or `dya-sf-lwc` patterns here. This skill covers the
+B2C Commerce is the Demandware-lineage Commerce Cloud product. It is **not** Salesforce core: **no
+Apex, no LWC, no SOQL**. Server-side code is **JavaScript on the Script API (`dw.*`)** in
+**cartridges**, with **ISML** templates; the APIs are **SCAPI** (REST). Never apply `dya-sf-apex` or `dya-sf-lwc` patterns here. This skill covers the
 programmatic surface only. Follow every rule below.
 
 References:
@@ -22,20 +21,19 @@ References:
 - **Two storefront architectures coexist:** **SFRA** (Storefront Reference Architecture — controller
   and cartridge MVC, successor to SiteGenesis) and the **Composable Storefront** (headless **PWA
   Kit** on **Managed Runtime**, React, talking to SCAPI).
-- **OCAPI has been deprecated since April 2026.** Under the versioning and deprecation policy it
-  stays available with security updates and no new features for two years from then, so roughly April
-  2028. **All new implementations use SCAPI exclusively**, and existing OCAPI integrations need a
-  migration plan.
-- **SCAPI is the modern API and SLAS is its mandatory gatekeeper.** Shopper APIs require a **SLAS**
-  token, and SLAS uses OAuth 2.1 grant types: guest is client credentials, login and federated are
-  auth code plus PKCE.
-- **SLAS refresh-token reuse is prohibited** for public clients under OAuth 2.1. Each `/token` call
-  issues a new refresh token, and reusing an old one returns `400 invalid refresh token` — enforced
-  since September 2025.
+- **OCAPI is deprecated since April 2026.** Under the deprecation policy it keeps security updates,
+  without new features, for two years (until roughly April 2028). **New implementations use SCAPI
+  exclusively**; existing OCAPI integrations need a migration plan.
+- **SCAPI is the modern API; SLAS is its mandatory gatekeeper.** Shopper APIs require a **SLAS**
+  token. SLAS grants (OAuth 2.1): guest uses client credentials; login and federated use auth code
+  plus PKCE.
+- **SLAS refresh-token reuse is prohibited** for public clients under OAuth 2.1 (enforced since
+  September 2025). Each `/token` call issues a new refresh token; reusing an old one returns
+  `400 invalid refresh token`.
 - **SLAS JWTs (since April 2026)** carry an `ssc` claim (short code) and a CRM claim on the access
   token, an improved `id_token` (email and name, tenant-key signed, `typ: JWT`), and a `/jwks`
-  endpoint for signature verification. Verify signatures against `/jwks` rather than trusting a token
-  because it parsed.
+  endpoint for signature verification. Verify signatures against `/jwks`; never trust a token because
+  it parsed.
 - **The server-side language is JavaScript** on the Rhino-based B2C Commerce Script API — not
   Node.js, not Apex.
 
@@ -50,19 +48,17 @@ References:
 | **Hybrid** | SFRA for some pages (e.g. checkout), PWA Kit for others (PDP/PLP); **Hybrid Auth** keeps the `dwsid` and SLAS JWT in sync (25.3+) | Incremental migration to headless |
 
 Salesforce invests most in the **Composable Storefront**; SFRA remains fully supported. In hybrid,
-**never** use `BasketMgr.getCurrentOrNewBasket()` — create baskets through the SCAPI
-`POST .../baskets` call instead (§3).
+**never** use `BasketMgr.getCurrentOrNewBasket()` (§3).
 
 ---
 
 ## 2. SFRA / Cartridges (server-side, `dw.*`)
 
-- **Cartridges** are the unit of code and deployment. The **cartridge path** is set per site and read
-  left to right with the leftmost winning, layering your cartridge **before** `app_storefront_base`.
-  **Never modify the base cartridge**; override on the path.
+- **Cartridges** are the unit of code and deployment. The per-site **cartridge path** resolves left
+  to right, leftmost wins: place your cartridge **before** `app_storefront_base`. **Never modify the
+  base cartridge**; override on the path.
 - **Controllers** are CommonJS modules exposing routes via `server.get/post(...)`. Extend base
-  controllers with `server.append`, `server.prepend` or `server.replace`, never by copying a whole
-  base controller.
+  controllers with `server.append`, `server.prepend` or `server.replace`, never by copying one whole.
 - **Script API** (`dw.*`): `dw/catalog/ProductMgr`, `dw/order/BasketMgr`, `dw/customer/CustomerMgr`,
   `dw/system/{Transaction, Site, Logger, HookMgr, Status}`, `dw/web/{URLUtils, Resource}`. Wrap data
   changes in `dw.system.Transaction`.
@@ -118,12 +114,12 @@ so the logic applies to **both** controller and API paths:
 - `dw.order.calculate` — custom basket and order calculation: tax, promotions.
 - **OCAPI hooks** (`dw.ocapi.shop.*`) and **SCAPI hooks** customise API request and response; call
   custom hooks with `dw.system.HookMgr.callHook(...)`.
-- **All** registered modules for an extension point run across the cartridge path. You **cannot
-  control the order**, and **only the last hook returns a value**.
+- **All** modules registered for an extension point run, across the cartridge path. You **cannot
+  control the order**; **only the last hook returns a value**.
 
-> **Hybrid note:** on Phased Launch sites (SFRA + PWA Kit), never use
-> `BasketMgr.getCurrentOrNewBasket()` for basket creation. Create baskets via SCAPI
-> `POST .../baskets` and retrieve with `GET baskets/{basketId}`.
+> **Hybrid note:** on Phased Launch sites (SFRA + PWA Kit), never create baskets with
+> `BasketMgr.getCurrentOrNewBasket()`. Create them via SCAPI `POST .../baskets`; retrieve with
+> `GET baskets/{basketId}`.
 
 ---
 
@@ -133,14 +129,14 @@ Batch and scheduled work — imports, feeds, indexing — runs as **custom job s
 
 - Write a **task-oriented** or **chunk-oriented** CommonJS module, best placed in
   `cartridge/scripts/steps`.
-- Register it in **`steptypes.json`** at the cartridge root, one per cartridge, describing the step,
-  its parameters and its exit statuses. Upload on the cartridge path and create the job in Business
-  Manager, or run it with the B2C CLI `job` commands.
+- Register it in **`steptypes.json`** at the cartridge root (one per cartridge), describing the step,
+  its parameters and exit statuses. Upload on the cartridge path, then create the job in Business
+  Manager or run it with the B2C CLI `job` commands.
 - **Chunk modules** expose `read`, `process` and `write` plus optional `total-count-function`,
   `before-step`, `before-chunk`, `after-chunk` and `after-step`. They finish OK or ERROR and return a
   `dw.system.Status`.
-- Constraints: **explicit transactions are limited to 1,000 modified business objects**, and loops
-  must be designed so memory does not grow with result-set size.
+- **An explicit transaction modifies at most 1,000 business objects**; design loops so memory does
+  not grow with result-set size.
 
 Full job module shapes: `references/sfra-cartridges.md`.
 
@@ -175,7 +171,7 @@ curl "$BASE/checkout/shopper-baskets/v1/organizations/$ORG/baskets?siteId=$SITE"
   -d '{ "productItems": [{ "productId": "682875090845M", "quantity": 1 }] }'
 ```
 
-- **SLAS is mandatory** for Shopper APIs, and a token works across any Shopper API endpoint.
+- **SLAS is mandatory** for Shopper APIs; one token works across every Shopper API endpoint.
 - **Public client** means browser or PWA with PKCE; **private client** means a server or BFF holding
   the secret. Never ship the secret to the browser.
 - A SLAS access token can bridge to legacy OCAPI hooks during migration.
@@ -228,7 +224,7 @@ response-modifying hooks: it preserves object-level caching.
 | Modifying `app_storefront_base` | Override via cartridge path |
 | Copying a base controller to tweak it | `server.append/prepend/replace` |
 | `getCurrentOrNewBasket()` in a hybrid site | SCAPI `POST .../baskets` |
-| Reusing a SLAS refresh token (public client) | One-time use; use the new token each `/token` call |
+| Reusing a SLAS refresh token (public client) | One-time use; take the new token from each `/token` call |
 | SLAS private-client secret in the browser | Keep on a server-side BFF |
 | Response-modifying hook for personalized price | Shopper Context API |
 | Business logic in ISML templates | Logic in controllers/Script API; ISML renders |

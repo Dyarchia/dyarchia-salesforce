@@ -1,12 +1,12 @@
 # Aura Events & Communication — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §6. Load this when wiring communication between Aura components, or between Aura and LWC/Visualforce, on Winter '27 (API v68.0).
+Full implementations behind SKILL.md §6. Load when wiring communication between Aura components, or between Aura and LWC/Visualforce.
 
 Preference order: `aura:method` (parent → child) → component event (child → ancestor) → Lightning Message Service (cross-tree / LWC / Visualforce) → application event (last resort, app-wide broadcast).
 
 ## `aura:method` — Parent Calls Child Synchronously
 
-Cleanest way for a parent to invoke a child. No event plumbing.
+The cleanest way for a parent to invoke a child; no event plumbing.
 
 ```html
 <!-- child: c:searchPanel -->
@@ -33,7 +33,7 @@ Cleanest way for a parent to invoke a child. No event plumbing.
 
 ## Component Event — Child Notifies Ancestor
 
-The default for child → parent. Bubbles up the containment hierarchy; only ancestors can handle it.
+The default for child → parent. It bubbles up the containment hierarchy; only ancestors can handle it.
 
 ```xml
 <!-- event definition: c:rowSelected (RowSelected.evt) -->
@@ -72,7 +72,7 @@ The default for child → parent. Bubbles up the containment hierarchy; only anc
 
 ## Application Event — Last Resort, App-Wide Broadcast
 
-Use only when genuinely unrelated components must react and no containment relationship exists. Every registered handler in the app receives it.
+Only when unrelated components must react and no containment relationship exists. Every registered handler in the app receives it.
 
 ```xml
 <!-- c:cartUpdated (CartUpdated.evt) -->
@@ -95,11 +95,11 @@ Use only when genuinely unrelated components must react and no containment relat
 <aura:handler event="c:cartUpdated" action="{!c.onCartUpdate}" />
 ```
 
-Application events are expensive and hard to trace. On a Lightning page, prefer Lightning Message Service (below) — it does the same job, also reaches LWC/Visualforce, and supports scoping.
+Application events are expensive and hard to trace. On a Lightning page, prefer Lightning Message Service (below): same job, also reaches LWC/Visualforce, and supports scoping.
 
 ## Lightning Message Service From Aura
 
-The supported way to talk to LWC, Visualforce, or components in a separate tree on the same Lightning page. The message channel (`*.messageChannel-meta.xml`) is shared across LWC, Aura, and Visualforce.
+The supported way to reach LWC, Visualforce, or components in a separate tree on the same Lightning page. The message channel (`*.messageChannel-meta.xml`) is shared across LWC, Aura, and Visualforce.
 
 ```html
 <!-- assign an aura:id so the controller can call publish() -->
@@ -126,7 +126,7 @@ The supported way to talk to LWC, Visualforce, or components in a separate tree 
 })
 ```
 
-The `onMessage` attribute subscribes declaratively; no manual subscribe/unsubscribe needed. `scope="APPLICATION"` receives messages regardless of where the component sits (e.g. utility bar). For the LWC side of the same channel see `dya-sf-lwc`; for the Visualforce side (`sforce.one.publish/subscribe`) see `dya-sf-visualforce`.
+The `onMessage` attribute subscribes declaratively; no manual subscribe/unsubscribe. `scope="APPLICATION"` receives messages regardless of where the component sits (e.g. utility bar). For the LWC side of the same channel see `dya-sf-lwc`; for the Visualforce side (`sforce.one.publish/subscribe`) see `dya-sf-visualforce`.
 
 ## Anti-Patterns
 

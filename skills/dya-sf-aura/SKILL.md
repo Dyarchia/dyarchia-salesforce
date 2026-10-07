@@ -5,10 +5,9 @@ description: Salesforce Aura Components Winter '27 (API v68.0) modern developmen
 
 # Salesforce Aura Components — Modern Development
 
-Aura is **maintenance-mode**: you check first whether LWC is the right tool, you use
-`lightning`-namespace base components and never the deprecated `ui` namespace, you prefer Lightning
-Data Service over Apex, and you save controllers under the modern Apex security model. Follow every
-rule below without exception.
+Aura is **maintenance-mode**: you first check whether LWC is the right tool, use `lightning`-namespace
+base components and never the deprecated `ui` namespace, prefer Lightning Data Service over Apex, and
+save controllers under the modern Apex security model. Follow every rule below.
 
 References:
 
@@ -28,7 +27,7 @@ Save new bundles and their Apex controllers at `<apiVersion>68.0</apiVersion>`. 
 new Aura framework capability** — Aura receives platform changes, not features.
 
 **No retirement date has been announced.** Maintenance mode is a reason to build new work in LWC, not
-a deadline. Do not imply an end date that does not exist.
+a deadline. Do not imply one.
 
 Four platform changes reach Aura:
 
@@ -40,7 +39,7 @@ Four platform changes reach Aura:
 - **The `ui` namespace has been unsupported since 1 May 2021.** Never use it. §2.
 
 The Voice Toolkit API adds voice-enabled component support, extended to Agentforce Contact Center —
-relevant only if you are building telephony.
+relevant only for telephony.
 
 ---
 
@@ -59,8 +58,8 @@ LWC has closed almost every historical reason to choose Aura — quick actions, 
 Community contexts, dynamic component creation. Assume LWC unless you can name the specific gap, and
 when you do build Aura, comment why LWC was insufficient.
 
-**Aura can contain LWC; LWC cannot contain Aura.** The migration path is therefore always "wrap or
-replace Aura with LWC", never the reverse.
+**Aura can contain LWC; LWC cannot contain Aura.** Migration is therefore always "wrap or replace
+Aura with LWC", never the reverse.
 
 ---
 
@@ -110,8 +109,7 @@ only for the component's API, and `description` on every public attribute.
 
 ### Bound vs unbound expressions
 
-- `{!v.value}` — **bound**, two-way. Changes propagate in both directions. Use only when the child
-  must mutate the parent's value.
+- `{!v.value}` — **bound**, two-way. Use only when the child must mutate the parent's value.
 - `{#v.value}` — **unbound**, one-time and one-way. No change-tracking cost. **Use it for read-only
   display.**
 
@@ -167,7 +165,7 @@ Stop at the first that fits.
 
 The first three share the Lightning Data Service cache with LWC and the rest of Lightning
 Experience, so an edit through them refreshes every other component on the page. **Hand-rolled Apex
-CRUD does not**, which is the strongest reason to exhaust LDS first. Full `force:recordData` pattern
+CRUD does not** — the strongest reason to exhaust LDS first. Full `force:recordData` pattern
 in `references/server-and-lds.md`.
 
 ---
@@ -331,7 +329,7 @@ URL.revokeObjectURL(link.href);
 link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
 ```
 
-Give the `Blob` an explicit MIME type. An omitted type is the case LWS blocks.
+Give the `Blob` an explicit MIME type; LWS blocks an omitted one.
 
 ---
 

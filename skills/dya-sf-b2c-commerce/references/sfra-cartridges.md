@@ -1,12 +1,12 @@
 # B2C Commerce — SFRA, Script API, Hooks, Jobs (server-side)
 
-Load from `dya-sf-b2c-commerce`. Server-side B2C Commerce development: cartridges, controllers, `dw.*` Script API, ISML, hooks, jobs. This is JavaScript on the B2C Commerce Script API (Rhino-based) — **not** Node.js, **not** Apex.
+Load from `dya-sf-b2c-commerce`. Server-side development: cartridges, controllers, `dw.*` Script API, ISML, hooks, jobs. The runtime is JavaScript on the Rhino-based Script API — **not** Node.js, **not** Apex.
 
 ## Cartridges & the Cartridge Path
 
 - A **cartridge** packages controllers, scripts, templates, static assets, and config.
-- The **cartridge path** (per site, left-to-right; leftmost wins) layers your cartridge **before** `app_storefront_base`. **Never edit the base cartridge** — place an overriding file in your cartridge so it takes precedence.
-- Scaffold with `sgmf-scripts` (`sgmf-scripts --help`; `createCartridge`). Upload/activate a **code version** (B2C CLI / `dw.json`) to deploy.
+- The **cartridge path** (per site, left-to-right; leftmost wins) layers your cartridge **before** `app_storefront_base`. **Never edit the base cartridge** — override it with a file in your cartridge.
+- Scaffold with `sgmf-scripts` (`sgmf-scripts --help`; `createCartridge`). Deploy by uploading and activating a **code version** (B2C CLI / `dw.json`).
 
 ## Controllers (SFRA)
 
@@ -43,7 +43,7 @@ server.append('Show', function (req, res, next) {      // augment view data afte
 module.exports = server.exports();
 ```
 
-> Caution: `server.append` can re-execute logic — make sure you don't run the controller twice when appending and rendering.
+> Caution: `server.append` can re-execute logic — don't run the controller twice when appending and rendering.
 
 ## Script API (`dw.*`)
 
@@ -153,7 +153,7 @@ Register in **`steptypes.json`** at the cartridge root (one per cartridge):
 }}
 ```
 
-Constraints & best practices: explicit transactions limited to **1,000 modified business objects**; design loops so memory doesn't grow with result-set size; use `getTotalCount` to show progress; use standard imports over custom logic; iterate/run from the B2C CLI `job` commands. `steptypes.json` is parsed at server startup, on code-version change, and (on sandboxes) each run.
+Constraints and practices: explicit transactions are limited to **1,000 modified business objects**; design loops so memory doesn't grow with result-set size; use `getTotalCount` to show progress; use standard imports over custom logic; iterate/run from the B2C CLI `job` commands. `steptypes.json` is parsed at server startup, on code-version change, and (on sandboxes) each run.
 
 ## Anti-Patterns
 

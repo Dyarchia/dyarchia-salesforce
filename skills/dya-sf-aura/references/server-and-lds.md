@@ -1,10 +1,10 @@
 # Aura Server-Side Apex & Lightning Data Service — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §4–§5. Load this when accessing data from an Aura component on Winter '27 (API v68.0). Evaluate LDS first; reach for `@AuraEnabled` Apex only for genuine server-side logic. Aura controllers are Apex — deep server rules live in `dya-sf-apex`.
+Full implementations behind SKILL.md §4–§5. Load when accessing data from an Aura component. Evaluate LDS first; use `@AuraEnabled` Apex only for genuine server-side logic. Aura controllers are Apex — deep server rules live in `dya-sf-apex`.
 
 ## Lightning Data Service — `force:recordData`
 
-Load, create, save, and delete a single record with no Apex and a shared client cache that keeps other LEX components in sync.
+Load, create, save, and delete one record with no Apex, through a shared client cache that keeps other LEX components in sync.
 
 ```html
 <aura:component implements="flexipage:availableForRecordHome,force:hasRecordId">
@@ -43,11 +43,11 @@ Load, create, save, and delete a single record with no Apex and a shared client 
 })
 ```
 
-Prefer `lightning:recordForm` over `force:recordData` when you don't need custom field arrangement — it is even less code. Use `force:recordData` when you need programmatic control over load/save/delete.
+Prefer `lightning:recordForm` when you don't need custom field arrangement — even less code. Use `force:recordData` for programmatic control over load/save/delete.
 
 ## `@AuraEnabled` Controller — When LDS Can't Do It
 
-Reach for Apex only for multi-object queries, aggregates, cross-object logic, callouts, async, or non-UI-API objects. Declare `with sharing`, query `WITH USER_MODE`, throw `AuraHandledException`.
+Use Apex only for multi-object queries, aggregates, cross-object logic, callouts, async, or non-UI-API objects. Declare `with sharing`, query `WITH USER_MODE`, throw `AuraHandledException`.
 
 ```java
 public with sharing class OpportunityController {
@@ -108,7 +108,7 @@ public with sharing class OpportunityController {
 
 ## Promise Wrapper — Cleaner Async
 
-Wrapping `enqueueAction` in a Promise lets you use `async/await` in helpers. Resolve/reject inside the action callback so the framework still controls the boundary; wrap UI mutations after `await` in `$A.getCallback` if needed.
+A Promise around `enqueueAction` enables `async/await` in helpers. Resolve/reject inside the action callback so the framework still controls the boundary; wrap UI mutations after `await` in `$A.getCallback` if needed.
 
 ```javascript
 ({
@@ -145,7 +145,7 @@ Wrapping `enqueueAction` in a Promise lets you use `async/await` in helpers. Res
 
 ## Error Reduction Helper
 
-`response.getError()` returns an array of error shapes. Reduce to displayable strings before toasting.
+`response.getError()` returns an array of error shapes; reduce them to displayable strings before toasting.
 
 ```javascript
 ({
