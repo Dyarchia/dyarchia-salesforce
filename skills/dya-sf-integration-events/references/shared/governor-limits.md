@@ -69,7 +69,7 @@ framework code, not instead of bulkification.
 ## Two things that are not governor limits
 
 - **Org-wide daily allocations**: API calls per 24 hours, Flow interviews per month, async Apex
-  executions per day. Billing-scale quotas, not per-transaction caps, visible under
+  executions per day. These are billing-scale quotas, not per-transaction caps, visible under
   Setup › Company Information.
 - **Row locking.** `UNABLE_TO_LOCK_ROW` means another transaction held a lock on the same record,
   commonly the shared parent when many children are inserted at once. Fix it with ordering and batch

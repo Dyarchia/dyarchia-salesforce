@@ -5,7 +5,8 @@ key or a wrong catalogue reaches real users on their next pull.
 
 [`CLAUDE.md`](CLAUDE.md) is the **contract** — frontmatter rules, body conventions, the branch
 model, the shared-reference canon and every validator check. This page is the **procedure**. Read
-both before your first change; neither is inferable from a diff.
+both before your first change; neither is inferable from a diff, and they exist to prevent drift
+between them.
 
 Every procedure here ends with `scripts/validate-skills` exiting 0.
 

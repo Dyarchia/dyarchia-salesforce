@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Every skill, reference, shared fragment and root document says the same in fewer words.** Three passes cut commentary, lead-ins, restatements and reference passages that only repeated their `SKILL.md`; a final audit against `develop` restored every fact a pass had dropped. Skill text fell from 117,549 to 97,948 words (−17%). Skeleton, frontmatter, citations and handoffs are unchanged.
+
+### Fixed
+
+- `dya-sf-flow` §7 forbade a callout after *committed* DML; the rule is *uncommitted* DML.
+- Four stale section pointers: `http-callout-patterns.md` (§7), `jest-testing.md` (§10), `guest-and-seo.md` (§4–§5), and a "below" in `trigger-framework.md` that pointed above.
+- Four citations of shared fragments the skill never synced, in `dya-sf-headless360`, `dya-sf-agentforce` and `dya-sf-data360`, are removed.
+- `CLAUDE.md` described the README check as a full-text scan and the layout diagram as two count sites; the validator requires a catalogue bullet and reads one diagram count.
+
 ## [0.7.0] - 2026-10-03
 
 ### Changed
@@ -235,6 +248,7 @@ reconstructed into unpublished releases.
 - The `[0.1.0]` release shipped under the repository's former name; the comparison links below now resolve to the renamed repository.
 - The canonical form in the repository is the unpacked skill folder. `.skill` files are build artifacts produced on demand and not tracked in version control.
 
+[Unreleased]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.7.0...HEAD
 [0.7.0]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.5.2...v0.6.0

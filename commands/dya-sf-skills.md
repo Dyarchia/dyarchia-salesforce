@@ -49,5 +49,5 @@ Close with one line on how to invoke a skill, naming a real example from the lis
 placeholder. Say that `dya-sf-integration-overview` is the entry point for choosing an integration
 pattern, since it routes between its siblings.
 
-This is a menu, not documentation: no preamble, no explanation of what agent skills are, and no
-offer of further work unless the user asks.
+Keep it scannable. This is a menu, not documentation: no preamble, no explanation of what agent
+skills are, and no offer of further work unless the user asks.

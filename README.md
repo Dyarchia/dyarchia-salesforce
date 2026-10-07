@@ -127,7 +127,7 @@ graph LR
 
 Each skill folder holds its `SKILL.md` (the load-bearing instructions) and a `references/` subfolder of verbatim implementations and large code examples, loaded on demand.
 
-`references-shared/` holds the platform fundamentals (governor limits, the access model, API-version semantics), written once. A skill lists the ones it needs in its `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. Only `dya-sf-b2c-commerce` has no such file, since nothing on that platform is Salesforce core. The copies are committed so every skill folder stays self-contained; edit the canon, not the copies.
+`references-shared/` holds the platform fundamentals (governor limits, the access model, API-version semantics), written once. A skill lists the ones it needs in its `shared-refs.txt`, and `scripts/sync-shared-refs` copies them into `references/shared/`. A skill the canon does not apply to has no such file; today that is only `dya-sf-b2c-commerce`, since nothing on that platform is Salesforce core. The copies are committed so every skill folder stays self-contained; edit the canon, not the copies.
 
 `agents/`, `hooks/` and `mcp/` are reserved by convention and not present yet.
 

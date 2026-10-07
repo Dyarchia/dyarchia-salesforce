@@ -13,8 +13,8 @@ silently.
 **The version stamped on a piece of metadata.** Every Apex class, trigger, LWC, Aura component and
 Visualforce page carries its own `apiVersion` in its `-meta.xml`. It decides which language and
 runtime semantics that artefact gets, including the security defaults in `platform-deltas.md`. It
-does **not** change when the org is upgraded. Raising it takes an edit plus a redeploy, and changes
-behaviour that needs testing.
+does **not** change when the org is upgraded. Raising it takes an edit plus a redeploy, and is a
+behavioural change that needs testing.
 
 ```xml
 <!-- MyClass.cls-meta.xml -->
@@ -43,7 +43,7 @@ Retirement affects only the `vXX.X` in standard endpoint URLs.
 | 41.0 and above | Supported |
 
 After 1 June 2028 a REST, SOAP or Bulk request targeting 31.0–40.0 returns an error. Anything built
-new on those versions today will be rewritten.
+new on those versions today will have to be rewritten.
 
 Retiring an endpoint version does **not** retire your custom Apex REST or SOAP web services, Apex
 classes, triggers, Flows or Visualforce pages; they keep running under their own stamped version.

@@ -12,8 +12,8 @@ and points here for the rest, so a version bump is one edit, not a sweep across 
 Salesforce ships three releases a year. Winter '27 is **API version 68.0**, generally available in
 waves through 3 and 10 October 2026.
 
-Behaviour is governed by **the API version compiled into each class, trigger, component or page**,
-not the org's release. An org on Winter '27 still runs a class stamped 55.0 under 55.0 semantics.
+**The API version compiled into each class, trigger, component or page** governs behaviour, not
+the org's release. An org on Winter '27 still runs a class stamped 55.0 under 55.0 semantics.
 Raising that stamp can change security defaults and break code that compiled fine before, so test it.
 
 ## Security defaults from API 67.0 onward
@@ -34,8 +34,8 @@ enforced inside a trigger; enforce them yourself when the work is on behalf of a
 
 `without sharing` is not an escape hatch to system mode. Code needing system-mode access asks for it
 per operation, with `AccessLevel.SYSTEM_MODE` or `WITH SYSTEM_MODE` in SOQL, and a comment saying
-why. This failure surfaces when a class is raised from 66.0 to 67.0 or above and its tests only ever
-ran as an administrator.
+why. Mistaking `without sharing` for system mode surfaces as a failure when a class is raised from
+66.0 to 67.0 or above and its tests only ever ran as an administrator.
 
 Migration order when raising a class to 68.0:
 

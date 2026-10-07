@@ -27,10 +27,10 @@ cannot diverge. Mark the publish with an annotated tag, not a commit: a tag is a
 does not distort the branch graph.
 
 This replaced a merge-based sync in September 2026. Each merge of `develop` into `master` created a
-commit on `master` that never flowed back, so GitHub reported `develop` one more commit behind per
-release, eight in the end, while the two were byte-identical. The "behind" banner also invites a
-`git merge master` on `develop`, which drags publish-only commits into the working branch and breaks
-the one-way flow.
+commit on `master` that never flowed back, so `develop` fell one more commit behind `master` per
+release, and GitHub reported it eight behind while the two were byte-identical. The "behind" banner
+also invites a `git merge master` on `develop`, which drags publish-only commits into the working
+branch and breaks the one-way flow.
 **If the two ever diverge again, reconcile with a single merge of `master` into `develop` — never
 force-push `master`.**
 
@@ -45,13 +45,15 @@ Three consequences, all silent:
   unpublished work, not something to fix by merging backwards.
 
 This file and `CONTRIBUTING.md` are **versioned on every branch**. They are the contributor
-contract: a clone without them cannot be contributed to correctly, and drift between them is this
-repo's defining failure mode. Like every file here, they are written in English.
+contract: a clone without them cannot be contributed to correctly, and drift between them, which
+they exist to prevent, is this repo's defining failure mode. Like every file here, they are written
+in English.
 
 Untracked and gitignored by design: `.claude/` in full (the per-machine agent workspace: local
 settings, repo-local skills, worktrees), plus `docs/` and `.docs/` in full (private working notes).
 They record what someone is thinking about, not how the library works, and are not part of the
-contract: anything a contributor must know belongs in this file or `CONTRIBUTING.md`.
+contract: anything a contributor must know belongs in this file or `CONTRIBUTING.md`, never under
+`.claude/`.
 
 ## Layout
 
@@ -168,8 +170,8 @@ no core API version) and `dya-sf-cli` (versions on the CLI's own weekly cadence)
 The trigger clause is matched as the literal substring `Load before creating or editing anything in
 this scope`. Reword it and the skill fails validation.
 
-The allowlist behind the README-token warning (`$nonSkillTokens` in PowerShell, `NON_SKILL_TOKENS`
-in bash) holds two entries: `dya-sf-skills`, the catalogue command, and the bare prefix `dya-sf-`,
+The allowlist behind the README-token warning is hardcoded in both scripts (`$nonSkillTokens` in
+PowerShell, `NON_SKILL_TOKENS` in bash) and holds two entries: `dya-sf-skills`, the catalogue command, and the bare prefix `dya-sf-`,
 which the README layout diagram states as `dya-sf-&lt;name&gt;/` and the token scan reads as a name.
 It is for `dya-sf-`-prefixed names the README mentions on purpose without a folder under `skills/`;
 add any such name to **both** scripts, or the scan flags it. It also covers the cross-reference
@@ -260,7 +262,7 @@ Platform Context sections, the README badge, and the descriptions in `plugin.jso
 `marketplace.json`, so a version bump is a coordinated sweep across every source file, never a
 single-skill edit.
 
-It is no longer a manual sweep across 267 occurrences. Edit the README catalogue line and badge,
+That sweep is no longer manual across 267 occurrences. Edit the README catalogue line and badge,
 the plugin description, and `references-shared/platform-deltas.md`; then update each skill's
 `## Platform Context` heading and re-verify its per-domain claims. The validator reports every skill
 you missed.
@@ -286,7 +288,8 @@ Two manifests serve the one `skills/` tree:
 Grok needs neither; it reads Claude Code's marketplaces, plugins, skills and instruction files with
 no configuration. Anything reading `.agents/skills/` finds the tree through a symlink.
 
-The two manifests **duplicate the plugin name, version and description**, so `validate-skills`
+The two manifests **duplicate the plugin name, version and description**, the drift this repo
+exists to prevent, so `validate-skills`
 checks all three against each other and against `skills/` and fails on disagreement. Adding a third
 host means adding it to that check in both script twins, never a manifest on its own.
 
@@ -306,8 +309,8 @@ and a consumer adding two would have collided. **Name a domain repo's marketplac
 never after the org.**
 
 The **skill count is checked wherever a script can read it**: the README catalogue line, layout
-diagram and install line, and the description of **both** plugin manifests. Disagreeing with the
-number of folders under `skills/` is a hard failure.
+diagram and install line, and the description of **both** plugin manifests. A count disagreeing
+with the number of folders under `skills/` is a hard failure.
 
 Rewording an assertion so no number survives produces a **warning**, not silence; a check that
 quietly stops applying is worse than one that fails. `CLAUDE.md` and `CONTRIBUTING.md` also assert
@@ -322,8 +325,8 @@ Follow the procedure in `CONTRIBUTING.md` rather than improvising. In short:
 3. Validate: `scripts/validate-skills.ps1` (or the `.sh` twin). It must exit 0.
 4. Update the README catalogue and the CHANGELOG in the same commit.
 
-Drift between what a document asserts and what the tree holds is this repo's main exposure. Run
-`validate-skills` before every commit that touches `skills/`.
+Drift between what a document asserts and what the tree holds is the failure mode this repo is most
+exposed to. Run `validate-skills` before every commit that touches `skills/`.
 
 ## Commit conventions
 
@@ -358,8 +361,9 @@ their scope, so a reader who is asking rather than editing never sees them; the 
 catalogue. It reads the descriptions already in context rather than the filesystem, so it cannot
 drift from what is installed.
 
-**Not implemented:** `agents/`, `hooks/` and `mcp/`. Nothing depends on them; they are added when a
-real recurring need shows up in project work. Their governing principles are already decided:
+**Not implemented:** `agents/`, `hooks/` and `mcp/`. Nothing depends on them; they can be added
+whenever a real recurring need shows up in project work. Their governing principles are already
+decided:
 
 - Sub-agents declare their tool list and model in frontmatter. Review and audit agents get no write
   tools; the guarantee is structural, not an instruction the model can forget.
