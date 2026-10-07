@@ -1,6 +1,6 @@
 # Async Apex — Reference Implementations
 
-Full implementations of the async patterns referenced from SKILL.md §7 (and the Apex Cursor pattern from §4). Load this file when writing new async code or refactoring legacy Batch / `@future` code.
+Full implementations of the async patterns from SKILL.md §7 (and the Apex Cursor pattern from §4). Load when writing new async code or refactoring legacy Batch / `@future` code.
 
 ## Queueable — The Default
 
@@ -17,15 +17,15 @@ public with sharing class AccountEnricher implements Queueable, Database.AllowsC
     }
 }
 
-// Enqueue from anywhere:
+// Enqueue from anywhere
 System.enqueueJob(new AccountEnricher(ids));
 ```
 
-`implements Database.AllowsCallouts` is required if the job makes HTTP callouts.
+`Database.AllowsCallouts` is required if the job makes HTTP callouts.
 
 ## Queueable + Transaction Finalizer
 
-Use a Finalizer when code must run **whether the Queueable succeeds or fails** — retry logic, alerting, callout-after-DML, guaranteed error reporting.
+Use a Finalizer when code must run **whether the Queueable succeeds or fails** — retry, alerting, callout-after-DML, guaranteed error reporting.
 
 ```java
 public with sharing class EnrichmentFinalizer implements Finalizer {
@@ -59,13 +59,13 @@ public with sharing class AccountEnricher implements Queueable {
 ### Finalizer rules
 
 - Only ONE Finalizer per Queueable job.
-- The Finalizer runs in its **own** execution context — you cannot reference the parent Queueable's state directly; pass values into the Finalizer's constructor.
+- The Finalizer runs in its **own** execution context — it cannot reference the parent Queueable's state directly; pass values into its constructor.
 - Callouts and DML are both allowed in a Finalizer, even if the parent did DML.
 - A Finalizer can enqueue exactly one more async job (Queueable, Batch, or `@future`).
 
 ## Apex Cursors + Queueable Chain
 
-For processing up to roughly 5 million records with flexible, bidirectional, serialisable iteration. Cleaner than Batch Apex when you need variable chunk sizes or non-linear traversal.
+For up to roughly 5 million records with flexible, bidirectional, serialisable iteration. Cleaner than Batch Apex for variable chunk sizes or non-linear traversal.
 
 ```java
 public with sharing class LargeDataProcessor implements Queueable {
@@ -94,25 +94,25 @@ public with sharing class LargeDataProcessor implements Queueable {
 ### Cursor limits
 
 - Max 50M rows per cursor.
-- **Max 10 `fetch()` calls per transaction** — this is the binding constraint, not the row total.
+- **Max 10 `fetch()` calls per transaction** — the binding constraint, not the row total.
 - Max 10,000 cursors per day.
 - Max 100M rows per day aggregate.
 - Track usage with `Limits.getApexCursorRows()` and `Limits.getApexCursors()`.
 
 ### Cursors vs Batch Apex — the honest trade-off
 
-The "50M rows" headline is real, but the 10-fetches-per-transaction ceiling means you process 50M records by chaining a Queueable across many execution contexts (one fetch per execution, ten contexts of work, then the next chain link). For volumes up to ~5M, Cursors + Queueable is cleaner: flexible chunk sizes, bidirectional traversal, serialisable state across transactions. For >5M records — especially recurring jobs — Batch Apex is usually simpler: its `start/execute/finish` lifecycle handles chunking, retry and scope management for you, and the platform parallelises chunks (cursors do not). Pick by workload, not by hype.
+The "50M rows" headline is real, but the 10-fetches-per-transaction ceiling means processing 50M records by chaining a Queueable across many execution contexts (one fetch per execution, ten contexts of work, then the next chain link). Up to ~5M, Cursors + Queueable is cleaner: flexible chunk sizes, bidirectional traversal, serialisable state across transactions. Above 5M — especially recurring jobs — Batch Apex is usually simpler: its `start/execute/finish` lifecycle handles chunking, retry and scope management, and the platform parallelises chunks (cursors do not). Pick by workload, not hype.
 
 ## Mixed DML — Setup vs Non-Setup Objects
 
-You cannot DML setup objects (`User`, `Group`, `GroupMember`, `Permission*`, `UserRole`) and non-setup objects in the same transaction. Split them by enqueueing a Queueable for the second batch.
+You cannot DML setup objects (`User`, `Group`, `GroupMember`, `Permission*`, `UserRole`) and non-setup objects in one transaction. Enqueue a Queueable for the second batch.
 
 ```java
 // Transaction 1: setup DML
 insert new User(...);
 // Cannot insert Account here — would throw MIXED_DML_OPERATION
 
-// Defer the non-setup DML to a separate transaction
+// Defer the non-setup DML to another transaction
 System.enqueueJob(new PostUserSetupJob(accountsToCreate));
 ```
 

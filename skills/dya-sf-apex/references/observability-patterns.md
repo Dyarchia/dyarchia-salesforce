@@ -1,27 +1,25 @@
 # Observability — Native Tools Only
 
-What the platform gives you for free, referenced from SKILL.md §11. Load this file when diagnosing a
-production failure, deciding how an async job reports what went wrong, or when someone asks you to
-build a logging layer.
+What the platform gives you for free, referenced from SKILL.md §11. Load when diagnosing a
+production failure, deciding how an async job reports failure, or when asked to build a logging
+layer.
 
 ## The rule that comes first
 
 **Do not create a logging object, a logging platform event, or a `Logger` class that writes to
-either.** You cannot see the target org from here: a `Log__c` or `Log__e` written into a deployment
-is a deploy failure when it does not exist, and one more unused custom object when it does. Neither
-outcome is observability.
+either.** You cannot see the target org from here: a `Log__c` or `Log__e` in a deployment fails to
+deploy where it does not exist, and is one more unused custom object where it does. Neither is
+observability.
 
 Two legitimate paths, in order:
 
 1. **The org already has a logging framework.** Find it before writing anything — search the org's
-   Apex for a `Logger`, `LogService` or similar entry point, or retrieve the object list and look for
-   a log-shaped custom object. If it exists, call it, and match its level vocabulary rather than
-   inventing your own.
+   Apex for a `Logger`, `LogService` or similar entry point, or retrieve the object list for a
+   log-shaped custom object. Call it, and match its level vocabulary rather than inventing your own.
 2. **The org has nothing.** Say so. Standing up a logging framework is an architectural decision with
-   storage, retention and DPO consequences; it is the org owner's call, not a side effect of the task
-   you were asked to do.
+   storage, retention and DPO consequences — the org owner's call, not a side effect of your task.
 
-Everything below needs no custom metadata at all.
+Everything below needs no custom metadata.
 
 ## Debug logs
 
@@ -31,21 +29,19 @@ Everything below needs no custom metadata at all.
 System.debug(LoggingLevel.ERROR, 'Callout failed for account ' + accountId);
 ```
 
-What makes debug logs unsuitable as the production record:
+Why debug logs are unsuitable as the production record:
 
 - They only exist while a **trace flag** is active on the user, class or trigger.
-- A single log is **capped**, and past the cap the body is truncated — the tail you needed is the
-  part that gets cut.
-- They expire. Debug logs are for reproducing a failure you already know about, not for discovering
-  one after the fact.
+- A single log is **capped**, and past the cap the body is truncated — the tail you needed gets cut.
+- They expire. They are for reproducing a known failure, not for discovering one after the fact.
 
 Set levels per category on the trace flag rather than raising everything to FINEST: a log drowning in
 `WORKFLOW` and `VALIDATION` entries hits the size cap before it reaches your Apex.
 
 ## Uncaught exceptions
 
-An uncaught exception in Apex sends an **Apex exception email**, natively and with no configuration
-beyond choosing the recipients. It carries the exception type, the message and the stack trace.
+An uncaught Apex exception sends an **Apex exception email**, natively, with no configuration beyond
+choosing the recipients. It carries the exception type, message and stack trace.
 
 Recipients are set in Setup under Apex Exception Email, or declaratively with the
 `ApexEmailNotification` metadata type, so they travel with the repository:
@@ -57,12 +53,12 @@ Recipients are set in Setup under Apex Exception Email, or declaratively with th
 </ApexEmailNotification>
 ```
 
-This is the floor of production error visibility, and most orgs that believe they have "no logging"
+This is the floor of production error visibility; most orgs that believe they have "no logging"
 already have it and are not reading it.
 
 ## Async job health
 
-Queueable, Batch and Schedulable runs are rows in `AsyncApexJob`, which is a standard object:
+Queueable, Batch and Schedulable runs are rows in the standard object `AsyncApexJob`:
 
 ```java
 List<AsyncApexJob> failed = [
@@ -74,9 +70,8 @@ List<AsyncApexJob> failed = [
 ];
 ```
 
-`ExtendedStatus` carries the first error, which is usually enough to classify the failure without any
-logging layer at all. A report on this object, filtered to `Failed`, is a dashboard component and
-costs nothing to build.
+`ExtendedStatus` carries the first error, usually enough to classify the failure without any logging
+layer. A report on this object filtered to `Failed` is a free dashboard component.
 
 `System.purgeOldAsyncJobs(Integer)` bounds how many records one call deletes, so a scheduled job can
 purge incrementally instead of hitting limits on a single sweep:
@@ -88,10 +83,10 @@ System.purgeOldAsyncJobs(10000);
 ## The async failure path
 
 A **Transaction Finalizer** runs after a Queueable completes, including when it died on an unhandled
-exception, and it runs in its own execution context — so it survives the failure that killed the job.
-See `references/async-patterns.md` for the skeleton.
+exception, in its own execution context — so it survives the failure that killed the job. Skeleton:
+`references/async-patterns.md`.
 
-Report from inside it with the tools above rather than with a logging object:
+Report from inside it with the tools above, not a logging object:
 
 ```java
 public void execute(FinalizerContext ctx) {
@@ -103,8 +98,8 @@ public void execute(FinalizerContext ctx) {
 }
 ```
 
-A Finalizer can also re-enqueue once, which is the retry path for a transient failure and is often
-what the caller actually wanted rather than a log line.
+A Finalizer can also re-enqueue once — the retry path for a transient failure, and often what the
+caller wanted rather than a log line.
 
 ## The licensed tier
 

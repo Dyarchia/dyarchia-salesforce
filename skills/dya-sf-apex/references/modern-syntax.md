@@ -1,8 +1,8 @@
 # Modern Apex Syntax — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-apex` when writing or refactoring code and you need the exact form of a modern
-construct. Everything here is the current idiom; the older equivalent it replaces is shown so you
-can recognise what to change.
+Load from `dya-sf-apex` for the exact form of a modern construct when writing or refactoring code.
+Each current idiom is shown with the older equivalent it replaces, so you can recognise what to
+change.
 
 ## Safe navigation and null coalescing
 
@@ -21,7 +21,7 @@ only when the left is `null` — not when it is empty or zero.
 
 ## `switch on` instead of `if/else` chains
 
-Use whenever branching on more than two discrete values of one variable. It is exhaustive over enums
+Use when branching on more than two discrete values of one variable. It is exhaustive over enums
 and reads as a table rather than a ladder.
 
 ```apex
@@ -33,12 +33,11 @@ switch on Trigger.operationType {
 ```
 
 `Trigger.operationType` is the type-safe enum form of `Trigger.isBefore && Trigger.isInsert`
-cascades. Prefer it: the compiler catches a missing case, string comparison does not.
+cascades: the compiler catches a missing case, string comparison does not.
 
 ## Multiline string literals (API 67.0+)
 
-For any string spanning more than one logical line. Concatenating with `+` or embedding `\n` is the
-pattern this replaces.
+For any string spanning more than one logical line, replacing `+` concatenation or embedded `\n`.
 
 ```apex
 // ✅
@@ -56,8 +55,8 @@ String payload = '{\n  "currency": "USD",\n  "amount": 1500\n}';
 ## String templates (API 67.0+)
 
 `.template(Map<String, Object>)` interpolates named placeholders. Use it instead of `+`
-concatenation or `String.format(..., new String[]{...})`, both of which lose the association between
-placeholder and value.
+concatenation or `String.format(..., new String[]{...})`, both of which lose the placeholder–value
+association.
 
 ```apex
 // ✅
@@ -88,8 +87,8 @@ Assert.fail('Should have thrown');
 System.assertEquals(expected, actual);
 ```
 
-Always pass the message argument. A failing assertion without one tells you a number differed, not
-which business rule broke.
+Always pass the message: without one, a failing assertion tells you a number differed, not which
+business rule broke.
 
 ## Schema references, never strings
 
@@ -103,8 +102,7 @@ String objectName = 'Account';
 ```
 
 String literals for object and field names are invisible to the compiler and to "where is this
-used" tooling. Schema references break the build the moment the metadata changes, which is what you
-want.
+used" tooling. Schema references break the build the moment the metadata changes — what you want.
 
 ## Collection initialisers
 

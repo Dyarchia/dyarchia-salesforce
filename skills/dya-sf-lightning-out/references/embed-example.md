@@ -60,8 +60,8 @@ is `window.postMessage()` under the hood, surfaced as `CustomEvent`s on the
 
 ## Passing inputs in
 
-Set inputs as attributes/properties on the element (per the documented input mechanism). Keep
-them primitive and serialisable.
+Set inputs as attributes/properties on the element (per the documented input mechanism), primitive
+and serialisable.
 
 ```javascript
 app.setAttribute('record-id', '001XXXXXXXXXXXXXXX');

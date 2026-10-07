@@ -1,11 +1,11 @@
 # Static Analysis — Code Analyzer
 
-Salesforce Code Analyzer is the unified front end over seven analysis engines. It is the closest
-thing Apex has to a linter with teeth, and the piece most often left out of a pipeline because the
-command surface changed and old instructions stopped working.
+Salesforce Code Analyzer is the unified front end over seven analysis engines — the closest thing
+Apex has to a linter with teeth, and the piece most often left out of a pipeline because the command
+surface changed and old instructions stopped working.
 
-The command is **`sf code-analyzer run`**. `sf scanner run` is the deprecated v3 command; if you find
-it in a repo's CI config, that config is running nothing.
+The command is **`sf code-analyzer run`**. `sf scanner run` is the deprecated v3 command; a CI config
+that still calls it runs nothing.
 
 ## The engines
 
@@ -21,9 +21,9 @@ it in a repo's CI config, that config is running nothing.
 
 Plus a `regex` selector for custom pattern rules.
 
-`sfge` is the one that finds security problems a per-file linter cannot, because it follows values
-across method boundaries. It is also the slow one — 10 to 20 minutes on a real codebase — so scope it
-with `--workspace` and run it on a schedule rather than on every commit.
+`sfge` finds security problems a per-file linter cannot, because it follows values across method
+boundaries. It is also slow — 10 to 20 minutes on a real codebase — so scope it with `--workspace`
+and run it on a schedule, not on every commit.
 
 ## Running it
 
@@ -42,10 +42,9 @@ sf code-analyzer ast-dump --file MyClass.cls --output-file ast.xml
 
 - **There is no `--format`.** The **extension of `--output-file` decides the format** — `.json`,
   `.html`, `.sarif`, `.csv`, `.xml`. Passing `--format` is a v3 flag and errors.
-- **`--json` is rejected.** So are `--engine` and `--category`. This is the one command in the CLI
-  where the reflex of appending `--json` for machine-readable output is wrong; use `--output-file
-  results.json` instead.
-- **`--rule-selector` takes the exact full rule name and no wildcards.** It is
+- **`--json` is rejected**, as are `--engine` and `--category`. This is the one CLI command where
+  appending `--json` for machine-readable output is wrong; use `--output-file results.json`.
+- **`--rule-selector` takes the exact full rule name, no wildcards:**
   `@salesforce-ux/slds/no-hardcoded-values-slds2`, not `no-hardcoded-values`. Look names up with
   `sf code-analyzer rules --rule-selector all`.
 
@@ -67,21 +66,21 @@ high only.
 The config file is **`code-analyzer.yml`** and it must sit at the **project root** — auto-discovery
 looks nowhere else, and a file one directory down is silently not read.
 
-Two silent failures live here, and both look like "the rule is not working":
+Two silent failures here both look like "the rule is not working":
 
-- **A misspelled or partial rule name in `code-analyzer.yml` is ignored without an error.** The
-  override simply never applies. There is no warning, so verify an override took effect by running
-  with and without it rather than by reading the file.
+- **A misspelled or partial rule name in `code-analyzer.yml` is ignored without an error or
+  warning**: the override never applies. Verify it by running with and without it, not by reading
+  the file.
 - `regex_ignore` is **per line**, not per file. `ignores.files` is **global across every engine and
   rule**, so a path excluded there is excluded from security analysis too.
 
-Code Analyzer's file-extension validator only accepts simple extensions matching
+Code Analyzer's file-extension validator accepts only simple extensions matching
 `/^[.][a-zA-Z0-9]+$/`, so a compound extension like `.permissionset-meta.xml` is rejected — use
 `.xml`.
 
 ## Writing a custom PMD rule
 
-Two things about PMD 7 that make an XPath rule silently match nothing:
+Two PMD 7 traps make an XPath rule silently match nothing:
 
 - **Boolean attributes are always present on the node.** `@WithSharing`, `@Abstract` and `@Final`
   exist whether or not they are set, so test them with the XPath function:
@@ -95,8 +94,8 @@ Two things about PMD 7 that make an XPath rule silently match nothing:
 - **XML metadata rules must use `local-name()`.** Salesforce metadata carries a namespace, so bare
   element names never match.
 
-`sf code-analyzer ast-dump --file <x.cls>` prints the tree a rule is matching against, which is
-faster than guessing at node names.
+`sf code-analyzer ast-dump --file <x.cls>` prints the tree a rule matches against — faster than
+guessing node names.
 
 ## Prerequisites
 
@@ -110,4 +109,4 @@ faster than guessing at node names.
 | ApexGuru | An authenticated org |
 
 A missing runtime disables its engines rather than failing the run, so a pipeline can appear to pass
-while analysing half of what you think it is. Check the engine list in the output.
+while analysing half of what you think. Check the engine list in the output.

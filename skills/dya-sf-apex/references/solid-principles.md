@@ -1,16 +1,16 @@
 # SOLID Principles in Apex
 
 Salesforce developers routinely skip SOLID — a trigger or a "quick" service class always
-looks too small to bother. It is not. The Service / Selector / Domain layering in the main
-skill **is** SOLID applied; this reference makes the mapping explicit and shows the concrete
-failure mode for each principle, with Winter '27 / API v68.0 syntax.
+looks too small to bother. It is not. The main skill's Service / Selector / Domain layering
+**is** SOLID applied; this reference makes the mapping explicit and shows each principle's
+concrete failure mode, in Winter '27 / API v68.0 syntax.
 
-Two numbers worth having when applying SRP concretely: **500 lines is the practical maximum for a
-class**, and a method past roughly **40 lines** wants a helper extracted. Neither is a platform
-limit — they are the point past which the principles below stop being followable in practice.
+Two numbers for applying SRP: **500 lines is the practical maximum for a class**, and a method
+past roughly **40 lines** wants a helper extracted. Neither is a platform limit — they are where the
+principles below stop being followable in practice.
 
-Apply SOLID **first**. Most Salesforce "architecture" problems are a missing SRP split or a
-hard-wired dependency — not a missing design pattern. SOLID first, named patterns second.
+Apply SOLID **first**, named patterns second. Most Salesforce "architecture" problems are a missing
+SRP split or a hard-wired dependency, not a missing design pattern.
 
 ---
 
@@ -35,7 +35,7 @@ public with sharing class AccountTriggerHandler {
 }
 ```
 
-**Compliant** — each layer owns one concern; the handler only orchestrates.
+**Compliant** — each layer owns one concern; the handler orchestrates.
 
 ```java
 public with sharing class AccountTriggerHandler {
@@ -60,8 +60,8 @@ public with sharing class AccountService {
 
 ## O — Open/Closed Principle
 
-Open for extension, closed for modification. Adding a behaviour should mean a **new class**,
-not editing a growing `switch` inside an existing one.
+Open for extension, closed for modification. A new behaviour means a **new class**, not editing a
+growing `switch` inside an existing one.
 
 **Violation** — every new tier reopens and rewrites the method.
 
@@ -97,16 +97,16 @@ public with sharing class DiscountEngine {
 }
 ```
 
-A new tier is a new `IDiscountRule` class plus one registration. The dispatch logic stays
-closed. In an org with the Trigger Actions Framework the same idea is expressed as one
-`TriggerAction` class per behaviour.
+A new tier is a new `IDiscountRule` class plus one registration; the dispatch logic stays
+closed. With the Trigger Actions Framework the same idea is one `TriggerAction` class per
+behaviour.
 
 ---
 
 ## L — Liskov Substitution Principle
 
 A subtype must honour the base contract: no throwing on a method the base promises, no
-weakening of post-conditions. A caller holding the base type must never break.
+weakened post-conditions. A caller holding the base type must never break.
 
 **Violation** — the cache cannot keep the write promise it inherited.
 
@@ -123,8 +123,7 @@ public class CachedAccountSelector extends AccountSelector {
 }
 ```
 
-**Compliant** — split the contract so nothing promises a write it cannot do. This is LSP
-solved by ISP.
+**Compliant** — split the contract so nothing promises a write it cannot do: LSP solved by ISP.
 
 ```java
 public interface IAccountReader {
@@ -143,7 +142,7 @@ The cache implements only `IAccountReader`; any reference to it is always substi
 ## I — Interface Segregation Principle
 
 Many small interfaces beat one fat one. A consumer depends only on what it uses — and a
-mock only has to stub what it uses.
+mock stubs only that.
 
 **Violation** — every stub must fake reads, writes, sync, and email.
 
@@ -170,10 +169,10 @@ A read-only consumer depends on `IAccountReader` alone, and its Stub API stub st
 
 ## D — Dependency Inversion Principle
 
-Depend on abstractions, not concretions, and inject collaborators. This is exactly what
-makes Apex unit-testable with the Stub API — no SOQL, no DML in a true unit test.
+Depend on abstractions, not concretions, and inject collaborators. This is what makes Apex
+unit-testable with the Stub API — no SOQL, no DML in a true unit test.
 
-**Violation** — the selector is hard-wired; the only way to test is real data plus DML.
+**Violation** — the selector is hard-wired; testing needs real data plus DML.
 
 ```java
 public with sharing class OpportunityService {
@@ -216,15 +215,13 @@ IOpportunitySelector stub = (IOpportunitySelector) Test.createStub(
 Assert.areEqual(300, new OpportunityService(stub).pipelineTotal('001...'));
 ```
 
-This is the same Stub API wiring shown in the main skill (§8) — DIP is the principle that
-earns it.
+The same Stub API wiring as the main skill (§8) — DIP is the principle that earns it.
 
 ---
 
 ## Apply SOLID first
 
-Before adopting a named pattern (Factory, Strategy, Repository, Unit of Work), check the
-five above:
+Before adopting a named pattern (Factory, Strategy, Repository, Unit of Work), check the five:
 
 - A class that is hard to name is usually an **SRP** violation.
 - A `switch`/`if` chain you edit for every new case is an **OCP** violation.

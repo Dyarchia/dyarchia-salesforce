@@ -3,9 +3,9 @@
 The escape hatch for transformation logic that Data Streams, formulas and Calculated Insights cannot
 express: real Python, running on Data 360 compute, reading and writing DLOs and DMOs directly.
 
-Reach for it when the transform needs a library — statistical work, fuzzy matching, parsing a format
-nobody else supports — and not merely because Python is more familiar than SQL. Everything expressible
-as a Calculated Insight is cheaper as one.
+Use it when the transform needs a library — statistical work, fuzzy matching, parsing a format
+nobody else supports — not merely because Python is more familiar than SQL. Anything expressible as
+a Calculated Insight is cheaper as one.
 
 ## Two shapes
 
@@ -21,11 +21,11 @@ sf plugins install @salesforce/plugin-data-code-extension
 pip install salesforce-data-customcode
 ```
 
-**Python 3.11 exactly.** Not 3.12, not 3.10. On this machine that means `py -3.11`, and if 3.11 is
-not installed the SDK is the thing to install it for.
+**Python 3.11 exactly.** Not 3.12, not 3.10. On this machine that means `py -3.11`; if 3.11 is not
+installed, install it for the SDK.
 
-**Docker is required for `deploy`, not for `run`.** Local execution needs no container, which makes
-the iterate-locally loop cheap; only the packaging step needs Docker running.
+**Docker is required for `deploy`, not for `run`.** Local execution needs no container, so the
+iterate-locally loop is cheap; only packaging needs Docker running.
 
 ## Commands
 
@@ -36,8 +36,8 @@ sf data-code-extension script run                       # local, against REAL Da
 sf data-code-extension script deploy --package-dir ./payload --cpu-size CPU_2XL
 ```
 
-**`--package-dir` must point at `./payload`, not the project root.** This is the single most common
-deploy failure, and the error does not say so.
+**`--package-dir` must point at `./payload`, not the project root.** This is the most common deploy
+failure, and the error does not say so.
 
 ## Project shape
 
@@ -61,7 +61,7 @@ my_transform/
 }
 ```
 
-`script scan` generates it by statically analysing the entrypoint, so run it after changing which
+`script scan` generates it by statically analysing the entrypoint; rerun it after changing which
 objects the code reads or writes rather than hand-editing the file and drifting.
 
 ## The Python API
@@ -99,8 +99,8 @@ bands:
 > 10M               CPU_4XL
 ```
 
-The default is already two steps up, so a small transform is over-provisioned unless you say
-otherwise — and Data 360 compute is credit-metered. See SKILL.md §8.
+The default is two steps up, so a small transform is over-provisioned unless you say otherwise — and
+Data 360 compute is credit-metered. See SKILL.md §8.
 
 ## The one that surprises people
 

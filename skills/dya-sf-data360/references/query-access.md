@@ -1,6 +1,6 @@
 # Data 360 Query & Access — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §5. Load this when reading Data 360 data programmatically. Three methods exist; choose by where the logic runs. Every method consumes Data Services credits, so query hygiene (§ "Rules") is mandatory.
+Full implementations referenced from SKILL.md §5. Load when reading Data 360 data programmatically. Three methods; choose by where the logic runs. Every method consumes Data Services credits, so query hygiene is mandatory.
 
 ## Method 1 — SOQL on DMOs From Apex
 
@@ -23,14 +23,14 @@ public with sharing class LoyaltyService {
 ```
 
 Notes and limits:
-- Static SOQL on DMOs is supported as a direct alternative to dynamic SOQL / ConnectApi.
+- Static SOQL on DMOs is a supported alternative to dynamic SOQL / ConnectApi.
 - `Database.QueryLocator` and SOQL FOR loops are supported in API 61.0+; below that only the first ~201 records return.
-- Batch Apex via `QueryLocator` is **blocked** against DMOs — use `Iterable` instead.
-- **DLO queries require a `DATASPACE` clause** at the very end; omit it and the query returns zero rows:
+- Batch Apex via `QueryLocator` is **blocked** against DMOs — use `Iterable`.
+- **DLO queries require a `DATASPACE` clause** at the very end; without it the query returns zero rows:
   ```
   SELECT ... FROM MyRaw__dll WHERE ... DATASPACE default
   ```
-- Be cautious with FOR loops, query locators, and recursion — each can fan out into multiple billable Data 360 queries.
+- FOR loops, query locators, and recursion can each fan out into multiple billable Data 360 queries.
 
 ## Method 2 — Query API (Data 360 SQL)
 
@@ -51,12 +51,12 @@ LIMIT  100;
 Execution pattern:
 1. `createSqlQuery` → submit the SQL, get a query id.
 2. `getSqlQueryRows` with `offset` + `rowLimit` → page through results.
-3. You can re-read those results for **24 hours without extra consumption** — `getSqlQueryRows` is faster and cheaper than re-running `createSqlQuery`.
+3. Re-read those results for **24 hours without extra consumption** — `getSqlQueryRows` is faster and cheaper than re-running `createSqlQuery`.
 
 Performance/cost rules:
 - Filter early with `WHERE`; never `SELECT *`.
 - Use the DMO's primary index (or a secondary index) in the predicate.
-- Include **key qualifier fields** in joins — null key qualifiers mean the join silently degrades.
+- Include **key qualifier fields** in joins — null key qualifiers silently degrade the join.
 - Handle both async and sync responses in your client.
 
 ## Method 3 — Connect API in Apex (`ConnectApi`)
@@ -70,7 +70,7 @@ query.sql = 'SELECT Id__c FROM UnifiedssotIndividualMain__dlm LIMIT 50';
 ConnectApi.CdpQueryOutputV2 result = ConnectApi.CdpQuery.queryANSISql(query);
 ```
 
-Use Connect REST API (off-platform) or `ConnectApi` (on-platform) for managing CIs/segments/identity rulesets programmatically; use the Query API for raw analytical SQL; use SOQL for simple on-platform reads.
+Manage CIs/segments/identity rulesets programmatically with Connect REST API (off-platform) or `ConnectApi` (on-platform); use the Query API for raw analytical SQL and SOQL for simple on-platform reads.
 
 ## Choosing — Decision Table
 

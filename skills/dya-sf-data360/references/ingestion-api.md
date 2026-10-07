@@ -1,15 +1,15 @@
 # Ingestion API — Reference (Winter '27 / API v68.0)
 
 Load from `dya-sf-data360` when pushing data into Data 360 from an external system. Two modes on one
-API, and the choice between them is a cost decision before it is a latency decision — see the credit
-table in the skill body.
+API; choosing between them is a cost decision before a latency decision — see the credit table in the
+skill body.
 
 ## Before any call
 
 An **Ingestion API connector** must exist, with a **schema** describing the objects you will send.
-Data 360 requires the schema up front; there is no inferring it from the payload. The connector's
+Data 360 requires the schema up front; it is never inferred from the payload. The connector's
 `sourceName` (for example `ecomm_api`) and the object name appear in every streaming URL, so name
-them for readability rather than convenience.
+them for readability.
 
 Authentication is OAuth 2.0 against the Data 360 instance. All URLs below are
 `https://{instance_url}/api/v1/ingest/...`.
@@ -24,8 +24,8 @@ POST /api/v1/ingest/sources/{sourceName}/{objectName}
 POST /api/v1/ingest/sources/ecomm/Order/
 ```
 
-Send records in the body and they enter the pipeline continuously. There is a **test action** that
-validates a payload against the schema without ingesting anything:
+Records in the body enter the pipeline continuously. A **test action** validates a payload against
+the schema without ingesting anything:
 
 ```http
 POST /api/v1/ingest/sources/ecomm/Order/actions/test
@@ -61,8 +61,8 @@ POST /api/v1/ingest/jobs
 }
 ```
 
-`upsert` is the operation you want in almost every case: ingestion is inherently retryable, and an
-insert that runs twice duplicates data. The response carries the job `id` and `state: "Open"`.
+Use `upsert` in almost every case: ingestion is inherently retryable, and an insert that runs twice
+duplicates data. The response carries the job `id` and `state: "Open"`.
 
 ### 2. Upload CSV batches
 
@@ -70,7 +70,7 @@ insert that runs twice duplicates data. The response carries the job `id` and `s
 PUT /api/v1/ingest/jobs/{jobId}/batches
 ```
 
-The body is CSV, and its columns must match the schema registered on the connector.
+The body is CSV, with columns matching the schema registered on the connector.
 
 ### 3. Close the job for upload
 
@@ -82,8 +82,8 @@ PATCH /api/v1/ingest/jobs/{jobId}
 { "state": "UploadComplete" }
 ```
 
-Nothing processes until this happens. A job left `Open` is the usual explanation for "I uploaded the
-data and nothing arrived".
+Nothing processes until then. A job left `Open` is the usual explanation for "I uploaded the data and
+nothing arrived".
 
 ### 4. Poll to completion
 
@@ -91,14 +91,14 @@ data and nothing arrived".
 GET /api/v1/ingest/jobs/{jobId}
 ```
 
-States you will see: **`Open`** → **`UploadComplete`** → **`JobComplete`**. The response also carries
-`object`, `contentType` (`CSV`), `createdDate` and `systemModstamp`.
+States: **`Open`** → **`UploadComplete`** → **`JobComplete`**. The response also carries `object`,
+`contentType` (`CSV`), `createdDate` and `systemModstamp`.
 
 ## Decisions made before the first call
 
 ### Stream category is not a label
 
-Every data stream declares a category, and it constrains what the stream needs and what the platform
+Every data stream declares a category, which constrains what the stream needs and what the platform
 can do with it afterwards. Changing it later means rebuilding the stream.
 
 | Category | Requires |
@@ -107,14 +107,14 @@ can do with it afterwards. Changing it later means rebuilding the stream.
 | `Engagement` | A primary key **and an event time field** |
 | `Other` | A primary key |
 
-`Engagement` without a time field is the common mistake, because the requirement only surfaces when
-the stream refuses to activate.
+`Engagement` without a time field is the common mistake: the requirement only surfaces when the
+stream refuses to activate.
 
 ### Field names change on the way in
 
-**DLO field naming transforms `__c` into `_c`.** A CRM field called `Region__c` arrives as `Region_c`
-on the DLO. Any code that maps by name — a transform, a query, a Data Custom Code script — has to use
-the DLO's name, not the CRM one.
+**DLO field naming transforms `__c` into `_c`.** A CRM field `Region__c` arrives as `Region_c` on the
+DLO. Any code that maps by name — a transform, a query, a Data Custom Code script — must use the DLO's
+name, not the CRM one.
 
 ### The auth flow is three hops, and the host changes
 
@@ -125,13 +125,13 @@ the DLO's name, not the CRM one.
 ```
 
 **The ingest endpoint is on the tenant URL, not the Salesforce instance URL.** Pointing step 3 at the
-instance is the failure that looks like an authentication problem and is not.
+instance looks like an authentication problem and is not.
 
 ### `202` means accepted, not queryable
 
-An ingest call returning `202` has handed the payload off for processing. It has not validated the
-rows and they are not yet in the DLO. Validation failures surface later, in the **Problem Records**
-DLO family — so a pipeline that checks only the HTTP status will report success while dropping rows.
+A `202` means the payload was handed off for processing. The rows are not yet validated or in the DLO.
+Validation failures surface later, in the **Problem Records** DLO family — so a pipeline that checks
+only the HTTP status reports success while dropping rows.
 
 ### Deleting a stream can delete its DLO
 
@@ -141,8 +141,8 @@ one that other objects map from.
 ### Feature gating reads as an error
 
 `CdpDataStreams` in an error response means the capability is **not provisioned for this org or
-user** — not that the request was malformed. The activation equivalents are
-`CdpActivationTarget` and `CdpActivationExternalPlatform`.
+user** — not a malformed request. The activation equivalents are `CdpActivationTarget` and
+`CdpActivationExternalPlatform`.
 
 ## Choosing between them
 
@@ -153,8 +153,8 @@ user** — not that the request was malformed. The activation equivalents are
 | Relative cost | ~2.5× batch per million rows | The cheaper baseline |
 | Fits | Event-shaped data where minutes matter | Backfills, nightly loads, migrations |
 
-If neither fits because the data already lives in a supported warehouse, **do not ingest at all** —
-zero-copy federation queries it in place and skips ingestion cost entirely. See the skill body.
+If the data already lives in a supported warehouse, **do not ingest at all** — zero-copy federation
+queries it in place and skips ingestion cost. See the skill body.
 
 ## Anti-Patterns
 

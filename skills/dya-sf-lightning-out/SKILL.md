@@ -12,8 +12,8 @@ components themselves, `dya-sf-lwc`. Follow every rule below.
 References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts behind the rules here.
-- `references/shared/sharing-and-access.md` — what the brokered session identity is actually allowed
-  to see once the component renders.
+- `references/shared/sharing-and-access.md` — what the brokered session identity may see once the
+  component renders.
 - `references/embed-example.md` — a full host-page embed: app registration, the singleaccess token
   exchange, `lightning-out-application`, lifecycle events, and receiving component events.
 
@@ -22,14 +22,14 @@ References:
 ## Platform Context — Winter '27 / API v68.0
 
 **Lightning Out 2.0 is GA (since Winter '26)** and is the supported way to surface LWCs outside
-Salesforce, replacing the decade-old Lightning Out 1.0 (Aura). Hold these:
+Salesforce, replacing the decade-old Lightning Out 1.0 (Aura):
 
 - **Built on LWR, not Aura**, so **every `dya-sf-lwr` caveat applies**: verify module and
   base-component availability, navigation follows the LWR model — a host-page embed usually has no
   Salesforce navigation context at all — and the session identity may be limited.
 - **Each embedded component is an iframe that is the root of a CLOSED shadow DOM.** Host-page
-  JavaScript cannot see into or manipulate it, and the LWC executes in the **Salesforce context**
-  rather than the host page's. Neither side's CSS or JS bleeds into the other.
+  JavaScript cannot see into or manipulate it, and the LWC executes in the **Salesforce context**,
+  not the host page's. Neither side's CSS or JS bleeds into the other.
 - **Auth is brokered through a `frontdoor-url`** obtained via OAuth 2.0 and the
   `/services/oauth2/singleaccess` endpoint. Secrets never go into host JavaScript.
 - **Register a Lightning Out 2.0 app** in the **Lightning Out 2.0 App Manager** (Setup) to get the
@@ -37,13 +37,13 @@ Salesforce, replacing the decade-old Lightning Out 1.0 (Aura). Hold these:
 
 Winter '27 changes nothing in Lightning Out. It remains production-usable, and the OAuth
 username-password flow retirement (enforced 20 February 2027) does not touch the `singleaccess`
-exchange used here — see `dya-sf-integration-auth` if the host application authenticates any other way.
+exchange — see `dya-sf-integration-auth` if the host application authenticates any other way.
 
 ---
 
 ## 1. When to Use Lightning Out (and When Not)
 
-Use it when a **specific Salesforce LWC must appear inside an app you do not host on Salesforce** and
+Use it when a **specific Salesforce LWC must appear inside an app not hosted on Salesforce** and
 rebuilding it natively is not worth it.
 
 ```
@@ -82,7 +82,7 @@ A non-visual element with three required attributes:
 ```
 
 - **`app-id`** — the 18-digit id from the App Manager.
-- **`frontdoor-url`** — set **dynamically at runtime**, never hardcoded; it carries the session (§4).
+- **`frontdoor-url`** — set **at runtime**, never hardcoded; it carries the session (§4).
 - **`components`** — comma-separated LWC names in `c-my-component` form, hyphens separating the
   namespace and the camelCase parts.
 
@@ -108,7 +108,7 @@ const { frontdoor_uri } = await res.json();
 document.querySelector('lightning-out-application').frontdoorUrl = frontdoor_uri;
 ```
 
-Confirm the exact request and response shape against the current docs, since the mechanism is
+Confirm the exact request and response shape against the current docs; the mechanism is
 auth-flow-specific. The principle is fixed: **token in, short-lived frontdoor URL out, set at
 runtime.**
 
@@ -116,7 +116,7 @@ runtime.**
 
 ## 5. Lifecycle Events — Wire Them, Always
 
-Lightning Out 2.0 fires events you MUST handle for a non-broken UX:
+Lightning Out 2.0 fires events you MUST handle:
 
 ```javascript
 const app = document.querySelector('lightning-out-application');
@@ -129,20 +129,20 @@ app.addEventListener('lo.component.error',   (e) => logAndFallback(e));
 - `lo.application.ready` / `lo.application.error` — session established or failed.
 - `lo.component.ready` / `lo.component.error` — a component rendered or failed.
 
-Never assume the embed succeeded. An auth or CORS misconfiguration surfaces here, not as an
+Never assume the embed succeeded. Auth or CORS misconfiguration surfaces here, not as an
 exception.
 
 ---
 
 ## 6. Host ↔ Component Communication
 
-- The boundary is a **closed shadow-DOM iframe**, so the host cannot reach in. Communication is
+- The boundary is a **closed shadow-DOM iframe**; the host cannot reach in. Communication is
   `window.postMessage()` underneath, surfaced as standard `CustomEvent`s.
 - Pass inputs **in** through attributes and properties on `lightning-out-application`; receive
   outputs **out** by listening for the component's events on that element.
 - Keep the contract **small and serialisable** — primitives and plain objects, never DOM nodes or
   live references across the boundary.
-- Treat each side as untrusted from the other and validate messages both ways.
+- Treat each side as untrusted by the other; validate messages both ways.
 
 ---
 

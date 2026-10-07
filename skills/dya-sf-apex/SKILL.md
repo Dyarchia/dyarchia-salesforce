@@ -10,10 +10,10 @@ explicitly, and you **always** bulkify. Follow every rule below.
 
 References:
 
-- `references/shared/` — the platform fundamentals every rule below rests on: `governor-limits.md`,
+- `references/shared/` — the platform fundamentals every rule rests on: `governor-limits.md`,
   `soql-selectivity.md`, `sharing-and-access.md`, `platform-deltas.md`,
-  `metadata-and-api-versions.md`. **Start with the first if you do not already know why
-  bulkification is mandatory — this skill's rules are unusable without it.**
+  `metadata-and-api-versions.md`. **Start with the first if you do not know why bulkification is
+  mandatory — this skill's rules are unusable without it.**
 - `references/modern-syntax.md` — every modern construct with the legacy form it replaces.
 - `references/trigger-framework.md` — `ITrigger`, `TriggerFactory`, handler, recursion guard, `TriggerBypass`.
 - `references/async-patterns.md` — Queueable, Finalizer, Cursor chain, Mixed-DML.
@@ -23,7 +23,7 @@ References:
 - `references/static-analysis.md` — Code Analyzer: the seven engines, selectors, and the flags that fail silently.
 - `references/solid-principles.md` — SOLID applied to Apex, with Stub-API injection.
 
-Neighbouring skills own their own subjects: permissions and sharing design → `dya-sf-permissions`;
+Neighbouring skills own: permissions and sharing design → `dya-sf-permissions`;
 declarative automation and invocable contracts → `dya-sf-flow`; anything LWC-facing beyond the
 `@AuraEnabled` contract → `dya-sf-lwc`; callouts and integration patterns → `dya-sf-integration-outbound`;
 Platform Events as an integration surface → `dya-sf-integration-events`.
@@ -32,17 +32,17 @@ Platform Events as an integration surface → `dya-sf-integration-events`.
 
 ## Platform Context — Winter '27 / API v68.0
 
-Stamp new Apex at `<apiVersion>68.0</apiVersion>`. The number is per class, not per org — see
-`references/shared/metadata-and-api-versions.md` for what that implies and for retirement status.
+Stamp new Apex at `<apiVersion>68.0</apiVersion>`. The version is per class, not per org — see
+`references/shared/metadata-and-api-versions.md` for the implications and retirement status.
 
 **The security defaults this skill assumes turned on at API 67.0 and still hold**: SOQL, SOSL and DML
 default to `USER_MODE`; an omitted sharing keyword defaults to `with sharing`, and that default is
 contagious down an inheritance chain and into `@AuraEnabled` methods; `WITH SECURITY_ENFORCED` no
 longer compiles; a sharing keyword on a trigger no longer compiles. Full table in
-`references/shared/platform-deltas.md`. Existing classes keep their old behaviour until you raise
-their version, so make sharing explicit **before** you bump, never after.
+`references/shared/platform-deltas.md`. Existing classes keep their old behaviour until their version
+is raised, so make sharing explicit **before** you bump, never after.
 
-What Winter '27 adds to Apex specifically:
+What Winter '27 adds to Apex:
 
 | Change | Status | What it means for your code |
 |---|---|---|
@@ -54,16 +54,16 @@ What Winter '27 adds to Apex specifically:
 | `FORMULA()` in a SOQL `WHERE` clause | Beta | API 68.0+, **sandbox / Developer Edition / scratch orgs only** |
 | Execute Data 360 SQL from Apex | GA | Query Data 360 alongside org data. See `dya-sf-data360` |
 
-Beta and Developer Preview features are **not available in production orgs**. Proposing one as the
+Beta and Developer Preview features are **not available in production orgs**; proposing one as the
 default produces code that does not deploy.
 
 ---
 
 ## 1. Class Structure
 
-State a sharing keyword on **every** class. Default `with sharing`. Use `without sharing` only for
-system-level integration or admin tooling, with a class comment saying why. From 67.0 it suppresses
-**record sharing only** — a query there still throws for a user lacking CRUD or FLS. Use
+State a sharing keyword on **every** class, defaulting to `with sharing`. `without sharing` only for
+system-level integration or admin tooling, with a class comment saying why; from 67.0 it suppresses
+**record sharing only** — a query there still throws for a user lacking CRUD or FLS.
 `inherited sharing` for utilities whose sharing must follow the caller.
 
 ```apex
@@ -72,7 +72,7 @@ public with sharing class AccountService { }
 public without sharing class IntegrationGateway { }   // only when justified, and say why
 public inherited sharing class ReusableHelper { }
 
-// ❌ — implicit, reader cannot tell the behaviour without knowing the API version
+// ❌ — implicit; the behaviour depends on the API version
 public class AccountService { }
 ```
 
@@ -91,8 +91,8 @@ schema references over string literals for object and field names.
 ## 3. Security — User Mode, Explicitly
 
 `USER_MODE` enforces object permissions, field-level security and sharing for the running user. It is
-the versioned default from 67.0; **write it out anyway**, so the reader knows the behaviour without
-checking the file's API version and nothing changes silently on a legacy branch.
+the versioned default from 67.0; **write it out anyway**, so the behaviour is readable without
+checking the API version and nothing changes silently on a legacy branch.
 
 ```apex
 // ✅
@@ -115,8 +115,8 @@ Database.update(auditRecords, AccessLevel.SYSTEM_MODE);
 ```
 
 Where a *partial* result is acceptable — typically an `@AuraEnabled` method serving users with
-differing FLS — `Security.stripInaccessible(AccessType.READABLE, records)` removes the fields the
-user cannot see instead of throwing.
+differing FLS — `Security.stripInaccessible(AccessType.READABLE, records)` removes fields the user
+cannot see instead of throwing.
 
 > The model behind all of this — profiles, permission sets, OWD, sharing rules:
 > `references/shared/sharing-and-access.md`. Design questions belong to `dya-sf-permissions`.
@@ -135,14 +135,14 @@ for (Contact c : Trigger.new) { c.Description = byId.get(c.AccountId)?.Name; }
 ```
 
 **Every query must be selective**: at least one filter on an indexed field, matching fewer rows than
-that index's threshold — 30% of the first million for a standard index, 10% for a custom one. A
-non-selective query fails on a large object with `QueryException: Non-selective query`, and it fails
-in production long before it fails in a test org. `WHERE Industry = 'Tech'` is a table scan; an
+that index's threshold — 30% of the first million for a standard index, 10% for a custom one. On a
+large object a non-selective query fails with `QueryException: Non-selective query` — in production
+long before in a test org. `WHERE Industry = 'Tech'` is a table scan; an
 unindexed picklist narrows nothing.
 
 > Thresholds, what is indexed, what defeats an index, how to read a query plan: `references/shared/soql-selectivity.md`.
 
-**Dynamic SOQL binds, never concatenates.** String concatenation is a SOQL injection vulnerability:
+**Dynamic SOQL binds, never concatenates** — concatenation is a SOQL injection vulnerability:
 
 ```apex
 List<Account> accts = Database.queryWithBinds(
@@ -153,11 +153,11 @@ List<Account> accts = Database.queryWithBinds(
 ```
 
 Same for `Database.countQueryWithBinds` and `Database.getQueryLocatorWithBinds`. In dynamic SOQL the
-access level is an argument; in static SOQL it is the inline `WITH USER_MODE` clause — not
+access level is an argument; in static SOQL, the inline `WITH USER_MODE` clause — not
 interchangeable.
 
 **For bulk reads, iterate the query** (`for (Account[] batch : [SELECT …])`) rather than
-materialising it: the for-loop form chunks at 200 records and keeps heap flat.
+materialising it: the for-loop chunks at 200 records and keeps heap flat.
 
 **Apex Cursors** (GA since Spring '26) handle up to ~50M rows per cursor with flexible and
 bidirectional chunking, bounded by **10 `fetch()` calls per transaction**, 10k cursors/day and 100M
@@ -169,15 +169,15 @@ rows/day. Use them where Batch Apex's fixed forward chunking does not fit.
 
 **Never DML inside a loop.** Collect into a `List`, one statement after the loop.
 
-Prefer `Database.insert/update/delete/upsert` over bare DML: it gives partial success, an explicit
-access level, and a structured `SaveResult[]` you can act on.
+Prefer `Database.insert/update/delete/upsert` over bare DML: partial success, an explicit access
+level, and a structured `SaveResult[]` to act on.
 
 ```apex
 Database.SaveResult[] results = Database.insert(records, false, AccessLevel.USER_MODE);
 ```
 
-When `allOrNone = false`, walking `results` and logging every `getErrors()` entry against its record
-is not optional — silent partial failure is the failure mode this API exists to expose.
+With `allOrNone = false`, walking `results` and logging every `getErrors()` entry against its record
+is mandatory — silent partial failure is what this API exists to expose.
 
 **Upsert on an external id for idempotency**, so a replayed message does not duplicate:
 
@@ -185,8 +185,8 @@ is not optional — silent partial failure is the failure mode this API exists t
 Database.upsert(records, Account.External_Id__c, false, AccessLevel.USER_MODE);
 ```
 
-**You cannot call out after uncommitted DML in the same transaction.** Either call out first and then
-do DML, or move the callout into a Queueable (preferred), or into a Transaction Finalizer.
+**You cannot call out after uncommitted DML in the same transaction.** Call out before the DML,
+or move the callout into a Queueable (preferred) or a Transaction Finalizer.
 
 ## 6. Triggers
 
@@ -195,9 +195,9 @@ Bulkified Triggers": one trigger per object, zero logic in the file, canonical e
 an `ITrigger` interface, bulk caching in `bulkBefore`/`bulkAfter`, per-record work in the iterative
 methods, post-processing in `andFinally`.
 
-On **brownfield** orgs — anything already standardised on Kevin O'Hara, fflib, Trigger Actions or a
+On **brownfield** orgs — already standardised on Kevin O'Hara, fflib, Trigger Actions or a
 hand-rolled handler — do not impose it. **Ask which framework the org uses and conform.** Org-wide
-consistency beats a better framework bolted onto a different one.
+consistency beats a better framework bolted onto another.
 
 ```apex
 // The trigger file - one line, no logic, no sharing keyword.
@@ -209,19 +209,19 @@ trigger AccountTrigger on Account (
 }
 ```
 
-Triggers always run in **system mode**, on every API version, and a sharing keyword on a trigger is a
-compile error from 67.0. The sharing keyword goes on the handler class; if trigger-driven DML must
+Triggers always run in **system mode**, on every API version; a sharing keyword on a trigger is a
+compile error from 67.0. Put the sharing keyword on the handler class; if trigger-driven DML must
 enforce user-level security, pass `AccessLevel.USER_MODE` explicitly to the `Database.*` call.
 
 ### The per-object kill-switch
 
-Every trigger must be silenceable without a deployment, **per object** — you may need an integration
-or agent user to skip the Account trigger while the Case trigger keeps running.
+Every trigger must be silenceable without a deployment, **per object** — an integration or agent
+user may need to skip the Account trigger while the Case trigger keeps running.
 
-Model it as one **Hierarchy** Custom Setting resolved at trigger entry. This is the one case where a
-Custom Setting beats a Custom Metadata Type: hierarchy resolution (org → profile → user) is exactly
-what a per-user bypass needs, and `__mdt` cannot express it. It is a circuit breaker, not a recursion
-guard — keep the framework's recursion handling regardless.
+Model it as one **Hierarchy** Custom Setting resolved at trigger entry — the one case where a Custom
+Setting beats a Custom Metadata Type: hierarchy resolution (org → profile → user) is exactly what a
+per-user bypass needs, and `__mdt` cannot express it. It is a circuit breaker, not a recursion guard;
+keep the framework's recursion handling regardless.
 
 > The setting's shape and field naming, `TriggerBypass`, entry-point wiring, and the form for a
 > non-framework trigger: `references/trigger-framework.md`.
@@ -243,8 +243,7 @@ Stop at the first option that fits.
 1. **Queueable** — the default. Accepts complex types, chainable, monitored, supports Finalizers.
 2. **Queueable + Transaction Finalizer** — when post-job logic must run whatever happens: retry, logging, callout-after-DML.
 3. **Apex Cursors + Queueable chain** — large volumes needing flexible or bidirectional chunking. Bounded by 10 `fetch()` per transaction.
-4. **Batch Apex** — very large volumes, recurring scheduled jobs, or parallel chunk execution.
-   Still the right answer for those; it is not legacy.
+4. **Batch Apex** — very large volumes, recurring scheduled jobs, or parallel chunk execution. Not legacy.
 5. **Schedulable** — only to trigger work on a Cron schedule. Its `execute` enqueues a Queueable; business logic never lives there.
 6. **`@future`** — avoid in new code. No return value, no chaining, no monitoring, no Finalizers.
 
@@ -254,8 +253,8 @@ Stop at the first option that fits.
 ## 8. Testing
 
 - `@TestSetup` for shared data; each test method gets a fresh rolled-back copy.
-- **Test in bulk.** Every bulk-callable class needs a test with 200+ records: that is what the
-  platform will send, and a one-record test proves nothing about limits.
+- **Test in bulk.** Every bulk-callable class needs a 200+ record test: that is what the platform
+  sends, and a one-record test proves nothing about limits.
 - Wrap the act in `Test.startTest()` / `Test.stopTest()`: fresh limits, and async work is forced to complete.
 - Never make a real callout: `Test.setMock(HttpCalloutMock.class, …)`. Use the Stub API
   (`Test.createStub`) for unit tests with mocked selectors.
@@ -268,15 +267,15 @@ Stop at the first option that fits.
 of meaningful branches.
 
 `@IsTest(critical=true)` and `@IsTest(testFor='…')` (Beta, API 66.0+) narrow what runs under
-`sf project deploy start --test-level RunRelevantTests`. Until they are GA, verify production-critical
-tests with a broader test level.
+`sf project deploy start --test-level RunRelevantTests`. Until GA, verify production-critical tests with
+a broader test level.
 
 > Skeletons, Stub API wiring, full annotation semantics: `references/testing-patterns.md`.
 
 ## 9. Error Handling
 
-Declare a custom exception per domain — `InvoiceGenerationException`, not `Exception`. It lets a
-caller catch what it can handle.
+Declare a custom exception per domain — `InvoiceGenerationException`, not `Exception` — so a caller
+can catch what it can handle.
 
 Log and rethrow; never swallow:
 
@@ -293,12 +292,12 @@ try {
 try { } catch (Exception e) { }
 ```
 
-`@AuraEnabled` methods throw **`AuraHandledException`** with a clean message. Any other exception
+`@AuraEnabled` methods throw **`AuraHandledException`** with a clean message; any other exception
 sends an internal stack trace to the browser.
 
 ## 10. Performance
 
-Assume 200 records and test with 200+. Beyond that, the levers are: Platform Cache for hot reference
+Assume 200 records and test with 200+. Beyond that, the levers: Platform Cache for hot reference
 data, Custom Metadata Types for configuration (`getInstance` costs no SOQL), DataWeave for structured
 payload transformation, ApexGuru for finding real hotspots from runtime profiling, and heap
 discipline — project only the fields you use, iterate rather than materialise.
@@ -308,7 +307,7 @@ discipline — project only the fields you use, iterate rather than materialise.
 ## 11. Observability
 
 **Never create a logging object, a logging platform event, or a `Logger` that writes to either.** An
-invented `Log__c` is a deploy failure where it does not exist and one more unused object where it
+invented `Log__c` fails to deploy where it does not exist and is one more unused object where it
 does. If the org runs a logging framework, find it and call it; if it has none, say so — standing one
 up is the owner's call.
 
@@ -326,7 +325,7 @@ exception email**, the floor most orgs have and do not read. `AsyncApexJob` carr
 - **Domain** (optional) — instance behaviour over a collection of records.
 - **Wrapper / DTO** — the `@AuraEnabled` types returned to a client.
 
-This layering is what makes the code mockable through the Stub API.
+This layering makes the code mockable through the Stub API.
 
 The `@AuraEnabled` contract: `cacheable=true` for reads (enables the Lightning Data Service cache,
 forbids DML, must be `static`); no `cacheable` for writes; primitive or DTO parameters, never raw
@@ -337,7 +336,7 @@ forbids DML, must be `static`); no `cacheable` for writes; primitive or DTO para
 
 ## 13. Decision Matrix — Is This Even Apex?
 
-The best Apex is the Apex you did not write. Reach for it only when the declarative surface cannot
+The best Apex is the Apex you did not write: reach for it only when the declarative surface cannot
 express the requirement.
 
 | Need | Solution | Apex? |

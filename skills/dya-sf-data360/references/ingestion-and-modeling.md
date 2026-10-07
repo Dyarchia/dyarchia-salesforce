@@ -1,8 +1,8 @@
 # Data 360 Ingestion, Modeling & Activation — Reference (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §3, §4, §6, §7. Load this when bringing data into Data 360, modeling it, or wiring activation/automation. Every stage consumes credits; the cost guidance here is as load-bearing as the mechanics.
+Full implementations referenced from SKILL.md §3, §4, §6, §7. Load when bringing data into Data 360, modeling it, or wiring activation/automation. Every stage consumes credits; the cost guidance is as load-bearing as the mechanics.
 
-Credit multipliers are stated once, in SKILL.md §8, and never repeated here. They come from Salesforce's published rate cards, which are versioned and now tiered — verify the current one rather than quoting a number from memory:
+Credit multipliers are stated once, in SKILL.md §8. They come from Salesforce's published rate cards, which are versioned and now tiered — verify the current one rather than quoting from memory:
 
 - Customer Data Cloud Rate Card (PDF): <https://www.salesforce.com/en-us/wp-content/uploads/sites/4/documents/platform/data-cloud-platform-services-rate-sheet.pdf>
 - Data Services Billable Usage Types for Data 360: <https://help.salesforce.com/s/articleView?id=data.c360_a_data_usage_types.htm&language=en_US&type=5>
@@ -19,29 +19,29 @@ Credit multipliers are stated once, in SKILL.md §8, and never repeated here. Th
 Rules:
 - **Define an explicit schema** per ingestion pipeline — required for structural/semantic integrity.
 - **Batch by default.** Streaming is ~2.5× the cost; justify it only when sub-15-minute latency changes the outcome.
-- **Prefer zero-copy** when you can query the warehouse in place — it skips ingestion credits entirely.
+- **Prefer zero-copy** when you can query the warehouse in place — it skips ingestion credits.
 
 ## Ingestion API — Shape
 
-The Ingestion API pushes records into a DLO mapped to a connector. Conceptually:
+The Ingestion API pushes records into a DLO mapped to a connector:
 
 1. Create an **Ingestion API** data stream + connector with a defined schema (object + fields + primary key).
 2. POST records to the ingestion endpoint (bulk file job, or streaming events).
-3. Records land in the **DLO**; mapping then projects them into the **DMO**.
+3. Records land in the **DLO**; mapping projects them into the **DMO**.
 
-Use the bulk pattern for large periodic loads; reserve the streaming pattern for genuinely real-time signals.
+Use bulk for large periodic loads; reserve streaming for genuinely real-time signals.
 
 ## Modeling — DLO → DMO
 
 - Map raw DLO fields onto **standard DMOs** from the Customer 360 Data Model (300+ prebuilt types: Individual, Account, Order, Engagement, …). Extend only when necessary.
 - Configure **key qualifier fields** on join keys. When unset, joins return null and cost/perf degrade.
-- Standardising onto the shared model is what makes downstream joins, segments, and grounding work consistently.
+- Standardising onto the shared model makes downstream joins, segments, and grounding work consistently.
 
 ## Identity Resolution — the Expensive Step
 
 Identity resolution merges DLO/DMO records describing the same entity into a **Unified DMO** (unified profile) using match + reconciliation rules.
 
-- It is the **single largest credit consumer** by three to four orders of magnitude over a query, and it bills on **rows processed, not rows ingested**. Multipliers and their source: SKILL.md §8.
+- It is the **largest credit consumer** by three to four orders of magnitude over a query, and bills on **rows processed, not rows ingested**. Multipliers and their source: SKILL.md §8.
 - Run **incrementally**, scheduled to actual data change — never continuously.
 - Align downstream recompute (CIs, segments) to IR's real incremental behaviour; don't recompute the world on every trickle of new data.
 
@@ -57,7 +57,7 @@ Metrics computed over modeled data (dimensions + measures): lifetime value, enga
 
 Filtered audiences for activation.
 
-- Poor data-model design that forces complex joins raises segmentation/activation cost 20–40% — model well first.
+- A data model that forces complex joins raises segmentation/activation cost 20–40% — model well first.
 - Use aggregate filters and waterfall/ranked segments where supported to target precisely.
 - Manage via the Connect API for repeatable, deployable definitions.
 
@@ -73,7 +73,7 @@ Pattern: real-time signals → Data Action → platform event → automation. Ke
 
 ## DevOps for Data 360
 
-Promote Data 360 logic (data transforms, code extensions) through CI/CD with **DevOps data kits**, the same way you promote Apex/LWC metadata — enabling headless, repeatable deployments across environments.
+Promote Data 360 logic (data transforms, code extensions) through CI/CD with **DevOps data kits**, like Apex/LWC metadata — enabling headless, repeatable deployments across environments.
 
 ## Anti-Patterns
 
