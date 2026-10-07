@@ -124,10 +124,13 @@ Hard failures — exit 1:
 condition                                              check
 -----------------------------------------------------  ------------------------------------------
 SKILL.md absent                                        per skill folder
-no YAML frontmatter block                              the leading ---...--- must parse
+no YAML frontmatter block                              a leading ---...--- block
 no name key, or name differs from the folder name      exact string match
+name breaks the Agent Skills name rules                1-64 chars, a-z 0-9, single hyphens
 no description key                                     presence
 description lacks the trigger clause                   literal substring match
+description over 1024 characters                       Agent Skills spec limit
+description holds an unquoted ': ' or ' #'             strict YAML parsers reject it
 skill has no README catalogue bullet                   a `- **`name`**` line
 ```
 
@@ -138,6 +141,7 @@ condition                                            threshold
 ---------------------------------------------------  --------------------
 SKILL.md over the size ceiling                       20480 bytes
 SKILL.md over the ceiling with no references/        20480 bytes
+description over the listing target                  500 characters
 README names a dya-sf-* token that is not a folder      allowlist-filtered
 ```
 
@@ -186,18 +190,19 @@ validator names every file still pointing at the old name.
 
 ## The frontmatter contract
 
-Every `SKILL.md` opens with YAML frontmatter carrying exactly two keys:
+Every `SKILL.md` opens with YAML frontmatter carrying exactly two keys, the description on one
+line (wrapped here for reading):
 
 ```yaml
 ---
 name: dya-sf-<name>
-description: <domain and version> — <what it covers, comma-separated>. Applies to <the files and
-  metadata that put an edit in scope>. Load before creating or editing anything in this scope, or
-  when the user invokes this skill by name (`dya-sf-<name>`).
+description: Salesforce <domain> (Winter '27, API v68.0) — <what it covers, comma-separated>.
+  Applies to <the files and metadata that put an edit in scope>. Load before creating or editing
+  anything in this scope.
 ---
 ```
 
-Three load-bearing invariants:
+Four load-bearing invariants:
 
 - `name` matches the containing folder name exactly.
 - The description ends with the trigger clause, preceded by an `Applies to` list of concrete files
@@ -207,6 +212,12 @@ Three load-bearing invariants:
   scopes loads every skill it touches.
 - The description enumerates the surface covered, so the router can pick between siblings without
   loading them.
+- The description stays **under 500 characters** and parses as plain YAML: no `: ` or ` #` inside
+  it. Every host lists all descriptions in a shared budget and trims them when it overflows, which
+  cuts the `Applies to` list the trigger depends on. A strict parser rejects a description holding
+  `: `; Claude Code then loads the skill with no description, so it never loads on its own.
+
+Do not add "or when invoked by name": every host invokes a skill by name without being told.
 
 The `dya-sf-` prefix stays on skill names even though the repo name no longer repeats it, because
 skill names share a global namespace inside the assistant with `sf-apex`, `salesforce-skills` and
@@ -231,7 +242,15 @@ matched it, and the string parses correctly either way.
   that there is no Apex, LWC or SOQL on that platform.
 - `SKILL.md` holds what must be true on every invocation. Anything consulted occasionally (full code
   listings, command catalogues, per-vendor detail) belongs in `references/`.
-- `SKILL.md` size ceiling: 20480 bytes; `validate-skills` warns above it. Past that, split into
+- **Write rules in the imperative and state what to do, not why.** A loaded skill stays in context
+  for the rest of the session, so every line is a recurring cost. Keep a reason only when it is a
+  platform fact needed to apply the rule ("Do X; Y throws otherwise"). Write standing instructions
+  ("after every X, do Y"), not one-time steps. Never address a specific host (Claude, Codex) or its
+  tools: any Agent Skills host reads these files.
+- Put the hard rules early. Some hosts keep only the start of a long skill after compaction (Claude
+  Code keeps the first 5,000 tokens).
+- `SKILL.md` size ceiling: 20480 bytes, about the 5,000 tokens and well under the 500 lines the
+  Agent Skills spec recommends; `validate-skills` warns above it. Past that, split into
   `references/`. **All 26 skills are under the ceiling, so a clean tree validates with zero errors
   and zero warnings.** Fix a new warning in the same commit; do not accept it as debt.
 - Platform fundamentals (governor limits, the access model, SOQL selectivity, API version
@@ -268,15 +287,18 @@ the plugin description, and `references-shared/platform-deltas.md`; then update 
 you missed.
 
 The plugin `version` field is duplicated in `.claude-plugin/plugin.json` and
-`.claude-plugin/marketplace.json` (`0.3.0` in both). `validate-skills` checks that they agree but
+`.claude-plugin/marketplace.json`. `validate-skills` checks that they agree but
 cannot tell which is right; bump them together.
 
 ## Host manifests
 
 **The skills are not Claude-specific; only the manifests are.** A skill is a folder with a `SKILL.md`
 carrying `name` and `description` in frontmatter, the Agent Skills shape that Codex, Grok and
-Mistral Vibe all read. That is why the frontmatter contract is exactly two keys: the intersection
-every host requires, and hosts ignore keys they do not know.
+Mistral Vibe all read. The Agent Skills spec allows six keys (`name`, `description`, `license`,
+`compatibility`, `metadata`, `allowed-tools`). Claude Code adds its own (`paths`, `when_to_use`,
+`disable-model-invocation`) and ignores unknown ones, but claude.ai upload, the Skills API and
+`package_skill.py` reject any key outside the six. `name` and `description` are the two every host
+requires and reads, so the contract is exactly those two.
 
 Two manifests serve the one `skills/` tree:
 
@@ -286,7 +308,8 @@ Two manifests serve the one `skills/` tree:
 ```
 
 Grok needs neither; it reads Claude Code's marketplaces, plugins, skills and instruction files with
-no configuration. Anything reading `.agents/skills/` finds the tree through a symlink.
+no configuration. A host reading `.agents/skills/` finds the tree once a consumer symlinks or copies
+`skills/` there; this repo ships no such link.
 
 The two manifests **duplicate the plugin name, version and description**, the drift this repo
 exists to prevent, so `validate-skills`
@@ -358,8 +381,8 @@ validation scripts.
 
 `commands/` holds one entry, `/dya-sf-skills`. Skills load on their own only before an edit in
 their scope, so a reader who is asking rather than editing never sees them; the command prints the
-catalogue. It reads the descriptions already in context rather than the filesystem, so it cannot
-drift from what is installed.
+catalogue. It reads the descriptions already in context, so it cannot drift from what is installed,
+and falls back to each `SKILL.md` when a host has trimmed a description from its listing.
 
 **Not implemented:** `agents/`, `hooks/` and `mcp/`. Nothing depends on them; they can be added
 whenever a real recurring need shows up in project work. Their governing principles are already
