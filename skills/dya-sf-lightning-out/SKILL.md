@@ -42,15 +42,13 @@ host application authenticates any other way.
 Use it when a **specific Salesforce LWC must appear inside an app not hosted on Salesforce** and
 rebuilding it natively is not worth it.
 
-```
-Situation                                          Right tool
--------------------------------------------------  ----------------------------------------
-Embed one/few Salesforce LWCs in an external app   Lightning Out 2.0
-Whole experience could live on Salesforce          LWR site (dya-sf-lwr-sites)
-You need data, not UI                              Salesforce API / integration (no embed)
-Deep, chatty host<->component coupling             Cleaner API contract; the iframe is a wall
-Embed in another Salesforce surface                Not Lightning Out — use a FlexiPage/site
-```
+| Situation | Right tool |
+|---|---|
+| Embed one/few Salesforce LWCs in an external app | Lightning Out 2.0 |
+| Whole experience could live on Salesforce | LWR site (`dya-sf-lwr-sites`) |
+| You need data, not UI | Salesforce API / integration (no embed) |
+| Deep, chatty host<->component coupling | Cleaner API contract; the iframe is a wall |
+| Embed in another Salesforce surface | Not Lightning Out — use a FlexiPage/site |
 
 ---
 
@@ -58,8 +56,8 @@ Embed in another Salesforce surface                Not Lightning Out — use a F
 
 1. **Lightning Out 2.0 App Manager** (Setup) — create the app. It declares which components may be
    embedded and yields the **18-digit `app-id`** and the **host script** URL for the external page.
-2. **External Client App** — the modern connected app: OAuth 2.0 for the host, the correct scopes,
-   and the host domain.
+2. **External Client App** — create the modern connected app: OAuth 2.0 for the host, the correct
+   scopes, and the host domain.
 3. **CORS allowlist** — add the external app's origin under Setup → CORS. Without it, requests fail
    with opaque cross-origin errors.
 
@@ -67,7 +65,7 @@ Embed in another Salesforce surface                Not Lightning Out — use a F
 
 ## 3. The `lightning-out-application` Element
 
-A non-visual element with three required attributes:
+Set all three required attributes on this non-visual element:
 
 ```html
 <lightning-out-application
@@ -86,13 +84,12 @@ A non-visual element with three required attributes:
 
 ## 4. Authentication — the singleaccess frontdoor flow
 
-The host page never holds a long-lived Salesforce secret:
+Never put a long-lived Salesforce secret in the host page. Broker the session instead:
 
-1. The host obtains a valid Salesforce **access token** via OAuth 2.0, through your External Client
-   App or the app's existing Salesforce auth.
-2. The host **exchanges that token for a frontdoor URL** at `/services/oauth2/singleaccess`, the UI
-   Bridge API.
-3. The host sets the resulting URL on `frontdoor-url` **at runtime**.
+1. In the host, obtain a valid Salesforce **access token** via OAuth 2.0, through your External
+   Client App or the app's existing Salesforce auth.
+2. **Exchange that token for a frontdoor URL** at `/services/oauth2/singleaccess`, the UI Bridge API.
+3. Set the resulting URL on `frontdoor-url` **at runtime**.
 4. The Lightning Out 2.0 script uses it to establish the Salesforce session for the iframe.
 
 ```javascript
@@ -111,6 +108,9 @@ The principle is fixed: **token in, short-lived frontdoor URL out, set at runtim
 
 ## 5. Lifecycle Events — Wire Them, Always
 
+Wire all four events on every embed; auth or CORS misconfiguration surfaces here, not as an
+exception.
+
 ```javascript
 const app = document.querySelector('lightning-out-application');
 app.addEventListener('lo.application.ready', () => showEmbed());
@@ -122,8 +122,6 @@ app.addEventListener('lo.component.error',   (e) => logAndFallback(e));
 - `lo.application.ready` / `lo.application.error` — session established or failed.
 - `lo.component.ready` / `lo.component.error` — a component rendered or failed.
 
-Auth or CORS misconfiguration surfaces here, not as an exception.
-
 ---
 
 ## 6. Host ↔ Component Communication
@@ -134,7 +132,7 @@ Auth or CORS misconfiguration surfaces here, not as an exception.
   outputs **out** by listening for the component's events on that element.
 - Keep the contract **small and serialisable** — primitives and plain objects, never DOM nodes or
   live references across the boundary.
-- Treat each side as untrusted by the other; validate messages both ways.
+- Treat each side as untrusted by the other; validate every message in both directions.
 
 ---
 
@@ -179,11 +177,11 @@ types will not resolve, and the session may be a limited identity. `dya-sf-lwr` 
 
 ## Summary — The Five Commandments
 
-1. **Lightning Out 2.0, not 1.0** — LWR-native, GA; closed-shadow-DOM iframe isolation.
+1. **Use Lightning Out 2.0, not 1.0** — LWR-native, GA; closed-shadow-DOM iframe isolation.
 2. **Register the app, then embed** — `app-id` + host script from the App Manager; three
    attributes on `lightning-out-application`.
-3. **Brokered auth** — token -> `/services/oauth2/singleaccess` -> runtime `frontdoor-url`; no
+3. **Broker the auth** — token -> `/services/oauth2/singleaccess` -> runtime `frontdoor-url`; no
    secrets in host JS; CORS-allowlist the host.
 4. **Wire the lifecycle events** — `lo.application.*` / `lo.component.*`; never assume success.
-5. **It is LWR underneath** — every `dya-sf-lwr` constraint applies; small serialisable
+5. **Build for LWR underneath** — apply every `dya-sf-lwr` constraint; keep a small serialisable
    contract across the iframe, validated both ways.

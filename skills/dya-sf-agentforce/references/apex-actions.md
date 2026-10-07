@@ -77,12 +77,12 @@ public with sharing class CreateCaseAction {
 
 ## Rules
 
-- **Bulk in, bulk out.** `List<Request>` → `List<Result>`; actions do not bulkify automatically. Assume 200.
-- **Wrapper classes** for input and output, each field an `@InvocableVariable` with a `label` and `description`. Mark truly required inputs `required=true`.
-- **Descriptions feed Atlas.** It matches intent and fills parameters from the method `label`/`description` and each variable `description`.
-- **Security:** `with sharing`, `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML.
-- **No raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; keep the real cause server-side.
-- **Idempotency:** where the agent might retry, make the action safe to call twice (e.g. upsert by external id).
+- **Bulk in, bulk out.** Take `List<Request>` and return `List<Result>`; actions do not bulkify automatically. Assume 200.
+- **Use wrapper classes** for input and output, each field an `@InvocableVariable` with a `label` and `description`. Mark truly required inputs `required=true`.
+- **Write descriptions for Atlas.** It matches intent and fills parameters from the method `label`/`description` and each variable `description`.
+- **Secure every action:** `with sharing`, `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML.
+- **Never throw raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; keep the real cause server-side.
+- **Make the action idempotent** where the agent might retry, so it is safe to call twice (e.g. upsert by external id).
 
 ## Anti-Patterns
 

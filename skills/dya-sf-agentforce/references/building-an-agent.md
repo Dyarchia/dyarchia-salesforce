@@ -4,7 +4,8 @@ The order in which you build an agent's parts.
 
 ## 0. Prerequisites
 
-Nothing works until Agentforce is on, and the symptom is a missing button rather than an error.
+Complete these steps before building anything; until Agentforce is on, the symptom is a missing
+button rather than an error.
 
 1. **Pick an environment.** A **sandbox** copies production's metadata, so it tests against real
    configuration; Developer and Developer Pro refresh often. A **scratch org** is empty and fast to
@@ -15,15 +16,16 @@ Nothing works until Agentforce is on, and the symptom is a missing button rather
 3. **Enable Einstein.** Setup › Einstein Setup › *Turn on Einstein*.
 4. **Enable Agentforce.** Setup › Agentforce Agents. After enabling it the first time, refresh the
    page or the **New Agent** button will not appear.
-5. **Create a Salesforce DX project** and authorise the org. Agents are metadata, so they live in a
-   DX project under version control.
+5. **Create a Salesforce DX project** and authorise the org. Keep agents in a DX project under
+   version control; they are metadata.
 
 ## 1. Two workflows, and which to choose
 
-**Author in DX** — script first, org second. Best when the agent is a code artefact from the start.
+**Author in DX** — script first, org second. Choose it when the agent is a code artefact from the
+start.
 
-**Build in Builder, then retrieve** — click first, code second. Best when a non-developer shapes the
-agent's behaviour and a developer then takes it into version control.
+**Build in Builder, then retrieve** — click first, code second. Choose it when a non-developer shapes
+the agent's behaviour and a developer then takes it into version control.
 
 Both end with an **authoring bundle** in the DX project that you code, preview and publish. Use the
 **new** Agentforce Builder, not the legacy one — only the new builder produces an Agent Script file.
@@ -36,7 +38,8 @@ Both end with an **authoring bundle** in the DX project that you code, preview a
 sf agent generate agent-spec --type customer --spec specs/agentSpec.yaml
 ```
 
-A small YAML capturing the agent's purpose. Without it the generated bundle is boilerplate.
+Write this small YAML capturing the agent's purpose; without it the generated bundle is
+boilerplate.
 
 ### Generate the authoring bundle
 
@@ -47,7 +50,7 @@ sf agent generate authoring-bundle --spec specs/agentSpec.yaml
 An **`AiAuthoringBundle`** is the metadata component you author against. Inside it, a **`.agent`**
 file is the Agent Script — the agent's blueprint — beside a `<ApiName>.bundle-meta.xml` whose name
 must match the directory. Bundles land in `aiAuthoringBundles/` in your package directory; the
-capital **B** matters: a Linux CI runner will not find `aiAuthoringbundles/`.
+capital **B**; a Linux CI runner will not find `aiAuthoringbundles/`.
 
 **Deploying stages the bundle into the authoring domain and creates no runtime entity**;
 `sf agent publish authoring-bundle` compiles the Agent Script and creates the `Bot`, `BotVersion`,
@@ -56,13 +59,15 @@ runtime components deploy and retrieve as `AiAgentDefinition` and `AiAgentDefini
 agent is source-controllable like other metadata. Below 68.0 you move the bundle and republish
 instead.
 
-`sf agent create --spec …` creates an agent without Agent Script. Salesforce recommends against it:
-script-based agents are more flexible and easier to modify and maintain.
+Do not use `sf agent create --spec …`: it creates an agent without Agent Script, and Salesforce
+recommends against it because script-based agents are more flexible and easier to modify and
+maintain.
 
 ### Code the script
 
 Edit the `.agent` file in VS Code. The Agentforce DX extension gives syntax highlighting, linting and
-validation, and Agentforce Vibes can write script for you. Validate as you go so it compiles.
+validation, and Agentforce Vibes can write script for you. Validate after every edit so the script
+compiles.
 
 > Syntax: `references/agent-script.md`.
 
@@ -129,8 +134,8 @@ sf agent activate --target-org my-org
 sf agent generate agent-user
 ```
 
-An agent runs as a user, and **that user's permissions decide what the agent can reach and surface**.
-This is the security boundary; scope it before activation. See `dya-sf-permissions`.
+Scope the agent user before activation; it is the security boundary. An agent runs as a user, and
+**that user's permissions decide what the agent can reach and surface**. See `dya-sf-permissions`.
 
 ## Anti-Patterns
 

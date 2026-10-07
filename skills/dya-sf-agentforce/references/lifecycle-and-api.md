@@ -10,7 +10,7 @@ In Apex, call the agent's **Invocable Action** (its API name is on the agent's d
 
 ## Agent API — Headless Conversations (REST)
 
-Every endpoint below is against `https://api.salesforce.com/einstein/ai-agent/v1` — a
+Call every endpoint below against `https://api.salesforce.com/einstein/ai-agent/v1` — a
 Salesforce-wide host, **not** your My Domain URL, which appears separately inside the session
 payload.
 
@@ -50,7 +50,7 @@ curl -X POST https://api.salesforce.com/einstein/ai-agent/v1/agents/{AGENT_ID}/s
 ```
 
 - **`bypassUser`** — `true` runs as the **agent-assigned user**; `false` runs as the token's user.
-  This identity governs what the agent can see; choose it deliberately. See `dya-sf-permissions`.
+  Choose it deliberately; this identity governs what the agent can see. See `dya-sf-permissions`.
 - **`externalSessionKey`** — a UUID you generate to trace this conversation in the agent's event
   logs. Log it on your side too, or you lose the correlation.
 
@@ -72,7 +72,7 @@ curl 'https://api.salesforce.com/einstein/ai-agent/v1/sessions/{SESSION_ID}/mess
   }'
 ```
 
-**`sequenceId` increases with every message in the session** — you own the counter. Reusing or
+**Increment `sequenceId` with every message in the session**; you own the counter. Reusing or
 resetting it looks like the agent losing context.
 
 ### 4. The rest of the surface
@@ -91,8 +91,8 @@ where partial output has no value.
 A response `message` carries `type` (for example `Inform`), the `message` text, `isContentSafe`,
 `result`, and `citedReferences` — the citations let you show *why* the agent said something.
 
-Treat it like any server integration: no secrets in the client, least-privilege token, and let the
-Trust Layer do masking and grounding. Salesforce publishes a Postman collection for the API.
+Treat it like any server integration: keep secrets out of the client, use a least-privilege token,
+and let the Trust Layer do masking and grounding. Salesforce publishes a Postman collection for the API.
 
 ## Agentforce DX / CLI — Build and Preview
 
@@ -145,7 +145,7 @@ testCases:
 
 ## Agent Health Monitoring Alerts
 
-Agent health alerting runs through the Tableau data-alerts resource, not an agent-shaped endpoint.
+Manage agent health alerts through the Tableau data-alerts resource, not an agent-shaped endpoint.
 **There is no `sf agent alert` subcommand.**
 
 ```bash
@@ -155,12 +155,13 @@ sf api request rest "/services/data/vXX.X/tableau/dataAlerts" --target-org <alia
 Alerts carry `dataAlertType: "agenthealthmonitoring"`. The UI equivalent lives at
 `/lightning/n/standard-AgentforceStudio?c__nav=alerts`.
 
-- **`ownerId` is required on the list call.** There is no unfiltered list.
-- **A GET for a single alert returns 405.** List and filter client-side. Delete returns 204.
-- **Thresholds are raw 0–1 ratios, not display percentages.** 5% is `"0.05"`; `"1"` means 100%, not
-  1%. Getting it wrong fires the monitor on everything.
-- **The POST field names and casing differ from the GET response.** POST uses `utterance` where GET
-  returns `alertName`, and PascalCase `type` discriminators. Posting a GET body straight back fails.
+- **Pass `ownerId` on the list call**; it is required, and there is no unfiltered list.
+- **List and filter client-side**; a GET for a single alert returns 405. Delete returns 204.
+- **Express thresholds as raw 0–1 ratios, not display percentages.** 5% is `"0.05"`; `"1"` means
+  100%, not 1%. Getting it wrong fires the monitor on everything.
+- **Never post a GET body straight back**; it fails, because the POST field names and casing differ
+  from the GET response. POST uses `utterance` where GET returns `alertName`, and PascalCase `type`
+  discriminators.
 
 Notification counts from `/connect/notifications/status` are **org-global**, not per alert.
 

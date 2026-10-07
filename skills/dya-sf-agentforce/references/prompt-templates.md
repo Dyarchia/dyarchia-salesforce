@@ -3,9 +3,9 @@
 ## What they are, and where the line falls
 
 A **prompt template** is a reusable, parameterised prompt built in **Prompt Builder**. It merges CRM
-data — record fields, related lists, Flow output, Apex — into a prompt and calls the LLM. It is the
-right action type whenever the job is *produce text grounded in records*: a summary, a draft email, a
-field value, a classification.
+data — record fields, related lists, Flow output, Apex — into a prompt and calls the LLM. Use it
+whenever the job is *produce text grounded in records*: a summary, a draft email, a field value, a
+classification.
 
 Authoring a template is a Prompt Builder UI task, documented in Salesforce Help.
 
@@ -31,9 +31,9 @@ without writing an integration.
 
 ## Batch processing — many records, no user waiting
 
-For output over a large set of records — a nightly summarisation of a case backlog — do not loop
-synchronous calls. Two standard objects drive an asynchronous batch: **`AiJobRun`** (the job)
-and **`AiJobRunItem`** (one per input record).
+For output over a large set of records — a nightly summarisation of a case backlog — run an
+asynchronous batch; do not loop synchronous calls. Two standard objects drive it: **`AiJobRun`**
+(the job) and **`AiJobRunItem`** (one per input record).
 
 ### Step 1 — create the job
 
@@ -46,7 +46,8 @@ AiJobRun jobRun = new AiJobRun(
 insert as user jobRun;
 ```
 
-`Status` is required on insert; start at `New` so items can be added before anything runs.
+Set `Status` on insert, where it is required; start at `New` so items can be added before anything
+runs.
 
 ### Step 2 — one item per record
 
@@ -67,8 +68,8 @@ for (Case c : cases) {
 insert as user items;
 ```
 
-`Input` is a JSON string whose keys use the `Input:` prefix; the value is a record pointer with an
-`id`. Every item goes in at `Status = 'Ready'`.
+Insert every item at `Status = 'Ready'`. `Input` is a JSON string whose keys use the `Input:`
+prefix; the value is a record pointer with an `id`.
 
 For a run approaching the item cap, wrap this step in a `Database.Batchable` so each execute scope
 gets fresh governor limits — see `dya-sf-apex`.
@@ -80,10 +81,10 @@ jobRun.Status = 'ReadyToStart';
 update as user jobRun;
 ```
 
-**Nothing changes after this point.** Once the job reaches `InProgress`, `AiJobRunId` and `Input`
-become immutable, non-null schema fields are frozen, and neither the job nor its items can be
-deleted. You cannot set the `InProgress`, `Completed` or `Failed` statuses at all. Build the whole
-batch before flipping the switch.
+**Build the whole batch before flipping the switch; nothing changes after this point.** Once the
+job reaches `InProgress`, `AiJobRunId` and `Input` become immutable, non-null schema fields are
+frozen, and neither the job nor its items can be deleted. You cannot set the `InProgress`,
+`Completed` or `Failed` statuses at all.
 
 ### Limits
 
@@ -95,15 +96,15 @@ batch before flipping the switch.
 Create as many jobs as you need; extras sit in `Queued` until capacity frees. Exceeding the
 recommended daily volume does not fail; jobs take longer than 24 hours, which looks like a hang. The model provider sets native-batch completion time, typically 24 hours.
 
-Jobs at `ReadyToStart` process in `CreatedDate` order, though several flipped within a few seconds of
-each other may not strictly hold it — do not depend on sequencing between jobs.
+Do not depend on sequencing between jobs. Jobs at `ReadyToStart` process in `CreatedDate` order,
+though several flipped within a few seconds of each other may not strictly hold it.
 
 `JobType` differs by initiator: `PromptTemplate` for an Apex-created run, `GeneratePromptAsyncIA` when
 Flow's Prompt Template Batch Generation action starts it.
 
 ## Moving templates between orgs
 
-Metadata API types: **`GenAiPromptTemplate`** and **`GenAiPromptTemplateActv`**. Deploy them like any
+Deploy the Metadata API types **`GenAiPromptTemplate`** and **`GenAiPromptTemplateActv`** like any
 other metadata, from a DX project under version control.
 
 ## Anti-Patterns

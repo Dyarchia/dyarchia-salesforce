@@ -66,9 +66,9 @@ The `messages` block is **optional**. Define `welcome` or `error` when a target 
 custom copy, and validate them against that target; otherwise omit the block rather than padding it
 with placeholder text.
 
-A `system` block is **declarative**: `instructions` is prompt text, and `->` logic, `run`, `set`,
-`if` and `transition` are all illegal inside it. Logic belongs in `before_reasoning` or the
-subagent body.
+Keep a `system` block **declarative**; put logic in `before_reasoning` or the subagent body.
+`instructions` is prompt text, and `->` logic, `run`, `set`, `if` and `transition` are all illegal
+inside it.
 
 ```agentscript
 system:
@@ -92,7 +92,7 @@ system:
 | `enable_enhanced_event_logs` | `True` / `False`, default `False`. Conversation logging for debugging |
 | `runtime`, `file_upload` | Sub-blocks for streaming, citations, groundedness checks, and uploaded-file handling |
 
-`default_agent_user` is **deprecated here** — it belongs in the `access` block.
+Put `default_agent_user` in the `access` block; it is **deprecated here**.
 
 `agent_type` is not cosmetic; each value forbids or requires things elsewhere in the file:
 
@@ -133,9 +133,9 @@ Blocks go in a fixed order: `label` (optional) → `description` (required) → 
 `before_reasoning` runs once per *execution*, which a self-transition restarts within the same turn.
 See `references/agent-control-flow-pitfalls.md`.
 
-Branching uses **`else if`**; `elif` is a syntax error. A user-written **nested `if` is
-unsupported** and lint rejects it as `unsupported-nested-if` — flatten with `else if`, with
-`and` / `or` predicates, or with sequential top-level `if` statements.
+Branch with **`else if`**; `elif` is a syntax error. Flatten every user-written **nested `if`**
+with `else if`, with `and` / `or` predicates, or with sequential top-level `if` statements; it is
+unsupported and lint rejects it as `unsupported-nested-if`.
 
 ```agentscript
 subagent Order_Management:
@@ -167,8 +167,8 @@ subagent Order_Management:
             target: "flow://SvcCopilotTmpl__GetOrdersByContact"
 ```
 
-The subagent name cannot contain spaces — use `snake_case`, and make it describe the scope, because
-routing reads the name and `description`.
+Name a subagent in `snake_case`, describing the scope; the name cannot contain spaces, and routing
+reads the name and `description`.
 
 **`target`** uses `{TARGET_TYPE}://{DEVELOPER_NAME}` and accepts three types:
 
@@ -176,8 +176,8 @@ routing reads the name and `description`.
 - `flow://` — an autolaunched Flow
 - `prompt://` — a Prompt Template
 
-An output parameter with `filter_from_agent: True` is hidden from the agent — for values the script
-needs but the model should never see or repeat.
+Set `filter_from_agent: True` on an output parameter the script needs but the model should never
+see or repeat; it hides the parameter from the agent.
 
 ### `start_agent` — the router
 

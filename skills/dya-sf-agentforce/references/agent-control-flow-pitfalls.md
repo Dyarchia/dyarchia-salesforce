@@ -7,6 +7,8 @@ Every entry fails *quietly*, with no error at authoring time.
 
 ## A bare `@variables.X` inside a `|` block passes its name, not its value
 
+Use `{!@variables.x}`, the merge syntax for a value, inside every `|` block.
+
 ```agentscript
 reasoning:|
     Summarise this case for the customer: @variables.case_summary        ❌
@@ -16,10 +18,11 @@ reasoning:|
 The model receives the literal characters `@variables.case_summary` and usually invents a plausible
 summary around them, so the output looks like a quality problem rather than a wiring one.
 
-`{!@variables.x}` is the merge syntax for a value. The action equivalent, `{!@actions.X}`, names an
-action to the model inside prompt text.
+The action equivalent, `{!@actions.X}`, names an action to the model inside prompt text.
 
 ## Indentation inside a `|` block is prose, not scope
+
+Keep deterministic statements outside `|` blocks.
 
 ```agentscript
 if @variables.escalate == True
@@ -29,14 +32,15 @@ if @variables.escalate == True
 ```
 
 Everything after `|` is text. Indenting a statement under it does not put it inside the enclosing
-`if`, so the action runs unconditionally. Deterministic statements live outside `|` blocks.
+`if`, so the action runs unconditionally.
 
 Related: a line **without** a `|` continues the current prompt fragment. Use **one `|` per contiguous
 block**; repeated adjacent `|` markers do not create steps, stages, or any notion of priority.
 
 ## `available when` gates action definitions too
 
-Beyond transitions, it also gates whether an action exists for the model to choose:
+Gate every action that has a side effect. Beyond transitions, `available when` also gates whether
+an action exists for the model to choose:
 
 ```agentscript
 actions:
@@ -45,11 +49,11 @@ actions:
 ```
 
 Without the guard the model can call the action and was merely not told to; with it, the action is
-not on the menu. Gate every action that has a side effect.
+not on the menu.
 
 ## `before_reasoning` runs once per subagent *execution*, not per turn
 
-A transition — **including a self-transition** — starts another execution inside the same user turn,
+Guard every assignment in `before_reasoning` so it initialises once. A transition — **including a self-transition** — starts another execution inside the same user turn,
 so an unconditional assignment in `before_reasoning` re-runs and silently erases state gathered
 earlier in that turn.
 
@@ -62,17 +66,15 @@ before_reasoning:
 
 ## Deterministic statements do not pause for the model
 
-A `|` block between a `run` and a following `set` does **not** create a turn boundary. The whole
+Use a **guarded self-transition** as the phase boundary; it is the supported one. A `|` block between a `run` and a following `set` does **not** create a turn boundary. The whole
 sequence executes before the model sees anything, so code expecting the user to have answered in
 between runs against stale state.
 
-The supported phase boundary is a **guarded self-transition**.
-
 ## A `system` block is declarative
 
+Put logic in `before_reasoning` or the subagent's own body, never in a `system` block.
 `system.instructions` is prompt text, not a procedure. `instructions: ->`, `run`, `set`, `if` and
-`transition` are all illegal inside a `system` block. Logic that wants them belongs in
-`before_reasoning` or the subagent's own body.
+`transition` are all illegal inside a `system` block.
 
 ## Model output is not evidence a side effect happened
 
@@ -94,9 +96,10 @@ and a confidently wrong claim is the normal failure mode. Check the target syste
 
 ## `elif` does not exist
 
-`else if` is the supported spelling. `elif` is a syntax error.
+Write `else if`, the supported spelling. `elif` is a syntax error.
 
 ## Nested `if` is unsupported
 
-Agentforce lint rejects a user-written nested `if` with **`unsupported-nested-if`**. Flatten it with
-`else if`, with compound predicates (`and` / `or`), or with sequential top-level `if` statements.
+Flatten every nested `if` with `else if`, with compound predicates (`and` / `or`), or with
+sequential top-level `if` statements. Agentforce lint rejects a user-written nested `if` with
+**`unsupported-nested-if`**.

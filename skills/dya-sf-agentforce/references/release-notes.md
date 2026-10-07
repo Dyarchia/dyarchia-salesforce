@@ -3,8 +3,8 @@
 The facts that **gate behaviour** are in `SKILL.md`'s Platform Context; this file covers the rest of
 the release.
 
-Status decides whether an agent may propose the feature. **Beta and Developer Preview are not
-available in production orgs.**
+Propose a feature only where its status allows it. **Beta and Developer Preview are not available
+in production orgs.**
 
 | Change | Status | What it gives you |
 |---|---|---|
@@ -16,8 +16,6 @@ available in production orgs.**
 | Execute Data 360 SQL from Apex | GA | An action can query Data 360 alongside org data in one class. See `dya-sf-data360` |
 
 ## Standing platform facts
-
-These describe the product's shape, not rules.
 
 - **Atlas Reasoning Engine 3.0** powers reasoning and multi-agent routing.
 - **Multi-Agent Orchestration is GA.** See §11.
