@@ -4,7 +4,7 @@ Load from `dya-sf-cli`. Catalog for `project` (deploy/retrieve/generate), `data`
 
 ## Project Scaffolding
 
-Only the project scaffolder is deprecated; `sf project generate manifest` is current.
+`sf project generate` is deprecated only as a project scaffolder; `sf project generate manifest` is current.
 
 ```bash
 sf template generate project --name <proj> [--default-package-dir force-app] [--manifest]

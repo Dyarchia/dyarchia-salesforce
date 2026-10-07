@@ -123,7 +123,7 @@ Graph-shaped queries and mutations over UI API, so it respects FLS and layout ru
 UI-API objects.
 
 - **Queries and mutations GA** — mutations create, update and delete on UI-API-supported objects.
-- A mutation references an earlier operation's field with `@{ref...}`.
+- A mutation references an earlier operation's field in the same request with `@{ref...}`.
 - Use it when the client wants exactly the fields it needs — mobile, bandwidth-sensitive — or reads
   several objects at once.
 - Child-relationship creation in a single mutation is not supported.
