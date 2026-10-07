@@ -1,15 +1,13 @@
 # Building an Agent, End to End — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-agentforce` when actually building an agent rather than reasoning about one. The
-rest of the skill explains the parts; this is the order you touch them in.
+The order in which you build an agent's parts.
 
-## 0. Prerequisites — the step people skip
+## 0. Prerequisites
 
-None of this works until Agentforce is switched on, and the failure looks like "the button isn't
-there" rather than an error.
+Nothing works until Agentforce is on, and the symptom is a missing button rather than an error.
 
-1. **Pick an environment.** A **sandbox** copies production's metadata, so it is the realistic place
-   to test against real configuration; Developer and Developer Pro refresh often. A **scratch org** is
+1. **Pick an environment.** A **sandbox** copies production's metadata, so it tests against real
+   configuration; Developer and Developer Pro refresh often. A **scratch org** is
    empty and fast to create, suiting source-driven work on one feature. A **Developer Edition** org is
    the free permanent option for learning.
 2. **Turn on Data 360 first, if the agent will be grounded in it.** Setup › Data Cloud Setup Home.
@@ -38,8 +36,7 @@ Both end with an **authoring bundle** in the DX project that you code, preview a
 sf agent generate agent-spec --type customer --spec specs/agentSpec.yaml
 ```
 
-A small YAML capturing what the agent is for. Without it the generated bundle is boilerplate rather
-than shaped around your agent — ten minutes here save an hour later.
+A small YAML capturing the agent's purpose. Without it the generated bundle is boilerplate.
 
 ### Generate the authoring bundle
 
@@ -50,18 +47,17 @@ sf agent generate authoring-bundle --spec specs/agentSpec.yaml
 An **`AiAuthoringBundle`** is the metadata component you author against. Inside it, a **`.agent`**
 file is the Agent Script — the agent's blueprint — beside a `<ApiName>.bundle-meta.xml` whose name
 must match the directory. Bundles land in `aiAuthoringBundles/` in your package directory; the
-capital **B** matters, because a Linux CI runner will not find `aiAuthoringbundles/`.
+capital **B** matters: a Linux CI runner will not find `aiAuthoringbundles/`.
 
-The authoring bundle is not what a running agent is made of. **Deploying stages the bundle into the
+**Deploying stages the bundle into the
 authoring domain and creates no runtime entity**; `sf agent publish authoring-bundle` compiles the
 Agent Script and creates the `Bot`, `BotVersion`, `GenAiPlannerBundle` and `GenAiPlugin` records
 that serve conversations. At **API 68.0** those runtime components deploy and retrieve as
-`AiAgentDefinition` and `AiAgentDefinitionVersion`, making an agent source-controllable like any
-other metadata — and why both orgs must be on 68.0 for a deploy to carry anything. Below 68.0 you
+`AiAgentDefinition` and `AiAgentDefinitionVersion`, so an agent is source-controllable like other
+metadata. Below 68.0 you
 move the bundle and republish instead.
 
-A path exists that creates an agent directly without Agent Script (`sf agent create --spec …`).
-Salesforce explicitly recommends against it: script-based agents are more flexible and easier to
+`sf agent create --spec …` creates an agent without Agent Script. Salesforce recommends against it: script-based agents are more flexible and easier to
 modify and maintain.
 
 ### Code the script
@@ -84,7 +80,7 @@ sf agent preview --api-name My_Agent --output-dir ./transcripts
 ```
 
 **Unimplemented actions return mocked responses**, so you can test routing and conversation shape
-before writing any Apex — the point of previewing early. The Apex Replay Debugger works during a
+before writing any Apex. The Apex Replay Debugger works during a
 preview, and the transcripts show how the agent classified and routed.
 
 ### Publish
@@ -136,7 +132,7 @@ sf agent generate agent-user
 ```
 
 An agent runs as a user, and **that user's permissions decide what the agent can reach and surface**.
-This is the security boundary, not an administrative afterthought — scope it before activation. See
+This is the security boundary; scope it before activation. See
 `dya-sf-permissions`.
 
 ## Anti-Patterns

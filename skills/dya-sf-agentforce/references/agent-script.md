@@ -1,19 +1,13 @@
 # Agent Script — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-agentforce` when writing or reading an agent's script. Agent Script is the language
-behind Agentforce Builder; this is its actual syntax.
+This file is the syntax of Agent Script, the language behind Agentforce Builder.
 
-## The one idea that matters
-
-Agent Script mixes two kinds of instruction in one workflow, and the symbol tells you which:
+## Logic versus prompt instructions
 
 - **`->` logic instructions** run **deterministically**, every time: business rules, running actions,
   setting variables, branching.
 - **`|` prompt instructions** are natural language **sent to the LLM**, which interprets them and
   decides how to respond.
-
-The rest of the language serves that split. Anything that must be reliable — eligibility, pricing,
-compliance, escalation routing — goes after `->`. Anything conversational goes after `|`.
 
 ```agentscript
 reasoning:
@@ -23,8 +17,6 @@ reasoning:
         else:
             | ask the user if they want to upgrade to Premium service
 ```
-
-The *decision* is deterministic; the *wording* is the LLM's.
 
 ## Language shape
 
@@ -50,13 +42,11 @@ The `@` symbol reaches every resource:
 | `@outputs.<name>` | An action's output |
 | `@utils.<name>` | A built-in utility |
 
-Inside **prompt text** a variable must be wrapped in brackets — a constant trip-up:
+Bare `@variables.x` works in logic instructions; inside **prompt text** it must be `{!@variables.x}`:
 
 ```agentscript
 | Ask the user this question: {!@variables.my_question}
 ```
-
-Bare `@variables.x` works in logic instructions; inside a `|` prompt it must be `{!@variables.x}`.
 
 ## Running an action
 
@@ -123,7 +113,7 @@ access:
     default_agent_user: "service@example.com"
 ```
 
-Required for Agentforce Service agents. **This is the security boundary**: the agent runs in that
+**This is the security boundary**: the agent runs in that
 user's context, and their permissions decide what it can reach. See `dya-sf-permissions`.
 
 ### `variables` — state that does not depend on LLM memory
@@ -135,12 +125,7 @@ variables:
         description: "Indicates whether the user is a premium user."
 ```
 
-Use variables rather than hoping the model remembers across turns.
-
 ### `subagent` — a bounded job, with its own reasoning and actions
-
-**Formerly called a Topic.** Renamed in April 2026; functionality unchanged. Older documentation and
-some UI still say "topic".
 
 Blocks go in a fixed order: `label` (optional) → `description` (required) → `system` (optional) →
 **`before_reasoning`** (optional) → `reasoning` (required) → **`after_reasoning`** (optional) →
@@ -215,13 +200,12 @@ start_agent agent_router:
                 available when @variables.verified == True
 ```
 
-**`available when` is the guardrail to internalise.** It gates a route on a deterministic condition,
-so the LLM cannot route to order management before identity is verified, however persuasively the
-customer asks. That is the difference between a rule and a hope.
+**`available when`** gates a route on a deterministic condition, so the LLM cannot route to order
+management before identity is verified, however persuasively the customer asks.
 
 ## Expressions and operators
 
-Familiar flow control: `if` / `else`, arithmetic (`+`, `-`), comparison (`==`, `!=`, `>`, `<`), and
+Flow control: `if` / `else`, arithmetic (`+`, `-`), comparison (`==`, `!=`, `>`, `<`), and
 emptiness with `is None` / `is not None`.
 
 ```agentscript

@@ -1,6 +1,6 @@
 # Agentforce Apex Actions — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §3–§4. Load when building or reviewing an agent action. Actions are how an agent *does* things; Apex actions are the deterministic backbone for logic the LLM must not improvise. The deep rules in `dya-sf-apex` apply on top.
+Full implementations for SKILL.md §3–§4. The deep rules in `dya-sf-apex` apply on top.
 
 ## Action Type Comparison
 
@@ -12,8 +12,6 @@ Full implementations referenced from SKILL.md §3–§4. Load when building or r
 | **Apex `@InvocableMethod`** | Apex class | Deterministic logic, callouts, cross-object work | Code; the focus of this file |
 | **Apex REST agent action** | Apex REST + OpenAPI | Reusing an existing REST endpoint | Generates an OpenAPI doc into the API catalog |
 | **AI Agent action** | Apex/Flow | Invoking another active agent | Enables limited agent-to-agent |
-
-Choose the least-code option that fits. Keep each action narrow — Atlas composes small, well-described actions better than one monolith.
 
 ## Canonical Apex Action
 
@@ -79,12 +77,11 @@ public with sharing class CreateCaseAction {
 
 ## Rules
 
-- **Bulk in, bulk out.** `List<Request>` → `List<Result>`. Actions do not bulkify automatically; each invocation is its own transaction, and Flows often reuse the same class. Assume 200.
+- **Bulk in, bulk out.** `List<Request>` → `List<Result>`; actions do not bulkify automatically. Assume 200.
 - **Wrapper classes** for input and output, each field an `@InvocableVariable` with a `label` and `description`. Mark truly required inputs `required=true`.
-- **Descriptions feed Atlas.** The engine matches intent and fills parameters from the method `label`/`description` and each variable `description`. Keep them synced with the Agent Builder action config.
-- **Security:** `with sharing`, `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML. `WITH SECURITY_ENFORCED` does not compile at API 67.
-- **No raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; keep the real cause server-side. A thrown exception leaves the agent nothing useful to say.
-- **Determinism:** put the business rule in code, so the LLM does not reason about it.
+- **Descriptions feed Atlas.** It matches intent and fills parameters from the method `label`/`description` and each variable `description`.
+- **Security:** `with sharing`, `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML.
+- **No raw exceptions to the agent.** Return a structured `Result` with a `success` flag and a clear `message`; keep the real cause server-side.
 - **Idempotency:** where the agent might retry, make the action safe to call twice (e.g. upsert by external id).
 
 ## Anti-Patterns

@@ -1,8 +1,7 @@
 # Agent Metadata and the Deploy/Publish Lifecycle
 
-What an agent is on disk, what a deploy actually moves, and the CLI surface around it. The authoring
-walkthrough is in `references/building-an-agent.md`; this file is the mechanics underneath, mostly
-where the obvious assumption is wrong and fails silently.
+What an agent is on disk, what a deploy moves, and the CLI surface around it. The authoring
+walkthrough is in `references/building-an-agent.md`.
 
 ## The bundle is a pair of files
 
@@ -12,8 +11,6 @@ force-app/main/default/aiAuthoringBundles/
         Travel_Advisor.agent              ← the Agent Script
         Travel_Advisor.bundle-meta.xml    ← required sibling
 ```
-
-Three naming constraints, all exact:
 
 - The directory name, the `.agent` filename and the `.bundle-meta.xml` filename **all match**.
 - `developer_name` inside the script matches the directory name. A mismatch causes deploy failures
@@ -26,8 +23,6 @@ on Windows or macOS, then fails on a Linux CI runner.
 
 ## Deploy is not publish
 
-This distinction produces "I deployed the agent and nothing happened".
-
 ```text
 sf project deploy start        stages the AiAuthoringBundle into the authoring domain.
                                Creates NO runtime entity. Nothing serves a conversation.
@@ -37,21 +32,17 @@ sf agent publish               compiles the Agent Script to Agent DSL and create
 ```
 
 A deploy alone leaves an agent that exists in source and cannot be talked to. At **API 68.0** the
-runtime side deploys and retrieves as `AiAgentDefinition` and `AiAgentDefinitionVersion`, making an
-agent source-controllable like any other metadata — and why **both orgs must be on 68.0** or the
-deploy silently carries nothing across.
+runtime side deploys and retrieves as `AiAgentDefinition` and `AiAgentDefinitionVersion`.
 
 ## Naked versus version-suffixed bundles
-
-Two shapes exist in an org, behaving differently:
 
 | Bundle | Meaning | Writable |
 |---|---|---|
 | `Local_Info_Agent` | Always points at the highest DRAFT | **Yes — the only writable surface** |
 | `Local_Info_Agent_1` | A published snapshot, locked by a `<target>` element in its `bundle-meta.xml` | **No** |
 
-**Deploying an unmodified version-suffixed bundle succeeds as a no-op.** The trap: the command
-reports success, the org is unchanged, and nothing shows which of the two you edited. Always author
+**Deploying an unmodified version-suffixed bundle succeeds as a no-op.** The command reports
+success, the org is unchanged, and nothing shows which of the two you edited. Always author
 against the naked name.
 
 ## Retrieval leaves the bundle behind
@@ -61,9 +52,8 @@ sf project retrieve start --metadata Agent:Local_Info_Agent --target-org <alias>
 sf project retrieve start --metadata AiAuthoringBundle:Local_Info_Agent --target-org <a>  # ✅
 ```
 
-`Agent:X` does **not** include the `AiAuthoringBundle`. Ask for it explicitly, or you retrieve the
-runtime metadata and none of the source you edit. That is why the command in
-`references/building-an-agent.md` passes both types — trimming it to one is a silent loss.
+`Agent:X` does **not** include the `AiAuthoringBundle`. Ask for it, or you retrieve the runtime
+metadata and none of the source you edit.
 
 ## Validate locally, without an org
 
@@ -91,8 +81,6 @@ sf agent preview … --use-live-actions | --simulate-actions
 sf agent test create --spec <path> | run | list | results --job-id <id> | resume --job-id <id>
 ```
 
-Two sub-topics beyond the core lifecycle:
-
 ```bash
 sf agent adl create | get | list | update | delete | status    # Agentforce Data Libraries
 sf agent adl upload --source-type sfdrive --library-id <id>
@@ -108,5 +96,5 @@ the publish workflow above.
 
 Floor: `sf` **2.139.6 or newer**.
 
-**`sf agent generate test-spec` is an interactive REPL.** It prompts per case and stalls under
-automation with no output. Write the spec YAML directly or copy one from an existing agent.
+**`sf agent generate test-spec` is an interactive REPL.** It stalls under automation with no
+output. Write the spec YAML directly or copy one from an existing agent.

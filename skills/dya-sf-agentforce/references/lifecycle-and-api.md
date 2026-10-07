@@ -1,22 +1,21 @@
 # Agentforce Lifecycle & APIs — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations referenced from SKILL.md §5, §7, §8. Load when invoking an agent programmatically, testing it, or working with Agent Script.
+Full implementations for SKILL.md §5, §7, §8.
 
 ## Invoking an Agent From Apex / Flow (AI Agent Action)
 
-Any active agent can be triggered from automation. In Flow, add an **Action** element, search the **AI Agent Action** folder, pick the agent, pass a user message and an optional session id, and capture an agent-response output variable. Bind the message and session id to input variables so they populate dynamically.
+In Flow, add an **Action** element, search the **AI Agent Action** folder, pick the agent, pass a user message and an optional session id, and capture an agent-response output variable. Bind the message and session id to input variables so they populate dynamically.
 
-In Apex, call the agent's **Invocable Action** (its API name is on the agent's detail page in Setup). A Quick Action button, a screen flow, or even a flow-based agent action can then drive the agent — enabling limited agent-to-agent communication.
+In Apex, call the agent's **Invocable Action** (its API name is on the agent's detail page in Setup). A Quick Action, a screen flow or a flow-based agent action can then drive the agent, which enables limited agent-to-agent communication.
 
 ## Agent API — Headless Conversations (REST)
 
-The Agent API runs an agent from an external system **without a logged-in user**. Everything below is
-against `https://api.salesforce.com/einstein/ai-agent/v1` — a Salesforce-wide host, **not** your My
+Every endpoint below is against `https://api.salesforce.com/einstein/ai-agent/v1` — a Salesforce-wide host, **not** your My
 Domain URL, which appears separately inside the session payload.
 
 ### 0. Get the agent id
 
-An 18-character id; where to find it depends on which builder made the agent:
+An 18-character id. Where to find it depends on which builder made the agent:
 
 - **Legacy Agentforce Builder** — open the agent from Setup and take the id from the end of the URL:
   `…/lightning/setup/EinsteinCopilot/0XxSB000000IPCr0AO/edit` → `0XxSB000000IPCr0AO`.
@@ -49,11 +48,8 @@ curl -X POST https://api.salesforce.com/einstein/ai-agent/v1/agents/{AGENT_ID}/s
   }'
 ```
 
-Two fields matter more than their size suggests:
-
 - **`bypassUser`** — `true` runs as the **agent-assigned user**; `false` runs as the token's user.
-  This identity governs what the agent can see, so choose it deliberately rather than copying an
-  example. See `dya-sf-permissions`.
+  This identity governs what the agent can see; choose it deliberately. See `dya-sf-permissions`.
 - **`externalSessionKey`** — a UUID you generate to trace this conversation in the agent's event
   logs. Log it on your side too, or you lose the correlation.
 
@@ -76,7 +72,7 @@ curl 'https://api.salesforce.com/einstein/ai-agent/v1/sessions/{SESSION_ID}/mess
 ```
 
 **`sequenceId` increases with every message in the session** — you own the counter. Reusing or
-resetting it causes confusing behaviour that looks like the agent losing context.
+resetting it looks like the agent losing context.
 
 ### 4. The rest of the surface
 
@@ -113,7 +109,7 @@ sf agent preview sessions
 sf agent preview end   --session-id <id>
 ```
 
-`agent preview` writes **trace files** showing how the agent classified the topic, which actions it called, and what they returned — the fastest way to debug routing and action selection locally.
+`agent preview` writes **trace files** showing how the agent classified the topic, which actions it called, and what they returned.
 
 ## Testing & Evaluation
 
@@ -149,7 +145,7 @@ testCases:
 ## Agent Health Monitoring Alerts
 
 Agent health alerting runs through the Tableau data-alerts resource, not an agent-shaped endpoint.
-**There is no `sf agent alert` subcommand**; looking for one is the usual first detour.
+**There is no `sf agent alert` subcommand.**
 
 ```bash
 sf api request rest "/services/data/vXX.X/tableau/dataAlerts" --target-org <alias>
@@ -158,12 +154,10 @@ sf api request rest "/services/data/vXX.X/tableau/dataAlerts" --target-org <alia
 Alerts carry `dataAlertType: "agenthealthmonitoring"`. The UI equivalent lives at
 `/lightning/n/standard-AgentforceStudio?c__nav=alerts`.
 
-Four behaviours make scripted use awkward:
-
 - **`ownerId` is required on the list call.** There is no unfiltered list.
 - **A GET for a single alert returns 405.** List and filter client-side. Delete returns 204.
 - **Thresholds are raw 0–1 ratios, not display percentages.** 5% is `"0.05"`; `"1"` means 100%, not
-  1%. This one ships a monitor firing on everything.
+  1%. Getting it wrong fires the monitor on everything.
 - **The POST field names and casing differ from the GET response.** POST uses `utterance` where GET
   returns `alertName`, and PascalCase `type` discriminators. Posting a GET body straight back fails.
 
@@ -177,7 +171,7 @@ Agent Script is the GA, open-source language behind the new graph-based Agent Bu
 - **Variables**: set, mutate, compare.
 - Explicit **subagent / action selection** instead of leaving it to LLM interpretation.
 
-Pattern: natural language for conversational, ambiguous handling; Script expressions for anything that must be reliable (eligibility, pricing, compliance, escalation routing). When migrating a legacy agent, let it auto-convert to Script, then run the optimization tool to inject deterministic controls and boost reliability.
+When migrating a legacy agent, let it auto-convert to Script, then run the optimization tool to inject deterministic controls.
 
 ## Anti-Patterns
 

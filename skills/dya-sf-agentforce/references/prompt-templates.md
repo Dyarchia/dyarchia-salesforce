@@ -1,8 +1,5 @@
 # Prompt Templates — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-agentforce` when an agent action generates or transforms text, or to call a prompt
-template from code.
-
 ## What they are, and where the line falls
 
 A **prompt template** is a reusable, parameterised prompt built in **Prompt Builder**. It merges CRM
@@ -10,9 +7,7 @@ data — record fields, related lists, Flow output, Apex — into a prompt and c
 right action type whenever the job is *produce text grounded in records*: a summary, a draft email, a
 field value, a classification.
 
-Authoring a template is a Prompt Builder task, done in the UI and documented in Salesforce Help. This
-reference covers the developer's part: **calling one from code**, **running one over many records**,
-and **moving one between orgs**.
+Authoring a template is a Prompt Builder UI task, documented in Salesforce Help.
 
 In Agent Script an action reaches a template with the `prompt://` target — see
 `references/agent-script.md`:
@@ -24,8 +19,6 @@ check_bookings:
 ```
 
 ## Calling a template programmatically
-
-Three surfaces, chosen by where the caller lives:
 
 | Caller | Surface |
 |---|---|
@@ -53,8 +46,7 @@ AiJobRun jobRun = new AiJobRun(
 insert as user jobRun;
 ```
 
-`Target` takes the template's **DeveloperName or its record Id** — prefer the DeveloperName, which is
-stable across orgs; an Id is not. `Status` is required on insert; start at `New` so items can be
+`Status` is required on insert; start at `New` so items can be
 added before anything runs.
 
 ### Step 2 — one item per record
@@ -94,7 +86,7 @@ become immutable, non-null schema fields are frozen, and neither the job nor its
 deleted. You cannot set the `InProgress`, `Completed` or `Failed` statuses at all. Build the whole
 batch before flipping the switch.
 
-### Limits to know before you design
+### Limits
 
 | | Standard models | Models with native batch support |
 |---|---|---|
@@ -102,8 +94,8 @@ batch before flipping the switch.
 | Recommended daily volume from Apex | 5,000 | 50,000 |
 
 Create as many jobs as you need; extras sit in `Queued` until capacity frees. Exceeding the
-recommended daily volume does not fail — jobs take longer than 24 hours, which is worse, because it
-looks like a hang. The model provider sets native-batch completion time, typically 24 hours.
+recommended daily volume does not fail; jobs take longer than 24 hours, which looks
+like a hang. The model provider sets native-batch completion time, typically 24 hours.
 
 Jobs at `ReadyToStart` process in `CreatedDate` order, though several flipped within a few seconds of
 each other may not strictly hold it — do not depend on sequencing between jobs.

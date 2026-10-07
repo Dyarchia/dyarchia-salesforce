@@ -1,7 +1,7 @@
 # Agent Script Control Flow — Where It Goes Wrong
 
-The Agent Script syntax reference is `references/agent-script.md`. This file is the shorter, more
-useful list: constructs that compile, deploy, then behave differently from how they read.
+The syntax is in `references/agent-script.md`. This file lists constructs that compile, deploy, then
+behave differently from how they read.
 
 Every entry fails *quietly*, with no error at authoring time.
 
@@ -36,8 +36,7 @@ block**; repeated adjacent `|` markers do not create steps, stages, or any notio
 
 ## `available when` gates action definitions too
 
-Most examples show it on a transition, so it looks routing-only. It also gates whether an action
-exists for the model to choose at all:
+Beyond transitions, it also gates whether an action exists for the model to choose:
 
 ```agentscript
 actions:
@@ -45,8 +44,8 @@ actions:
         available when @variables.lookup_failed == True
 ```
 
-That is the difference between an agent that *can* call an action and merely was not told to, and an
-agent for which the action is not on the menu. For anything with a side effect, you want the second.
+Without the guard the model can call the action and was merely not told to; with it, the action is
+not on the menu. Gate every action that has a side effect.
 
 ## `before_reasoning` runs once per subagent *execution*, not per turn
 
@@ -86,11 +85,11 @@ configured → available → invoked → executed → effected
 
 - **configured** — the action exists and is wired to the subagent.
 - **available** — no `available when` guard excluded it for this turn.
-- **invoked** — the agent actually chose it.
+- **invoked** — the agent chose it.
 - **executed** — it ran without throwing.
 - **effected** — the external system changed.
 
-An agent saying "I've created that ticket for you" establishes none of these. It is generated text,
+An agent saying "I've created that ticket for you" establishes none of these: it is generated text,
 and a confidently wrong claim is the normal failure mode. Check the target system or the trace.
 
 ## `elif` does not exist

@@ -1,6 +1,6 @@
 ---
 name: dya-sf-agentforce
-description: Salesforce Agentforce Winter '27 (API v68.0) — from zero to expert. What an AI agent is and how Atlas reasons; agent anatomy (Topics, Instructions, Actions); Agent Script; designing and building Apex/Flow/Prompt-Template actions; grounding with Data 360; invoking agents headlessly (Agent API); testing, evals, and observability; multi-agent orchestration; security and the Trust Layer. Applies to agent metadata (GenAiPlannerBundle, GenAiPlugin, GenAiFunction, GenAiPromptTemplate), Agent Script files, Apex or Flow actions built for an agent, agent tests and evals. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-agentforce`).
+description: Salesforce Agentforce Winter '27 (API v68.0) — what an AI agent is and how Atlas reasons; agent anatomy (Topics, Instructions, Actions); Agent Script; designing and building Apex/Flow/Prompt-Template actions; grounding with Data 360; invoking agents headlessly (Agent API); testing, evals, and observability; multi-agent orchestration; security and the Trust Layer. Applies to agent metadata (GenAiPlannerBundle, GenAiPlugin, GenAiFunction, GenAiPromptTemplate), Agent Script files, Apex or Flow actions built for an agent, agent tests and evals. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-agentforce`).
 ---
 
 # Salesforce Agentforce — From Zero to Expert
@@ -28,16 +28,15 @@ agents is `dya-sf-data360`, and exposing agents across surfaces is `dya-sf-headl
 
 ## Platform Context — Winter '27 / API v68.0
 
-Save Agentforce metadata and the Apex or Flow behind actions at `68.0`. Four facts gate what you can
-build:
+Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
 
 - **`AiAgentDefinition` / `AiAgentDefinitionVersion` are GA at 68.0, and both orgs must be on 68.0.**
   A deploy from a 68.0 sandbox into a 67.0 org carries neither, silently.
-- **The 24 additional conversation languages are Beta**, not production. Check the list before
-  promising a language.
+- **The 24 additional conversation languages are Beta.** Check the list before promising a
+  language.
 - **An Apex action is Apex**, so it inherits the 67.0+ security defaults: `with sharing` and
   `USER_MODE`, and `WITH SECURITY_ENFORCED` no longer compiles. See §4 and `dya-sf-apex`.
-- **Since April 2026 a Topic is a subagent.** The functionality is unchanged; older documentation,
+- **Since April 2026 a Topic is a subagent.** Functionality is unchanged; older documentation,
   parts of the UI and help-article URLs still say "topic". This skill says **subagent**.
 
 > Everything else Winter '27 adds — MCP interoperability, observability and custom scorers, Voice
@@ -50,8 +49,7 @@ build:
 
 An agent understands a request in natural language and acts on it, grounded in your Salesforce data.
 
-The brain is the **Atlas Reasoning Engine**: no fixed decision tree; it reasons on every request from
-the descriptions you wrote.
+The **Atlas Reasoning Engine** has no fixed decision tree; it reasons on every request.
 
 1. **Intent classification** — Atlas reads the message and picks the most relevant **subagent**.
 2. **Plan** — it reads that subagent's scope, instructions and available **Actions**' descriptions,
@@ -63,9 +61,8 @@ the descriptions you wrote.
 5. **Respond** — the answer passes through the **Einstein Trust Layer** (masking, grounding checks,
    zero-retention) before reaching the user.
 
-**The key consequence:** Atlas chooses subagents and actions by reading their **natural-language
-descriptions**. Vague descriptions route wrongly. Your descriptions *are* the program; treat them as
-code.
+Atlas chooses subagents and actions by reading their **natural-language descriptions**, so vague
+descriptions route wrongly. Treat descriptions as code.
 
 ---
 
@@ -80,13 +77,13 @@ code.
 | **Instructions** | Natural-language rules (prompt-like) that shape behaviour and reference actions | Builder |
 | **Action** | A capability the agent invokes: Apex, Flow, Prompt Template, Apex REST, Named Query | Developer |
 
-### Writing Instructions (the high-leverage skill)
+### Writing Instructions
 
 - One subagent per coherent set of tasks. Never build a mega-subagent.
 - Instructions live *inside* the subagent, not as separate metadata, and may reference Actions by
   name.
 - Be explicit and imperative. State preconditions and the order of operations.
-- Use them as guardrails: say what *not* to do, too.
+- Say what *not* to do, too.
 - Encode hard business rules in **Agent Script** (§5) rather than hoping the LLM follows prose.
 
 ---
@@ -112,10 +109,7 @@ one.
 
 ## 4. Apex Actions — Best Practices
 
-An `@InvocableMethod` whose labels and descriptions Atlas reads, so they are part of the contract.
 Class skeleton, wrappers and the bulk-in bulk-out signature: `references/apex-actions.md`.
-
-Absolute rules:
 
 - **Bulkify anyway.** An agent invokes an action **once per turn, in its own transaction**, so it
   never passes 200 records — but a Flow reusing the same `@InvocableMethod` **always passes a
@@ -124,21 +118,19 @@ Absolute rules:
 - **One input and output wrapper class** with `@InvocableVariable`s; primitives or DTOs, never a raw
   `SObject` you do not control.
 - **`with sharing` + `WITH USER_MODE`** — the defaults from API 67.0, but state them.
-  `WITH SECURITY_ENFORCED` no longer compiles.
 - **Descriptions are prompts.** A clear `label` and `description` on the method and every variable,
   in sync with the action config in Agent Builder.
 - **Errors: structured, not thrown.** Return a success flag and a human-readable message the agent
-  can relay; a thrown exception is something it cannot explain to a user. This is the **opposite**
+  can relay; the agent cannot explain a thrown exception to a user. This is the **opposite**
   of a Flow-facing action, where throwing is how the fault message reaches a Fault Path, so a method
   serving both returns the result and lets the Flow branch on it. Log failures durably through
   Platform Events (`dya-sf-apex`).
-- Keep actions **deterministic**, so the LLM does not improvise critical logic.
 
 ---
 
 ## 5. Agent Script — Deterministic Control (GA)
 
-Agent Script is the compiled language behind Agentforce Builder, designed around one distinction:
+Agent Script is the compiled language behind Agentforce Builder.
 **`->` logic instructions run deterministically every time; `|` prompt instructions go to the LLM to
 interpret.**
 
@@ -160,7 +152,7 @@ routing after `->`; leave the conversational parts to `|`. Guard every subagent 
 
 ## 6. Grounding & Prompt Templates
 
-**Grounding** injects trusted data into the prompt, making answers accurate and explainable.
+**Grounding** injects trusted data into the prompt, so answers are accurate and explainable.
 
 - **Prompt Templates** — reusable, parameterised prompts that merge record data and call the LLM, for
   summaries, drafts and classifications. Reach them from Agent Script with a `prompt://` target.
@@ -195,7 +187,7 @@ Test at scale; one chat proves nothing.
 - **Testing Center** (UI) — simulate scenarios with initial state and context variables.
 - **Testing API** (REST) — batch-test many utterances; automate before activating.
 - **Evaluations** (Agentforce DX, Beta) — YAML/JSON eval suites from the CLI. **Custom Scoring Evals**
-  grade *decision quality*, not just whether an action ran.
+  grade *decision quality*, not only whether an action ran.
 - **`agent preview`** (CLI, GA) — scripted sessions with **trace files** showing how the agent routed.
   Unimplemented actions are mocked, so routing is testable before they are written.
 - **A/B Testing API** — compare agent versions against real traffic after launch.
@@ -224,8 +216,8 @@ ungrounded answers.
 - Agents run with a **user and permission context**: an employee-facing agent acts with the running
   user's permissions, a customer-facing agent under a dedicated guest or service profile. The agent
   can surface whatever that identity sees, so scope it to the minimum. See `dya-sf-permissions`.
-- Apex actions enforce `with sharing` and `USER_MODE`. Never widen permissions to make a user-mode
-  error disappear — that leaks the same data into reports and APIs.
+- Never widen permissions to make a user-mode error disappear; that leaks the same data into reports
+  and APIs.
 - Treat agent instructions as an untrusted-input boundary: guard against prompt injection by scoping
   subagents tightly and validating action inputs in Apex.
 
@@ -236,7 +228,7 @@ ungrounded answers.
 An **orchestrator** agent routes to **specialist subagents** by reading their descriptions and
 actions — reasoning, not a hard-coded map.
 
-- **Agent and subagent descriptions become routing logic.** Make them precise and non-overlapping.
+- Make agent and subagent descriptions precise.
 - Keep each subagent to one domain; overlapping scopes cause mis-routing, the seam problem.
 - Subagents can be backed by Apex, Flow and Prompt Template actions independently.
 - Interop standards A2A and MCP let agents coordinate with tools and other agents.
