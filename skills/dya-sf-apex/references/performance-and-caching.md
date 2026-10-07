@@ -42,7 +42,7 @@ public with sharing class FxRateService {
 records deploy and package like other metadata, so Custom Metadata Types are the default for
 configuration.
 
-Custom Settings are correct only for **hierarchy resolution** — a value set at org level and
+Custom Settings remain correct for the one thing Custom Metadata cannot express, **hierarchy resolution** — a value set at org level and
 overridden per profile or user — as in the trigger kill-switch (`references/trigger-framework.md`).
 
 ## DataWeave in Apex

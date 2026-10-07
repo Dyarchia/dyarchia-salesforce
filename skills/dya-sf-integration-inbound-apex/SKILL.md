@@ -30,10 +30,10 @@ that day. Inventory them now — `dya-sf-integration-auth`.
   custom Apex REST and SOAP web services, Apex classes, triggers and Visualforce. Full status in
   `references/shared/metadata-and-api-versions.md`.
 - **Apex SOAP web services (`webservice`) are legacy but supported.** Prefer Apex REST for anything
-  new; this is unrelated to the SOAP `login()` retirement (authentication).
+  new. Its legacy status is unrelated to the SOAP `login()` retirement, which concerns authentication.
 - **The API 67.0 security defaults hit boundary classes hardest.** An `@RestResource` class compiled
   at 67.0 or above with no sharing keyword defaults to `with sharing`, and its SOQL and DML default
-  to `USER_MODE`. An endpoint relying on system-mode access silently returns fewer rows or throws.
+  to `USER_MODE`. An endpoint relying on system-mode access returns fewer rows, silently, or throws.
   Audit **before** raising the version. `WITH SECURITY_ENFORCED` no longer compiles.
 - **HTTPS is mandatory** on every inbound endpoint.
 
@@ -50,7 +50,7 @@ that day. Inventory them now — `dya-sf-integration-auth`.
 
 **Agents do not enter through `@RestResource`.** Agent capabilities are built with
 `@InvocableMethod` (`dya-sf-agentforce`). An existing Apex REST class can also be surfaced as an
-agent action through a generated OpenAPI document.
+agent action through a generated OpenAPI document, as a secondary path.
 
 ---
 

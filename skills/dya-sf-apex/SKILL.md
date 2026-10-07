@@ -34,9 +34,9 @@ Platform Events as an integration surface → `dya-sf-integration-events`.
 Stamp new Apex at `<apiVersion>68.0</apiVersion>`. The version is per class, not per org; implications and
 retirement status: `references/shared/metadata-and-api-versions.md`.
 
-**Security defaults since API 67.0**: SOQL, SOSL and DML
-default to `USER_MODE`; an omitted sharing keyword defaults to `with sharing`, and that default is
-contagious down an inheritance chain and into `@AuraEnabled` methods; `WITH SECURITY_ENFORCED` no
+**Security defaults since API 67.0**: SOQL, SOSL and DML default to `USER_MODE`; an omitted sharing
+keyword defaults to `with sharing`, and that default is contagious down an inheritance chain and into
+`@AuraEnabled` methods; `WITH SECURITY_ENFORCED` no
 longer compiles; a sharing keyword on a trigger no longer compiles. Full table in
 `references/shared/platform-deltas.md`. Existing classes keep their old behaviour until their version
 is raised, so make sharing explicit **before** you bump, never after.
@@ -196,7 +196,7 @@ methods, post-processing in `andFinally`.
 
 On **brownfield** orgs — already standardised on Kevin O'Hara, fflib, Trigger Actions or a
 hand-rolled handler — do not impose it. **Ask which framework the org uses and conform.** Org-wide
-consistency beats a better framework.
+consistency beats a better framework bolted onto a different one.
 
 ```apex
 // The trigger file - one line, no logic, no sharing keyword.
@@ -208,8 +208,9 @@ trigger AccountTrigger on Account (
 }
 ```
 
-Triggers always run in **system mode**, on every API version. Put the sharing keyword on the handler class; if trigger-driven DML must
-enforce user-level security, pass `AccessLevel.USER_MODE` explicitly to the `Database.*` call.
+Triggers always run in **system mode**, on every API version. Put the sharing keyword on the
+handler class; if trigger-driven DML must enforce user-level security, pass `AccessLevel.USER_MODE`
+explicitly to the `Database.*` call.
 
 ### The per-object kill-switch
 
