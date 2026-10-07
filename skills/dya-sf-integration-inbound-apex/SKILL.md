@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-inbound-apex
-description: Salesforce custom inbound endpoints (Winter '27 / API v68.0) — exposing your own APIs: Apex REST services (@RestResource, GA and recommended), Apex SOAP web services (webservice keyword, legacy), the @RestResource-vs-@InvocableMethod distinction, and Sites/Experience Cloud as integration surfaces with guest-user security. Applies to @RestResource classes, webservice methods, Sites or Experience Cloud endpoints exposed to guests. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-inbound-apex`).
+description: Salesforce custom inbound endpoints (Winter '27, API v68.0) — Apex REST, legacy Apex SOAP web services, @RestResource vs @InvocableMethod, Sites and Experience Cloud endpoints with guest-user security. Applies to @RestResource classes, webservice methods, and Sites or Experience Cloud endpoints exposed to guests. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Custom Inbound Endpoints (Apex)

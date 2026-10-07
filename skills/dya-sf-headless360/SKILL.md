@@ -1,6 +1,6 @@
 ---
 name: dya-sf-headless360
-description: Salesforce Headless 360 (Winter '27 / API v68.0) — the platform theme that turns every Salesforce capability into an API, MCP tool, or CLI command for apps, humans, and AI agents. Covers the three surfaces (API/MCP/CLI), the MCP server taxonomy (hosted, DX, custom, Data 360), building custom MCP tools, the Headless/Agentforce Experience Layer (HXL/AXL) and Lightning Types, Agentforce Vibes and React apps, headless DevOps, and the Trust Layer. Applies to custom MCP tools and servers on Salesforce, Lightning Types, Agentforce Vibes or React apps on the platform, headless DevOps pipelines. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-headless360`).
+description: Salesforce Headless 360 (Winter '27, API v68.0) — every capability as API, MCP tool or CLI command; MCP servers, custom MCP tools, the Experience Layer and Lightning Types, Agentforce Vibes and React apps, headless DevOps. Applies to custom MCP tools and servers, Lightning Types, Agentforce Vibes or React apps on the platform, headless DevOps pipelines. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Headless 360

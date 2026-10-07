@@ -1,6 +1,6 @@
 ---
 name: dya-sf-field-service
-description: Salesforce Field Service (FSL) developer surface (Winter '27 / API v68.0) — programmatic side only, with real signatures and compilable code. The FSL Apex namespace (ScheduleService, AppointmentBookingService, GradeSlotsService, OAAS), the scope-1 + DML-before-callout scheduling pattern, the Salesforce Scheduler REST candidates/slots resources and Appointment Bundling REST APIs, the standard + FSL__ data model and ServiceAppointment lifecycle, and Field Service Mobile (LWC Offline, Briefcase). Applies to code using the FSL namespace, ServiceAppointment and WorkOrder scheduling logic, Scheduler REST clients, Field Service Mobile components and Briefcase rules. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-field-service`).
+description: Salesforce Field Service (Winter '27, API v68.0), programmatic side — FSL Apex scheduling, Scheduler REST and Appointment Bundling APIs, the ServiceAppointment model and lifecycle, Field Service Mobile (LWC Offline, Briefcase). Applies to FSL namespace code, ServiceAppointment and WorkOrder scheduling logic, Scheduler REST clients, mobile components and Briefcase rules. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Field Service — Developer Surface

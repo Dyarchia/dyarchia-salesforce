@@ -1,6 +1,6 @@
 ---
 name: dya-sf-lwr-sites
-description: Salesforce Experience Cloud LWR sites Winter '27 (API v68.0) — production sites on the Lightning Web Runtime: enhanced vs non-enhanced LWR sites, standard components and the Grid, CMS collections, guest-user hardening, SEO, CSP/LWS, partial deployment via DigitalExperienceBundle, embedded reports and dashboards, and the Experience Delivery discontinuation. Applies to DigitalExperienceBundle and DigitalExperienceConfig metadata, LWR site components, CMS collections, site CSP and guest-user settings. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-lwr-sites`).
+description: Salesforce Experience Cloud LWR sites (Winter '27, API v68.0) — enhanced vs non-enhanced sites, components and the Grid, CMS collections, guest hardening, SEO, CSP and LWS, DigitalExperienceBundle deployment, embedded analytics. Applies to DigitalExperienceBundle and DigitalExperienceConfig metadata, LWR site components, CMS collections, site CSP and guest-user settings. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Experience Cloud — LWR Sites

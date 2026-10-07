@@ -1,6 +1,6 @@
 ---
 name: dya-sf-revenue-cloud
-description: Salesforce Revenue Cloud Advanced / Revenue Lifecycle Management (RCA/RLM, now branded **Agentforce Revenue Management**) developer surface (Winter '27 / API v68.0) — the API-first successor to legacy CPQ, through Connect endpoints, Apex classes and invocable actions. Product Catalog Management, Salesforce Pricing (Pricing Procedures + Context Service + Decision Tables, with Apex Hooks), Transaction Management (Place Quote / Place Sales Transaction), Product Configurator Business APIs, Asset Lifecycle, and Billing. Applies to product catalog, Pricing Procedures, Decision Tables, context definitions, pricing Apex hooks, Place Quote and Place Sales Transaction calls, Configurator and Billing code. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-revenue-cloud`).
+description: Salesforce Revenue Cloud Advanced and Revenue Lifecycle Management, now Agentforce Revenue Management (Winter '27, API v68.0), the API-first CPQ successor — Product Catalog, Pricing Procedures, Decision Tables, Apex Hooks, Place Quote, Configurator, Billing. Applies to catalog, Pricing Procedures, Decision Tables, context definitions, pricing hooks, transaction API calls, Configurator and Billing code. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Revenue Cloud Advanced (RCA / RLM) — Developer Surface

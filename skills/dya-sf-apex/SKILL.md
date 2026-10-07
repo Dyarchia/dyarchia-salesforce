@@ -1,6 +1,6 @@
 ---
 name: dya-sf-apex
-description: Salesforce Apex Winter '27 (API v68.0) modern development best practices — syntax, security and user mode, SOQL/DML, triggers, async, testing, performance, observability, class design. Applies to *.cls, *.trigger, anonymous Apex. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-apex`).
+description: Salesforce Apex (Winter '27, API v68.0) — syntax, user-mode security, SOQL and DML, triggers, async, testing, performance, observability, class design. Applies to *.cls, *.trigger and anonymous Apex. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Apex Modern Development

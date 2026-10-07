@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-auth
-description: Salesforce integration authentication & identity (Winter '27 / API v68.0) — inbound OAuth 2.0 flows, External Client Apps vs Connected Apps, the username-password flow retirement, the "Use Any API Auth" permission and SOAP login() retirement, JWT/mTLS/session auth; and outbound Named Credentials + External Credentials (principals, protocols). The one home for "how do I authenticate an integration." Applies to Named Credentials, External Credentials, External Client Apps, Connected Apps, Auth Providers, OAuth and JWT client code. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-auth`).
+description: Salesforce integration authentication (Winter '27, API v68.0) — OAuth 2.0 flows, External Client Apps vs Connected Apps, username-password and SOAP login() retirements, JWT and mTLS, Named and External Credentials. Applies to Named Credentials, External Credentials, External Client Apps, Connected Apps, Auth Providers, OAuth and JWT client code. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Integration Authentication & Identity

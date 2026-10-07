@@ -1,6 +1,6 @@
 ---
 name: dya-sf-b2c-commerce
-description: Salesforce B2C Commerce developer surface (2026) — the programmatic side of the Demandware-lineage platform, SEPARATE from Salesforce core (no Apex/LWC/SOQL). Server-side JavaScript Script API (dw.*), SFRA cartridges/controllers/ISML/hooks/jobs, the Composable Storefront (PWA Kit + Managed Runtime), SCAPI (mandatory SLAS auth, real endpoint structure) vs the now-deprecated OCAPI, custom APIs, and Shopper Context personalization. Applies to SFRA cartridges, controllers, ISML templates, dw.* scripts, hooks.json, jobs, PWA Kit apps, SCAPI or OCAPI clients. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-b2c-commerce`).
+description: Salesforce B2C Commerce (2026), separate from Salesforce core with no Apex, LWC or SOQL — Script API (dw.*), SFRA cartridges, controllers, ISML, hooks and jobs, Composable Storefront (PWA Kit, Managed Runtime), SCAPI with SLAS vs deprecated OCAPI. Applies to SFRA cartridges, ISML templates, dw.* scripts, hooks.json, jobs, PWA Kit apps, SCAPI or OCAPI clients. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce B2C Commerce — Developer Surface

@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-connectors-mcp
-description: Salesforce connectors & agentic integration (Winter '27 / API v68.0) — the "don't hand-code it" layer plus the 2026 agentic surface. MuleSoft (Anypoint, for Flow, Direct, API Catalog), Heroku/AppLink, AppExchange/ISV connectors, Data 360 ingestion/zero-copy as an integration path, and Hosted MCP servers / Headless 360 / Agent API. Applies to MuleSoft flows and API specs, Heroku AppLink apps, hosted MCP server setup, Agent API clients. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-connectors-mcp`).
+description: Salesforce connectors and agentic integration (Winter '27, API v68.0) — MuleSoft (Anypoint, for Flow, Direct, API Catalog), Heroku AppLink, AppExchange connectors, Data 360 zero-copy, hosted MCP servers, Agent API. Applies to MuleSoft flows and API specs, Heroku AppLink apps, hosted MCP server setup, Agent API clients. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Connectors & Agentic Integration

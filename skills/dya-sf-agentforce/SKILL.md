@@ -1,6 +1,6 @@
 ---
 name: dya-sf-agentforce
-description: Salesforce Agentforce Winter '27 (API v68.0) — what an AI agent is and how Atlas reasons; agent anatomy (Topics, Instructions, Actions); Agent Script; designing and building Apex/Flow/Prompt-Template actions; grounding with Data 360; invoking agents headlessly (Agent API); testing, evals, and observability; multi-agent orchestration; security and the Trust Layer. Applies to agent metadata (GenAiPlannerBundle, GenAiPlugin, GenAiFunction, GenAiPromptTemplate), Agent Script files, Apex or Flow actions built for an agent, agent tests and evals. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-agentforce`).
+description: Salesforce Agentforce (Winter '27, API v68.0) — agent design, Agent Script, Apex, Flow and prompt-template actions, Data 360 grounding, Agent API, testing and evals, Trust Layer. Applies to GenAiPlannerBundle, GenAiPlugin, GenAiFunction and GenAiPromptTemplate metadata, Agent Script files, agent actions, agent tests and evals. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Agentforce — From Zero to Expert

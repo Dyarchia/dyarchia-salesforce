@@ -1,6 +1,6 @@
 ---
 name: dya-sf-lwc
-description: Salesforce LWC and (UI-facing) Apex Winter '27 (API v68.0) modern development best practices — template syntax and expressions, Lightning Data Service, GraphQL queries and mutations, shared reactive state via @lwc/state, third-party web components, the @AuraEnabled contract, dev tooling, Jest. Applies to lwc/ bundles (JS, HTML, CSS, js-meta.xml, Jest tests) and the @AuraEnabled methods they call. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-lwc`).
+description: Salesforce Lightning Web Components (Winter '27, API v68.0) — templates, Lightning Data Service, GraphQL, @lwc/state, third-party web components, the @AuraEnabled contract, tooling, Jest. Applies to lwc/ bundles (JS, HTML, CSS, js-meta.xml, Jest tests) and the @AuraEnabled methods they call. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce LWC & Apex (UI Layer) — Modern Development

@@ -12,6 +12,11 @@ MARKETPLACE_MANIFEST="$REPO_ROOT/.claude-plugin/marketplace.json"
 CODEX_MANIFEST="$REPO_ROOT/.codex-plugin/plugin.json"
 
 INVOCATION_CLAUSE='Load before creating or editing anything in this scope'
+# Agent Skills spec: name 1-64 lowercase alphanumerics and single hyphens; description at most 1024
+# characters. Hosts list every description in a shared budget, so warn well before the limit.
+NAME_PATTERN='^[a-z0-9]+(-[a-z0-9]+)*$'
+DESCRIPTION_MAX_CHARS=1024
+DESCRIPTION_WARN_CHARS=500
 # README names that are deliberately dya-prefixed without a folder under skills/.
 NON_SKILL_TOKENS=" dya-sf-skills dya-sf- "
 
@@ -94,12 +99,31 @@ for name in "${skills[@]}"; do
             fail "$name : frontmatter has no 'name' key"
         elif [ "$fm_name" != "$name" ]; then
             fail "$name : frontmatter name '$fm_name' does not match folder"
+        elif [ "${#fm_name}" -gt 64 ] || ! printf '%s' "$fm_name" | grep -qE "$NAME_PATTERN"; then
+            fail "$name : name breaks the Agent Skills rules (1-64 lowercase letters, digits, single hyphens)"
         fi
 
         if ! printf '%s\n' "$fm" | grep -q '^description:'; then
             fail "$name : frontmatter has no 'description' key"
         elif ! printf '%s\n' "$fm" | grep -qF "$INVOCATION_CLAUSE"; then
             fail "$name : description is missing the explicit-invocation clause"
+        else
+            desc="$(printf '%s\n' "$fm" | tr -d '\r' | awk '
+                /^description:/ { sub(/^description:[[:space:]]*/, ""); d = $0; f = 1; next }
+                f && /^[A-Za-z_-]+:/ { f = 0 }
+                f { sub(/^[[:space:]]+/, ""); d = d " " $0 }
+                END { print d }')"
+            desc_chars=$(printf '%s' "$desc" | LC_ALL=C.UTF-8 wc -m | tr -d ' ')
+            if [ "$desc_chars" -gt "$DESCRIPTION_MAX_CHARS" ]; then
+                fail "$name : description is $desc_chars characters (Agent Skills limit $DESCRIPTION_MAX_CHARS)"
+            elif [ "$desc_chars" -gt "$DESCRIPTION_WARN_CHARS" ]; then
+                warn "$name : description is $desc_chars characters (over $DESCRIPTION_WARN_CHARS) - hosts trim long descriptions from the skill listing"
+            fi
+            case "$desc" in
+                \"*|\'*) ;;
+                *': '*|*' #'*)
+                    fail "$name : unquoted description contains ': ' or ' #' - strict YAML parsers reject the frontmatter" ;;
+            esac
         fi
     fi
 

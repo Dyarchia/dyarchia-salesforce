@@ -1,6 +1,6 @@
 ---
 name: dya-sf-lightning-out
-description: Salesforce Lightning Out 2.0 Winter '27 (API v68.0) — embedding Lightning Web Components in external (non-Salesforce) web apps on the LWR runtime: the lightning-out-application element, app-id from the App Manager, the singleaccess frontdoor-url OAuth flow, lifecycle events, closed-shadow-DOM iframe isolation, CORS, and host/component messaging. Applies to Lightning Out 2.0 apps, external pages that embed lightning-out-application, the host-side script and its CORS settings. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-lightning-out`).
+description: Salesforce Lightning Out 2.0 (Winter '27, API v68.0) — embedding LWC in external web apps on LWR, lightning-out-application, app-id, frontdoor-url auth, lifecycle events, iframe isolation, CORS, host messaging. Applies to Lightning Out 2.0 apps, external pages that embed lightning-out-application, the host script and its CORS settings. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Lightning Out 2.0 — Embedding LWCs Off-Platform

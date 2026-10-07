@@ -19,6 +19,11 @@ function Add-Failure { param([string] $Message) $script:errors.Add($Message) }
 function Add-Warning { param([string] $Message) $script:warnings.Add($Message) }
 
 $invocationClause = 'Load before creating or editing anything in this scope'
+# Agent Skills spec: name 1-64 lowercase alphanumerics and single hyphens; description at most 1024
+# characters. Hosts list every description in a shared budget, so warn well before the limit.
+$namePattern = '^[a-z0-9]+(-[a-z0-9]+)*$'
+$descriptionMaxChars = 1024
+$descriptionWarnChars = 500
 # README names that are deliberately dya-prefixed without a folder under skills/.
 $nonSkillTokens = @('dya-sf-skills', 'dya-sf-')
 
@@ -122,12 +127,27 @@ foreach ($name in $skills) {
         elseif ($fm.Name -ne $name) {
             Add-Failure "$name : frontmatter name '$($fm.Name)' does not match folder"
         }
+        elseif ($fm.Name.Length -gt 64 -or $fm.Name -cnotmatch $namePattern) {
+            Add-Failure "$name : name breaks the Agent Skills rules (1-64 lowercase letters, digits, single hyphens)"
+        }
 
         if (-not $fm.Description) {
             Add-Failure "$name : frontmatter has no 'description' key"
         }
         elseif ($fm.Description -notlike "*$invocationClause*") {
             Add-Failure "$name : description is missing the explicit-invocation clause"
+        }
+        else {
+            $descChars = $fm.Description.Length
+            if ($descChars -gt $descriptionMaxChars) {
+                Add-Failure "$name : description is $descChars characters (Agent Skills limit $descriptionMaxChars)"
+            }
+            elseif ($descChars -gt $descriptionWarnChars) {
+                Add-Warning "$name : description is $descChars characters (over $descriptionWarnChars) - hosts trim long descriptions from the skill listing"
+            }
+            if ($fm.Description -notmatch '^[''"]' -and $fm.Description -match ': | #') {
+                Add-Failure "$name : unquoted description contains ': ' or ' #' - strict YAML parsers reject the frontmatter"
+            }
         }
     }
 

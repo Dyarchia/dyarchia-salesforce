@@ -1,6 +1,6 @@
 ---
 name: dya-sf-lwr
-description: Salesforce Lightning Web Runtime (LWR) Winter '27 (API v68.0) — building and porting Lightning Web Components for the LWR runtime: where LWR runs, module and base-component availability vs Lightning Experience, client-side navigation (NavigationMixin / navigate / generateUrl), Lightning Web Security and CSP, guest context, performance. Applies to components that target an LWR runtime, client-side navigation code, components that must run under Lightning Web Security or guest context. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-lwr`).
+description: Salesforce Lightning Web Runtime (Winter '27, API v68.0) — building and porting LWC for LWR, module and base-component availability, client-side navigation, Lightning Web Security and CSP, guest context, performance. Applies to components targeting LWR, client-side navigation code, and components that run under LWS or guest context. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Lightning Web Runtime (LWR) — Component Development
