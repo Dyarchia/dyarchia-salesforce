@@ -53,8 +53,9 @@ A `PermissionSet` is one XML file; everything it grants appears as a named eleme
 **A required field listed in `<fieldPermissions>` fails the deployment**, because required fields
 cannot carry field-level security; omit them. The error message does not say so.
 
-The XML references user permissions by API name — e.g. `PermissionsManageDataMaskPolicies` and `PermissionsAccessDataMaskAndSeed` gate
-Data Mask, and `PermissionsViewAllProfiles` bypasses Winter '27 profile filtering.
+The XML references user permissions by API name: `PermissionsManageDataMaskPolicies` and
+`PermissionsAccessDataMaskAndSeed` gate Data Mask, and `PermissionsViewAllProfiles` bypasses
+Winter '27 profile filtering.
 
 ## Assignment Order — Licence Before Set
 

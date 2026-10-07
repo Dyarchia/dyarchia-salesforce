@@ -12,7 +12,7 @@ References:
 
 - `references/shared/platform-deltas.md` — the release-coupled facts, including the security defaults Apex query code inherits.
 - `references/shared/governor-limits.md` — the transaction budget an Apex query against Data 360 still spends.
-- `references/query-api.md` — **the four query surfaces and how to choose**: the `sfsqlquery` Apex namespace, `ConnectApi.CdpQuery`, the Connect REST endpoints, and the `/api/v3/query` Direct API with chunks, metadata and Apache Arrow.
+- `references/query-api.md` — **the four query surfaces and how to choose**: the `sfsqlquery` Apex namespace, `ConnectApi.CdpQuery`, the Connect REST endpoints, and the `/api/v3/query` Direct API with chunks, metadata and Apache Arrow; endpoints, auth and the `dne_cdpInstanceUrl` trap.
 - `references/ingestion-api.md` — streaming and bulk ingestion end to end: connector and schema prerequisites, the job lifecycle, the payload test action.
 - `references/query-access.md` — SOQL on DMOs/DLOs in Apex (`__dlm`, `DATASPACE`, governor and credit notes), Connect API in Apex (`ConnectApi`), the Query API (SQL), pagination, and query best practices.
 - `references/ingestion-and-modeling.md` — Ingestion API and connectors, streaming vs batch, DLO→DMO mapping, identity resolution, calculated insights, segments, data actions/platform events, and zero-copy federation.
@@ -69,8 +69,8 @@ Sources ──ingest──▶ DLO ──map──▶ DMO ──identity resoluti
 5. On top sit **Calculated Insights** (metrics), **Segments** (audiences), **Data Actions**
    (real-time triggers), activations, and **grounding** for Agentforce.
 
-Data 360 is a separate analytical store, not your CRM database. Queries scan large volumes and **consume
-credits**, so architecture and query hygiene are cost decisions, not performance decisions.
+Data 360 is a separate analytical store, not your CRM database. Queries scan large volumes and
+**consume credits**, so architecture and query hygiene are cost decisions, not performance decisions.
 
 ---
 
@@ -118,7 +118,8 @@ Rules:
 - Configure **key qualifier fields** on DLO fields used in joins; without them, joins return null and
   performance and cost suffer.
 - **Identity resolution** is the **most expensive operation in Data 360**, by three to four orders of
-  magnitude over a query (§8). It bills on **rows processed, not rows ingested**, and the processed count is almost always larger.
+  magnitude over a query (§8). It bills on **rows processed, not rows ingested**, and the processed
+  count is almost always larger.
   - Run IR **incrementally**, on a schedule aligned to real data change, never continuously.
   - Align downstream schedules — CIs, segments — to IR's actual incremental behaviour rather than
     recomputing everything on every trickle of new data.
@@ -151,7 +152,8 @@ List<UnifiedssotIndividualMain__dlm> people = [
 
 **Do not guess a unified DMO's name.** Identity resolution derives it from the ruleset, so it is
 org-specific: `UnifiedssotIndividualMain__dlm` above is one ruleset's output, and a plausible-looking
-`UnifiedIndividual__dlm` will not compile. Read the real name off the ruleset in Setup, or list them with `GET /services/data/vXX.X/ssot/data-model-objects`.
+`UnifiedIndividual__dlm` will not compile. Read the real name off the ruleset in Setup, or list them
+with `GET /services/data/vXX.X/ssot/data-model-objects`.
 
 Hard rules for any Data 360 query, SOQL or SQL:
 - **Always a selective `WHERE` and a `LIMIT`.** An unfiltered scan of a 100M-row DMO can burn
@@ -170,8 +172,8 @@ Hard rules for any Data 360 query, SOQL or SQL:
 - **Calculated Insights** (`__cio`) define metrics as dimensions plus measures over modeled data:
   lifetime value, engagement scores, RFM. **Run them in batch** unless sub-15-minute latency is
   essential: a streaming CI can cost ~50× batch for identical daily-consumed output.
-- **Segments** are filtered audiences for activation. Use aggregate and waterfall filtering; a data model
-  that forces complex joins raises segmentation and activation cost by 20–40%.
+- **Segments** are filtered audiences for activation. Use aggregate and waterfall filtering; a data
+  model that forces complex joins raises segmentation and activation cost by 20–40%.
 - Build and manage both programmatically through the **Connect API**. A CI created through the API
   needs a developer name ending in `__cio`.
 

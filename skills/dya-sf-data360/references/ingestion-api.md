@@ -122,8 +122,8 @@ instance looks like an authentication problem and is not.
 ### `202` means accepted, not queryable
 
 The rows are not yet validated or in the DLO. Validation failures surface later, in the **Problem
-Records** DLO family, so a pipeline that checks
-only the HTTP status reports success while dropping rows.
+Records** DLO family, so a pipeline that checks only the HTTP status reports success while dropping
+rows.
 
 ### Deleting a stream can delete its DLO
 

@@ -1,11 +1,10 @@
 # Data 360 Dataspace Access
 
-Data 360 objects — DMOs, DLOs and Calculated Insight
-objects — sit outside OWD, role hierarchy and sharing rules, and are granted through a permission
-set element with no analogue elsewhere in the platform.
+Data 360 objects — DMOs, DLOs and Calculated Insight objects — sit outside OWD, role hierarchy and
+sharing rules, and are granted through a permission set element with no analogue elsewhere in the
+platform.
 
-What a dataspace *is*, and what a DMO or DLO holds, belongs
-to `dya-sf-data360`.
+What a dataspace *is*, and what a DMO or DLO holds, belongs to `dya-sf-data360`.
 
 ## `dataspaceScopes` on a permission set
 
@@ -26,7 +25,7 @@ revokes that grant; there is no separate revoke operation.
 - **`dataAccessLevel`** — what this permission set may do inside the dataspace at all.
 - **`objectAccessLevel`** — how far the grant reaches into individual objects. **`BY_POLICY`**
   delegates row and column filtering to central governance policies, so no per-object grants are
-  needed. Prefer it when governance policies exist.
+  needed and the policy stays in one place. Prefer it when governance policies exist.
 
 Requires Data Cloud provisioned; without it the element is ignored or rejected depending on the
 deploy path, so a permission set carrying it is not portable to an arbitrary org.
@@ -54,7 +53,6 @@ sf project retrieve start --metadata PermissionSet:Marketing_Analytics --target-
 ## Where this connects
 
 - A permission set carrying `<dataspaceScopes>` is otherwise ordinary — assignment order, licences
-  and muting behave normally. See
-  `references/object-and-field-access.md`.
+  and muting behave normally. See `references/object-and-field-access.md`.
 - What the granted objects contain, and how to query them once granted:
   `dya-sf-data360`.

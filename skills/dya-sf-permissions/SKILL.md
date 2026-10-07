@@ -101,10 +101,9 @@ Each layer only **widens** access from a restrictive baseline; only restriction 
    internal. Start restrictive and open deliberately.
    **Values vary by object:** Case and Lead add `ReadWriteTransfer`, Campaign adds `FullAccess`, and
    Price Book has its own model (`ReadSelect`, `Read`, `None`) with external **fixed at `None`,
-   unchangeable** by any API. **Some objects are
-   not configurable:** User is fixed at Read internally and externally, Activity's external default
-   is fixed at Private, and Knowledge article visibility is governed by channels, not OWD. **OWD
-   changes cascade:** setting Account to Private forces Contact, Case and Opportunity to Private and
+   unchangeable** by any API. **Some objects are not configurable:** User is fixed at Read internally
+   and externally, Activity's external default is fixed at Private, and Knowledge article visibility
+   is governed by channels, not OWD. **OWD changes cascade:** setting Account to Private forces Contact, Case and Opportunity to Private and
    recalculates all four, while Contract follows Account and cannot be set independently.
 2. **Role Hierarchy** — a user inherits access to records owned by anyone below them, with no
    per-record configuration. "Grant Access Using Hierarchies" can be switched off for **custom**
@@ -112,15 +111,17 @@ Each layer only **widens** access from a restrictive baseline; only restriction 
 3. **Sharing Rules** — owner-based (records owned by this group go to that group) or criteria-based
    (records matching a field filter go to a group). **Model them as immutable:** an owner-based rule
    allows editing only its access level, so changing who it shares from or to fails the deploy and
-   needs a delete-and-recreate. A normal deploy is **additive** and never removes a sharing rule; that needs a destructive deploy.
+   needs a delete-and-recreate. A normal deploy is **additive** and never removes a sharing rule;
+   that needs a destructive deploy.
 4. **Manual and Apex Managed Sharing** — one record shared with a user or group. Apex sharing writes
    `__Share` rows with a **sharing reason**, which makes the share recalculable and survivable
    across owner changes.
 5. **Teams** — Account, Opportunity and Case teams grant named collaborators a defined access level.
-6. **Implicit sharing** — grants the platform makes on its own, not configurable: read access to a child
-   record grants read on its parent Account; Account access grants access to the associated Contacts, Cases and Opportunities under some OWD combinations; and
-   portal and community users get implicit access to their own account's records. None appear in any
-   sharing rule.
+6. **Implicit sharing** — grants the platform makes on its own, not configurable: read access to a
+   child record grants read on its parent Account; Account access grants access to the associated
+   Contacts, Cases and Opportunities under some OWD combinations; and portal and community users get
+   implicit access to their own account's records. None appear in any sharing rule, and they explain
+   most "why can they see this?" investigations.
 
 ### The two narrowing layers
 

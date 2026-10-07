@@ -60,7 +60,8 @@ my_transform/
 }
 ```
 
-Rerun `script scan` after changing which objects the code reads or writes; do not hand-edit the file.
+`script scan` generates it by statically analysing the entrypoint; rerun it after changing which
+objects the code reads or writes rather than hand-editing the file.
 
 ## The Python API
 
@@ -102,5 +103,6 @@ compute is credit-metered (SKILL.md §8).
 
 ## Local runs hit real data
 
-**`script run` executes against real Data 360 data**; there is no local fixture layer. Develop against a dataspace you are willing to dirty, and keep the
-write call commented out until the transform's output looks right.
+**`script run` executes against real Data 360 data**; there is no local fixture layer, so a run that
+writes will write. Develop against a dataspace you are willing to dirty, and keep the write call
+commented out until the transform's output looks right.

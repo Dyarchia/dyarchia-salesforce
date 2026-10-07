@@ -27,7 +27,9 @@ AccountShare share = new AccountShare(
 insert share;
 ```
 
-Apex managed sharing requires the right permissions. Custom objects use `MyObject__Share` with `AccessLevel` and `RowCause`. For managed logic, use a custom **Apex sharing reason** defined on the object, not `RowCause.Manual`: it enables recalculation and clean maintenance.
+Apex managed sharing requires the right permissions. Custom objects use `MyObject__Share` with
+`AccessLevel` and `RowCause`. For managed logic, use a custom **Apex sharing reason** defined on the
+object, not `RowCause.Manual`: it enables recalculation and clean maintenance.
 
 ## The Metadata Behind It
 
@@ -59,12 +61,12 @@ Not configurable:
 ### Sharing rules
 
 All rules for one object live in one `sharingRules/<ObjectName>.sharingRules-meta.xml`, under three
-element names by kind: `sharingCriteriaRules`, `sharingOwnerRules` and
-`sharingGuestRules`. Retrieve with `--metadata "SharingRules:<ObjectName>"`.
+element names by kind: `sharingCriteriaRules`, `sharingOwnerRules` and `sharingGuestRules`.
+Retrieve with `--metadata "SharingRules:<ObjectName>"`.
 
 `<sharedTo>` targets a `<role>`, `<roleAndSubordinates>` or `<group>` — except in guest rules, where
-it targets the site guest user. Account sharing rules also require an `<accountSettings>`
-block with all three of its sub-elements present.
+it targets the site guest user. Account sharing rules also require an `<accountSettings>` block
+with all three of its sub-elements present.
 
 Editable after creation:
 
@@ -87,8 +89,8 @@ destructive deploy naming the per-kind types — `SharingCriteriaRule`, `Sharing
 
 - `<sharedTo><guestUser>…</guestUser></sharedTo>`, where the value is the site guest user's
   **`CommunityNickname`** — not the site's URL path prefix, and not a `<role>` or `<group>`.
-- **`<includeHVUOwnedRecords>` is required.** Set it to `false`
-  unless records owned by high-volume site users should be included.
+- **`<includeHVUOwnedRecords>` is required.** Set it to `false` unless records owned by high-volume
+  site users should be included.
 - `<includeRecordsOwnedByAll>` belongs to `sharingCriteriaRules` and **fails** inside a guest rule.
 - Guest user Ids start with `005`, like any user.
 

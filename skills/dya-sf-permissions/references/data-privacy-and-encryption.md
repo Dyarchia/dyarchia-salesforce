@@ -62,8 +62,8 @@ the specific one in any design document.
 A DSAR policy gathers everything the org holds about one person to hand back. Its `minApiVersion` is
 **68.0**.
 
-**Right To Portability is export, not erasure.** A `DsarPolicy` deletes nothing; if the
-requirement is deletion, it is the wrong tool.
+**Right To Portability is export, not erasure.** A `DsarPolicy` deletes nothing; if the requirement
+is deletion, it is the wrong tool.
 
 | Entity | Reached through |
 |---|---|
@@ -88,10 +88,11 @@ deactivating it first, leaving a window where nothing is active.
 
 ## Data Mask
 
-Data Mask rewrites sensitive values in a sandbox refreshed from production. **It is sandbox-only: the run and abort endpoints return 403 in production.**
+Data Mask rewrites sensitive values in a sandbox refreshed from production. **It is sandbox-only:
+the run and abort endpoints return 403 in production.**
 
-Two user permissions, granted by API name, gate it:
-`PermissionsManageDataMaskPolicies` and `PermissionsAccessDataMaskAndSeed`.
+Two user permissions, granted by API name, gate it: `PermissionsManageDataMaskPolicies` and
+`PermissionsAccessDataMaskAndSeed`.
 
 ### The per-entity API split
 
@@ -135,13 +136,12 @@ predicate capped at **40 characters**, with the structured form in `RawFilterDat
   because the string `'null'` is not the null literal.
 
 Scheduling lives on the policy itself: `RunFrequency` (`once`, `daily`, `weekly`, `monthly`),
-`ScheduledStart`, and `RunOnRefresh` to mask automatically on every sandbox refresh; prefer it to masking manually
-after each refresh.
+`ScheduledStart`, and `RunOnRefresh` to mask automatically on every sandbox refresh; prefer it to
+masking manually after each refresh.
 
 ## Where this connects
 
-- Encryption and field-level security are independent: encrypting a field does not substitute for FLS
-  on it. See
-  `references/object-and-field-access.md`.
+- Encryption and field-level security are independent: encrypting a field does not substitute for
+  FLS on it. See `references/object-and-field-access.md`.
 - Data 360 has its own access layer that these do not cover — see `references/dataspace-access.md`
   and `dya-sf-data360`.

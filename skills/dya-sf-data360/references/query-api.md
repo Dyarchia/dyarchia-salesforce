@@ -39,7 +39,8 @@ placeholders in the SQL:
 POST https://{instance}/services/data/vXX.X/ssot/query-sql?dataspace=default&workloadName=engagement-records
 ```
 
-with `:startDate` in the statement bound from `sqlParameters`. String-built SQL is injectable here too.
+with `:startDate` in the statement bound from `sqlParameters`. String-built SQL is injectable here
+too.
 
 **`result_scan` reads a cached result.** Pass a submit's `queryId` to `result_scan` in a later SQL
 statement to read the cached output instead of re-scanning.
