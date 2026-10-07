@@ -100,16 +100,17 @@ plugin handling API-version substitution, the org proxy and Live Preview injecti
 primitives are spartan-ng `hlm-*`, not Angular Material.
 
 `sf template generate project` always nests its output under a folder named for `--name`. Both the
-project root and the bundle directory carry a `package.json`, and both need `npm install`.
-
-**Install dependencies inside the UI bundle directory, not at the project root**, or the app
-breaks silently:
+project root and the bundle directory carry a `package.json`, and both need `npm install`: the root
+one for the setup scripts, the bundle one for the app. From the project root:
 
 ```shell
-cd force-app/main/default/uiBundles/MyReactProject
-npm install
-npm run sf-project-setup       # builds and opens the dev server at http://localhost:5173
+npm install                    # root tooling only
+npm run sf-project-setup       # installs and builds the bundle, opens http://localhost:5173
 ```
+
+Working on the bundle by hand, or on one added with `sf template generate ui-bundle`, install
+**inside the bundle directory**: `cd force-app/main/default/uiBundles/<app> && npm install`. A root
+install alone leaves the app without its dependencies.
 
 Without a React template, add `@salesforce/vite-plugin-ui-bundle` (wires the Vite dev server to
 your org's data) and `@salesforce/ui-bundle` (Data SDK helpers).
@@ -184,7 +185,7 @@ Without schema imports, a renamed field breaks at runtime, not at build.
 | Planning an ISV or packaged deliverable | Supported: 2GP managed with a namespace. Turn on the Dev Hub packaging toggle first |
 | Reaching for React for a component inside Lightning Experience | LWC. Embedding React there needs Micro-Frontend, still Developer Preview |
 | Assuming platform security carries over | With React you implement and maintain it |
-| `npm install` at the project root | Inside the `uiBundles/<app>` directory |
+| Assuming a root `npm install` installs the app | `npm run sf-project-setup` from the root, or `npm install` inside `uiBundles/<app>` |
 | `fetch()` or `axios` straight at a Salesforce endpoint | `dataSdk.fetch?.()` — it handles auth and CSRF |
 | `dataSdk.graphql.query(...)` without optional chaining | `graphql?.` and `fetch?.` are optional by contract |
 | Looking for `lightning/*` or `@wire` | Only `@salesforce/platform-sdk/data`; use `useEffect` and `subscribe` |

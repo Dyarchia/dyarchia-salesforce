@@ -191,7 +191,7 @@ Full detail: `references/experience-layer.md`.
   *Bypass*; the safety guardrails apply **only** in the middle one.
 - **Salesforce DX MCP Server** (Beta) — preconfigured in the Vibes extension. Toolsets include
   `lwc-experts`, `aura-experts` (Aura→LWC migration), SLDS guidance, ApexGuru code review, Lightning
-  Types (`create_lightning_type`) and Metadata API context. Some require enabling global rules such
+  Types (`create_lightning_type`, Developer Preview) and Metadata API context. Some require enabling global rules such
   as `a4d-general-rules` and `a4d-lwc-rules`.
 - **Coding skills** (30+) — preconfigured capability bundles giving coding agents live,
   best-practice-aware access to your platform.
@@ -218,7 +218,7 @@ Headless 360 changes the surface, **not** the security model:
   zero-data-retention with LLM providers.
 - **Token-scoped, least-privilege access.** Authenticate with OAuth — External Client Apps, or JWT
   for server-to-server — scope tokens to the minimum, and use **Named Credentials** for outbound.
-  The **Any API Auth** permission governs who may use legacy SOAP `login()`, retiring Summer '27;
+  The **Use Any API Auth** permission governs who may use legacy SOAP `login()`, retiring Summer '27;
   migrate to OAuth and External Client Apps.
 - **Curate the toolset.** A broad toolset is both a security and a reliability liability.
 

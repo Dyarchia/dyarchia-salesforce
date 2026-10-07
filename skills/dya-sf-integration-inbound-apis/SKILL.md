@@ -34,7 +34,7 @@ Who the integration user may be, and what its permissions let the call see, belo
 - **Target 68.0 for new integrations; 41.0 is the hard floor.** The version is the `vXX.X` in
   `/services/data/vXX.X/`. Dates and status live only in
   `references/shared/metadata-and-api-versions.md` — do not restate them.
-- **SOAP `login()` retires 1 June 2027** for API 31.0–64.0, a year before the versions themselves.
+- **SOAP `login()` retires with Summer '27** for API 31.0–64.0, a year before the versions themselves.
   SOAP accepts a JWT OAuth access token in the session header instead.
 - **GraphQL mutations are GA** and can reference any field an earlier operation returned, not only
   the record id, creating and linking a parent and child in one round trip.

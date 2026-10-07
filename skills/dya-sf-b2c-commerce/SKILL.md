@@ -78,7 +78,8 @@ server.get('Show', function (req, res, next) {
 module.exports = server.exports();
 ```
 
-`server.append` augments an existing route's view data without re-executing the controller:
+`server.append` adds a step after the base route's middleware chain, which still runs in full; the
+step extends the base view data, and the template renders once when the route completes:
 
 ```javascript
 'use strict';

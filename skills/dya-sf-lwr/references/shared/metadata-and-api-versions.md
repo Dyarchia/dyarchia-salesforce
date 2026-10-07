@@ -50,8 +50,10 @@ classes, triggers, Flows or Visualforce pages; they keep running under their own
 What breaks is an external caller addressing a retired `/services/data/vXX.X/` path.
 
 SOAP `login()` is a separate, narrower retirement on an earlier clock: for API 31.0–64.0 it is
-retired on **1 June 2027** (Summer '27), and it is already unavailable at 65.0 and above. It also
-requires the **Any API Auth** user permission, enforced by default in new orgs. `login()` goes a year
+retired **with the Summer '27 release**, as each org upgrades, not on a fixed date. It is already
+unavailable at 65.0 and above, and disabled by default in orgs created from Winter '26 (Setup › User
+Interface › Enable SOAP API login()). Where enabled, the user needs the **Use Any API Auth**
+permission. `login()` goes a year
 before the versions; do not conflate the two dates. See `dya-sf-integration-auth`.
 
 ## Targets

@@ -158,7 +158,7 @@ interchangeable.
 **For bulk reads, iterate the query** (`for (Account[] batch : [SELECT …])`) rather than
 materialising it: the for-loop chunks at 200 records and keeps heap flat.
 
-**Apex Cursors** (GA since Spring '26) handle up to ~50M rows per cursor with flexible and
+**Apex Cursors** (GA since Spring '26) handle up to 50M rows per cursor with flexible and
 bidirectional chunking, bounded by **10 `fetch()` calls per transaction**, 10k cursors/day and 100M
 rows/day. Use them where Batch Apex's fixed forward chunking does not fit.
 

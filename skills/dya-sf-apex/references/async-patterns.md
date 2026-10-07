@@ -94,11 +94,11 @@ public with sharing class LargeDataProcessor implements Queueable {
 ### Cursor limits
 
 - **10 `fetch()` calls per transaction** is the binding constraint, not the row total.
-- Track usage with `Limits.getApexCursorRows()` and `Limits.getApexCursors()`.
+- Track usage with `Limits.getApexCursorRows()`, `Limits.getFetchCallsOnApexCursor()` and `Limits.getApexCursors()`.
 
 ### Cursors vs Batch Apex
 
-The 10-fetches-per-transaction ceiling means processing 50M records by chaining a Queueable across many execution contexts (one fetch per execution, ten contexts of work, then the next chain link). Up to ~5M, Cursors + Queueable is cleaner: flexible chunk sizes, bidirectional traversal, serialisable state across transactions. Above 5M — especially recurring jobs — Batch Apex is usually simpler: its `start/execute/finish` lifecycle handles chunking, retry and scope management, and the platform parallelises chunks (cursors do not).
+50M rows per cursor is the hard cap, not the practical ceiling. Every fetched row also counts against the 50,000-row SOQL limit, so one Queueable link moves at most ~50k rows, and a 50M-row cursor needs 1,000+ chained links and half the org's 100M rows/day cursor budget. Up to ~5M records (a guideline, not a platform limit), Cursors + Queueable is cleaner: flexible chunk sizes, bidirectional traversal, serialisable state across transactions. Above that, especially for recurring jobs, Batch Apex is usually simpler: its `start/execute/finish` lifecycle handles chunking, retry and scope management, and it does not draw on the cursor daily limits.
 
 ## Mixed DML — Setup vs Non-Setup Objects
 

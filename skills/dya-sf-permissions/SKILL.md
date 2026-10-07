@@ -32,7 +32,7 @@ read and write — not just the UI. See `references/shared/platform-deltas.md` a
 | Change | Status | Effect |
 |---|---|---|
 | **Enable Profile Filtering** | Enforced | Users without a bypass permission cannot see other users' profile names. Queries return **empty, not an error**, so code reading profile names silently degrades |
-| **"Any API Auth" required for SOAP `login()`** | Enforced in new orgs | Username/password SOAP authentication needs the permission. Treat SOAP `login()` as end-of-life. See `dya-sf-integration-auth` |
+| **"Use Any API Auth" required for SOAP `login()`** | Enforced in new orgs | Username/password SOAP authentication needs the permission. Treat SOAP `login()` as end-of-life. See `dya-sf-integration-auth` |
 | **View Setup Audit Trail becomes a standalone permission** | GA | Auditors get the trail without the broader permission that used to carry it |
 | **Keep Manual Shares When Transferring Records** | GA, off by default | An org-wide setting that preserves the manual shares an ownership change previously deleted |
 

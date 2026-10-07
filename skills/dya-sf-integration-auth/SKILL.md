@@ -1,6 +1,6 @@
 ---
 name: dya-sf-integration-auth
-description: Salesforce integration authentication & identity (Winter '27 / API v68.0) — inbound OAuth 2.0 flows, External Client Apps vs Connected Apps, the username-password flow retirement, the "Any API Auth" permission and SOAP login() retirement, JWT/mTLS/session auth; and outbound Named Credentials + External Credentials (principals, protocols). The one home for "how do I authenticate an integration." Applies to Named Credentials, External Credentials, External Client Apps, Connected Apps, Auth Providers, OAuth and JWT client code. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-auth`).
+description: Salesforce integration authentication & identity (Winter '27 / API v68.0) — inbound OAuth 2.0 flows, External Client Apps vs Connected Apps, the username-password flow retirement, the "Use Any API Auth" permission and SOAP login() retirement, JWT/mTLS/session auth; and outbound Named Credentials + External Credentials (principals, protocols). The one home for "how do I authenticate an integration." Applies to Named Credentials, External Credentials, External Client Apps, Connected Apps, Auth Providers, OAuth and JWT client code. Load before creating or editing anything in this scope, or when the user invokes this skill by name (`dya-sf-integration-auth`).
 ---
 
 # Salesforce Integration Authentication & Identity
@@ -26,7 +26,7 @@ patterns is `dya-sf-integration-overview`.
 | Change | When | What breaks |
 |---|---|---|
 | **OAuth 2.0 username-password flow retired for connected apps** | Release Update in Winter '27, **enforced 20 February 2027** | Anything posting `grant_type=password` with a username, password and security token stops receiving a token — on that date, not at the release upgrade |
-| **SOAP `login()` retirement** for API 31.0–64.0 | Summer '27; already unavailable at 65.0+ | Username/password SOAP authentication. The **"Any API Auth"** user permission already gates who may use it, enforced by default in new orgs |
+| **SOAP `login()` retirement** for API 31.0–64.0 | Summer '27 upgrade; already unavailable at 65.0+, off by default in orgs created since Winter '26 | Username/password SOAP authentication. Where enabled, the **"Use Any API Auth"** user permission gates who may use it |
 | **Update Instanced URLs in API Traffic** | Postponed to **Spring '27** | API calls to instance-based endpoints rather than the org's My Domain URL |
 
 If an org does not see the username-password Release Update in Setup, the flow is already blocked

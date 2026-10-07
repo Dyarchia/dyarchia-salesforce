@@ -42,7 +42,7 @@ the two separate retirement dates (the versions themselves, and SOAP `login()` a
 
 | Item | Status |
 |---|---|
-| "Any API Auth" user permission | Gates SOAP `login()`; enforced by default in new orgs |
+| "Use Any API Auth" user permission | Gates SOAP `login()`; enforced by default in new orgs |
 | Apex classes, triggers, Visualforce pages | **Not retired** — they keep their saved version |
 
 Version retirement targets the numeric version in *standard platform endpoint* URLs, plus the SOAP

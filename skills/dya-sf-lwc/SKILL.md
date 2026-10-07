@@ -161,10 +161,11 @@ returns `errors` — plural.
 
 ## 5. Shared State Across Components
 
-**`@lwc/state`** is for shared **reactive** state between components on the same page. A state manager
+**`@lwc/state`** is for shared **reactive** state between components in one component tree. A state manager
 moves the data and its logic into a reusable, testable module, so siblings coordinate without lifting
 state to a common parent or drilling props. Built-in **Lightning State Managers** wrap LDS for
-record-backed state, so most cases need no hand-written manager.
+record-backed state, so most cases need no hand-written manager. A state manager needs a provider
+ancestor; components placed separately in App Builder have none.
 
 **Lightning Message Service** is pub/sub over a Lightning Message Channel, for relationships that
 cross the DOM, pages, apps or technologies — LWC talking to Aura or Visualforce, or a utility-bar
@@ -176,9 +177,9 @@ component broadcasting application-wide. Subscribe in `connectedCallback` and **
 | Local state — a counter, a toggle, a form field | A plain field; reactive by default |
 | Parent to child | `@api` property |
 | Child to parent | A `CustomEvent` |
-| Siblings on the same page sharing reactive state | `@lwc/state` |
+| Siblings under one container LWC sharing reactive state | `@lwc/state`, provided by the container |
 | Record-backed shared state | A built-in Lightning State Manager, or a GraphQL wire |
-| Across the DOM, pages or apps | Lightning Message Service |
+| Across the DOM: separate App Builder components, utility bar, pages or apps | Lightning Message Service |
 | LWC talking to Aura or Visualforce | Lightning Message Service |
 
 For directly related components, `@api` properties and events stay correct and simplest. Use a state
@@ -229,11 +230,13 @@ Optional chaining and nullish coalescing. `async`/`await` over `.then()` chains,
 handlers, which are not async functions. Destructuring. `Array.prototype` methods over manual loops.
 
 **Downloads use `blob:` with an explicit MIME type, never `data:`.** A `data:` URI set as `href` and
-clicked fails silently under Lightning Web Security.
+clicked fails silently under Lightning Web Security. Take the type from the allowed set in
+`references/lws-rules.md`: `text/csv` is not on it and throws `Unsupported MIME type.`, so a CSV goes
+out as `application/octet-stream` and `download` supplies the name. No `;charset=` parameters.
 
 ```javascript
 downloadCsv(csv) {
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const url = URL.createObjectURL(new Blob([csv], { type: 'application/octet-stream' })); // ✅ not text/csv
     const a = this.template.querySelector('a.download');
     a.href = url;
     a.download = 'export.csv';

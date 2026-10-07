@@ -78,7 +78,7 @@ These break running integrations, not just deprecate a pattern.
 - **Profile filtering is enforced.** A user without one of the bypass permissions (View All Profiles,
   Customize Application, Manage Users and five others) can no longer see other users' profile names;
   queries return empty rather than erroring. See `dya-sf-permissions`.
-- **SOAP `login()` requires the "Any API Auth" user permission**, and is on its way out entirely for
+- **SOAP `login()` requires the "Use Any API Auth" user permission**, and is on its way out entirely for
   API 31.0–64.0. See `dya-sf-integration-auth`.
 - **View Setup Audit Trail** becomes a standalone permission instead of riding on a broader one.
 - **Experience Delivery (Beta) is discontinued**, with auto-migration on republish through October

@@ -55,7 +55,7 @@ Built-in managers wrap Lightning Data Service for records, object info, layouts 
 
 ## When to Use LMS
 
-Use LMS when **two or more components react to the same data** outside a parent → child relationship, for example a product list and a cart summary on the same page, a filter panel driving a results grid in another component, an Aura component reacting to an event an LWC published.
+Use LMS when **two or more components react to the same data** but share no LWC ancestor that could provide a state manager: a product list and a cart summary placed separately in App Builder, a utility-bar component driving the main region, an Aura component reacting to an event an LWC published. When both render inside one container LWC, provide a `@lwc/state` manager from that container instead.
 
 Do NOT use LMS for:
 - Local component state (a plain property).

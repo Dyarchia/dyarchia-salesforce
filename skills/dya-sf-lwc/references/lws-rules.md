@@ -51,12 +51,13 @@ a style preference.
 
 | MIME | Behaviour |
 |---|---|
-| `image/*`, `video/*`, `audio/*`, `application/pdf` | Safe |
-| `text/html`, `image/svg+xml`, `text/xml` | Warns — requires content scanning |
-| `text/javascript`, empty or undefined | **Blocked** |
+| `application/octet-stream`, `application/json`, `application/pdf`, `text/plain`, `text/markdown`, `image/*`, `video/*`, `audio/*`, `font/*`, `application/zip`, `application/x-bzip`, `application/x-rar-compressed`, `application/x-tar` | Allowed |
+| `text/html`, `image/svg+xml`, `text/xml` | Sanitized; throws if sanitizing would change the content |
+| Empty | Re-typed as `text/plain` |
+| Anything else, including `text/csv`, `text/javascript` and any type with parameters (`;charset=...`) | **Blocked**: throws `Unsupported MIME type.` |
 
-For the `blob:` download pattern in §8, **give the `Blob` an explicit MIME type from the safe set.**
-An omitted type is blocked silently.
+For the `blob:` download pattern in §8, **give the `Blob` an explicit type from the allowed set.** A
+CSV is not on it: use `application/octet-stream` and let `download` carry the file name.
 
 ## `lws-020` — URL schemes
 
@@ -66,7 +67,7 @@ constructed dynamically* — in `href`, `src`, `action`, `window.location`, `win
 `ftp:` and `ws:`.
 
 The rule targets **untrusted URLs**, not every scheme it lists. The catalogue flags `data:`,
-`blob:`, `tel:` and `mailto:` for review, and `lws-019` sanctions `URL.createObjectURL` for safe MIME
+`blob:`, `tel:` and `mailto:` for review, and `lws-019` sanctions `URL.createObjectURL` for allowed MIME
 types, so a `blob:` URL your own code minted for an `<a download>` is not caught. When a URL comes
 from a record field, a parameter or anything a user can influence, validate the scheme before
 assigning it.

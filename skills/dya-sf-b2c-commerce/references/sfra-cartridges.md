@@ -41,7 +41,7 @@ server.append('Show', function (req, res, next) {      // augment view data afte
 module.exports = server.exports();
 ```
 
-> `server.append` can re-execute logic; do not run the controller twice when appending and rendering.
+> `server.append` never skips the base chain: its queries, service calls and basket writes run first on every request. Do not repeat that work in the appended step, do not append just to render a different template (use `server.replace` when the base output is discarded), and do not append to routes that call a web service or update a third-party system.
 
 ## Script API (`dw.*`)
 
@@ -151,5 +151,5 @@ Use `getTotalCount` to show progress; prefer standard imports over custom logic.
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Re-running the controller via append+render | Append only view data, render once |
+| Appending to a route whose base work is repeated or discarded | Append only to extend view data; otherwise `server.replace` |
 | DML without `Transaction.wrap` | Wrap data changes in a transaction |

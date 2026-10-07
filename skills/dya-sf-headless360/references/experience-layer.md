@@ -21,7 +21,7 @@ Examples: an approval card, a decision tile, a flight-rebooking flow.
 
 - Define a **custom Lightning Type** to describe the shape of an interaction (fields, structure, the rendered component).
 - The runtime maps that type to the native rendering on each channel.
-- Author Lightning Types in natural language via the **Lightning Types MCP tool** (`create_lightning_type`) in the Salesforce DX MCP Server (Developer Preview), through Agentforce Vibes.
+- Author Lightning Types in natural language via the **Lightning Types MCP tool** (`create_lightning_type`, in the `lwc-experts` toolset of the Beta Salesforce DX MCP Server; the tool itself is Developer Preview), through Agentforce Vibes.
 
 ## Native React
 

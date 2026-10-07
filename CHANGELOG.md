@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `dya-sf-flow` §7 forbade a callout after *committed* DML; the rule is *uncommitted* DML.
 - Four stale section pointers: `http-callout-patterns.md` (§7), `jest-testing.md` (§10), `guest-and-seo.md` (§4–§5), and a "below" in `trigger-framework.md` that pointed above.
 - Four citations of shared fragments the skill never synced, in `dya-sf-headless360`, `dya-sf-agentforce` and `dya-sf-data360`, are removed.
+- Six contradictions, checked against Salesforce sources:
+  - `dya-sf-lwc` downloaded a CSV as `text/csv`, which Lightning Web Security blocks with `Unsupported MIME type.`; it now uses `application/octet-stream`, and the `lws-019` table lists the real allowed, sanitized and blocked types.
+  - SOAP `login()` retires with each org's Summer '27 upgrade, not on 1 June 2027; it is off by default in orgs created since Winter '26, and the permission is **Use Any API Auth**.
+  - `dya-sf-b2c-commerce`: `server.append` always runs the base chain first; it never skips the controller.
+  - `dya-sf-lwc`: `@lwc/state` needs a provider ancestor, so components placed separately in App Builder use LMS.
+  - `dya-sf-apex`: 50M rows is the per-cursor cap; ~5M is guidance for Cursors + Queueable over Batch Apex.
+  - `dya-sf-headless360`: `create_lightning_type` is Developer Preview inside the Beta DX MCP Server, and a generated UI bundle installs with `npm run sf-project-setup` from the root.
 - `CLAUDE.md` described the README check as a full-text scan and the layout diagram as two count sites; the validator requires a catalogue bullet and reads one diagram count.
 
 ## [0.7.0] - 2026-10-03
