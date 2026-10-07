@@ -12,8 +12,8 @@ Run it against an authenticated CLI org:
 vlocity -sfdx.username <alias> -job <job-file>.yaml <command>
 ```
 
-**Prefer `-sfdx.username` over a username/password properties file**, which puts a credential in a
-file that ends up committed.
+**Prefer `-sfdx.username` over a username/password properties file.** The password form still works,
+but it puts a credential in a file that ends up committed.
 
 ## The commands, in order of use
 
@@ -27,9 +27,10 @@ file that ends up committed.
 | `packContinue` | Resumes an interrupted run |
 | `packUpdateSettings` | Refreshes the DataPack settings in the org |
 
-**`validateLocalData` is not optional.** A pack whose dependency had not landed succeeds on the next
-`packRetry` pass. Stop retrying when the error count stops dropping; the remaining errors are real
-and the table below applies.
+**`validateLocalData` is not optional.**
+
+A pack whose dependency had not landed succeeds on the next `packRetry` pass. Stop retrying when the
+error count stops dropping; the remaining errors are real and the table below applies.
 
 ## The job file
 

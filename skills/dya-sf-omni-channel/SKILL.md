@@ -6,9 +6,9 @@ description: Salesforce Omni-Channel and Service Cloud routing (Winter '27 / API
 # Salesforce Omni-Channel
 
 Omni-Channel decides **which agent gets which piece of work**. Its job starts when a conversation,
-case or call needs a human and ends when that human accepts it. The agent that handles the
-conversation before then is `dya-sf-agentforce`'s. Digital Engagement channel setup, ITSM object models and the
-Service Console's UI are out of scope. Follow every rule below.
+case or call needs a human and ends when that human accepts it. Designing the agent that handles
+the conversation before then belongs to `dya-sf-agentforce`. Digital Engagement channel setup, ITSM
+object models and the Service Console's UI are out of scope. Follow every rule below.
 
 References:
 
@@ -60,10 +60,9 @@ ServicePresenceStatus   the statuses an agent can select (Available - Chat, Busy
 PresenceUserConfig      which statuses this agent may use, and their capacity
 ```
 
-**Diagnose along the chain.** Work not routing is one of, in this order: no
-`ServiceChannel` for the sObject, the queue does not accept it (`QueueSobject`), no
-`QueueRoutingConfig` on the queue, no agent in an available status, or every eligible agent at
-capacity.
+**Diagnose along the chain.** Work not routing is one of, checked in this order: no `ServiceChannel`
+for the sObject, the queue does not accept it (`QueueSobject`), no `QueueRoutingConfig` on the
+queue, no agent in an available status, or every eligible agent at capacity.
 
 ---
 
@@ -91,8 +90,8 @@ radio**. Do not debug why the prompt is absent.
 ## 3. `routeWork` — the Agentforce Seam
 
 The `routeWork` Flow action pushes a record into routing from automation; it is the boundary with
-`dya-sf-agentforce`. An agent that cannot help calls it; a queue that an agent rather
-than a person should handle routes through it too.
+`dya-sf-agentforce`. An agent that cannot help calls it; a queue that an agent rather than a person
+should handle routes through it too.
 
 Pass exactly one target:
 

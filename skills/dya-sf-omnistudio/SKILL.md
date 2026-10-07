@@ -6,7 +6,8 @@ description: Salesforce OmniStudio developer surface (Winter '27 / API v68.0) �
 # Salesforce OmniStudio — Developer Surface
 
 OmniStudio (formerly Vlocity) is the **Salesforce Industries** low-code and pro-code toolkit. This
-skill covers its **programmatic** surface, building on `dya-sf-apex` and `dya-sf-lwc`. Follow every rule below.
+skill covers its **programmatic** surface, building on `dya-sf-apex` and `dya-sf-lwc`. Follow every
+rule below.
 
 References:
 - `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults a Remote Action inherits.
@@ -21,8 +22,8 @@ References:
 
 Winter '27 changes **nothing in the OmniStudio programmatic contracts**: the `Callable` and
 `VlocityOpenInterface2` interfaces, Integration Procedure and Data Mapper invocation shapes and Apex
-Remote Action signatures are unchanged. The release reaches OmniStudio only through the platform
-changes below.
+Remote Action signatures are unchanged. Say so rather than inventing novelty: the release reaches
+OmniStudio only through the platform changes below.
 
 - **Two flavours and three interfaces.** **OmniStudio Standard** is metadata-based and on core, in
   the **`omnistudio`** namespace; the original **Managed Package** ("OmniStudio for Vlocity")
@@ -112,8 +113,8 @@ global with sharing class AccountRemoteActions implements vlocity_cmt.VlocityOpe
 Rules: the class is `global with sharing`; only methods on classes implementing `Callable` or
 extending `VlocityOpenInterface(2)` are invocable from OmniStudio; dispatch on `methodName`; read
 `input`, write `outMap`/`output`, read `options`; return `Boolean` success. It is **bulk-safe,
-`WITH USER_MODE`, and free of SOQL and DML in loops**. Register class and method in the
-Remote Action element as **Remote Class** and **Remote Method**. Full contract and errors:
+`WITH USER_MODE`, and free of SOQL and DML in loops**. Register class and method in the Remote
+Action element as **Remote Class** and **Remote Method**. Full contract and errors:
 `references/apex-remote-actions.md`.
 
 **A `{ inputMap, options }` envelope is a different call site.** A generic `System.Callable`
@@ -127,8 +128,8 @@ above to match it.
 ## 3. Integration Procedures (the server-side workhorse)
 
 IPs run **multiple actions in a single server call**, declaratively. Common actions: DataRaptor
-Extract/Load, **HTTP Action** (callout), **Remote Action** (Apex), Set Values, Response
-Action, Conditional and Loop Block, and Integration Procedure Action to compose.
+Extract/Load, **HTTP Action** (callout), **Remote Action** (Apex), Set Values, Response Action,
+Conditional and Loop Block, and Integration Procedure Action to compose.
 
 - **Invoke from Apex** with `omnistudio.IntegrationProcedureService.runIntegrationService(...)` on
   Standard, or the `vlocity_*` equivalent on Managed:

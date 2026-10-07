@@ -45,6 +45,8 @@ sfsAppointmentBundlingAPI bApi = new sfsAppointmentBundlingAPI(
 sfsAppointmentBundlingAPI.bundleResponse bRes = (sfsAppointmentBundlingAPI.bundleResponse) bApi.run();
 ```
 
+On the SA, `IsBundle` marks the bundle header and `IsBundleMember` marks members.
+
 ## Field Service Mobile — Offline-First Extensibility
 
 Grant the **Lightning SDK for Field Service Mobile** permission via a permission set.

@@ -49,12 +49,16 @@ asynchronous, which matters when a scheduling call holds a large candidate set.
 | **`FSL` Apex namespace** (managed package) | `ScheduleService`, `AppointmentBookingService`, `GradeSlotsService`, `OAAS` | In-session scheduling, booking, grading, optimization |
 | **Standard data model + REST** | `ServiceAppointment`/`WorkOrder`/… + Salesforce Scheduler REST + Bundling REST | Headless/external booking, bundling, integrations |
 
+The FSL Apex classes run **in-session** only; external self-service goes through Salesforce
+Scheduler REST (§5).
+
 ---
 
 ## 2. The Call Pattern: scope-1 + DML-before-callout
 
 Each FSL scheduling call processes **one** Service Appointment, and no DML may precede a callout in
-the same transaction. Use a **Batchable with scope = 1**, with DML and callout steps in separate methods.
+the same transaction. Use a **Batchable with scope = 1**, with the DML step and the callout step in
+separate methods.
 
 ```apex
 public with sharing class FsBookingScheduling {
@@ -211,11 +215,11 @@ with `resourceLimitApptDistribution` when a territory exceeds ~20. Full payloads
 **FSL managed-package custom objects:** `FSL__Scheduling_Policy__c`, `FSL__Work_Rule__c`,
 `FSL__Service_Goal__c` (service objectives), `FSL__Optimization_Request__c`, `FSL__Polygon__c`.
 
-**`ServiceAppointment.ParentRecordId` is create-only** and
-polymorphic over Account, Asset, Lead, Opportunity, WorkOrder and WorkOrderLineItem, so §5's headless
-flow must know the parent before it commits. **`DurationType`** — Minutes or Hours — governs what
-`Duration` means. **`StatusCategory`** is a restricted picklist and the mechanism behind the status
-mapping, so a custom Status must declare its category. Bundling carries `BundlePolicyId` and
+**`ServiceAppointment.ParentRecordId` is create-only** and polymorphic over Account, Asset, Lead,
+Opportunity, WorkOrder and WorkOrderLineItem, so §5's headless flow must know the parent before it
+commits. **`DurationType`** — Minutes or Hours — governs what `Duration` means. **`StatusCategory`**
+is a restricted picklist and the mechanism behind the status mapping, so a custom Status must declare
+its category. Bundling carries `BundlePolicyId` and
 `RelatedBundleId`, not only `IsBundle` and `IsBundleMember`.
 
 **Lifecycle (default, customizable):** `None → Scheduled → Dispatched → In Progress → Completed`,
@@ -233,7 +237,7 @@ managed object, falling back to the native one on `INVALID_TYPE`.
 
 Policies and objectives are referenced **by Id**, queried by Name:
 `[SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = 'Customer First']` — which throws
-`INVALID_TYPE` on an ESO-native org.
+`INVALID_TYPE` on an ESO-native org, so resolve first.
 
 There is **no supported "write a Work Rule in Apex" SPI**; four declarative hooks come first:
 **Extended Match** (a junction object with *exactly two* Master-Detail relationships, to
@@ -247,10 +251,9 @@ flows (the "Skill Iron Rule" pattern) or custom Gantt actions only when those ar
 ## 7. Field Service Mobile
 
 - **Licensing first.** Every mobile worker needs the **`FieldServiceMobilePsl`** permission set
-  licence to log in at all — there is no separate mobile user-licence SKU.
-  `EinsteinFieldServicePsl` adds Voice to Record Edit and Pre-Work Brief;
-  `AgentforceForFieldServicePsl` adds Voice to Form. Confirm with
-  `SELECT DeveloperName, TotalLicenses, UsedLicenses FROM PermissionSetLicense`. The **Lightning SDK
+  licence to log in at all — there is no separate mobile user-licence SKU. `EinsteinFieldServicePsl`
+  adds Voice to Record Edit and Pre-Work Brief; `AgentforceForFieldServicePsl` adds Voice to Form.
+  Confirm with `SELECT DeveloperName, TotalLicenses, UsedLicenses FROM PermissionSetLicense`. The **Lightning SDK
   for Field Service Mobile** permission gates custom LWC, not login.
 - **Custom LWC** target `lightning__FieldServiceMobile`. **LWC Offline** (opt-in) reads and updates
   locally, syncing on reconnect.
@@ -271,7 +274,8 @@ flows (the "Skill Iron Rule" pattern) or custom Gantt actions only when those ar
   will not reproduce it. The app caches its sharing snapshot at login, so the technician must sign
   out and back in after the fix.
 - **Pre-Work Brief activation cannot be driven from Apex.** The prompt-template activation endpoint
-  is `@ConnectHidden(from=Apex)`, so `ConnectApi.EinsteinLLM` and metadata approaches both fail. Drive it from the CLI or an external caller.
+  is `@ConnectHidden(from=Apex)`, so `ConnectApi.EinsteinLLM` and metadata approaches both fail by
+  design. Drive it from the CLI or an external caller.
 
 Full offline matrix and Bundling REST: `references/rest-and-mobile.md`. Data Capture flows, the `dc*`
 components and the mobile settings objects: `references/mobile-data-capture.md`.

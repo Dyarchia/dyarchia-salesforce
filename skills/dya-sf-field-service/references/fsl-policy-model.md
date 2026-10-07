@@ -60,8 +60,8 @@ Objective_Skill_Preferences     Objective_Custom_Logic
 Creating a policy **auto-creates** the `Earliest Start Permitted` and `Due Date` Match Time rules.
 Do not write them; a deploy that includes them collides with the package's own.
 
-It does **not** create `Service Resource Availability`, mandatory on every policy; without it the
-policy schedules nothing and reports no useful error.
+It does **not** create `Service Resource Availability`, mandatory on every policy. Its omission is the
+most common cause of a policy that schedules nothing and reports no useful error.
 
 Shipped starter policies: `Customer First`, `High Intensity`, `Soft Boundaries`, `Emergency`.
 
@@ -83,13 +83,14 @@ The engine choice is a policy's biggest performance decision:
 A pure-Apex-rule policy evaluates custom logic against the whole resource population on every
 `GetSlots` and `getAppointmentCandidates` call.
 
-**Count Rule: up to 10 custom-field rules per policy.** Time resolution is always Daily; it always
-  counts `ServiceAppointment`.
+**Count Rule: up to 10 custom-field rules per policy.** Its time resolution is always Daily, and it
+always counts `ServiceAppointment`.
 
 ## Relevance groups
 
 A relevance group scopes a rule to a subset of work or resources via a **Boolean field**: on
-`ServiceAppointment` for work, on `ServiceTerritoryMember` for resources. STM supports **primary and relocation memberships only, not secondary**.
+`ServiceAppointment` for work, on `ServiceTerritoryMember` for resources. STM supports **primary and
+relocation memberships only, not secondary**.
 
 **Groups must be mutually exclusive.** Where two relevance-grouped rules overlap the more
 restrictive wins — except for **Service Resource Availability, where an overlap throws an error**.
@@ -116,7 +117,8 @@ The supported no-Apex way to match one appointment field against many resource v
 postal codes, product lines, anything one-to-many.
 
 Besides the junction (SKILL.md §6), it needs a Lookup field on `ServiceAppointment` driving the
-match and a reference field on the junction to compare against. Configured at Setup → Field Service Settings → Scheduling → Work Rules.
+match and a reference field on the junction to compare against. Configure it at Setup → Field
+Service Settings → Scheduling → Work Rules.
 
 ## FSL fields on ServiceAppointment
 

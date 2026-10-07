@@ -293,4 +293,4 @@ flow with a `standard__flow` PageReference: `dya-sf-lwc`.
 Handle a list of any size — that satisfies Flow and costs an agent nothing. A Flow-facing action
 throws on full-batch failure; an agent-facing action returns a success flag and a human-readable
 message the agent can relay. If one method serves both, return that result and let the Flow branch
-on it. The agent side: `dya-sf-agentforce`.
+on it rather than throwing. The agent side: `dya-sf-agentforce`.

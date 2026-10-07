@@ -71,7 +71,7 @@ Flow Builder → New Action → "Create HTTP Callout", or open the Flow → Tool
   }
   ```
 
-  The platform generates two Apex types from the samples: `FetchPricingQuoteRequest` and `FetchPricingQuoteResponse`.
+  The platform generates two Apex types from the samples, `FetchPricingQuoteRequest` and `FetchPricingQuoteResponse`, with strongly-typed fields matching the JSON structure.
 
 - **Headers** — per-request headers if needed (`Content-Type: application/json` is added automatically; add `X-Idempotency-Key` if the API supports it).
 

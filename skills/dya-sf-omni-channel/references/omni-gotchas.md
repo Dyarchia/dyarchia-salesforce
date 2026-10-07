@@ -35,7 +35,7 @@ using them fails.
 
 ## `enableOmniChannel` gates everything
 
-Deploy `Settings:OmniChannel` on its own; bundling it with the rest into one deploy does not
+Deploy `Settings:OmniChannel` on its own first; bundling it with the rest into one deploy does not
 reliably order them.
 
 ## The queue that accepts nothing

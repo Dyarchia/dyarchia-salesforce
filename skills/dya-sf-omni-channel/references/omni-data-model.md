@@ -3,6 +3,7 @@
 ## `ServiceChannel` — what is routable
 
 **One channel per `RelatedEntityType`**: a second for the same entity fails rather than layering.
+The standard channels:
 
 | DeveloperName | Entity |
 |---|---|
@@ -49,8 +50,8 @@ configuration, is the constraint.
 Records when an item was pushed, accepted, declined and closed. Supervisor dashboards read it; query
 it to answer "who had this, and when".
 
-Supervisors see only the `AgentWork` records sharing grants them, so an empty
-supervisor console is usually a sharing problem, not a routing one.
+Supervisors see only the `AgentWork` records sharing grants them, so an empty supervisor console is
+usually a sharing problem, not a routing one.
 
 ## The agent side
 

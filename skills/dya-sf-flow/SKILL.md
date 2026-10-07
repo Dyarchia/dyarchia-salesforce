@@ -129,7 +129,8 @@ name" and "Link to record" on lookup columns).
 field below the email", "show address fields only when billing country is US"). Use it for
 prototyping; review every generated change before activation.
 
-Collapse wizards where every step is a screen with a Next button into fewer reactive screens.
+Avoid wizards where every step is a screen with a Next button; check whether the journey collapses
+into fewer reactive screens.
 
 ## 6. Calling Apex from Flow
 

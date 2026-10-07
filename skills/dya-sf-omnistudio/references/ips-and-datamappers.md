@@ -42,7 +42,8 @@ or generate an IP rather than click one.
 ```
 
 Each element's output is stored in the IP response **under the element's own name**
-(`{"GetAccountDetails": { … }}`), so renaming an element breaks every downstream reference to it.
+(`{"GetAccountDetails": { … }}`). That is why `responseJSONNode` exists, and why renaming an element
+breaks every downstream reference to it.
 
 `sendOnlyAdditionalInput: true` suppresses the accumulated data context and sends only what
 `additionalInput` declares. Use it when an element should not see upstream data, for payload size and

@@ -23,7 +23,7 @@ References:
 ## Platform Context — Winter '27 / API v68.0
 
 Winter '27 changes little here directly. **Agents now discover external tools through governed MCP
-connections**; an event-driven backbone feeds them without polling. See
+connections**, so an event-driven backbone is the natural way to feed them without polling. See
 `dya-sf-integration-connectors-mcp`.
 
 Standing facts:
@@ -146,10 +146,10 @@ Outbound paths: `dya-sf-integration-outbound`.
 - **At-least-once delivery.** Consumers may see an event more than once, so every handler is
   **idempotent** — dedupe on a business key or the replay id.
 - **72 h retention.** Store the last processed replay id and resume from it; design a
-  reconciliation batch for gaps beyond the window. Alternatively, a `ManagedEventSubscription` makes the platform track the replay position, consumed through the
-  Pub/Sub **`ManagedSubscribe`** RPC instead of `Subscribe`. That is the default for a long-lived
-  in-platform consumer; keep manual replay bookkeeping for an external subscriber with durable state
-  of its own.
+  reconciliation batch for gaps beyond the window. Alternatively, a `ManagedEventSubscription` makes
+  the platform track the replay position, consumed through the Pub/Sub **`ManagedSubscribe`** RPC
+  instead of `Subscribe`. That is the default for a long-lived in-platform consumer; keep manual
+  replay bookkeeping for an external subscriber with durable state of its own.
 - **Order.** Events are delivered in publish order per channel. Never assume cross-channel ordering.
 - **Allocations.** Event publishing and delivery carry daily allocations; high-volume designs budget
   for them.
