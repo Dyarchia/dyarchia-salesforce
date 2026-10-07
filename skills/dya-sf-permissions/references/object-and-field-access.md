@@ -11,19 +11,19 @@ Load from `dya-sf-permissions` for the "what can the user do" axis: profiles, pe
 | **Permission Set Group (PSG)** | many per user | Bundle of permission sets for a persona |
 | **Muting Permission Set** | within a PSG | Subtract specific permissions from that group |
 
-Permissions combine **additively** across all assigned sources. The *only* way to take a permission away (other than not granting it) is a **muting permission set** inside a PSG.
+Permissions combine **additively** across all assigned sources. Short of not granting it, the *only* way to remove a permission is a **muting permission set** inside a PSG.
 
 ## Object Permissions (CRUD)
 
-Per object: **Create, Read, Edit, Delete**, plus **View All** and **Modify All** (bypass sharing for that object). View All/Modify All are powerful — grant sparingly. "View All Data"/"Modify All Data" are *system* permissions that bypass sharing for *all* objects — reserve for admins/integration-of-last-resort.
+Per object: **Create, Read, Edit, Delete**, plus **View All** and **Modify All** (bypass sharing for that object) — grant those sparingly. "View All Data"/"Modify All Data" are *system* permissions that bypass sharing for *all* objects — reserve for admins/integration-of-last-resort.
 
 ## Field-Level Security (FLS)
 
-Per field: **Read** and **Edit**. FLS is enforced **everywhere** — UI, API, reports, and user-mode Apex from API 67.0. A field a user can't read is invisible in query results. FLS is set on profiles/permission sets, not on the field definition itself (the field defines defaults).
+Per field: **Read** and **Edit**. FLS is enforced **everywhere** — UI, API, reports, and user-mode Apex from API 67.0; an unreadable field is invisible in query results. FLS is set on profiles/permission sets, not on the field definition (which defines defaults).
 
 ## System & User Permissions
 
-App-wide capabilities not tied to a single object, e.g. **API Enabled**, **Author Apex**, **Manage Users**, **Run Flows**, **Manage Sharing**, **Customize Application**, **Modify Metadata Through Metadata API**, **View Setup and Configuration**. Grant via permission sets; many are high-privilege.
+App-wide capabilities not tied to one object, e.g. **API Enabled**, **Author Apex**, **Manage Users**, **Run Flows**, **Manage Sharing**, **Customize Application**, **Modify Metadata Through Metadata API**, **View Setup and Configuration**. Grant via permission sets; many are high-privilege.
 
 ## Other Access Delivered via Permission Sets
 
@@ -40,12 +40,11 @@ Control, per profile/permission set:
 - Which **page layout** is assigned.
 - Which **business process** (Lead/Opportunity/Case/Solution) applies.
 
-Record-type *access* shapes **data entry and presentation** — it is **not** record visibility (that's sharing). A user can have access to a record type yet not see a given record, and vice versa.
+Record-type *access* shapes **data entry and presentation**, **not** record visibility (that's sharing). A user can have access to a record type yet not see a given record, and vice versa.
 
 ## The Metadata Behind It
 
-A `PermissionSet` is one XML file, and everything the assignment stack grants appears in it as a
-named element:
+A `PermissionSet` is one XML file; everything it grants appears as a named element:
 
 | Element | Grants |
 |---|---|
@@ -60,13 +59,12 @@ named element:
 | `<dataspaceScopes>` | Data 360 dataspaces — see `references/dataspace-access.md` |
 
 **A required field listed in `<fieldPermissions>` fails the deployment.** Required fields cannot
-carry field-level security at all, so omit them entirely rather than granting them explicitly. This
-is a schema fact, not a permission problem, and the error message does not make that obvious.
+carry field-level security, so omit them rather than granting them explicitly. This is a schema
+fact, not a permission problem, and the error message does not make that obvious.
 
-User permissions are referenced by API name and are worth knowing in that form when you are writing
-a permission set rather than clicking one — `PermissionsManageDataMaskPolicies` and
-`PermissionsAccessDataMaskAndSeed` gate Data Mask, for instance, and `PermissionsViewAllProfiles` is
-what bypasses Winter '27 profile filtering.
+User permissions are referenced by API name, worth knowing when writing a permission set rather than
+clicking one — e.g. `PermissionsManageDataMaskPolicies` and `PermissionsAccessDataMaskAndSeed` gate
+Data Mask, and `PermissionsViewAllProfiles` bypasses Winter '27 profile filtering.
 
 ## Assignment Order — Licence Before Set
 
@@ -75,18 +73,18 @@ When a permission set carries a `LicenseId`, the licence assignment must land **
 1. `POST` a `PermissionSetLicenseAssign` for the user.
 2. Then `POST` the `PermissionSetAssignment`.
 
-Reversed, the second call fails. This bites in scripted persona provisioning, where a loop that
-assigns several sets in one pass will succeed for the licence-free ones and fail for the rest, which
-reads like an intermittent problem rather than an ordering one.
+Reversed, the second call fails. This bites in scripted persona provisioning: a loop assigning
+several sets in one pass succeeds for the licence-free ones and fails for the rest, which reads like
+an intermittent problem rather than an ordering one.
 
-While there: do not "normalise" permission set API names when scripting against a packaged persona
-model. Vendors ship inconsistent names on purpose or by accident — a set called `IncidentFulfiller`
-sitting beside `ProblemFulfillerPermSet` and `ChangeRequestFulfillerPermSet` is a real shape, and
-correcting the odd one out produces a `NOT_FOUND`.
+Also: do not "normalise" permission set API names when scripting against a packaged persona model.
+Vendors ship inconsistent names, deliberately or not — `IncidentFulfiller` beside
+`ProblemFulfillerPermSet` and `ChangeRequestFulfillerPermSet` is a real shape, and correcting the odd
+one out produces a `NOT_FOUND`.
 
 ## Turning a Feature On At All
 
-Some capabilities are gated by an org feature toggle before any permission matters, and Salesforce Go
+Some capabilities are gated by an org feature toggle before any permission matters; Salesforce Go
 exposes those through a Connect API rather than metadata:
 
 ```text
@@ -94,8 +92,8 @@ GET  /services/data/vXX.X/connect/setup/discovery/feature/{apiName}/status
 POST /services/data/vXX.X/connect/setup/discovery/feature/{apiName}/enable
 ```
 
-Worth knowing because the failure looks like a permission problem: the user has the permission set,
-the profile is right, and the feature still is not there. Check the toggle before auditing access.
+The failure looks like a permission problem: the user has the permission set, the profile is right,
+and the feature still is not there. Check the toggle before auditing access.
 
 ## Design Rules
 

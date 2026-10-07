@@ -1,6 +1,6 @@
 # Record Sharing — Reference (Winter '27 / API v68.0)
 
-Load from `dya-sf-permissions` for the "which records can the user see" axis. Access widens through a pipeline from a restrictive baseline; restriction/scoping rules narrow.
+Load from `dya-sf-permissions` for the "which records can the user see" axis. Access widens from a restrictive baseline; restriction/scoping rules narrow.
 
 ## Evaluation Pipeline (widening)
 
@@ -9,21 +9,21 @@ Load from `dya-sf-permissions` for the "which records can the user see" axis. Ac
    - **Public Read Only** — everyone reads, only owner/hierarchy edits.
    - **Public Read/Write** — everyone reads and edits.
    - **Controlled by Parent** — inherits the parent's access (detail/junction objects).
-   - Internal vs External OWD let you set a stricter default for community/portal users.
+   - Separate Internal and External OWD allow a stricter default for community/portal users.
 2. **Role Hierarchy** — when "Grant Access Using Hierarchies" is on, users inherit access to records owned by subordinates. (Can be disabled for custom objects.)
 3. **Sharing Rules** — open records beyond OWD:
    - **Owner-based** — share records owned by a group/role with another group/role.
    - **Criteria-based** — share records matching field criteria.
    - **Guest user sharing rules** — separate, tightly restricted (read-only, no role hierarchy).
-4. **Manual Sharing** — a user/admin shares a single record with a user/group/role (only when OWD is more restrictive than Public R/W).
-5. **Apex Managed Sharing** — programmatic sharing by writing `Object__Share` / `AccountShare` rows with an `AccessLevel` and a **sharing reason** (custom apex reason for maintainable, recalculable shares). Requires the right permissions; survives owner changes when reason-coded.
+4. **Manual Sharing** — a user/admin shares one record with a user/group/role (only when OWD is more restrictive than Public R/W).
+5. **Apex Managed Sharing** — writing `Object__Share` / `AccountShare` rows with an `AccessLevel` and a **sharing reason** (a custom Apex reason for maintainable, recalculable shares). Requires the right permissions; survives owner changes when reason-coded.
 6. **Teams** — Account, Opportunity, and Case Teams grant named collaborators a defined access level.
-7. **Implicit Sharing** — platform built-in: e.g. access to a child record can grant read on its parent Account; portal/community implicit shares. Not configurable.
+7. **Implicit Sharing** — built into the platform, not configurable: e.g. access to a child record can grant read on its parent Account; portal/community implicit shares.
 
 ## Narrowing Layers
 
 - **Restriction Rules** — within objects the user already accesses, filter to a subset (e.g. "only Cases of type Internal"). They *remove* visibility that other layers granted.
-- **Scoping Rules** — set the *default* records a user sees (a convenience filter); they don't change what the user *can* access if they search/relist.
+- **Scoping Rules** — set the *default* records a user sees (a convenience filter); they don't change what the user *can* reach by searching or relisting.
 
 ## Resulting Access
 
@@ -32,7 +32,7 @@ A user's access to a record = the **most permissive** grant from OWD/hierarchy/r
 ## Apex Managed Sharing — Shape
 
 ```apex
-// Share an Account programmatically with read access, reason-coded.
+// Share an Account with read access, reason-coded.
 AccountShare share = new AccountShare(
     AccountId          = acctId,
     UserOrGroupId      = groupOrUserId,
@@ -43,17 +43,17 @@ AccountShare share = new AccountShare(
 insert share;
 ```
 
-Custom objects use `MyObject__Share` with `AccessLevel` and `RowCause` (a custom **Apex sharing reason** defined on the object enables recalculation and clean maintenance). `with sharing`/`without sharing` on the class controls whether record sharing is enforced when querying.
+Custom objects use `MyObject__Share` with `AccessLevel` and `RowCause` (a custom **Apex sharing reason** defined on the object enables recalculation and clean maintenance). `with sharing`/`without sharing` on the class controls whether queries enforce record sharing.
 
 ## The Metadata Behind It
 
 ### Org-Wide Defaults
 
 OWD lives on the object itself — `<ObjectName>.object-meta.xml` — as `<sharingModel>` for internal
-access and `<externalSharingModel>` for external. Standard objects included: retrieve and deploy them
-as `--metadata CustomObject:<ObjectName>`, which reads oddly for `Account` but is correct.
+access and `<externalSharingModel>` for external. Standard objects too: retrieve and deploy them as
+`--metadata CustomObject:<ObjectName>`, which reads oddly for `Account` but is correct.
 
-The valid values are **not the same for every object**:
+Valid values **differ by object**:
 
 | Object | Values |
 |---|---|
@@ -63,7 +63,7 @@ The valid values are **not the same for every object**:
 | Campaign | `Private`, `Read`, `ReadWrite`, **`FullAccess`** |
 | Price Book (`Pricebook2`) | **`ReadSelect`** (Use), `Read` (View Only), `None` — the standard values are invalid here |
 
-And some are not configurable at all:
+Some are not configurable at all:
 
 | Object | Fixed at |
 |---|---|
@@ -81,8 +81,8 @@ Cross-object constraints that turn a one-object ticket into a four-object change
 
 ### Sharing rules
 
-All rules for one object live in a single `sharingRules/<ObjectName>.sharingRules-meta.xml`, under
-three element names depending on kind: `sharingCriteriaRules`, `sharingOwnerRules` and
+All rules for one object live in one `sharingRules/<ObjectName>.sharingRules-meta.xml`, under three
+element names by kind: `sharingCriteriaRules`, `sharingOwnerRules` and
 `sharingGuestRules`. Retrieve with `--metadata "SharingRules:<ObjectName>"`.
 
 `<sharedTo>` targets a `<role>`, `<roleAndSubordinates>` or `<group>` — except in guest rules, where
@@ -97,27 +97,26 @@ block with all three of its sub-elements present.
 | `sharingCriteriaRules` | `<accessLevel>`, `<criteriaItems>`, `<label>`, `<booleanFilter>` |
 | `sharingGuestRules` | `<accessLevel>`, `<criteriaItems>`, `<label>`, `<includeHVUOwnedRecords>` |
 
-**`<sharedTo>` and `<sharedFrom>` cannot be edited in place in any kind.** The platform does not
-support it and the deploy fails; the rule has to be deleted and recreated. Design owner-based rules
-on the assumption that only their access level will ever change.
+**`<sharedTo>` and `<sharedFrom>` cannot be edited in place in any kind.** The deploy fails; the
+rule must be deleted and recreated. Design owner-based rules assuming only their access level will
+ever change.
 
 ### Deleting a rule
 
-A normal `sf project deploy start` is **additive** and will not remove a sharing rule, however
-absent it is from the source. Deletion needs a destructive deploy naming the per-kind types —
+A normal `sf project deploy start` is **additive** and will not remove a sharing rule absent from the
+source. Deletion needs a destructive deploy naming the per-kind types —
 `SharingCriteriaRule`, `SharingOwnerRule`, `SharingGuestRule` — with members of the form
 `<ObjectName>.<RuleFullName>`. A source tree that "no longer has" a rule is not an org that no longer
 has it.
 
 ### Guest sharing rules, specifically
 
-Guest rules are the mechanism behind exposing records to an unauthenticated site visitor, and they
-have their own shape:
+Guest rules expose records to an unauthenticated site visitor, and have their own shape:
 
 - `<sharedTo><guestUser>…</guestUser></sharedTo>`, where the value is the site guest user's
   **`CommunityNickname`** — not the site's URL path prefix, and not a `<role>` or `<group>`.
-- **`<includeHVUOwnedRecords>` is required.** Set it to `false` unless records owned by high-volume
-  site users should be included. Omitting it is the most common authoring mistake.
+- **`<includeHVUOwnedRecords>` is required** — the most commonly omitted element. Set it to `false`
+  unless records owned by high-volume site users should be included.
 - `<includeRecordsOwnedByAll>` belongs to `sharingCriteriaRules` and **fails** inside a guest rule.
 - Guest user Ids start with `005`, like any user.
 
@@ -127,7 +126,7 @@ have their own shape:
 - Prefer **declarative sharing rules** over Apex sharing where criteria/ownership suffices.
 - Use **Apex managed sharing with a custom reason** for complex, recalculable programmatic shares.
 - Use **restriction rules** to enforce need-to-know within broad access (e.g. HR records).
-- Remember the role hierarchy quietly grants upward access — model managers' visibility intentionally.
+- The role hierarchy quietly grants upward access — model managers' visibility intentionally.
 
 ## Anti-Patterns
 

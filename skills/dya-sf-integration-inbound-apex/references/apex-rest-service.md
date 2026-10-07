@@ -1,13 +1,13 @@
 # Apex REST Service — Reference Implementation (Winter '27 / API v68.0)
 
-Load from `dya-sf-integration-inbound-apex` when building a custom inbound REST endpoint. Apex REST is GA and recommended; this is the canonical multi-verb, transactional, securely-bounded service. Deep Apex rules (bulkification, async, logging) live in `dya-sf-apex`.
+Load from `dya-sf-integration-inbound-apex` when building a custom inbound REST endpoint. Apex REST is GA and recommended; this is the canonical multi-verb, transactional, securely bounded service. Deep Apex rules (bulkification, async, logging) live in `dya-sf-apex`.
 
 ## Full Service
 
 ```apex
 /**
- * Inbound order API. External system POSTs an order with line items;
- * we create the order + lines transactionally and return a stable contract.
+ * Inbound order API: an external system POSTs an order with line items;
+ * order + lines are created transactionally behind a stable contract.
  */
 @RestResource(urlMapping='/v1/orders/*')
 global with sharing class OrderApi {
@@ -71,7 +71,7 @@ global with sharing class OrderApi {
             return new ResponseDto(true, ord.Id, 'Created');
 
         } catch (Exception e) {
-            // Report through the org's own logging framework if it has one; never leak the stack trace
+            // Log via the org's logging framework if any; never leak the stack trace
             RestContext.response.statusCode = 500;
             return new ResponseDto(false, null, 'Could not process the order.');
         }
@@ -104,14 +104,14 @@ global with sharing class OrderApi {
 ## Rules Embodied Above
 
 - **`global with sharing`** class; **`global static`** methods, one annotation per verb.
-- **User-mode security**: `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML — correct and required from API 67.0 (`WITH SECURITY_ENFORCED` no longer compiles).
+- **User-mode security**: `WITH USER_MODE` on SOQL, `AccessLevel.USER_MODE` on DML — required from API 67.0 (`WITH SECURITY_ENFORCED` no longer compiles).
 - **Idempotency**: upsert by external id so a retried POST updates rather than duplicates.
 - **Bulk**: children built in a list, one DML. No DML/SOQL in loops.
 - **Stable contract**: explicit DTOs and a versioned URL (`/v1/orders/`).
 - **HTTP semantics**: 201 create, 204 delete, 400/422 validation, 404 not found, 500 with a clean message.
 - **No leaked internals**: catch, log durably, return a sanitised message.
 
-## Raw Body / Headers When You Need Them
+## Raw Body and Headers
 
 ```apex
 @HttpPost
