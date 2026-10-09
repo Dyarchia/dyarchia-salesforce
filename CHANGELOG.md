@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The README says how to keep the plugin updated.** Claude Code leaves auto-update off for third-party marketplaces, and refreshing a marketplace from a shell does not update the plugin installed from it, so the upgrade step published with 0.8.0 never actually installed the new version. The new section gives both ways: enable auto-update once, or run the marketplace update followed by the plugin update.
 - **The README documents `npx skills add Dyarchia/dyarchia-salesforce`**, the agent-neutral installer that Salesforce's own `sf-skills` points to. It needed no change to the repo: the `skills` CLI finds all 26 skills under `skills/` as they are, verified with `--list`.
 
+### Fixed
+
+- **Winter '27 reaches every production org on 11 October 2026.** The shared `platform-deltas.md` gave the rollout as waves "through 3 and 10 October"; it now states the date from which every production org runs API 68.0, synced to the 25 skills that declare the fragment.
+- `.github/CODEOWNERS` carried its comment in Spanish; it is in English like every tracked file.
+
 ## [0.8.0] - 2026-10-07
 
 ### Changed

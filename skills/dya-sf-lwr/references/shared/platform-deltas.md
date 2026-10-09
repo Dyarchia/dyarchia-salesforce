@@ -9,8 +9,8 @@ point here for the rest; a version bump is then one edit, not a sweep across eve
 
 ## What "API version" means here
 
-Salesforce ships three releases a year. Winter '27 is **API version 68.0**, generally available in
-waves through 3 and 10 October 2026.
+Salesforce ships three releases a year. Winter '27 is **API version 68.0**, rolled out to production
+in waves; every production org runs it from 11 October 2026.
 
 **The API version compiled into each class, trigger, component or page** governs behaviour, not
 the org's release. An org on Winter '27 still runs a class stamped 55.0 under 55.0 semantics.
