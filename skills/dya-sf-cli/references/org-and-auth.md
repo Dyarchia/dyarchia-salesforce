@@ -125,7 +125,7 @@ sf org create user --definition-file user-def.json --set-alias newuser --target-
 sf org generate password --target-org <a>
 sf org display user --target-org <a>
 sf org list users --target-org <a>
-sf org create agent-user --alias <a> [--first-name X --last-name Y --base-username z]   # Agentforce run-as user
+sf org create agent-user --target-org <a> [--first-name X --last-name Y --base-username z]   # Agentforce run-as user
 ```
 
 ## Config & Aliases

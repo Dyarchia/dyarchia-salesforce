@@ -35,26 +35,33 @@ sf logic run test                                               # Apex + Flow te
 
 ## Agentforce DX (`sf agent`)
 
-The lifecycle runs on an **authoring bundle**: generate, validate, publish, activate. `sf agent
-generate agent-spec` and `sf agent create --spec` are gone.
+The lifecycle runs on an **authoring bundle**: generate, validate, publish, activate.
+`sf agent create --spec` still exists but builds an agent **without** Agent Script; Salesforce
+recommends against it, so use the authoring-bundle commands.
 
 ```bash
-sf agent generate authoring-bundle --name My_Agent        # scaffold; --no-spec to skip the spec
+sf agent generate agent-spec --type customer --output-file specs/agentSpec.yaml   # optional input
+sf agent generate authoring-bundle --name "My Agent" --api-name My_Agent --spec specs/agentSpec.yaml
+sf agent generate authoring-bundle --name "My Agent" --no-spec    # default boilerplate instead
 sf agent validate authoring-bundle --api-name My_Agent
 sf agent publish  authoring-bundle --api-name My_Agent    # compiles to the runtime metadata
-sf agent activate --api-name My_Agent                     # and `sf agent deactivate`
+sf agent activate --api-name My_Agent --version 2         # and `sf agent deactivate`
 sf agent generate template                                # packaging for AppExchange distribution
 
-sf agent preview start --api-name My_Agent --output-dir transcripts
+sf agent preview --api-name My_Agent --output-dir transcripts    # interactive chat, active agent
+sf agent preview start --api-name My_Agent                # scripted session on the published agent
 sf agent preview start --authoring-bundle My_Agent        # preview the bundle, not a published agent
-sf agent preview send --session-id <id> --message "Where is order 123?"
+sf agent preview send --session-id <id> --utterance "Where is order 123?"
 sf agent preview end --session-id <id>
+sf agent trace list | read | delete                       # trace files recorded by preview sessions
 
 sf agent test create --spec test-specs/my-tests.yaml
-sf agent test run | list | results --job-id <id> | resume --job-id <id>
+sf agent test run --api-name My_Tests --wait 10           # --api-name is the AiEvaluationDefinition
+sf agent test list | results --job-id <id> | resume --job-id <id>
+sf agent test run-eval --spec test-specs/my-tests.yaml    # same YAML, richer evaluation framework
 
 # Related: create the run-as user
-sf org create agent-user --alias <a>
+sf org create agent-user --target-org <a>
 
 sf agent mcp create | get | list | update | delete | fetch     # MCP servers from the CLI
 sf agent mcp asset list | replace -i <id>

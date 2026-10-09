@@ -60,7 +60,7 @@ earlier in that turn.
 ```agentscript
 before_reasoning:
     set @variables.attempts = 0          ❌ resets on every self-transition
-    if @variables.attempts == null
+    if @variables.attempts is None
         set @variables.attempts = 0      ✅ initialises once
 ```
 

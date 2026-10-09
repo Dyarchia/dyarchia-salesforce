@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Winter '27 reaches every production org on 11 October 2026.** The shared `platform-deltas.md` gave the rollout as waves "through 3 and 10 October"; it now states the date from which every production org runs API 68.0, synced to the 25 skills that declare the fragment.
 - `.github/CODEOWNERS` carried its comment in Spanish; it is in English like every tracked file.
+- **`dya-sf-agentforce` and `dya-sf-cli` agree on the `sf agent` surface, checked against `sf` 2.153.5.** The two skills contradicted each other, and both were partly wrong:
+  - `sf agent generate agent-user` does not exist; the command is `sf org create agent-user`, and it takes `--target-org`, not `--alias`. Fixed in `dya-sf-agentforce`, `dya-sf-cli` and `dya-sf-headless360`.
+  - `sf agent generate agent-spec` and `sf agent create --spec` were declared gone; both still exist. The spec writes with `--output-file`, and `agent create` stays discouraged because it builds an agent without Agent Script.
+  - `authoring-bundle --name` is the **label**; `--api-name` sets the API name.
+  - `agent test run` needs `--api-name`, the `AiEvaluationDefinition` name, and `--wait` to block. `agent preview send` takes `--utterance`, not `--message`, and `preview start` has no `--output-dir`. `agent activate` gains `--version`.
+  - Added `sf agent test run-eval` and `sf agent trace list | read | delete`.
+- **Agent Script corrections in `dya-sf-agentforce`.** `@utils.set` and `@utils.end_session` are not utilities; the built-ins are `transition`, `setVariables` and `escalate`, and assignment is the `set` statement. A null check is `is None`, not `== null`.
 
 ## [0.8.0] - 2026-10-07
 

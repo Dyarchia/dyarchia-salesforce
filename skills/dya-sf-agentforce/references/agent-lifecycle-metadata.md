@@ -74,17 +74,22 @@ whose errors are further from the cause.
 ## CLI surface
 
 ```bash
-sf agent generate authoring-bundle --name <ApiName> [--no-spec]
+sf agent generate authoring-bundle --name "<Label>" --api-name <ApiName> --spec <path> | --no-spec
 sf agent validate authoring-bundle --api-name <ApiName>
 sf agent publish  authoring-bundle --api-name <ApiName>
-sf agent activate   --api-name <ApiName>
+sf agent activate   --api-name <ApiName> --version <N>
 sf agent deactivate --api-name <ApiName>
 
 sf agent preview start --authoring-bundle <ApiName>     # preview the bundle, pre-publish
-sf agent preview start --api-name <ApiName>             # preview the published agent
+sf agent preview start --api-name <ApiName>             # preview the published, active agent
+sf agent preview send  --session-id <id> --utterance "<text>"
 sf agent preview … --use-live-actions | --simulate-actions
+sf agent trace list | read | delete                     # trace files from preview sessions
 
-sf agent test create --spec <path> | run | list | results --job-id <id> | resume --job-id <id>
+sf agent test create --spec <path>
+sf agent test run --api-name <AiEvaluationDefinition> --wait <minutes>
+sf agent test list | results --job-id <id> | resume --job-id <id>
+sf agent test run-eval --spec <path>                    # same YAML, richer evaluation framework
 ```
 
 ```bash

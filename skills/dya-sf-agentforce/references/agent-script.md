@@ -220,9 +220,10 @@ else:
 | Util | Use |
 |---|---|
 | `@utils.transition` | Move to another subagent — the routing primitive |
-| `@utils.set` | Assign a variable |
+| `@utils.setVariables` | Let the model fill variables from the conversation (slot filling) |
 | `@utils.escalate` | Hand off to a human |
-| `@utils.end_session` | End the conversation |
+
+Assign a variable deterministically with the `set` statement, not a utility.
 
 ## Where to write it
 

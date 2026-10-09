@@ -82,7 +82,7 @@ sf config set target-org=myorg                                # set default org
 sf org create scratch --definition-file config/project-scratch-def.json \
   --alias scratch1 --set-default --duration-days 7
 sf org create sandbox --definition-file sandbox-def.json --alias uat
-sf org create agent-user --alias myorg                        # Agentforce service user
+sf org create agent-user --target-org myorg                   # Agentforce service user
 ```
 
 Full catalog: `references/org-and-auth.md`.

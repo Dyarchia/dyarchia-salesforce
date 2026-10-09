@@ -101,11 +101,11 @@ and let the Trust Layer do masking and grounding. Salesforce publishes a Postman
 sf agent generate template
 
 # Provision a service agent user in one command (no manual setup)
-sf agent generate agent-user
+sf org create agent-user --target-org <alias>
 
 # Scripted interactive preview session (GA): start → send → list → end
-sf agent preview start --api-name My_Agent --output-dir ./previews
-sf agent preview send  --session-id <id> --message "Where is order 12345?"
+sf agent preview start --api-name My_Agent
+sf agent preview send  --session-id <id> --utterance "Where is order 12345?"
 sf agent preview sessions
 sf agent preview end   --session-id <id>
 ```
@@ -183,5 +183,5 @@ When migrating a legacy agent, let it auto-convert to Script, then run the optim
 | Grading only "did the action run" | Custom Scoring Evals on decision quality |
 | Broad OAuth scope for Agent API | Least-privilege, agent-scoped token |
 | Hard rules left to LLM prose | Agent Script expressions |
-| Manual service-user setup | `sf agent generate agent-user` |
+| Manual service-user setup | `sf org create agent-user` |
 | Debugging routing by guesswork | `agent preview` trace files / Session Tracing |

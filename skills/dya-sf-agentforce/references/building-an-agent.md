@@ -35,7 +35,7 @@ Both end with an **authoring bundle** in the DX project that you code, preview a
 ### Generate an agent spec (optional, recommended)
 
 ```bash
-sf agent generate agent-spec --type customer --spec specs/agentSpec.yaml
+sf agent generate agent-spec --type customer --output-file specs/agentSpec.yaml --target-org <alias>
 ```
 
 Write this small YAML capturing the agent's purpose; without it the generated bundle is
@@ -44,8 +44,12 @@ boilerplate.
 ### Generate the authoring bundle
 
 ```bash
-sf agent generate authoring-bundle --spec specs/agentSpec.yaml
+sf agent generate authoring-bundle --spec specs/agentSpec.yaml --name "My Agent" --api-name My_Agent --target-org <alias>
 ```
+
+`--name` is the label and `--api-name` the API name, derived from the label when omitted. Pass
+`--no-spec` instead of `--spec` for the default boilerplate. Without `--spec`, `--no-spec` or
+`--name` the command prompts, and stalls under automation.
 
 An **`AiAuthoringBundle`** is the metadata component you author against. Inside it, a **`.agent`**
 file is the Agent Script — the agent's blueprint — beside a `<ApiName>.bundle-meta.xml` whose name
@@ -75,13 +79,16 @@ compiles.
 
 ```bash
 sf agent preview start --authoring-bundle My_Local_Agent
-sf agent preview send  --authoring-bundle My_Local_Agent
+sf agent preview send  --authoring-bundle My_Local_Agent --utterance "What can you help me with?"
 sf agent preview sessions
 sf agent preview end   --authoring-bundle My_Local_Agent
 
-# or against a published agent, capturing transcripts
+# or an interactive chat with a published, active agent, capturing transcripts
 sf agent preview --api-name My_Agent --output-dir ./transcripts
 ```
+
+A published agent must be **active** before you can preview it. `sf agent trace list | read |
+delete` reads the trace files every preview session records.
 
 **Unimplemented actions return mocked responses**, so you can test routing and conversation shape
 before writing any Apex. The Apex Replay Debugger works during a preview, and the transcripts show how the agent classified and routed.
@@ -109,10 +116,18 @@ Then code, preview and publish as above.
 
 ```bash
 sf agent test create --spec test-specs/resort-manager-tests.yaml --target-org <alias>
+sf agent test run --api-name Resort_Manager_Tests --wait 10 --target-org <alias>
 sf agent test list --target-org my-dev-org
 sf agent test results --job-id 4KBed00fakeahmPGAQ
 sf agent test resume  --job-id 4KBed00fakeahmPGAQ
+
+# the same YAML spec, run through the richer evaluation framework
+sf agent test run-eval --spec test-specs/resort-manager-tests.yaml --target-org <alias>
 ```
+
+`--api-name` on `test run` names the **test**, the `AiEvaluationDefinition` that `test create`
+deployed, not the agent. Without `--wait` the command returns at once and prints the `test resume`
+command to collect results.
 
 **Do not use `sf agent generate test-spec` here.** It is an interactive REPL prompting for each case,
 so it stalls under automation with no output. Write the spec YAML directly, or copy and edit one from
@@ -125,16 +140,22 @@ right parameters), and **grounding accuracy** (is the answer supported by retrie
 ## 5. Activate
 
 ```bash
-sf agent activate --target-org my-org
+sf agent activate --api-name My_Agent --version 2 --target-org my-org
 ```
+
+Without `--api-name` and `--version` the command prompts for both. `--version` is the number in the
+`vN.botVersion-meta.xml` file name.
 
 ## 6. Provision the agent user
 
 ```bash
-sf agent generate agent-user
+sf org create agent-user --target-org my-org
 ```
 
-Scope the agent user before activation; it is the security boundary. An agent runs as a user, and
+It creates "Agent User" with the Einstein Agent User profile and the `AgentforceServiceAgentBase`,
+`AgentforceServiceAgentUser` and `EinsteinGPTPromptTemplateUser` permission sets; name it in the
+script's `config` block as `default_agent_user`. Add access with `sf org assign permset`. Scope the
+agent user before activation; it is the security boundary. An agent runs as a user, and
 **that user's permissions decide what the agent can reach and surface**. See `dya-sf-permissions`.
 
 ## Anti-Patterns

@@ -160,7 +160,7 @@ current emphasis is Agentforce DX and credential security:
 
 ```bash
 sf agent generate template      # scaffold a runnable sample agent
-sf agent generate agent-user    # provision a service agent user in one command
+sf org create agent-user        # provision a service agent user in one command
 sf agent preview start|send|sessions|end   # scriptable interactive test sessions (GA)
 ```
 
