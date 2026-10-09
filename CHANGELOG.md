@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `authoring-bundle --name` is the **label**; `--api-name` sets the API name.
   - `agent test run` needs `--api-name`, the `AiEvaluationDefinition` name, and `--wait` to block. `agent preview send` takes `--utterance`, not `--message`, and `preview start` has no `--output-dir`. `agent activate` gains `--version`.
   - Added `sf agent test run-eval` and `sf agent trace list | read | delete`.
-- **Agent Script corrections in `dya-sf-agentforce`.** `@utils.set` and `@utils.end_session` are not utilities; the built-ins are `transition`, `setVariables` and `escalate`, and assignment is the `set` statement. A null check is `is None`, not `== null`.
+- **Agent Script corrections in `dya-sf-agentforce`.** `@utils.set` is not a utility; the built-ins are `transition`, `setVariables`, `escalate` and `end_session`, and assignment is the `set` statement. `escalate` needs a `connection messaging` block. A null check is `is None`, not `== null`.
 
 ## [0.8.0] - 2026-10-07
 

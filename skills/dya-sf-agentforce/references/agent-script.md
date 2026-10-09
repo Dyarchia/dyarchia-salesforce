@@ -221,7 +221,8 @@ else:
 |---|---|
 | `@utils.transition` | Move to another subagent — the routing primitive |
 | `@utils.setVariables` | Let the model fill variables from the conversation (slot filling) |
-| `@utils.escalate` | Hand off to a human |
+| `@utils.escalate` | Hand off to a human; needs a `connection messaging` block with an Omni-Channel route |
+| `@utils.end_session` | End the conversation immediately |
 
 Assign a variable deterministically with the `set` statement, not a utility.
 
