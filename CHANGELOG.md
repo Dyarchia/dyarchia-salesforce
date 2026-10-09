@@ -5,14 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.1] - 2026-10-09
 
-### Added
+### Fixed
 
-- **`dya-sf-agentforce` goes from overview to zero-to-expert: 8 references became 17, from 48 KB to 298 KB.** The gaps came from comparing it with Salesforce's `agentforce-adlc`, but every fact was confirmed in the official Agentforce developer guide or the `sf` 2.153.5 help, and written fresh: `agentforce-adlc` is CC BY-NC and was used only as a map of topics, and a 10-word overlap check against it finds nothing beyond XML boilerplate. New: `org-setup-and-agent-user.md`, `agent-design.md`, `agent-script-patterns.md`, `agent-actions.md`, `knowledge-and-data-libraries.md`, `testing-and-evaluation.md`, `observability.md`, `voice.md` and `troubleshooting.md`. `agent-script.md` is now the complete language reference, and the pitfalls, Apex-action, lifecycle and end-to-end files were rewritten around them. `SKILL.md` gains a reading route from zero.
-
-### Fixed (Agentforce)
-
+- **`dya-sf-agentforce` covered too little to build an agent end to end; it is now zero-to-expert, 8 references to 17, 48 KB to 298 KB.** The gaps came from comparing it with Salesforce's `agentforce-adlc`, but every fact was confirmed in the official Agentforce developer guide or the `sf` 2.153.5 help, and written fresh: `agentforce-adlc` is CC BY-NC and was used only as a map of topics, and a 10-word overlap check against it finds nothing beyond XML boilerplate. New: `org-setup-and-agent-user.md`, `agent-design.md`, `agent-script-patterns.md`, `agent-actions.md`, `knowledge-and-data-libraries.md`, `testing-and-evaluation.md`, `observability.md`, `voice.md` and `troubleshooting.md`. `agent-script.md` is now the complete language reference, and the pitfalls, Apex-action, lifecycle and end-to-end files were rewritten around them. `SKILL.md` gains a reading route from zero.
 - `default_agent_user` belongs in the `access` block; in `config` it is deprecated, although the CLI's sample template still uses it.
 - At API 68.0 there is no `GenAiPlannerBundle`, and `Bot` / `BotVersion` serve only Einstein Bots; the skill description no longer lists it as in scope.
 - `available when` narrows the tools the model may pick but does not enforce a step; a mandatory step needs a conditional `transition to`.
@@ -20,14 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SKILL.md` §4 told actions to log failures through Platform Events; it now forbids a logging object, in line with the rest of the library.
 - The "A/B Testing API" and the Agent Health Monitoring alert section were removed: no official source documents them.
 - `sf agent preview start --authoring-bundle` requires `--simulate-actions` or `--use-live-actions`; the sample project comes from `sf template generate project --template agent`, not `sf agent generate template`, which only packages non-Agent-Script agents. Fixed in `dya-sf-agentforce`, `dya-sf-cli` and `dya-sf-headless360`, together with the `sf agent adl` flags.
-
-### Changed
-
-- **The README says how to keep the plugin updated.** Claude Code leaves auto-update off for third-party marketplaces, and refreshing a marketplace from a shell does not update the plugin installed from it, so the upgrade step published with 0.8.0 never actually installed the new version. The new section gives both ways: enable auto-update once, or run the marketplace update followed by the plugin update.
-- **The README documents `npx skills add Dyarchia/dyarchia-salesforce`**, the agent-neutral installer that Salesforce's own `sf-skills` points to. It needed no change to the repo: the `skills` CLI finds all 26 skills under `skills/` as they are, verified with `--list`.
-
-### Fixed
-
 - **Winter '27 reaches every production org on 11 October 2026.** The shared `platform-deltas.md` gave the rollout as waves "through 3 and 10 October"; it now states the date from which every production org runs API 68.0, synced to the 25 skills that declare the fragment.
 - `.github/CODEOWNERS` carried its comment in Spanish; it is in English like every tracked file.
 - **`dya-sf-agentforce` and `dya-sf-cli` agree on the `sf agent` surface, checked against `sf` 2.153.5.** The two skills contradicted each other, and both were partly wrong:
@@ -37,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `agent test run` needs `--api-name`, the `AiEvaluationDefinition` name, and `--wait` to block. `agent preview send` takes `--utterance`, not `--message`, and `preview start` has no `--output-dir`. `agent activate` gains `--version`.
   - Added `sf agent test run-eval` and `sf agent trace list | read | delete`.
 - **Agent Script corrections in `dya-sf-agentforce`.** `@utils.set` is not a utility; the built-ins are `transition`, `setVariables`, `escalate` and `end_session`, and assignment is the `set` statement. `escalate` needs a `connection messaging` block. A null check is `is None`, not `== null`.
+
+### Changed
+
+- **The README says how to keep the plugin updated.** Claude Code leaves auto-update off for third-party marketplaces, and refreshing a marketplace from a shell does not update the plugin installed from it, so the upgrade step published with 0.8.0 never actually installed the new version. The new section gives both ways: enable auto-update once, or run the marketplace update followed by the plugin update.
+- **The README documents `npx skills add Dyarchia/dyarchia-salesforce`**, the agent-neutral installer that Salesforce's own `sf-skills` points to. It needed no change to the repo: the `skills` CLI finds all 26 skills under `skills/` as they are, verified with `--list`.
 
 ## [0.8.0] - 2026-10-07
 
@@ -296,6 +290,7 @@ reconstructed into unpublished releases.
 - The canonical form in the repository is the unpacked skill folder. `.skill` files are build artifacts produced on demand and not tracked in version control.
 
 [Unreleased]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.8.0...HEAD
+[0.8.1]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/Dyarchia/dyarchia-salesforce/compare/v0.6.0...v0.6.1
