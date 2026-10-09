@@ -5,19 +5,18 @@ The order in which you build an agent's parts.
 ## 0. Prerequisites
 
 Complete these steps before building anything; until Agentforce is on, the symptom is a missing
-button rather than an error.
+button rather than an error. Each step is detailed in `references/org-setup-and-agent-user.md`.
 
-1. **Pick an environment.** A **sandbox** copies production's metadata, so it tests against real
-   configuration; Developer and Developer Pro refresh often. A **scratch org** is empty and fast to
-   create, suiting source-driven work on one feature. A **Developer Edition** org is the free
-   permanent option for learning.
-2. **Turn on Data 360 first, if the agent will be grounded in it.** Setup › Data Cloud Setup Home.
-   **This can take up to 60 minutes**; proceed only once it finishes — see `dya-sf-data360`.
-3. **Enable Einstein.** Setup › Einstein Setup › *Turn on Einstein*.
-4. **Enable Agentforce.** Setup › Agentforce Agents. After enabling it the first time, refresh the
-   page or the **New Agent** button will not appear.
-5. **Create a Salesforce DX project** and authorise the org. Keep agents in a DX project under
-   version control; they are metadata.
+1. **Pick an environment**: a scratch org when the agent needs no Data Library, a Developer or
+   Developer Pro sandbox when it does (§1 there).
+2. **Enable the platform in order**: Data 360 (up to 60 minutes; wait for it), Einstein, the Trust
+   Layer, Agentforce, then refresh (§2–3 there). A scratch definition can switch Einstein and
+   Agentforce on at creation.
+3. **Create a DX project** with `sf template generate project --template agent` and authorise the
+   org (§4 there). Agents are metadata; keep them under version control.
+4. **Create the agent user** for a service agent before the first preview (§7 there).
+5. **Build the grounding** the agent answers from, if any, and wait until it is `READY`:
+   `references/knowledge-and-data-libraries.md`.
 
 ## 1. Two workflows, and which to choose
 
@@ -78,7 +77,7 @@ compiles.
 ### Preview while you build
 
 ```bash
-sf agent preview start --authoring-bundle My_Local_Agent
+sf agent preview start --authoring-bundle My_Local_Agent --simulate-actions
 sf agent preview send  --authoring-bundle My_Local_Agent --utterance "What can you help me with?"
 sf agent preview sessions
 sf agent preview end   --authoring-bundle My_Local_Agent
@@ -137,7 +136,26 @@ Test three things separately, because they fail for different reasons: **subagen
 (does the right subagent fire, and *not* fire when out of scope), **action selection** (right action,
 right parameters), and **grounding accuracy** (is the answer supported by retrieved data).
 
-## 5. Activate
+## 5. Scope the agent user before activating
+
+A service agent runs as its agent user, and **that user's permissions decide what the agent can
+reach and surface**. Create it before the first live preview:
+
+```bash
+sf org create agent-user --target-org my-org
+```
+
+```agentscript
+access:
+    default_agent_user: "agent.user.a1b2c3d4e5f6@example.com"   # ✅ access block, not config
+```
+
+The command grants only the platform baseline. Before activation, grant the objects, fields, Apex
+classes and flows the actions touch, then test in live preview. An employee agent carries no
+`default_agent_user`. Grants, symptoms of missing access and cross-org usernames:
+`references/org-setup-and-agent-user.md` §6–8; the access model is `dya-sf-permissions`.
+
+## 6. Activate
 
 ```bash
 sf agent activate --api-name My_Agent --version 2 --target-org my-org
@@ -146,24 +164,13 @@ sf agent activate --api-name My_Agent --version 2 --target-org my-org
 Without `--api-name` and `--version` the command prompts for both. `--version` is the number in the
 `vN.botVersion-meta.xml` file name.
 
-## 6. Provision the agent user
-
-```bash
-sf org create agent-user --target-org my-org
-```
-
-It creates "Agent User" with the Einstein Agent User profile and the `AgentforceServiceAgentBase`,
-`AgentforceServiceAgentUser` and `EinsteinGPTPromptTemplateUser` permission sets; name it in the
-script's `config` block as `default_agent_user`. Add access with `sf org assign permset`. Scope the
-agent user before activation; it is the security boundary. An agent runs as a user, and
-**that user's permissions decide what the agent can reach and surface**. See `dya-sf-permissions`.
-
 ## Anti-Patterns
 
 | Anti-Pattern | Correct approach |
 |---|---|
 | Building before enabling Einstein and Agentforce | Do the Setup steps first; the symptom is a missing button, not an error |
 | Enabling Data 360 and continuing immediately | It can take an hour; wait for the completion message |
+| `default_agent_user` in the `config` block | The `access` block; `config` is deprecated |
 | Using the Legacy Agentforce Builder for new work | The new builder, which produces an Agent Script file |
 | `sf agent create` without Agent Script | Generate an authoring bundle — Salesforce recommends against the scriptless path |
 | Skipping the agent spec | Ten minutes there yields a bundle shaped around your agent instead of boilerplate |

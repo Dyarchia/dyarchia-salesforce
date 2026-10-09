@@ -1,6 +1,6 @@
 ---
 name: dya-sf-agentforce
-description: Salesforce Agentforce (Winter '27, API v68.0) — agent design, Agent Script, Apex, Flow and prompt-template actions, Data 360 grounding, Agent API, testing and evals, Trust Layer. Applies to GenAiPlannerBundle, GenAiPlugin, GenAiFunction and GenAiPromptTemplate metadata, Agent Script files, agent actions, agent tests and evals. Load before creating or editing anything in this scope.
+description: Salesforce Agentforce (Winter '27, API v68.0) from zero to expert — agent design, Agent Script, actions, org setup and agent user, knowledge and data libraries, Agent API, testing and evals, observability, voice, troubleshooting, Trust Layer. Applies to .agent files, AiAuthoringBundle, AiAgentDefinition, GenAiPlugin, GenAiFunction and GenAiPromptTemplate metadata, agent actions, tests and evals. Load before creating or editing anything in this scope.
 ---
 
 # Salesforce Agentforce — From Zero to Expert
@@ -13,13 +13,27 @@ References:
 - `references/shared/platform-deltas.md` — release-coupled facts, including the security defaults an Apex action inherits.
 - `references/shared/sharing-and-access.md` — the permission model binding an agent's run-as identity. **Read before designing a customer-facing agent.**
 - `references/shared/governor-limits.md` — the budget an action spends, and why "one transaction per action" is no licence to skip bulkification.
-- `references/building-an-agent.md` — **the end-to-end path**: prerequisites and org setup, the two authoring workflows, CLI commands, testing and activation. Start here if you have never built one.
-- `references/agent-script.md` — the syntax: blocks, `->` logic versus `|` prompt instructions, variables, routing, `available when` guards.
+- `references/building-an-agent.md` — **the end-to-end path**, from an empty org to an active agent. Start here if you have never built one.
+- `references/org-setup-and-agent-user.md` — environments, Setup order, the agent user and every access layer it needs, including Data 360.
+- `references/agent-design.md` — discovery, agent type, router and subagents, what the script decides versus the model, verification gates, escalation, the agent spec.
+- `references/agent-script.md` — the complete language: execution model, every block, variables and types, instructions, expressions, tools and utilities.
+- `references/agent-script-patterns.md` — the official patterns as rules, with a pattern-per-need table.
 - `references/agent-control-flow-pitfalls.md` — constructs that compile but behave differently from how they read. Read before debugging an agent that "ignores" its script.
-- `references/agent-lifecycle-metadata.md` — the bundle on disk, why deploy is not publish, the writable-versus-snapshot bundle trap, and the `sf agent` surface.
-- `references/apex-actions.md` — `@InvocableMethod` / `@InvocableVariable` actions, action-type comparison, security, bulkification, error handling.
+- `references/agent-actions.md` — every action type, definition versus tool, properties, input and output binding, OpenAPI actions, named queries, security.
+- `references/apex-actions.md` — the Apex side of an action: the invocable contract, complex types, bulkification, user mode, citations.
 - `references/prompt-templates.md` — calling a template from code, batch generation with `AiJobRun`, moving templates between orgs.
-- `references/lifecycle-and-api.md` — the Agent API with real endpoints and payloads, invoking agents from Apex/Flow, `agent preview`, testing and evaluations.
+- `references/knowledge-and-data-libraries.md` — grounding: data libraries, the `knowledge` block, citations, retriever RAG, consuming MCP tools.
+- `references/agent-lifecycle-metadata.md` — metadata types at 67.0 and 68.0, draft, committed and active, publish, moving agents between orgs, packaging, the `sf agent` surface.
+- `references/lifecycle-and-api.md` — the Agent API with real endpoints and payloads, invoking agents from Apex and Flow.
+- `references/testing-and-evaluation.md` — the test spec, `AiEvaluationDefinition`, `sf agent test`, the Testing API and custom scorers, security testing, CI.
+- `references/observability.md` — preview traces, session tracing in Data 360, OpenTelemetry, the diagnose-reproduce-improve loop.
+- `references/voice.md` — the `modality voice` block, voice models and locales, voice instructions, SIP and TLS setup.
+- `references/troubleshooting.md` — symptom, cause and fix per phase, including the opaque publish "Internal Error".
+- `references/release-notes.md` — what Winter '27 adds, and the standing facts about Atlas, Agent Script and Agentforce DX.
+
+The route from zero: `building-an-agent.md` and `org-setup-and-agent-user.md`, then
+`agent-design.md`, `agent-script.md` and `agent-actions.md`, then grounding, testing and
+observability; keep `agent-control-flow-pitfalls.md` and `troubleshooting.md` open while you work.
 
 Agentforce actions are Apex and Flow: deep Apex rules are `dya-sf-apex`, the data layer that grounds
 agents is `dya-sf-data360`, and exposing agents across surfaces is `dya-sf-headless360`.
@@ -39,9 +53,12 @@ Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
 - **Since April 2026 a Topic is a subagent.** Functionality is unchanged; older documentation,
   parts of the UI and help-article URLs still say "topic". This skill says **subagent**.
 
-> Everything else Winter '27 adds — MCP interoperability, observability and custom scorers, Voice
-> improvements, Data 360 SQL from Apex, and the standing facts about Atlas 3.0, Agent Script and
-> Agentforce DX: `references/release-notes.md`.
+- **`default_agent_user` belongs in the `access` block.** In `config` it is deprecated, although
+  the CLI's own sample template still puts it there. Employee agents omit it.
+- **At 68.0 there is no `GenAiPlannerBundle`**, and `Bot` / `BotVersion` serve only Einstein
+  Bots. Source-control an agent as `AiAuthoringBundle` plus `AiAgentDefinition`.
+
+> Everything else Winter '27 adds: `references/release-notes.md`.
 
 ## Summary — The Five Commandments
 
@@ -49,7 +66,7 @@ Save Agentforce metadata and the Apex or Flow behind actions at `68.0`.
 2. **Enforce determinism where it matters** — use Agent Script and Apex actions for business-critical logic; let the LLM handle only the fuzzy, conversational parts.
 3. **Ground everything** — use Data 360 / retrievers / MCP for trusted, permission-aware context; prefer grounding over fine-tuning.
 4. **Build actions as Apex citizens** — bulkified, `with sharing`, `WITH USER_MODE`, structured errors; narrow and single-purpose.
-5. **Test, evaluate, observe, and trust** — run batch tests + Custom Scoring Evals before launch and Session Tracing after; keep the Einstein Trust Layer and least-privilege profiles on every path.
+5. **Test, evaluate, observe, and trust** — run spec tests and custom scorers before launch and Session Tracing after; keep the Einstein Trust Layer and least-privilege profiles on every path.
 
 ---
 
@@ -107,7 +124,9 @@ Pick the least-code option that fits, with a crisp label and description so Atla
 | Expose an existing SOQL query as an action | **Named Query** action | NO |
 | Deterministic business logic, callouts, complex cross-object work | **Apex `@InvocableMethod`** | YES |
 | Expose an existing Apex REST endpoint | **Apex REST agent action** (OpenAPI) | YES |
-| Call another active agent | **AI Agent action** (Apex/Flow) | maybe |
+| Hand work to another agent | **`connected_subagent`** with an `agentforce://` target | NO |
+
+> Every action type, its target and its properties: `references/agent-actions.md`.
 
 **Declarative for orchestration, Apex for deterministic logic the LLM must not improvise.** Keep each
 action narrow and single-purpose: Atlas composes small, well-described actions better than one giant
@@ -132,8 +151,8 @@ Class skeleton, wrappers and the bulk-in bulk-out signature: `references/apex-ac
 - **Return structured errors; do not throw.** Return a success flag and a human-readable message the
   agent can relay; the agent cannot explain a thrown exception to a user. A Flow-facing action is the
   **opposite**: throwing is how the fault message reaches a Fault Path. In a method serving both,
-  return the result and let the Flow branch on it. Log failures durably through Platform Events
-  (`dya-sf-apex`).
+  return the result and let the Flow branch on it. Never create a logging object or `Logger` class;
+  use `System.debug` with a level and the org's own framework if it has one (`dya-sf-apex`).
 
 ---
 
@@ -152,10 +171,12 @@ instructions: ->
 ```
 
 The decision is deterministic; the wording is the model's. Encode compliance, pricing, eligibility and
-routing after `->`; leave the conversational parts to `|`. Guard every subagent transition with
-`available when` so a persuasive customer cannot talk the agent past a check.
+routing after `->`; leave the conversational parts to `|`. `available when` only narrows which tools
+the model may pick; it does not force a step. Enforce a mandatory step with a conditional
+`transition to` at the top of the instructions, so a persuasive customer cannot talk the agent past
+a check.
 
-> Blocks, variables, action targets, routing and the full syntax: `references/agent-script.md`.
+> The full language: `references/agent-script.md`; patterns: `references/agent-script-patterns.md`.
 
 ---
 
@@ -180,9 +201,9 @@ permission-aware and auditable.
 
 - **Agent API** (REST) — start a session, send messages with context, receive structured responses,
   with **no logged-in user**. For server-side and customer-facing integrations.
-- **AI Agent action** (Apex / Flow) — trigger any active agent from automation: a Quick Action, a
-  screen flow, or limited agent-to-agent calls. Pass a user message and optional session id; capture
-  the response.
+- **From Apex or Flow** — trigger an active agent from automation: a Quick Action or a screen flow.
+  Pass a user message and optional session id; capture the response. Agent-to-agent handoff inside a
+  script is a `connected_subagent`, not this.
 
 Endpoints, payloads, the `bypassUser` identity switch and the `sequenceId` counter:
 `references/lifecycle-and-api.md`.
@@ -194,29 +215,36 @@ Endpoints, payloads, the `bypassUser` identity switch and the `sequenceId` count
 Test at scale before launch; one chat proves nothing.
 
 - **Testing Center** (UI) — simulate scenarios with initial state and context variables.
-- **Testing API** (REST) — batch-test many utterances; automate before activating.
-- **Evaluations** (Agentforce DX, Beta) — YAML/JSON eval suites from the CLI. **Custom Scoring Evals**
-  grade *decision quality*, not only whether an action ran.
-- **`agent preview`** (CLI, GA) — scripted sessions with **trace files** showing how the agent routed.
-  Unimplemented actions are mocked, so routing is testable before they are written.
-- **A/B Testing API** — compare agent versions against real traffic after launch.
+- **`sf agent test`** — a YAML spec deployed as `AiEvaluationDefinition`, run with
+  `test run --api-name <test> --wait`. The CLI exits 0 even when assertions fail, so gate CI on the
+  parsed JSON results.
+- **Testing API** (Connect REST) and **`sf agent test run-eval`** — richer evaluations over the same
+  spec. **Custom scorers** grade *decision quality*, not only whether an action ran.
+- **`agent preview`** — scripted sessions with **trace files** showing how the agent routed.
+  Simulated actions let you test routing before they are written.
 
-Test subagent classification, action selection and grounding accuracy separately.
+Run tests in a sandbox: they consume credits and change live data. Test subagent classification,
+action selection, grounding and out-of-scope refusals separately, and test security against the
+OWASP Top 10 for LLM applications.
+
+> Spec fields, CLI flags, scorers and CI: `references/testing-and-evaluation.md`.
 
 ---
 
 ## 9. Observability
 
-Query `ssot__AiAgentSession__dlm`, `ssot__AiAgentInteraction__dlm` and
-`ssot__AiAgentInteractionStep__dlm`, plus `GenAIGatewayRequest__dlm` and `GenAIGeneration__dlm` for
-prompts, tokens and model. Do not start from `ssot__TelemetryTraceSpan__dlm`: it needs separate
-provisioning and its key on steps is often empty.
+- **Before launch:** read preview traces with `sf agent trace list | read`; each step shows routing,
+  action inputs and outputs, grounding and safety scores.
+- **In production:** turn on Session Tracing, then query the session DMOs in Data 360
+  (`ssot__AiAgentSession__dlm`, `ssot__AiAgentInteraction__dlm`,
+  `ssot__AiAgentInteractionStep__dlm`) and the Trust Layer audit DMOs for prompts, tokens and model.
+  Query mechanics are `dya-sf-data360`.
+- **Export:** OpenTelemetry export (Beta) sends one session per call to an external backend.
 
-**Agent Platform Tracing** writes a **span** per action execution into **Data 360 DMOs**, queryable
-via SOQL and nested by parent. Reading them needs the Data Cloud Data Access permission set.
-`__dlm` marks a Data Model Object; see `dya-sf-data360`.
-**Session Tracing** and the Observability dashboards surface routing errors, slow actions and
-ungrounded answers.
+Run every production issue through diagnose, reproduce in preview, fix, and add the case to the test
+spec.
+
+> DMO hierarchy, both audit naming families, queries and the improve loop: `references/observability.md`.
 
 ---
 
@@ -263,9 +291,12 @@ actions — reasoning, not a hard-coded map.
 | Ground answers in unified/customer data | Data 360 grounding + custom retriever |
 | Ground from an external system | MCP tool (`dya-sf-headless360`) |
 | Run an agent server-side, no UI | Agent API |
-| Trigger an agent from automation | AI Agent action (Apex/Flow) |
-| Batch-test utterances | Testing API / Testing Center |
-| Grade decision quality | Custom Scoring Evals |
+| Trigger an agent from automation | Agent invocation from Apex or Flow |
+| Hand off to another agent in a script | `connected_subagent` (`agentforce://`) |
+| Ground in uploaded files or Knowledge | Agentforce Data Library + `knowledge` block |
+| Voice channel | `modality voice` block (`references/voice.md`) |
+| Batch-test utterances | `sf agent test` spec, Testing API, Testing Center |
+| Grade decision quality | Custom scorers (`run-eval`, Testing API) |
 | See how the agent routed | `agent preview` trace files / Session Tracing |
 | Coordinate specialist agents | Multi-agent orchestration |
 | Render agent output across channels | Agentforce Experience Layer (`dya-sf-headless360`) |
@@ -285,7 +316,7 @@ actions — reasoning, not a hard-coded map.
 | Raw `SObject` params / throwing raw exceptions to the agent | DTO wrappers + structured error results |
 | Apex for what a Flow or Prompt Template handles | Declarative action |
 | Widening a profile to silence a user-mode error | Grant only the minimum; fix the query |
-| Shipping without batch testing | Testing API/Center + evals before activation |
+| Shipping without batch testing | `sf agent test` spec + custom scorers before activation |
 | Overlapping subagent scopes | Focused, non-overlapping subagents |
 | Fine-tuning for fresh enterprise facts | Ground via Data 360 (fresh, permission-aware) |
 | Treating user input as trusted | Tight subagent scope + Apex input validation (prompt-injection guard) |

@@ -159,7 +159,7 @@ The Salesforce CLI's **220+ commands** are a first-class surface for automation 
 current emphasis is Agentforce DX and credential security:
 
 ```bash
-sf agent generate template      # scaffold a runnable sample agent
+sf template generate project --template agent   # project with a runnable sample agent
 sf org create agent-user        # provision a service agent user in one command
 sf agent preview start|send|sessions|end   # scriptable interactive test sessions (GA)
 ```

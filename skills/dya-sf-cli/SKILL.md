@@ -121,7 +121,7 @@ sf data import tree --files data/accounts.json
 sf data export tree --query "SELECT Id, Name FROM Account" --output-dir data
 
 # Agentforce DX
-sf agent generate template
+sf template generate project --name my-agents --template agent   # DX project with a sample agent
 sf agent preview --api-name My_Agent --output-dir transcripts
 ```
 

@@ -1,6 +1,6 @@
 # Agentforce Lifecycle & APIs — Reference Implementation (Winter '27 / API v68.0)
 
-Full implementations for SKILL.md §5, §7, §8.
+Invoking agents from Flow and Apex, and the Agent API for headless conversations.
 
 ## Invoking an Agent From Apex / Flow (AI Agent Action)
 
@@ -94,76 +94,21 @@ A response `message` carries `type` (for example `Inform`), the `message` text, 
 Treat it like any server integration: keep secrets out of the client, use a least-privilege token,
 and let the Trust Layer do masking and grounding. Salesforce publishes a Postman collection for the API.
 
-## Agentforce DX / CLI — Build and Preview
+## Agentforce DX — Scaffold, Preview, Test
+
+Start a DX project with the Local Info Agent sample, then provision the agent user in one command:
 
 ```bash
-# Scaffold a runnable sample agent (Local Info Agent: Apex + Prompt + Flow subagents)
-sf agent generate template
-
-# Provision a service agent user in one command (no manual setup)
+sf template generate project --name my-agents --template agent
 sf org create agent-user --target-org <alias>
-
-# Scripted interactive preview session (GA): start → send → list → end
-sf agent preview start --api-name My_Agent
-sf agent preview send  --session-id <id> --utterance "Where is order 12345?"
-sf agent preview sessions
-sf agent preview end   --session-id <id>
 ```
 
-`agent preview` writes **trace files** showing how the agent classified the topic, which actions it called, and what they returned.
+`sf agent generate template` is not a scaffold: it packages a `BotTemplate` from a namespaced org for
+managed-package distribution and does not work for Agent Script agents. The deploy, publish and
+activate commands are in `references/agent-lifecycle-metadata.md`.
 
-## Testing & Evaluation
-
-| Tool | Surface | Use |
-|---|---|---|
-| **Testing Center** | UI (Agent Builder) | Simulate scenarios with initial state + custom/standard context variables |
-| **Testing API** | REST | Batch-test many utterances programmatically; automate before activation |
-| **Evaluations** | CLI (Beta) | YAML/JSON-defined eval suites run headlessly |
-| **Custom Scoring Evals** | UI/API | Grade *decision quality*, not only whether an action ran |
-| **A/B Testing API** | REST | Compare agent versions against real production traffic |
-
-What to test, separately:
-- **Topic classification** — does the intended Topic fire for representative utterances (and *not* fire for out-of-scope ones)?
-- **Action selection** — does Atlas pick the right action and fill parameters correctly?
-- **Grounding accuracy** — is the answer supported by retrieved data (no hallucination)?
-
-Example eval (shape; exact schema evolves):
-
-```yaml
-# orders-eval.yaml
-name: order-status-eval
-testCases:
-  - utterance: "Where is my order 12345?"
-    expectedTopic: Order_Management
-    expectedActions:
-      - Get_Order_Status
-    contextVariables:
-      customerName: "Ada Lovelace"
-  - utterance: "I want to return a defective item"
-    expectedTopic: Returns
-```
-
-## Agent Health Monitoring Alerts
-
-Manage agent health alerts through the Tableau data-alerts resource, not an agent-shaped endpoint.
-**There is no `sf agent alert` subcommand.**
-
-```bash
-sf api request rest "/services/data/vXX.X/tableau/dataAlerts" --target-org <alias>
-```
-
-Alerts carry `dataAlertType: "agenthealthmonitoring"`. The UI equivalent lives at
-`/lightning/n/standard-AgentforceStudio?c__nav=alerts`.
-
-- **Pass `ownerId` on the list call**; it is required, and there is no unfiltered list.
-- **List and filter client-side**; a GET for a single alert returns 405. Delete returns 204.
-- **Express thresholds as raw 0–1 ratios, not display percentages.** 5% is `"0.05"`; `"1"` means
-  100%, not 1%. Getting it wrong fires the monitor on everything.
-- **Never post a GET body straight back**; it fails, because the POST field names and casing differ
-  from the GET response. POST uses `utterance` where GET returns `alertName`, and PascalCase `type`
-  discriminators.
-
-Notification counts from `/connect/notifications/status` are **org-global**, not per alert.
+- Previews, trace files and production telemetry: `references/observability.md`.
+- Test specs, `AiEvaluationDefinition`, the Testing API, custom scorers and CI: `references/testing-and-evaluation.md`.
 
 ## Agent Script — Primer
 
@@ -179,9 +124,8 @@ When migrating a legacy agent, let it auto-convert to Script, then run the optim
 
 | Anti-Pattern | Correct Approach |
 |---|---|
-| Eyeballing one chat as "testing" | Batch Testing API + evals + trace review |
-| Grading only "did the action run" | Custom Scoring Evals on decision quality |
 | Broad OAuth scope for Agent API | Least-privilege, agent-scoped token |
+| Reusing or resetting `sequenceId` | Increment it once per message in the session |
+| No `externalSessionKey` stored client-side | Generate one per conversation and log it as the correlation key |
 | Hard rules left to LLM prose | Agent Script expressions |
 | Manual service-user setup | `sf org create agent-user` |
-| Debugging routing by guesswork | `agent preview` trace files / Session Tracing |

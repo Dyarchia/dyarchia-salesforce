@@ -50,7 +50,7 @@ sf agent generate template                                # packaging for AppExc
 
 sf agent preview --api-name My_Agent --output-dir transcripts    # interactive chat, active agent
 sf agent preview start --api-name My_Agent                # scripted session on the published agent
-sf agent preview start --authoring-bundle My_Agent        # preview the bundle, not a published agent
+sf agent preview start --authoring-bundle My_Agent --simulate-actions   # bundle needs a mode flag
 sf agent preview send --session-id <id> --utterance "Where is order 123?"
 sf agent preview end --session-id <id>
 sf agent trace list | read | delete                       # trace files recorded by preview sessions
@@ -63,11 +63,14 @@ sf agent test run-eval --spec test-specs/my-tests.yaml    # same YAML, richer ev
 # Related: create the run-as user
 sf org create agent-user --target-org <a>
 
-sf agent mcp create | get | list | update | delete | fetch     # MCP servers from the CLI
+sf agent mcp create | get | list | update | delete | fetch     # MCP servers (Developer Preview)
 sf agent mcp asset list | replace -i <id>
-sf agent adl create | get | list | update | delete | status    # Agentforce Data Libraries
-sf agent adl upload --source-type sfdrive --library-id <id>
-sf agent adl file add | list | delete -i <id>
+sf agent adl create -n "Policies" --developer-name Policies --source-type sfdrive|knowledge|retriever
+sf agent adl get | list | update | delete | status              # Agentforce Data Libraries
+sf agent adl upload -i <library-id> -f policy.pdf              # first upload, sfdrive only: provisions the pipeline
+sf agent adl file add -i <library-id> -f more.pdf              # later files, into a READY library
+sf agent adl file list -i <library-id> [--status indexed|index_failed|...]
+sf agent adl file delete -i <library-id> --file-id <id>
 ```
 
 `agent preview` writes trace files. `--use-live-actions` runs real actions; `--simulate-actions`,

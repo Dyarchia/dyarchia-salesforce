@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`dya-sf-agentforce` goes from overview to zero-to-expert: 8 references became 17, from 48 KB to 298 KB.** The gaps came from comparing it with Salesforce's `agentforce-adlc`, but every fact was confirmed in the official Agentforce developer guide or the `sf` 2.153.5 help, and written fresh: `agentforce-adlc` is CC BY-NC and was used only as a map of topics, and a 10-word overlap check against it finds nothing beyond XML boilerplate. New: `org-setup-and-agent-user.md`, `agent-design.md`, `agent-script-patterns.md`, `agent-actions.md`, `knowledge-and-data-libraries.md`, `testing-and-evaluation.md`, `observability.md`, `voice.md` and `troubleshooting.md`. `agent-script.md` is now the complete language reference, and the pitfalls, Apex-action, lifecycle and end-to-end files were rewritten around them. `SKILL.md` gains a reading route from zero.
+
+### Fixed (Agentforce)
+
+- `default_agent_user` belongs in the `access` block; in `config` it is deprecated, although the CLI's sample template still uses it.
+- At API 68.0 there is no `GenAiPlannerBundle`, and `Bot` / `BotVersion` serve only Einstein Bots; the skill description no longer lists it as in scope.
+- `available when` narrows the tools the model may pick but does not enforce a step; a mandatory step needs a conditional `transition to`.
+- Another agent is reached through `connected_subagent` with an `agentforce://` target, not an "AI Agent action".
+- `SKILL.md` §4 told actions to log failures through Platform Events; it now forbids a logging object, in line with the rest of the library.
+- The "A/B Testing API" and the Agent Health Monitoring alert section were removed: no official source documents them.
+- `sf agent preview start --authoring-bundle` requires `--simulate-actions` or `--use-live-actions`; the sample project comes from `sf template generate project --template agent`, not `sf agent generate template`, which only packages non-Agent-Script agents. Fixed in `dya-sf-agentforce`, `dya-sf-cli` and `dya-sf-headless360`, together with the `sf agent adl` flags.
+
 ### Changed
 
 - **The README says how to keep the plugin updated.** Claude Code leaves auto-update off for third-party marketplaces, and refreshing a marketplace from a shell does not update the plugin installed from it, so the upgrade step published with 0.8.0 never actually installed the new version. The new section gives both ways: enable auto-update once, or run the marketplace update followed by the plugin update.

@@ -48,7 +48,7 @@ Two skills are exempt from that version, as their Platform Context states: **`dy
 ### AI and data
 
 - **`dya-sf-agentforce`**
-  Agent anatomy (Topics/Instructions/Actions), Agent Script, Apex/Flow/Prompt actions, Data 360 grounding, Agent API, evals, Trust Layer.
+  Zero to expert — org setup and agent user, agent design, the complete Agent Script language and its patterns, every action type, knowledge and data libraries, Agent API, testing and custom scorers, observability, voice, troubleshooting, Trust Layer.
 - **`dya-sf-data360`**
   Data 360 (Data Cloud) — ingest→DLO→DMO→identity→insights→activation, zero-copy, SOQL on DMOs, Query/Connect API, segments, credit governance.
 - **`dya-sf-headless360`**
